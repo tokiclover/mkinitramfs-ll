@@ -1,20 +1,157 @@
-KNON ISSUES UPDATE:
-
-* The `log in lockup' seems to have disappeared completely on my desktop and laptop which is good. In fact, 
-I tried resetting `RC_SVCDIR'--replacing `: ${RC_SVCDIR:=/lib64/rc/init.d}' by a simple `RC_SVCDIR=/var/rc.init.d'--and 
-rc-svcdir was in fact mounted there after rebooting. That resetting was necessary since just replacing `/lib64/rc/init.d' 
-by `/var/rc.init.d' did not do the trick. However the change wasn't kept after the next reboot but rc-svcdir was mounted 
-on `/lib64/rc/init.d/' on a squashed usr and my mod disappeared and no log in errors!
-
-* Now I have an unxpected issue when resuming from hibernation with my desktop. The script runs seamlessly on my laptop 
-and I can resume in no time. However, this doesn't work on my desktop. After a hibernation to a swap file TuxOnIce 
-fails to resume because if fails to lock the logical volume (LV) where the swapfile is located. I runned 
-`cat /sys/power/tuxonice/resume' for sanity check and was stunned to notice this 
-`file:/dev/<my VG>/<my LV>:<swap file signature>' instead of `file:/dev/mapper/<my VG>-<my LV>:<swap signature>' 
-as that value should be assigned before the previous one. And then went to check if in fact `/dev/<my VG>' was available 
-and IT WAS which is not on my laptop. Now I don't get why TOI fails to lock up the LV.
-
-* I had an issue with v86d helper which came out after a while, I got `uvesafb: fails to run /sbin/v86d...'. 
-I can't find a reason for this failure yet because you can append several initrd on the kernel cmdline, and 
-I can see the `*v86d-initrd.xz' was loaded. Workaround is include v86d|tuxonice|fb helpers in your main 
-`*ll-initrd.xz' init ram disk. After that, I have a more usable screen.
+# revision of 2011-06-27.2
+#
+# WARNING: USE AT YOUR OWN RISK!
+#
+# Arguments:
+#   init script supports the following:
+#     init specific: 
+#      * iroot=<PV|VG-LV>[:c:<fs>]		root device--required, recommanded optinal `:c:ext4' arg for an ext4 to fsck rootfs. 
+#      * [imtopt=<ro,inode64,...>]   		optional mount options for rootfs e.g. imtopt=inode64,logdev=/dev/<VG>/<LV>.
+#      * ikmap=<kmap>[:<font>]      		Load kmap and optional font.
+#      * rescue                     		Drops you into a minimal shell
+#      * iswap=<type>:<PV|VG-LV>[:signature] 	swap   {PV,LV}|file e.g. iswap=swap:sda2 for a swap devce.
+#      * iresume=<type>:<PV|VG-LV>[:signature] 	resume {PV,LV}|file e.g. iresume=file:<VG>-<LV>:0x4400 for a swapfile in a LV.
+#      * ichkpt=<n>                 		Interrupts init and drops to shell.
+#      * ikroot=<mode>:<device>:</path/to/file> ik* args for passwd|keyfile.
+#      * ikswap=<mode>:<device>:</path/to/file>
+#      * ikresume=<mode>:<device>:</path/to/key/file>
+#      * isqfsd=<y|n>,<y|n|a>,<dir1>:<dir2>	Mount squashed (squashfs+aufs2) directories, see below for more info.    
+#      * ilvm=<pv1-sda1:pv2-sdb1:pv3-sdc2>,<pv4-sda2:pv5-sdd1:pv6-sdb5>,<pv7-sdb6:pv8-sdh1>
+#
+#	NOTE on ilvm args: Actually a PV in a group, respectively root, swap, resume is given by <mapping-sd<xy>>, 
+#	the mmapping being a mapping for cryptsetup, and sd<xy> being a block device|partition without the `/dev/' prefix.
+#
+#       == About mount options ==
+#	imtopt=<rootfs mount options>
+#	Say, you have a rootfs=xfs|jsf|reiser|ext* and want to mount your rootfs with specific opts. In case of xfs, for exemple, 
+#	just create your log LV on a different PV than what you're logging from. 
+#
+#       == About key files ==
+#       For partitions that are encrypted with a key, you must set 'ikroot' and/or 'ikswap' and/or 'ikresume' properly,
+#       otherwise you'll be asked for a passphrase as fall back for each PV.
+#       This information is then used to obtain each key file from the specified removable media. 
+#
+#       <mode>           		- defines how the init script shall treat the supplied keyfile (see below). 
+#       Supported modes:
+#       * gpg      -> indicates keyfile is gpg-protected
+#       * ldk      -> indicates keyfile is luks encrypted, via loop back device.
+#       * reg      -> indicates keyfile is regular file
+#       * pwd      -> indicates root is encrypted on regular passphrase, if no argumenti in ikroot=, fallback will be luks+passwd.
+#       * none     -> indicates root will be mounted on unencrypted fs, this argument should be explicitely set.
+#	<device|dev>         		- the device or PV that will be assigned to the removable media e.g. sda*, sdb* or the likes.
+#
+#       NOTE on '/dev/' prefix: And there's no need to provide the '/dev/' prefix for root|swap|resume. In fact, if you do
+#               provide a '/dev/' prefix for any of those init args, processing those args may fail. cryptsetup_exec() check for that, 
+# 		and if there's not '/dev/' prefix, append it. This was done to limit the length of the init args.
+#
+#       </path/to/file>  		- full path to file inside the removable media.
+#       <vgZYX-sdYX> 			- each device or partition of a given VG is given with <mapping>-<device|partition|PV>. 
+#       <PV|VG|LV>			- {Physical,Logical} Volume, Volume Group.
+#
+#       == About squashed directories ==
+#	You can use squashfs+aufs2 to 'squash' your root partition or preferably directories like usr/portage:var/lib/layamn, or 
+#	system related directories like usr:lib{32,64}:{,s}bin. The benefit will be a really fast system.
+#	
+#		o isqfsd=n,y,/sqfsdir[,<dir1>:<dirn>]	- here you're using uv_sqfsd but not uv_sqfsdir, so you have to provide a sqfsdir,
+#							hence the required sqfsdir.
+#		o isqfsd=/sqfsdir,<dir 1>:<dir n>	- you're not using neither uv_sqfsdir nor uv_sqfsd, so you can threw away the n,n.
+#		o isqfsd=y,y				- of course using uv_sqfsd and uv_sqfsdir so no additional argument is riquired. 
+#		o isqfsd=y,a,<dir 1>[:<dir n>]		- same as above, however, <dir 1> is  appended to sqfsd.
+#
+#	 The leading '/' slash is only required for [uv_]sqfsdir, else mounting squashed dirs will fail. But it's not for squashed dirs
+# 	 i.e. you provide the value like this: [uv_]sqfsdir=/sqfsd and [uv_]sqfsd=usr:opt:bin:sbin or isqfsd=/sqfsd,usr:opt or the likes.
+#
+#        == Notes on keys ==
+#        o gpg encrypted key-file -->   now works quite well with... tested with 1.4.11; 2.0 seems to rquire too much trouble. 
+#	 o ldk encrypted key-file -->   will be passed to cryptsetup as `-d /dev/mapper/<name of your key file>' after being decrypted.
+#				        Now, there's a warning `Warning: exhausting read requested, but key file is not a regular file, 
+#					function might never return.' that I can't figure out the source after googling. However, decryption
+#					goes as expected, it seems. No issue at the moment.
+#        o regular key-file       -->   will be passed to cryptsetup as `-d <key-file>'.
+#	 o pwd			  -->   now, you can, because it's not mandatory, you don't even have to put any ikroot=* 
+#					argument to be prompted for a password as a fallback, set `ikroot=pwd'. However...
+#	 o none		   	  -->   it should be explicitely appended to mount an unencrypted rootfs. 
+# 					I added this mode for testing purpose for those, like me, 
+#					who have a working system before encrypting rootfs with LUKS.
+#	
+#        WARNING: Back up your data! else... you may lose a few of...
+# 
+#        == Kernel parameters example ==
+#        o) Root--no key--unencrypted PV: iroot=sda3 ikroot=none ikmap=es-cp850_i686.bin    
+#        o) Root--key regular passphrase--plus fbsplash: iroot=sda3 ikroot=pwd vga=0x318 \
+#	    video=vesafb:mtrr,ywrap splash=verbose,theme:livecd-2006.0 quiet CONSOLE=/dev/tty1
+#        o) Root--regular keyfile on usb stick: iroot=sda3 ikroot=reg:sdb1:/path/to/keyfile
+#        o) Root--gpg encrypted key on usb stick: iroot=sda3 ikroot=gpg:sdb1:/path/to/file
+#        o) Swap and root--ldk encrypted keyfiles: iroot=sda3 iswap=swap[|file]:sda2[:signature] \
+#	    ikroot=ldk:sdb1:/path/to/rootkey ikswap=ldk:sdb1:/path/to/swapkey
+#        o) Regular swap--AND TuxOnIce resume on a different PV--regular passphrase: 
+#           iswap=swap:sda2 iresume=swap:sda3:0x4400 ikswap=pwd ikresume=pwd
+#        o) Swap file--resuming from hibernation--ldk protected keyfile on usb stick:
+#           iswap=file:sda3:0x4400 iresume=toi[|or any CHAR or WORD] ikswap=ldk:sdb1:/path/to/swapkey
+#	    
+#	NOTE for ldk mode: now I use a single LUKS encrypted keyfile to decrypt rootfs, the host PV|LV of a swapfile. You can use 
+#	multiple LUKS encrypted keyfile if you want to, or even type a pwd for each PV, however, this will take some time. Now LVM2...
+#
+#	 o) Crypted LVs [root,swap] using LVM2--ldk crypted keyfile and--plus mount options for rootfs:
+#	    iroot=vg0-lv1 iswap=file:vg1-lv0:0x4400 ilvm=vg0a1-sda1:vg0b2-sdb2,vg1c1-sdc1 ikroot=ldk:sdg1:/path/to/keyfile
+#	    ikswap=ldk:sdg1:/path/to/keyfile imtopt=logdev=/dev/vg1/lv1,inode64,barrier
+#
+#	 == Modules == 	
+#       If you need to load modules, create the groups you need in /etc/modules/ (inside initramfs / ),
+#       each file should be a list of the modules, and each file name denotes the step in the init where they should be loaded.
+#       Supported groups:
+#                * boot           -  boot time modules loaded but not removed. If you squash some dirs, aufs module is required here.
+#                * tuxonice       -  tuxonice module, wich aren't removed if you don't comment in a line.
+#                * remdev         -  modules required to access removable device
+#                * gpg            -  modules required to access gpg protected file.
+#		 * sqfsd	  -  modules required for squashfs+aufs2, you can still build in squashfs modules in the kernel,
+#				  it's not the same case with aufs2, which aren't removed, although you can comment in a line for that.
+#
+#	o The modules should exist on /lib/modules/`uname -r`/ , like in your system.
+#       o Your kernel has to support module unloading for rmmod to work.
+#
+# BUGS/KNOWN ISSUES:
+#     (b0) fbsplash: when setting the splash mode from silent to verbose,
+#                 verbose image is not painted and text is not visible.
+#                 WORKAROUND: boot with verbose instead.
+#
+#     (ki0) The length of init arguments should be reduced--did all the possible means on 20110617 release. With kernel 2.6.38 the length 
+#     is 512 caracters, with root, swap and resume file 250 caharacters or so remains. There's plenty of room.
+#     (ki1) The aforementionned warning with loop back encrypted key file.
+#     (ki2) Whenever you don't mount the squashed dirs in the initrd, somtimes, it may be necessary to /etc/init.d/sqfsdmount{ zap;, start}
+#     manually to mount the system suqashed dirs if it's not done however it should be. In this case, you might run [tel]init 3[|4] if need
+#     be to finish the start up. If ever you forget to umount /{proc,sys,dev} in the minimal shell you should run `init 1' then restart udev,
+#     dbus and run `init 3' or somthing similar to have a working system.
+#
+# ToDo: Done. However, if somebody want anything else... feel free to do it of course. And now I added LVM2... done I'm saying...
+#
+# History: (y/m/d)
+# ------------------
+# 2011.06.26 - by the same ... gnupg 1.4.* update--now one has 3 attempts before the pwd fallback.
+# 2011.06.17 - by the same ... added defaults mnt opts for rootfs and `nodev,noatime' for aufs mount--REVERSED on 06.18.
+# 2011.06.15 - by the same ... added fsck for rootfs: `:c:<fs>' should be appeded to `iroot=*' arg.
+# 2011.05.20 - by the same ... now +LVM2+mnt opt for rootfs [something like imtopt=logdev=/dev/<VG>/<LV> works! 
+#    actually put this /dev/mapper/<VG-LV> insted as /dev<VGs> are not available in the limited environement]
+#    Major update/fix for swap[file]-resume. I did not test for swap PV|LV... it should work... as a swap|resume-file.
+#    Gave up the idea for an encrypted swapfile, it's a bit complicated since all mounted fs shall not be mounted for TOI. 
+# 2011.05.06 - by the same [some]body who... 
+#    script clean up [over 30 lines less]; and fix for a major error [line 442-445] and a minor fix.
+# 2011.05.05 - by somebody who wanted LUKS+AUFS2+SQUASHFS+ENCRYPTED KEY FILE and... 
+#    hibernation to a swap file now and then. It seems, I'm the only one who's interested in...
+# 2006.08.24 - Federico Zagarzazu
+#    Fix: call splash_setup() if fbsplash args exist   
+# 2006.08.06 - Federico Zagarzazu
+#    Released.
+# 2006.08.06 - Federico Zagarzazu
+#    Fixed: /dev/device-mapper /dev/mapper/control issue otherwise it fails on my amd64 system
+# 2006.08.04 - Federico Zagarzazu
+#    Bug fixes, several improvements. Test phase finished.
+# 2006.06.20 - Federico Zagarzazu
+#    Written.
+# 
+# Thanks to 
+# ---------------------------------------------------------------
+# o Alon Bar-Lev [http://wiki.tuxonice.net/EncryptedSwapAndRoot]
+#         I stole ideas, general structure and entire functions from his init script.
+# o Andreas Steinmetz [kernel doc: power/swsusp-dmcrypt.txt]
+# ---------------------------------------------------------------
