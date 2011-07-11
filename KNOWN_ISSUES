@@ -1,0 +1,20 @@
+KNOWN ISSUES UPDATE:
+
+* The `log in lockup' seems to have disappeared completely on my desktop and laptop which is good. In fact, 
+I tried resetting `RC_SVCDIR'--replacing `: ${RC_SVCDIR:=/lib64/rc/init.d}' by a simple `RC_SVCDIR=/var/rc.init.d'--and 
+rc-svcdir was in fact mounted there after rebooting. That resetting was necessary since just replacing `/lib64/rc/init.d' 
+by `/var/rc.init.d' did not do the trick. However the change wasn't kept after the next reboot but rc-svcdir was mounted 
+on `/lib64/rc/init.d/' on a squashed usr and my mod disappeared and no log in errors!
+
+* Now I have an unxpected issue when resuming from hibernation with my desktop. The script runs seamlessly on my laptop 
+and I can resume in no time. However, this doesn't work on my desktop. After a hibernation to a swap file TuxOnIce 
+fails to resume because if fails to lock the logical volume (LV) where the swapfile is located. I runned 
+`cat /sys/power/tuxonice/resume' for sanity check and was stunned to notice this 
+`file:/dev/<my VG>/<my LV>:<swap file signature>' instead of `file:/dev/mapper/<my VG>-<my LV>:<swap signature>' 
+as that value should be assigned before the previous one. And then went to check if in fact `/dev/<my VG>' was available 
+and IT WAS which is not on my laptop. Now I don't get why TOI fails to lock up the LV.
+
+* I had an issue with v86d helper which came out after a while, I got `uvesafb: fails to run /sbin/v86d...'. 
+I can't find a reason for this failure yet because you can append several initrd on the kernel cmdline, and 
+I can see the `*v86d-initrd.xz' was loaded. Workaround is include v86d|tuxonice|fb helpers in your main 
+`*ll-initrd.xz' init ram disk. After that, I have a more usable screen.
