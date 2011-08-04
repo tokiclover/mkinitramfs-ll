@@ -1,108 +1,175 @@
-# 2011-06-27: second release of the day... because of an error line 500,11 on parsing ikresume=*. 
-init_luks-lvm-sqfsd-lbd_20110627.2 and here [http://dl.free.fr/o2CZeC4Fj] for pastebin link.
-[http://pastebin.com/SVBxiJBV]
+##################################################################################
+## ToDo: Done. However, if somebody want anything else... feel free to do it 	##
+## of course. And now I added LVM2... done I'm saying...			##
+##################################################################################
 
-# 2011-06-27: I've noticed yesterday after posting yesterday release that: the fallback to 'pwd' 
+* 2011-08-04: added rootfs option to mount for those who do not want automatic mount.
+I'm trying to implement a clever exec_cryptsetup() which should ask for another PV if 
+the device is not a valid LUKS PV or create/luksFormat the PV with default value for 
+-c* -s* and -d/* if there's any key-file. Now, it's been a while since a few 
+messages from `echo' are not displayed and I have no clue on the whys--at first I 
+suspected the different `/bin/sh' instances but it seems it's not the case. Running 
+the script with bash as the /bin/sh works without the echo output messages, with 
+busybox I got nothing than an unresponsive sh.
+
+* 2011-06-27: second release of the day... because of an error line 500,11 on 
+parsing ikresume=*. init_luks-lvm-sqfsd-lbd_20110627.2 and here [http://dl.free.fr/o2CZeC4Fj] 
+for pastebin link. [http://pastebin.com/SVBxiJBV]
+
+* 2011-06-27: I've noticed yesterday after posting yesterday release that: the fallback to 'pwd' 
 mode and the 3 attempts of 'gpg' mode did not work at all. Well, the second issue was introduced 
 because I was trying to avoid kernel panics introduced by `((...))' of a simple for loop. You're 
 folowing? Anyway, that part was a real headache after rewriting several times that part to avoid 
 kernel panics and make the three attempts work. Here is the new release fixing both issues. 
-Here for the file and there for pastebin. And the `how to use' the script was edited to fit the new initscript.
-[http://dl.free.fr/mxZiXHhmb] [http://pastebin.com/dWStNbUG]
+Here for the file and there for pastebin. And the `how to use' the script was edited to fit 
+the new initscript. [http://dl.free.fr/mxZiXHhmb] [http://pastebin.com/dWStNbUG]
 
-# 2011-06-26: now these days are busy... I've tried to run gnupg-1.4.* and 2.* in the minimal environment 
-to see if I could do something before deciding to remove gpg from the initramfs, and then noticed 
-that I could get 1.4.* to work with a little effort. Well, that what I thought at least when realizing 
-that 1.4.* required only `/usr/share/gnupg/options.skel' to work in the minimal shell. Now, this little 
-update was a really headache since a simple for loop like `for (( i=0; i<3; i++ )); do LIST; done' and a 
-few while loop variations of that gave a kernel panics of something that worked on a working AMD64 setup. 
-And then came a simple evaluation like `((var+=1))' in a while loop that gave another real headache with 
-kernel panics. Anyway, here is that painfull update--file and here the pasbin link--for a simple update. 
-And I updated the gnupg related section which give now 3 attempts before going to the `pwd' decryption mode. 
-Now, I don't know how `gpg' will behave for multiple PVs because I did not test it. And anyway, gnupg 
-create a /.gnupg/gpg.conf the first time it is runned, so I copied it to my initramfs hopping to get use 
-of it only to be ignored with `//.gnupg/gpg.conf' the next time you use the initramfs. 
-Darn, that thing could be of use if only... [http://dl.free.fr/g32pQkVtR]
+* 2011-06-26: now these days are busy... I've tried to run gnupg-1.4.* and 2.* in the minimal 
+environment to see if I could do something before deciding to remove gpg from the initramfs, 
+and then noticed that I could get 1.4.* to work with a little effort. Well, that what I thought 
+at least when realizing that 1.4.* required only `/usr/share/gnupg/options.skel' to work in the 
+minimal shell. Now, this little update was a really headache since a simple for loop like 
+`for (( i=0; i<3; i++ )); do LIST; done' and a few while loop variations of that gave a kernel 
+panics of something that worked on a working AMD64 setup. 
+And then came a simple evaluation like `((var+=1))' in a while loop that gave another real 
+headache with kernel panics. Anyway, here is that painfull update--file and here the pasbin 
+link--for a simple update. And I updated the gnupg related section which give now 3 attempts 
+before going to the `pwd' decryption mode. 
+Now, I don't know how `gpg' will behave for multiple PVs because I did not test it. And anyway, 
+gnupg create a /.gnupg/gpg.conf the first time it is runned, so I copied it to my initramfs 
+hopping to get use of it only to be ignored with `//.gnupg/gpg.conf' the next time you use 
+the initramfs. Darn, that thing could be of use if only... [http://dl.free.fr/g32pQkVtR]
 [http://pastebin.com/qsBQA9sz] 
 
-# 2011-06-25: minor revision bump; slightly updated sqfsdmount initservice to have more modular 
+* 2011-06-25: minor revision bump; slightly updated sqfsdmount initservice to have more modular 
 functions--,now one can easily adapt sqfsd_{,u}mount{,ro} to its needs,--and sqfsd-rebuild.sh. 
-Thinking about the last topic about properly unmounting everything before shutting down. Now everything 
-is umounted but usr:lib64 for the reasons exposed before. Everything seems fine so I updated the initscript 
-to take account of this. I guess the last thing to do in order to be able to umount usr/lib64 properly will 
-require a hack of localmount and/or using local.d scripts--as those are run first. I'll see if I can do somthing 
-straightforward... Here the links: init_luks-lvm-sqfsd-lbd_20110625 and here for the file, sqfsd-rebuild.sh 
-and sqfsdmount. [http://pastebin.com/Ri3NdtvT] [http://pastebin.com/9dhs6JJQ] [http://pastebin.com/in6nk43j]
+Thinking about the last topic about properly unmounting everything before shutting down. 
+Now everything is umounted but usr:lib64 for the reasons exposed before. Everything seems fine 
+so I updated the initscript to take account of this. I guess the last thing to do in order to be 
+able to umount usr/lib64 properly will require a hack of localmount and/or using local.d 
+scripts--as those are run first. I'll see if I can do somthing straightforward... 
+Here the links: init_luks-lvm-sqfsd-lbd_20110625 and here for the file, sqfsd-rebuild.sh 
+and sqfsdmount. [http://pastebin.com/Ri3NdtvT] [http://pastebin.com/9dhs6JJQ] 
+[http://pastebin.com/in6nk43j]
 
-# 2011-06-18: Yet another--the 3rd!--release in two days! There's nothing particular in this one features wise, 
-I've just went to war to make the variables names shorter but seem to have forgotten the ikey_* ones. Here is 
-my redemption for that unforgivable mistake: `ikey_' became only `ik' and updated the above section. Now all the 
-possibles means to reduce cmdline length were used. Here is the salvation file init_luks-lvm-sqfsd-lbd_20110618 
+* 2011-06-18: Yet another--the 3rd!--release in two days! There's nothing particular in this 
+one features wise, I've just went to war to make the variables names shorter but seem to have 
+forgotten the ikey_* ones. Here is my redemption for that unforgivable mistake: 
+`ikey_' became only `ik' and updated the above section. Now all the possibles means to reduce 
+cmdline length were used. Here is the salvation file init_luks-lvm-sqfsd-lbd_20110618 
 and here the pastebin link. [http://dl.free.fr/mqrhV4oiJ] [http://pastebin.com/mPMSKwia] 
 
-# Second release of the day! busy day you say? Well, I've just decided to reverse the noatime mount option for 
-rootfs and aufs branch. aufs branches are mounted with relatime... which is better from noatime for a compatibility 
-stand point and the kernel default to that mod since kernel 2.6.30 if noatime is not explicitely passed to mount. 
-Those who want noatime for rootfs and aufs branches can grap the previous release and the others this one. Anyway 
-here the goody: init_luks-lvm-sqfsd-lbd_20110617.2b and here the pastebin link. The decision was made after a little 
-checking to be sure if the noatime option was a good idea after all.
-[http://dl.free.fr/lCsa3AiMq] [http://pastebin.com/QLd1BcX7]
+* Second release of the day! busy day you say? Well, I've just decided to reverse the noatime 
+mount option for rootfs and aufs branch. aufs branches are mounted with relatime... which is 
+better from noatime for a compatibility stand point and the kernel default to that mod since 
+kernel 2.6.30 if noatime is not explicitely passed to mount. 
+Those who want noatime for rootfs and aufs branches can grap the previous release and the 
+others this one. Anyway here the goody: init_luks-lvm-sqfsd-lbd_20110617.2b and here the 
+pastebin link. The decision was made after a little checking to be sure if the noatime option 
+was a good idea after all. [http://dl.free.fr/lCsa3AiMq] [http://pastebin.com/QLd1BcX7]
 
-# 2011-06-17: updated the rootfs mount options--added noatime as default mount option--just add yours if need be; 
-and added `noatime,nodev' for aufs mount. Change logs was updated too with little editing of the `explanantion notice' 
-to reflect the changes. Here is a new pastbin link... and here the regular file link init_luks-lvm-sqfsd-lbd_20110617 
-copy the raw data or remove the 8 first spaces with a quick sed script. A link to the file will come soon!
+* 2011-06-17: updated the rootfs mount options--added noatime as default mount option--
+just add yours if need be; and added `noatime,nodev' for aufs mount. Change logs was updated 
+too with little editing of the `explanantion notice' to reflect the changes. Here is a new 
+pastbin link... and here the regular file link init_luks-lvm-sqfsd-lbd_20110617 
+copy the raw data or remove the 8 first spaces with a quick sed script. A link to the file 
+will come soon!
 
-Now I'm starting to think that the mount in ro mode for sys squashed directories wasn't enough as some orphan inodes 
-will always be left (from aufs branch?). This is a real issue because I'd like to umount everything before shutting 
-down which is done with localmount--with a little hassle though. One cannot umount sys squashed directories when the 
-system is being shutting down as many libraries/binaries are used. It might be too risky to umount everything but 
-lib64 and usr so I don't try that. If someone has an idea do not hesitate to post something. Of course finding a way 
-to umount {,s}bin:opt:lib32 seamlessly will make it quicker to shutdown,just take a look of your rc.log to see 
-localmount fighting to shutdown everything--there's a first attempt to umount the squashed image before it actually 
-succed after umounting aufs branches.
-[http://dl.free.fr/vLWi0OZKx] 
+Now I'm starting to think that the mount in ro mode for sys squashed directories wasn't 
+enough as some orphan inodes will always be left (from aufs branch?). This is a real issue 
+because I'd like to umount everything before shutting down which is done with localmount--
+with a little hassle though. One cannot umount sys squashed directories when the system is 
+being shutting down as many libraries/binaries are used. It might be too risky to umount 
+everything but lib64 and usr so I don't try that. If someone has an idea do not hesitate 
+to post something. Of course finding a way to umount {,s}bin:opt:lib32 seamlessly will make 
+it quicker to shutdown,just take a look of your rc.log to see localmount fighting to shutdown 
+everything--there's a first attempt to umount the squashed image before it actually succed 
+after umounting aufs branches. [http://dl.free.fr/vLWi0OZKx] 
 
-# 2011-06.16: I've decided to update the script to get fsck... it' was troublesome to check rootfs with the previous 
-ones,--actually not that troublesome, one had to: either drop to the minimal shell and then run something like 
-`exec switch_root /newroot /sbin/init 1' to bring your machine directly to single user mode; or either starting 
-normally and then log in and bringing the machine to single mode user; and then fsck rootfs. Well, dropping to 
-the minimal shell is preferable as you don't mount a possibly damaged rootfs before checking it. That was not 
-difficult to do. However I runned into other issues related to i915 black locked screen and have other things 
-to manage than fsck-ing rootfs. So I decided to add fsck in the script furthermore it was easy to add--first 
-attempt was already a good implementation. Now, you have to know that busybox require a `/etc/fstab' to check 
-any fs! That's funny, I thought running something like `fsck /dev/<VG>/<root LV>' would be enough, well it wasn't 
-at all,--busybox require fstab and a fs argument otherwise you'll get `fsck.auto not found..\n fsck.ext4 not found'. 
-You're warned! just echo some lines of possible fs in fstab and you're all set. After that just append a `:c:ext4' (for 
-ext4 for exemple, the `c' can be replaced with any CHAR or WORD,) which give something like `iroot=<VG>-root:c:ext4' and 
-your rootfs will be checked before it mounted. That's all folks! And here the link: init_luks-lvm-sqfsd-lbd_20110616. 
-And yes you can add this `cp -a /lib64/{ld-*,libblkid.so.1*,libc{-2.13*,.so*},libcom_err*,libe2p*,libext2fs*,libpthread*,
-libuuid*} lib64' to initrd-ll.sh.. and don't forget to copy fsck.ext4... you have to make your own way with other FSs!
+* 2011-06.16: I've decided to update the script to get fsck... it' was troublesome to check 
+rootfs with the previous ones,--actually not that troublesome, one had to: either drop to 
+the minimal shell and then run something like `exec switch_root /newroot /sbin/init 1' to 
+bring your machine directly to single user mode; or either starting normally and then log 
+in and bringing the machine to single mode user; and then fsck rootfs. Well, dropping to 
+the minimal shell is preferable as you don't mount a possibly damaged rootfs before checking it. 
+That was not difficult to do. However I runned into other issues related to i915 black locked 
+screen and have other things to manage than fsck-ing rootfs. So I decided to add fsck in the 
+script furthermore it was easy to add--first attempt was already a good implementation. 
+Now, you have to know that busybox require a `/etc/fstab' to check any fs! That's funny, 
+I thought running something like `fsck /dev/<VG>/<root LV>' would be enough, well it wasn't 
+at all,--busybox require fstab and a fs argument otherwise you'll get `fsck.auto not found..
+fsck.ext4 not found'. You're warned! just echo some lines of possible fs in fstab and you're 
+all set. After that just append a `:c:ext4' (for ext4 for exemple, the `c' can be replaced 
+with any CHAR or WORD,) which give something like `iroot=<VG>-root:c:ext4' and your rootfs 
+will be checked before it mounted. That's all folks! And here the link: 
+init_luks-lvm-sqfsd-lbd_20110616. 
+And yes you can add this `cp -a /lib64/{ld-*,libblkid.so.1*,libc{-2.13*,.so*},libcom_err*,
+libe2p*,libext2fs*,libpthread*,libuuid*} lib64' to initrd-ll.sh.. and don't forget to copy 
+fsck.ext4... you have to make your own way with other FSs!
 
-# 2011-06-03: minor editing and cleaning for the initscript, plus minor fix for sqfsd_remountro() for sqfsdmount 
-service--I've left a `-t aus' that gave an issue when trying to use that function! And here the script: 
+* 2011-06-03: minor editing and cleaning for the initscript, plus minor fix for 
+sqfsd_remountro() for sqfsdmount service--I've left a `-t aus' that gave an issue when 
+trying to use that function! And here the script: 
 init_luks-lvm-sqfsd-lbd-20110603. [http://dl.free.fr/bmI2vXe0j]
 
-I was also thinking of a simple way to fsck the rootfs as mounting squashed dirs will prevent fsck from running 
-rootfs check before localmount is started. Now I think sqfsdmount service is fully functionnal and as it's started 
-after localmount, you could just remove the isqfsd=* args when you need to fsck rootfs and sqfsdmount will mount usr 
-first if you put usr first in your sqfsdmount config file--as usr need to be mounted as fast as possible, many 
-services need binaries and libraries from usr. Another way is, if you have wiped out lib64, to drop to the shell and 
-load aufs module[, don't forget to umount /{proc,sys,dev} as if you forget it you will run into big trouble starting 
-udev and..., and of of course rootfs,] before switching root. In this way fsck and sqfsdmount will run as expected. 
-Of course I could add a more simplier way to fsck rootfs--like appending a `:fsck' in iroot=*--which will prevent 
-mounting rootfs and squashed dirs. I'll see if it's worth the trouble. Darn, the second way won't work... fsck is 
-a dynamic binarry, so it needs library to run. Now, you have to keep an updated lib{32,64} as adviced if you want 
-to avoid needless hassles.
+I was also thinking of a simple way to fsck the rootfs as mounting squashed dirs will 
+prevent fsck from running rootfs check before localmount is started. Now I think 
+sqfsdmount service is fully functionnal and as it's started after localmount, 
+you could just remove the isqfsd=* args when you need to fsck rootfs and sqfsdmount 
+will mount usr first if you put usr first in your sqfsdmount config file--as usr need 
+to be mounted as fast as possible, many services need binaries and libraries from usr. 
+Another way is, if you have wiped out lib64, to drop to the shell and load aufs module, 
+don't forget to umount /{proc,sys,dev} as if you forget it you will run into big trouble 
+starting udev and..., and of of course rootfs,] before switching root. In this way fsck 
+and sqfsdmount will run as expected. Of course I could add a more simplier way to fsck 
+rootfs--like appending a `:fsck' in iroot=*--which will prevent mounting rootfs and 
+squashed dirs. I'll see if it's worth the trouble. Darn, the second way won't work... 
+fsck is a dynamic binarry, so it needs library to run. Now, you have to keep an updated 
+lib{32,64} as adviced if you want to avoid needless hassles.
 
-# 2011-05-29: minor fix: now dropping to `shell checkpoint' works as expected--I removed 4 double quotes and `-eq' 
-by a simpe `=' at the right place, it's basically the same as before but the previous version didn't work when I need it;-- 
-here the links: init_luks-lvm-sqfsd-lbd
+* 2011-05-29: minor fix: now dropping to `shell checkpoint' works as expected--I removed 
+4 double quotes and `-eq' by a simpe `=' at the right place, it's basically the same as 
+before but the previous version didn't work when I need it;--here the links: 
+init_luks-lvm-sqfsd-lbd
 
-# 2011-05-26: minor editing and fix: now if you use LVM for root only, you don't have to append an extra `,' comma at 
-the end of ilvm args, otherwise root <mapping-dev> will end up being parsed empty! and here the link: init_luks-lvm-sqfsd-lbd
+* 2011-05-26: minor editing and fix: now if you use LVM for root only, you don't have to 
+append an extra `,' comma at the end of ilvm args, otherwise root <mapping-dev> will end 
+up being parsed empty! and here the link: init_luks-lvm-sqfsd-lbd
 
-# 2011-05-22: minor editing; init_luks-lvm-sqfsd-lbd
+* 2011-05-22: minor editing; init_luks-lvm-sqfsd-lbd
 
-# 2011-05-20: see `history' for a `change log'; init_luks-lvm-sqfsd-lbd
+* 2011-05-20: see `history' for a `change log'; init_luks-lvm-sqfsd-lbd
 
+# History: (y/m/d)
+# ------------------
+#*2011.06.26 - by the same ... gnupg 1.4.* update--now one has 3 attempts before the pwd fallback.
+#*2011.06.17 - by the same ... added defaults mnt opts for rootfs and `nodev,noatime' for aufs 
+#*mount--REVERSED on 06.18.
+#*2011.06.15 - by the same ... added fsck for rootfs: `:c:<fs>' should be appeded to `iroot=*' arg.
+#*2011.05.20 - by the same ... now +LVM2+mnt opt for rootfs [something like imtopt=logdev=/dev/<VG>/<LV>
+#    works! Actually put this /dev/mapper/<VG-LV> insted as /dev<VGs> are not available in the 
+#    limited environement]. Major update/fix for swap[file]-resume. I did not test for swap PV|LV... 
+#    it should work... as a swap|resume-file.
+#    Gave up the idea for an encrypted swapfile, it's a bit complicated since all mounted fs shall 
+#    not be mounted for TOI. 
+#*2011.05.06 - by the same [some]body who... 
+#    script clean up [over 30 lines less]; and fix for a major error [line 442-445] and a minor fix.
+#*2011.05.05 - by somebody who wanted LUKS+AUFS2+SQUASHFS+ENCRYPTED KEY FILE and... 
+#    hibernation to a swap file now and then. It seems, I'm the only one who's interested in...
+#*2006.08.24 - Federico Zagarzazu
+#    Fix: call splash_setup() if fbsplash args exist   
+#*2006.08.06 - Federico Zagarzazu
+#    Released.
+#*2006.08.06 - Federico Zagarzazu
+#    Fixed: /dev/device-mapper /dev/mapper/control issue otherwise it fails on my amd64 system
+#*2006.08.04 - Federico Zagarzazu
+#    Bug fixes, several improvements. Test phase finished.
+#*2006.06.20 - Federico Zagarzazu
+#    Written.
+# 
+# Thanks to 
+# ---------------------------------------------------------------
+# o Alon Bar-Lev [http://wiki.tuxonice.net/EncryptedSwapAndRoot]
+#         I stole ideas, general structure and entire functions from his init script.
+# o Andreas Steinmetz [kernel doc: power/swsusp-dmcrypt.txt]
+# ---------------------------------------------------------------
