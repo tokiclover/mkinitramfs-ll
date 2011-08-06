@@ -1,5 +1,5 @@
 #!/bin/sh
-# revision of 2011-08-03
+# revision of 2011-08-06
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
@@ -23,7 +23,6 @@ die() {
         echo "$lv_msg"
         echo 
         echo "Dropping you into a minimal shell..."
-	exit 
 	exec /bin/sh
 }
 
