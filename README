@@ -1,4 +1,4 @@
-# revision of 2011-06-27.2
+# revision of 2011-08-04
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
@@ -121,53 +121,3 @@
 #	o The modules should exist on /lib/modules/`uname -r`/ , like in your system.
 #       o Your kernel has to support module unloading for rmmod to work.
 #
-# BUGS/KNOWN ISSUES:
-#     (b0) fbsplash: when setting the splash mode from silent to verbose,
-#                 verbose image is not painted and text is not visible.
-#                 WORKAROUND: boot with verbose instead.
-#
-#     (ki0) The length of init arguments should be reduced--did all the possible means on 20110617 release. 
-#     With kernel 2.6.38 the length 
-#     is 512 caracters, with root, swap and resume file 250 caharacters or so remains. There's plenty of room.
-#     (ki1) The aforementionned warning with loop back encrypted key file.
-#     (ki2) Whenever you don't mount the squashed dirs in the initrd, somtimes, it may be necessary to 
-#     /etc/init.d/sqfsdmount{ zap;, start}
-#     manually to mount the system suqashed dirs if it's not done however it should be. In this case, 
-#     you might run [tel]init 3[|4] if need
-#     be to finish the start up. If ever you forget to umount /{proc,sys,dev} in the minimal shell you should run 
-#     `init 1' then restart udev,
-#     dbus and run `init 3' or somthing similar to have a working system.
-#
-# ToDo: Done. However, if somebody want anything else... feel free to do it of course. And now I added LVM2... done I'm saying...
-#
-# History: (y/m/d)
-# ------------------
-#*2011.08.04 - by the same ... added rootfs option for mount and still debuging on cryptsetup() first two sections.
-#*2011.06.26 - by the same ... gnupg 1.4.* update--now one has 3 attempts before the pwd fallback.
-#*2011.06.17 - by the same ... added defaults mnt opts for rootfs and `nodev,noatime' for aufs mount--REVERSED on 06.18.
-#*2011.06.15 - by the same ... added fsck for rootfs: `:c:<fs>' should be appeded to `iroot=*' arg.
-#*2011.05.20 - by the same ... now +LVM2+mnt opt for rootfs [something like imtopt=logdev=/dev/<VG>/<LV> works! 
-#    actually put this /dev/mapper/<VG-LV> insted as /dev<VGs> are not available in the limited environement]
-#    Major update/fix for swap[file]-resume. I did not test for swap PV|LV... it should work... as a swap|resume-file.
-#    Gave up the idea for an encrypted swapfile, it's a bit complicated since all mounted fs shall not be mounted for TOI. 
-#*2011.05.06 - by the same [some]body who... 
-#    script clean up [over 30 lines less]; and fix for a major error [line 442-445] and a minor fix.
-#*2011.05.05 - by somebody who wanted LUKS+AUFS2+SQUASHFS+ENCRYPTED KEY FILE and... 
-#    hibernation to a swap file now and then. It seems, I'm the only one who's interested in...
-#*2006.08.24 - Federico Zagarzazu
-#    Fix: call splash_setup() if fbsplash args exist   
-#*2006.08.06 - Federico Zagarzazu
-#    Released.
-#*2006.08.06 - Federico Zagarzazu
-#    Fixed: /dev/device-mapper /dev/mapper/control issue otherwise it fails on my amd64 system
-#*2006.08.04 - Federico Zagarzazu
-#    Bug fixes, several improvements. Test phase finished.
-#*2006.06.20 - Federico Zagarzazu
-#    Written.
-# 
-# Thanks to 
-# ---------------------------------------------------------------
-# o Alon Bar-Lev [http://wiki.tuxonice.net/EncryptedSwapAndRoot]
-#         I stole ideas, general structure and entire functions from his init script.
-# o Andreas Steinmetz [kernel doc: power/swsusp-dmcrypt.txt]
-# ---------------------------------------------------------------
