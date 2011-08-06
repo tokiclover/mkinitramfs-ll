@@ -305,9 +305,9 @@ do_switch() {
         echo "SWITCHING ROOT '/'..."
         splash_daemon_stop
         sleep 1
-        #/bin/umount -l /proc
-        #/bin/umount -l /sys
-        #/bin/umount -l /dev
+        /bin/umount -l /proc
+        /bin/umount -l /sys
+        /bin/umount -l /dev
         shell_checkpoint 7
         exec switch_root /newroot ${uv_init:-/sbin/init}
 }
