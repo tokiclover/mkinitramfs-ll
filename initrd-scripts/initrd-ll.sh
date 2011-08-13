@@ -1,37 +1,56 @@
-#!/bin/sh
-BBA=~/abs/applets
+#!/bin/bash
+# if not called with a kernel and extra version, default xill be `uname -r'
+E_VERSION=$2
+K_VERSION=$1
+[ -n "$K_VERSION" ] || set K_VERSION=$(uname -r) 
+INITDIR=initrd-ll$(echo $K_VERSION|cut -b4-)
+INIT=../init-scripts/init
+BBB=../bin-amd64/busybox
+GPG=../bin-amd64/gpg
+GPG_MISC=../misc/share
 BBL=/usr/share/busybox/busybox-links.tar
-INITDIR=~/abs/initrd-ll.38-pf8
-INIT=~/abs/init
-KEYMAP=~/abs/fr_l1-x86_64.bin
-#rm -rf $INITDIR
+KEYMAP=../misc/fr_l1-x86_64.bin
+rm -rf $INITDIR
 mkdir -p $INITDIR && cd $INITDIR
-mkdir -p {bin,lib64/splash/cache,dev,etc/{modules,splash},newroot,proc,root,sbin,sys,usr/{bin,sbin}} 
+mkdir -p {{,s}bin,dev,etc/{modules,splash},newroot,proc,root,sys,usr/{bin,sbin}} 
+mkdir -p lib64/{splash/cache,modules/$K_VERSION/{misc,kernel/{crypto,fs/nls}}}
 ln -sf lib64 lib 
-mkdir -p lib/modules/$(uname -r)/{misc,kernel/{crypto,fs/nls}}
 #mknod --mode=0660 dev/null c 1 3
 #mknod --mode=0600 dev/console c 5 1
 cp -a /dev/{console,mem,null,tty1,zero} dev/
 cp -a $INIT . && chmod 755 init
-cp -a $KEYMAP etc
-cp -a $BBA etc/applets 
-#cp -a /bin/bb bin/busybox
-#tar -xvf $BBL
+cp -a ../misc/applets etc/applets 
 cp -a /sbin/{mount.aufs,umount.aufs,cryptsetup,fsck.ext4} sbin
+cp -a $BBB bin/
+tar xf $BBL
+cp -a $GPG usr/bin/
+cp -ar $GPG_MISC usr/
 cp -a /sbin/lvm.static sbin/lvm
-cd sbin; for i in vgchange pvchange lvchange lvcreate vgcreate pvcreate lvreduce lvremove lvrename \
-lvresize pvremove pvrename vgmerge vgreduce vgrename vgremove vgscan vgs pvscan pvs lvscan lvs
+cd sbin; for i in {vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge
 do ln -s lvm $i; done; cd ..
-# those libraries are for fsck.ext4, comment 'em out if you don't need them or replace 'em with...
+# fsck.ext4 related libraries, comment out if you don't need them or replace them with...
 cp -a /lib/{ld-*,libc{-*,.so*}} lib/
 cp -a /lib64/{libblkid.so.1*,libcom_err*,libe2p*,libext2fs*,libpthread*,libuuid*} lib
-cp -a /lib/modules/$(uname -r)/misc/aufs.ko lib/modules/$(uname -r)/misc
+for i in kernel/{fs/{au,j,reiser,x}fs,crypto/blowfish.ko}
+do cp -ar /lib/modules/$K_VERSION/$i lib/modules/$K_VERSION/${i%*/}; done
+[ -d lib/modules/$K_VERSION/kernel/fs/aufs ] || \
+cp -ar /lib/modules/$K_VERSION/misc/aufs.ko lib/modules/$K_VERSION/misc
 echo aufs > etc/modules/sqfsd
-cp -a /lib/modules/`uname -r`/kernel/crypto/blowfish.ko lib/modules/`uname -r`/kernel/crypto/
 echo blowfish > etc/modules/boot
-# booting from vfat fs require this if you did not built it in nls_cp437 codepage
-#cp -a /lib/modules/`uname -r`/kernel/fs/nls/nls_cp437.ko lib/modules/`uname -r`/kernel/fs/nls/
-#echo nls_cp437 >> etc/modules/remdev
+cp -a $KEYMAP etc/
+#cp -a /lib/modules/$K_VERSION/kernel/fs/nls/nls_cp437.ko lib/modules/$K_VERSION/kernel/fs/nls/
+#echo nls_cp437 > etc/modules/remdev
 
-find . -print0|cpio --null -ov --format=newc|xz -9 --check=crc32 >/boot/kernel-$(uname -r)-c9-ll-initrd.xz
+find . -print0|cpio --null -ov --format=newc|xz -9 --check=crc32 >/boot/kernel-$K_VERSION-$E_VERSION-ll-initrd.xz
 
+# clean up variables
+unset K_MODULES
+unset K_VERSION
+unset E_VERSION
+unset INITDIR
+unset INIT
+unset BBB
+unset BBL
+unset GPG
+unset GPG_MISC
+unset KEYMAP

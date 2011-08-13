@@ -3,6 +3,9 @@
 ## of course. And now I added LVM2... done I'm saying...			##
 ##################################################################################
 
+* 2011-08-13: cleaned up the mess of initrd-ll.shh and bb-initrd.sh, those two
+scripts should work now as expected.
+
 * 2011-08-04: added rootfs option to mount for those who do not want automatic mount.
 I'm trying to implement a clever exec_cryptsetup() which should ask for another PV if 
 the device is not a valid LUKS PV or create/luksFormat the PV with default value for 
@@ -142,6 +145,7 @@ up being parsed empty! and here the link: init_luks-lvm-sqfsd-lbd
 
 # History: (y/m/d)
 # ------------------
+#*2011.08.04 - by the same ... added rootfs option for mount and still debuging on cryptsetup() first two sections.
 #*2011.06.26 - by the same ... gnupg 1.4.* update--now one has 3 attempts before the pwd fallback.
 #*2011.06.17 - by the same ... added defaults mnt opts for rootfs and `nodev,noatime' for aufs 
 #*mount--REVERSED on 06.18.
