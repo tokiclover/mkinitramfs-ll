@@ -11,7 +11,7 @@ BBB=../bin-amd64/busybox
 COMP_CMD="xz -9 --check=crc32"
 GPG=../bin-amd64/gpg
 GPG_MISC=../misc/share
-KEYMAP=../misc/fr_l1-x86_64.bin
+KEYMAP=../bin-amd64/fr_l1-x86_64.bin
 
 rm -rf $INITDIR
 mkdir -p $INITDIR && cd $INITDIR
@@ -23,7 +23,7 @@ ln -sf lib64 lib
 
 cp -a /dev/{console,mem,null,tty1,zero} dev/
 cp -a $INIT . && chmod 755 init
-cp -a ../misc/applets etc/applets 
+cp -a ../bin-amd64/applets etc/applets 
 cp -a /sbin/{mount.aufs,umount.aufs,cryptsetup,fsck.ext4} sbin
 cp -a $BBB bin/
 tar xf $BBL

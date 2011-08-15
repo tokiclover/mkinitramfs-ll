@@ -57,14 +57,15 @@ make && make busybox.links
 
 # comment in this if need be--busybox/links are not installed in INITDIR
 #make install CONFIG_PREFIX=/tmp/busybox; rm -rf /tmp/busybox
-./applets/install.sh $INITDIR --symlinks
+#./applets/install.sh $PWD/bin-amd64/ --symlinks
+cp -a busybox $PWD/bin-amd64
 
 # save the current keymap
 dumpkeys > default_keymap
 loadkeys $KEYMAP_IN
 [ $UNICODE = yes ] && dumpkeys >(loadkeys -u)
 ./busybox dumpkmap > $KEYMAP_OUT
-cp $KEYMAP_OUT $INITDIR/etc
+cp $KEYMAP_OUT $PWD/bin-amd64/
 # load back your keymap
 loadkeys default_keymap
 cd $PWD
