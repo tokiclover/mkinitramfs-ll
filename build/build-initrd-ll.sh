@@ -2,16 +2,20 @@
 # if not called with a kernel and extra version, default xill be `uname -r'
 E_VERSION=$2
 K_VERSION=$1
-[ -n "$K_VERSION" ] || set K_VERSION=$(uname -r) 
-INITRAMFS=/boot/kernel-$K_VERSION-$E_VERSION-ll-initrd.xz
+:	${K_VERSION:-$(uname -r)}
+if [ -n "$E_VERSION" ]; then
+E_VERSION=-$E_VERSION
+fi
+INITRAMFS=/boot/kernel-$K_VERSION$E_VERSION-ll-initrd.xz
 INITDIR=initrd-ll$(echo $K_VERSION|cut -b4-)
 INIT=../init/init
-BBL=/usr/share/busybox/busybox-links.tar
-BBB=../bin-amd64/busybox
-COMP_CMD="xz -9 --check=crc32"
-GPG=../bin-amd64/gpg
-GPG_MISC=../misc/share
-KEYMAP=../bin-amd64/fr_l1-x86_64.bin
+BIN=../bin-amd64
+BBB=$BIN/busybox
+CMD="xz -9 --check=crc32"
+GPG=$BIN/gpg
+MISC=../misc/share
+KEYMAP=$BIN/fr_l1-x86_64.bin
+SPLASH=
 
 rm -rf $INITDIR
 mkdir -p $INITDIR && cd $INITDIR
@@ -23,12 +27,12 @@ ln -sf lib64 lib
 
 cp -a /dev/{console,mem,null,tty1,zero} dev/
 cp -a $INIT . && chmod 755 init
-cp -a ../bin-amd64/applets etc/applets 
+cp -a $BIN/applets etc/applets 
 cp -a /sbin/{mount.aufs,umount.aufs,cryptsetup,fsck.ext4} sbin
 cp -a $BBB bin/
-tar xf $BBL
+for i in $(< $BIN/applets); do ln -s bin/busybox .$i; done
 cp -a $GPG usr/bin/
-cp -ar $GPG_MISC usr/
+cp -ar $MISC usr/
 cp -a /sbin/lvm.static sbin/lvm
 cd sbin; for i in {vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge
 do ln -s lvm $i; done; cd ..
@@ -53,8 +57,9 @@ echo blowfish > etc/modules/boot
 cp -a $KEYMAP etc/
 #cp -a /lib/modules/$K_VERSION/kernel/fs/nls/nls_cp437.ko lib/modules/$K_VERSION/kernel/fs/nls/
 #echo nls_cp437 > etc/modules/remdev
+[ -n "$SPLASH" ] && cp -ar $SPASH etc/splash/
 
-find . -print0|cpio --null -ov --format=newc|$COMP_CMD > $INITRAMFS
+find . -print0|cpio --null -ov --format=newc|$CMD > $INITRAMFS
 
 # clean up variables
 unset K_MODULES
@@ -63,9 +68,10 @@ unset E_VERSION
 unset INITDIR
 unset INIT
 unset BBB
-unset BBL
+unset BIN
 unset GPG
-unset GPG_MISC
+unset MISC
 unset KEYMAP
-unset COMP_CMD
+unset CMD
 unset INITRAMFS
+unset SPLASH

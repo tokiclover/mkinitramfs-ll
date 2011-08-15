@@ -1,6 +1,6 @@
 #!/bin/bash
 # configuration option for busybox, set minimal for a minimat build
-CONFIG=
+CONFIG=$1
 # set ut your input keymap name
 KEYMAP_IN=fr-latin1
 # convert keymap to unicode if need be
@@ -63,7 +63,7 @@ cp -a busybox $PWD/bin-amd64
 # save the current keymap
 dumpkeys > default_keymap
 loadkeys $KEYMAP_IN
-[ $UNICODE = yes ] && dumpkeys >(loadkeys -u)
+[ "$UNICODE" = "yes" ] && dumpkeys >(loadkeys -u)
 ./busybox dumpkmap > $KEYMAP_OUT
 cp $KEYMAP_OUT $PWD/bin-amd64/
 # load back your keymap
