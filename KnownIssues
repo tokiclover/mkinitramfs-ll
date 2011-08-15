@@ -1,5 +1,10 @@
 KNOWN ISSUES UPDATE:
 
+* The foirst part of the exec_cryptsetup() wich check is a provided PV is a valid LUKS device, if not prompt th euser to 
+choose another PV or luksFormat it in the fly with defaults value for cipher:hash:keysize does not work as expected, or
+rather, the `echo' msg disppaer somewhere ... I suspected the different sh instences to no avail. If somebody has any 
+idea about this one ... do not hesitate to post something in the forum.
+
 * The `log in lockup' seems to have disappeared completely on my desktop and laptop which is good. In fact, 
 I tried resetting `RC_SVCDIR'--replacing `: ${RC_SVCDIR:=/lib64/rc/init.d}' by a simple `RC_SVCDIR=/var/rc.init.d'--and 
 rc-svcdir was in fact mounted there after rebooting. That resetting was necessary since just replacing `/lib64/rc/init.d' 
