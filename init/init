@@ -206,14 +206,14 @@ do_sqfsd_work() {
         [ -d /newroot/"$sqfsdir" ] || die "Error: sqfsdir=$sqfsdir dir doesn't exist."
         sqfsd="$(echo "$sqfsd"|tr ':' ' ')"
         modprobe_group sqfsd
-for s in $sqfsd; do
         cd /newroot
-        [ -e ."$sqfsdir/$s".sfs ] || die "$s.sfs image doesn't exist."
-        mkdir -p ."$sqfsdir/$s"/rw && mkdir -p ."$sqfsdir/$s"/ro
-        mount -t squashfs .$sqfsdir/$s.sfs .$sqfsdir/$s/ro -o nodev,loop,ro 2>/dev/null
+for dir in $sqfsd; do
+        [ -e ."$sqfsdir/$dir".sfs ] || die "$dir.sfs image doesn't exist."
+        mkdir -p ."$sqfsdir/$dir"/rw && mkdir -p ."$sqfsdir/$dir"/ro
+        mount -t squashfs .$sqfsdir/$dir.sfs .$sqfsdir/$dir/ro -o nodev,loop,ro 2>/dev/null
         [ "$?" ] || die "Error: failed to mount squashed $s image."
-        mount -t aufs $s $s -o nodev,udba=reval,br:.$sqfsdir/$s/rw:.$sqfsdir/$s/ro 2>/dev/null
-        [ "$?" ] || die "Error: failed to mount squashed $s aufs branch."
+        mount -t aufs $dir $dir -o nodev,udba=notify,reval,br:.$sqfsdir/$dir/rw:.$sqfsdir/$dir/ro 2>/dev/null
+        [ "$?" ] || die "Error: failed to mount squashed $dir aufs branch."
 done
         #rmmod_group sqfsd
 }
