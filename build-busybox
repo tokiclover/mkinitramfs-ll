@@ -1,4 +1,10 @@
 #!/bin/bash
+
+die() {
+	echo "* $@"
+	exit 1
+}
+
 . /etc/make.conf
 # configuration option for busybox, set minimal for a minimat build
 CONFIG=$@
@@ -9,14 +15,14 @@ UNICODE=yes
 # set up your output keymap name with -<ARCH>
 KEYMAP_OUT=fr_l1-x86_64.bin
 CDIR=$(pwd)
-cd ${PORTDIR:-/usr/portage}/sys-apps/busybox
+cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 BBT=$(emerge -pvO busybox|grep -o "busybox-[-0-9.r]*")
-ebuild $BBT.ebuild clean
-ebuild $BBT.ebuild unpack
-cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/busybox*
+ebuild $BBT.ebuild clean || die "eek"
+ebuild $BBT.ebuild unpack || die "eek!"
+cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/busybox* || die "eek!"
 
 if [ "$CONFIG" = "minimal" ]; then
-make allnoconfig
+make allnoconfig || die "eek!"
 sed -e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
 -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
 -e "s|CONFIG_FEATURE_SH_IS_NONE=y|# CONFIG_FEATURE_SH_IS_NONE is not set|" \
@@ -44,32 +50,32 @@ sed -e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
 -e "s|# CONFIG_SWITCH_ROOT is not set|CONFIG_SWITCH_ROOT=y|" \
 -e "s|# CONFIG_TEST is not set|CONFIG_TEST=y|" \
 -e "s|# CONFIG_TR is not set|CONFIG_TR=y|" \
--e "s|# CONFIG_WHICH is not set|CONFIG_WHICH=y|" -i .config
+-e "s|# CONFIG_WHICH is not set|CONFIG_WHICH=y|" -i .config || die "eek!"
 else 
-make defconfig
+make defconfig || die "eek!"
 sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
--e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" -i .config
+-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" -i .config || die "eek!"
 fi
 
 # For uClibc users, you need to adjust the cross compiler prefix properly (i386-uclibc-)
 #sed -i -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"i386-uclibc-\"|" .config
 
-make && make busybox.links
+make && make busybox.links || die "eek!"
 
 # comment in this if need be--busybox/links are not installed in INITDIR
 #make install CONFIG_PREFIX=/tmp/busybox; rm -rf /tmp/busybox
 #./applets/install.sh $PWD/bin-amd64/ --symlinks
-cp -a busybox $PWD/bin-amd64/
+cp -a busybox $PWD/bin-amd64/ || die "eek!"
 
 # save the current keymap
-dumpkeys > default_keymap
-loadkeys $KEYMAP_IN
-[ "$UNICODE" = "yes" ] && dumpkeys >(loadkeys -u)
-./busybox dumpkmap > $KEYMAP_OUT
-cp $KEYMAP_OUT $PWD/bin-amd64/
+dumpkeys > default_keymap || die "eek!"
+loadkeys $KEYMAP_IN || die "eek!"
+if [ "$UNICODE" = "yes" ]; then dumpkeys >(loadkeys -u) || die "eek!"; fi
+./busybox dumpkmap > $KEYMAP_OUT || die "eek!"
+cp $KEYMAP_OUT $PWD/bin-amd64/ || die "eek!"
 # load back your keymap
-loadkeys default_keymap
-cd $CDIR
+loadkeys default_keymap || die "eek!"
+cd $CDIR || die "eek!"
 unset CONFIG
 unset KEMAP_{IN,OUT}
 unset UNICODE
