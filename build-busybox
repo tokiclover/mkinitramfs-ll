@@ -7,7 +7,7 @@ KEYMAP_IN=fr-latin1
 UNICODE=yes
 # set up your output keymap name with -<ARCH>
 KEYMAP_OUT=fr_l1-x86_64.bin
-PWD=$(pwd)
+CDIR=$(pwd)
 cd /var/portage/sys-apps/busybox
 BBT=$(emerge -pvO busybox|grep -o "busybox-[-0-9.r]*")
 ebuild $BBT.ebuild clean
@@ -58,7 +58,7 @@ make && make busybox.links
 # comment in this if need be--busybox/links are not installed in INITDIR
 #make install CONFIG_PREFIX=/tmp/busybox; rm -rf /tmp/busybox
 #./applets/install.sh $PWD/bin-amd64/ --symlinks
-cp -a busybox $PWD/bin-amd64
+cp -a busybox $PWD/bin-amd64/
 
 # save the current keymap
 dumpkeys > default_keymap
@@ -68,10 +68,10 @@ loadkeys $KEYMAP_IN
 cp $KEYMAP_OUT $PWD/bin-amd64/
 # load back your keymap
 loadkeys default_keymap
-cd $PWD
+cd $CDIR
 unset CONFIG
 unset KEMAP_{IN,OUT}
 unset UNICODE
-unset PWD
+unset CDIR
 unset BBT
 exit 0

@@ -2,74 +2,81 @@
 # if not called with a kernel and extra version, default xill be `uname -r'
 E_VERSION=$2
 K_VERSION=$1
-:	${K_VERSION:-$(uname -r)}
+: ${K_VERSION:-$(uname -r)}
 if [ -n "$E_VERSION" ]; then
 E_VERSION=-$E_VERSION
 fi
 INITRAMFS=/boot/kernel-$K_VERSION$E_VERSION-ll-initrd.xz
 INITDIR=initrd-ll$(echo $K_VERSION|cut -b4-)
-INIT=../init/init
 BIN=../bin-amd64
-BBB=$BIN/busybox
 CMD="xz -9 --check=crc32"
-GPG=$BIN/gpg
 MISC=../misc/share
 KEYMAP=$BIN/fr_l1-x86_64.bin
 SPLASH=
 
-rm -rf $INITDIR
-mkdir -p $INITDIR && cd $INITDIR
-mkdir -p {{,s}bin,dev,etc/{modules,splash},newroot,proc,root,sys,usr/{bin,sbin}} 
-mkdir -p lib64/{splash/cache,modules/$K_VERSION/{misc,kernel/{crypto,fs/nls}}}
-ln -sf lib64 lib 
+die() {
+	echo "* $@"
+	exit 1
+}
+
+echo ">>> building $INITRAMFS..."
+rm -rf $INITDIR || die "eek!"
+mkdir -p $INITDIR && cd $INITDIR || die "eek!"
+mkdir -p {{,s}bin,dev,etc/{modules,splash},newroot,proc,root,sys,usr/{bin,sbin}} || die "eek!"
+mkdir -p lib64/{splash/cache,modules/$K_VERSION/{misc,kernel/{crypto,fs/nls}}} || die "eek!"
+ln -sf lib64 lib || die "eek!"
 #mknod --mode=0660 dev/null c 1 3
 #mknod --mode=0600 dev/console c 5 1
 
-cp -a /dev/{console,mem,null,tty1,zero} dev/
-cp -a $INIT . && chmod 755 init
-cp -a $BIN/applets etc/applets 
-cp -a /sbin/{mount.aufs,umount.aufs,cryptsetup,fsck.ext4} sbin
-cp -a $BBB bin/
-for i in $(< $BIN/applets); do ln -s bin/busybox .$i; done
-cp -a $GPG usr/bin/
-cp -ar $MISC usr/
-cp -a /sbin/lvm.static sbin/lvm
-cd sbin; for i in {vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge
-do ln -s lvm $i; done; cd ..
+cp -a /dev/{console,mem,null,tty1,zero} dev/ || die "eek!"
+cp -a ../init . || die "eek!"
+cp -a $BIN/applets etc/ || die "eek!"
+cp -a /sbin/{mount.aufs,umount.aufs,cryptsetup,fsck.ext4} sbin || die "eek!"
+cp -a $BIN/busybox bin/ || die "eek!"
+for app in $(< $BIN/applets); do 
+	case ${app%/*} in
+		/bin) 	cd bin && ln -s busybox ${app##*/} && cd .. || die "eek!";;
+		/sbin) 	cd sbin && ln -s ../bin/busybox ${app##*/} && cd .. || die "eek!";;
+		*) 	ln -s bin/busybox ${app#*/} || die "eek";;
+	esac
+done
+cp -a $BIN/gpg usr/bin/ || die "eek!"
+cp -ar $MISC usr/ || die "eek!"
+cp -a /sbin/lvm.static sbin/lvm || die "eek!"
+cd sbin; for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge
+do ln -s lvm $lpv || die "eek!"; done; cd ..
 # fsck.ext4 related libraries, comment out if you don't need them or replace them with...
-cp -a /lib/{ld-*,libc{-*,.so*}} lib/
-cp -a /lib64/{libblkid.so.1*,libcom_err*,libe2p*,libext2fs*,libpthread*,libuuid*} lib
-for i in kernel/{fs/{au,j,x}fs,crypto/blowfish.ko}
-do 
-	cp -ar /lib/modules/$K_VERSION/$i lib/modules/$K_VERSION/${i%*/}
+cp -a /lib/{ld-*,libc{-*,.so*}} lib/ || die "eek!"
+cp -a /lib64/{libblkid.so.1*,libcom_err*,libe2p*,libext2fs*,libpthread*,libuuid*} lib || die "eek!"
+for mod in kernel/{fs/{au,j,x}fs,crypto/blowfish.ko}
+do
+	cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%*/} || die "eek!"
 done
 if [ ! -d /lib/modules/$K_VERSION/kernel/fs/aufs ]; then
-	cp -ar /lib/modules/$K_VERSION/misc/aufs.ko lib/modules/$K_VERSION/misc
+	cp -ar /lib/modules/$K_VERSION/misc/aufs.ko lib/modules/$K_VERSION/misc || die "eek!"
 fi
-for i in reiser{fs,4}
+for mod in reiser{fs,4}
 do
-	if [ -d /lib/modules/$K_VERSION/kernel/fs/$i ]; then
-		cp -ar /lib/modules/$K_VERSION/$i lib/modules/$K_VERSION/${i%*/}
+	if [ -d /lib/modules/$K_VERSION/kernel/fs/$mod ]; then
+		cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%*/} || die "eek!"
 	fi
 done
-echo aufs > etc/modules/sqfsd
-echo blowfish > etc/modules/boot
-cp -a $KEYMAP etc/
-#cp -a /lib/modules/$K_VERSION/kernel/fs/nls/nls_cp437.ko lib/modules/$K_VERSION/kernel/fs/nls/
-#echo nls_cp437 > etc/modules/remdev
-[ -n "$SPLASH" ] && cp -ar $SPASH etc/splash/
+echo aufs > etc/modules/sqfsd || die "eek!"
+echo blowfish > etc/modules/boot || die "eek!"
+cp -a $KEYMAP etc/ || die "eek!"
+#cp -a /lib/modules/$K_VERSION/kernel/fs/nls/nls_cp437.ko lib/modules/$K_VERSION/kernel/fs/nls/ || die "eek!"
+#echo nls_cp437 > etc/modules/remdev || die "eek!"
+if [ -n "$SPLASH" ]; then cp -ar $SPASH etc/splash/ || die "eek!"; fi
 
-find . -print0|cpio --null -ov --format=newc|$CMD > $INITRAMFS
+find . -print0|cpio --null -ov --format=newc|$CMD > $INITRAMFS || die "eek!"
 
+echo ">>>... $INITRAMFS initramfs built"
 # clean up variables
 unset K_MODULES
 unset K_VERSION
 unset E_VERSION
 unset INITDIR
-unset INIT
-unset BBB
 unset BIN
-unset GPG
 unset MISC
 unset KEYMAP
 unset CMD

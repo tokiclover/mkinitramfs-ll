@@ -2,14 +2,7 @@
 # Copyright 1999-2011 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v3
 
-# Need dependancies is not mandatory if and only if lib64 and usr are mounted in a initramfs, otherwise 
-# you might run into big trouble for two reasons: rc uses a tmpfs mounted on /lib64/rc/init.d to store
-# the state of services and many services need binaries/libraries from usr in the boot up. Actually, without 
-# an initramfs you could get aufs2+squashfs working without an issue if you ensure: usr and lib64 get mounted 
-# as earlier as possible with/without localmount help. This initservice will do the trick putting usr and lib64 
-# first in the config file. Additionaly, you could disable rc_parallel and add more services in the `before' line if need be.
-
-description="Mounts squashed directory [according to... /etc/fstab if you want to]."
+description="Mounts squashed directory"
 
 depend() {
         need fsck localmount
