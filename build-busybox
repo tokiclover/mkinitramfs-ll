@@ -64,17 +64,21 @@ make && make busybox.links || die "eek!"
 
 # comment in this if need be--busybox/links are not installed in INITDIR
 #make install CONFIG_PREFIX=/tmp/busybox; rm -rf /tmp/busybox
-#./applets/install.sh $PWD/bin-amd64/ --symlinks
-cp -a busybox $PWD/bin-amd64/ || die "eek!"
+#./applets/install.sh $CDIR/bin-amd64/ --symlinks
+cp -a busybox $CDIR/bin-amd64/ || die "eek!"
 
 # save the current keymap
 dumpkeys > default_keymap || die "eek!"
 loadkeys $KEYMAP_IN || die "eek!"
 if [ "$UNICODE" = "yes" ]; then dumpkeys >(loadkeys -u) || die "eek!"; fi
 ./busybox dumpkmap > $KEYMAP_OUT || die "eek!"
-cp $KEYMAP_OUT $PWD/bin-amd64/ || die "eek!"
+cp $KEYMAP_OUT $CDIR/bin-amd64/ || die "eek!"
 # load back your keymap
 loadkeys default_keymap || die "eek!"
+
+cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
+ebuild $BBT.ebuild clean || die "eek"
+
 cd $CDIR || die "eek!"
 unset CONFIG
 unset KEMAP_{IN,OUT}
