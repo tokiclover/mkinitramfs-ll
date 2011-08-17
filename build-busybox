@@ -1,6 +1,7 @@
 #!/bin/bash
+. /etc/make.conf
 # configuration option for busybox, set minimal for a minimat build
-CONFIG=$1
+CONFIG=$@
 # set ut your input keymap name
 KEYMAP_IN=fr-latin1
 # convert keymap to unicode if need be
@@ -8,11 +9,11 @@ UNICODE=yes
 # set up your output keymap name with -<ARCH>
 KEYMAP_OUT=fr_l1-x86_64.bin
 CDIR=$(pwd)
-cd /var/portage/sys-apps/busybox
+cd ${PORTDIR:-/usr/portage}/sys-apps/busybox
 BBT=$(emerge -pvO busybox|grep -o "busybox-[-0-9.r]*")
 ebuild $BBT.ebuild clean
 ebuild $BBT.ebuild unpack
-cd /var/tmp/portage/sys-apps/$BBT/work/busybox*
+cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/busybox*
 
 if [ "$CONFIG" = "minimal" ]; then
 make allnoconfig
