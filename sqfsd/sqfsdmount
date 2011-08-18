@@ -39,7 +39,7 @@ sqfsd_mount() {
        			eend "$?" "mount squashed ${2}.sfs image failed."
 		fi
 		ebegin "mounting squashed ${2} aufs branch"
-		mount -t aufs ${2} /${2} -o nodev,udba=notify,reval,br:${1}/${2}/rw:${1}/${2}/ro &>/dev/null
+		mount -t aufs ${2} /${2} -o nodev,udba=reval,br:${1}/${2}/rw:${1}/${2}/ro &>/dev/null
 		eend "$?" "mount ${2} aufs branch failed."
 	fi
 }
