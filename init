@@ -152,7 +152,7 @@ exec_cryptsetup() {  # 1 is device, 2 is mapping
 		echo "Type a valide key-size [256|512], default is 256 bits:" && read local lv_ksz
 		if [ -e "$gv_key_file" ]; then echo "Do you want to use the existing $gv_key_file:key-file? [NO|yes]"
 			read local lv_ukf
-			[ "${lv_ukf:-no}" = "yes" ] && lv_ukf="-d$lv_ukf"
+			[ "${lv_ukf:-no}" = "yes" ] && lv_ukf="-d $lv_ukf"
 		fi
 		for i in 1 2 3; do
 		cryptsetup $lv_arg1 $lv_arg3 -c${lv_cph:-aes-xts-plain:sha256} -s${lv_ksz:-256} $lv_ukf && break
@@ -211,7 +211,7 @@ for dir in $sqfsd; do
         [ -e ."$sqfsdir/$dir".sfs ] || die "$dir.sfs image doesn't exist."
         mkdir -p ."$sqfsdir/$dir"/rw && mkdir -p ."$sqfsdir/$dir"/ro
         mount -t squashfs .$sqfsdir/$dir.sfs .$sqfsdir/$dir/ro -o nodev,loop,ro 2>/dev/null
-        [ "$?" ] || die "Error: failed to mount squashed $s image."
+        [ "$?" ] || die "Error: failed to mount squashed $dir image."
         mount -t aufs $dir $dir -o nodev,udba=reval,br:.$sqfsdir/$dir/rw:.$sqfsdir/$dir/ro 2>/dev/null
         [ "$?" ] || die "Error: failed to mount squashed $dir aufs branch."
 done
@@ -283,7 +283,7 @@ tuxonice_resume() {
         [ $lv_img = 1 ] || die "Error: no image exist at location pointed by iresume=" || { 
 		echo
                 echo "WARNING: there is no recognizable signature at location pointed by iresume="
-                echo -n "Do you want to proceed(type:yes)? "
+                echo -n "Do you want to proceed [NO|yes]? "
                 read local lv_answer
                 [ "$lv_answer" != "yes" ] && die "resume aborted by user"; }
         [ -n "$gv_splash_theme" ] && ln -sf "/etc/splash/$gv_splash_theme" /etc/splash/tuxonice

@@ -25,12 +25,12 @@ do
 		mount --move "/$dir/splash/cache" /var/cache/splash &>/dev/null || die "fled to move cachedir."
 		mount --move "/$dir/rc/init.d" /var/lib/init.d &>/dev/null || die "failed to move rc-svcdir."
 	fi
-	[ -n "$(mount -t aufs|grep -w $dir)" ] && { 
+	if [ -n "$(mount -t aufs|grep -w $dir)" ]; then 
 		umount -l /$dir &>/dev/null || die "failed to umount $dir aufs branch."
-		}
-	[ -n "$(mount -t squashfs|grep $sqfsdir/$dir/ro)" ] && { 
+	fi
+	if [ -n "$(mount -t squashfs|grep $sqfsdir/$dir/ro)" ]; then 
 		umount -l $sqfsdir/$dir/ro &>/dev/null || die "failed to umount sfs img."
-		}
+	fi
 	rm -rf "$sqfsdir/$dir"/rw/* || die "failed to clean up $sqfdir/$dir/rw."
 	[ -e $sqfsdir/$dir.sfs ] && rm -f $sqfsdir/$dir.sfs 
 	mv $sqfsdir/$dir.tmp.sfs $sqfsdir/$dir.sfs || die "failed to move $dir.tmp.sfs img."
