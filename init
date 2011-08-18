@@ -212,12 +212,11 @@ for dir in $sqfsd; do
         mkdir -p ."$sqfsdir/$dir"/rw && mkdir -p ."$sqfsdir/$dir"/ro
         mount -t squashfs .$sqfsdir/$dir.sfs .$sqfsdir/$dir/ro -o nodev,loop,ro 2>/dev/null
         [ "$?" ] || die "Error: failed to mount squashed $s image."
-        mount -t aufs $dir $dir -o nodev,udba=notify,reval,br:.$sqfsdir/$dir/rw:.$sqfsdir/$dir/ro 2>/dev/null
+        mount -t aufs $dir $dir -o nodev,udba=reval,br:.$sqfsdir/$dir/rw:.$sqfsdir/$dir/ro 2>/dev/null
         [ "$?" ] || die "Error: failed to mount squashed $dir aufs branch."
 done
         #rmmod_group sqfsd
 }
-
 do_root_work() {
 	local lv_kmod="$(echo "$gv_kroot"|cut -d':' -f1)"
 	local lv_kdev="$(echo "$gv_kroot"|cut -d':' -f2)"
