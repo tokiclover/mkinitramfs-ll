@@ -1,4 +1,4 @@
-# revision of 2011-08-24
+# revision of 2011-08-25
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
@@ -23,6 +23,9 @@
 #	Actually a PV in a group, respectively root, swap, resume is given by <mapping>-<device>, 
 #	the mmapping being a mapping name for cryptsetup and a block device|partition without the `/dev/' prefix.
 #
+#       <vgZYX-sdYX> 		- each device[|PV] or partition of a given VG is given with <mapping>-<device|partition|PV>. 
+#       <LV|PV|VG>		- Logical|Physical Volume, Volume Group.
+#
 #       == About mount options ==
 #	imtopt=<rootfs mount options>
 #	Say, you have a rootfs=xfs|jsf|reiser|ext* and want to mount your rootfs with specific opts. In case of xfs, for exemple, 
@@ -44,8 +47,6 @@
 #	<device|dev>         	- the device or PV that will be assigned to the removable media e.g. sda<int>, sdb<int>.
 #
 #       </path/to/file>  	- full path to file inside the removable media.
-#       <vgZYX-sdYX> 		- each device[|PV] or partition of a given VG is given with <mapping>-<device|partition|PV>. 
-#       <LV|PV|VG>		- Logical|Physical Volume, Volume Group.
 #
 #       == About `/dev/' prefix ==
 #       And there's no need to provide the `/dev/' prefix for device. In fact, if one do provide a `/dev/' prefix for any 
@@ -58,7 +59,7 @@
 #	
 #	Squashed directories argument:
 #	* isqfsd=n,y,/sqfsdir[,<dir1>:<dirn>]	
-#		- here, obly uv_sqfsd is used but not uv_sqfsdir, so providing sqfsdir is required.
+#		- here, only uv_sqfsd is used but not uv_sqfsdir, so providing sqfsdir is required.
 #	* isqfsd=/sqfsdir,<dir 1>:<dir n>	
 #		- neither uv_sqfsdir nor uv_sqfsd is used, one can threw away the 'n,n' argument and provide sqfsdir and sqfsd.
 #	* isqfsd=y,y				
@@ -69,7 +70,7 @@
 #	 NOTE: The leading `/' slash is only required for [uv_|]sqfsdir, else mounting squashed directories will fail. 
 #
 #        == Notes on key modes ==
-#        * gpg encrypted key-file -> 	now gpg mode works quite well with... tested with 1.4.11, passed as `-d /path/to/keyfile'; 
+#        * gpg encrypted key-file -> 	now gpg mode works quite well with... tested with 1.4.11, passed as `gpg -qd ...'; 
 #        				2.0 seems to rquire too much trouble; `/usr/share/gnupg/options.skel' is required,
 #        				additionally, one can add a `/.gnupg/gpg.conf' in the initramfs root to avoid its 
 #        				creattion on each reboot--no idea if the config options are taken into account. 
