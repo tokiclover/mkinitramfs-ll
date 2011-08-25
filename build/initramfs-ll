@@ -8,14 +8,14 @@ E_VERSION=-$E_VERSION
 fi
 INITRAMFS=/boot/kernel-$K_VERSION$E_VERSION-ll-initrd.xz
 INITDIR=initrd-ll$(echo $K_VERSION|cut -b4-)
-BIN=../bin-amd64
+BIN=../bin
 CMD="xz -9 --check=crc32"
-KEYMAP=$BIN/fr_l1-x86_64.bin
+KEYMAP=$BIN/fr_l1-amd64.bin
 SPLASH=
 
 die() {
-	echo "* $@"
-	exit 1
+echo "* $@"
+exit 1
 }
 
 echo ">>> building $INITRAMFS..."
@@ -32,12 +32,12 @@ cp -a ../init . || die "eek!"
 cp -a $BIN/applets etc/ || die "eek!"
 cp -a /sbin/{mount.aufs,umount.aufs,cryptsetup,fsck.ext4,v86d} sbin || die "eek!"
 cp -a $BIN/busybox bin/ || die "eek!"
-for app in $(< $BIN/applets); do 
-	case ${app%/*} in
-		/bin) 	cd bin && ln -s busybox ${app##*/} && cd .. || die "eek!";;
-		/sbin) 	cd sbin && ln -s ../bin/busybox ${app##*/} && cd .. || die "eek!";;
-		*) 	ln -s bin/busybox ${app#*/} || die "eek";;
-	esac
+for app in $(< $BIN/applets); do
+case ${app%/*} in
+/bin) cd bin && ln -s busybox ${app##*/} && cd .. || die "eek!";;
+/sbin) cd sbin && ln -s ../bin/busybox ${app##*/} && cd .. || die "eek!";;
+*) ln -s bin/busybox ${app#*/} || die "eek";;
+esac
 done
 cp -a $BIN/gpg usr/bin/ || die "eek!"
 cp -ar ../misc/share usr/ || die "eek!"
@@ -50,16 +50,16 @@ cp -a /lib/{ld-*,libc{-*,.so*}} lib/ || die "eek!"
 cp -a /lib64/{libblkid.so.1*,libcom_err*,libe2p*,libext2fs*,libpthread*,libuuid*} lib || die "eek!"
 for mod in kernel/{fs/{j,x}fs,crypto/blowfish.ko}
 do
-	cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%*/} || die "eek!"
+cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%*/} || die "eek!"
 done
 if [ ! -d /lib/modules/$K_VERSION/kernel/fs/aufs ]; then
-	cp -ar /lib/modules/$K_VERSION/misc/aufs.ko lib/modules/$K_VERSION/misc || die "eek!"
+cp -ar /lib/modules/$K_VERSION/misc/aufs.ko lib/modules/$K_VERSION/misc || die "eek!"
 fi
 for mod in fs/{reiser{fs,4},aufs}
 do
-	if [ -d /lib/modules/$K_VERSION/kernel/fs/$mod ]; then
-		cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%*/} || die "eek!"
-	fi
+if [ -d /lib/modules/$K_VERSION/kernel/fs/$mod ]; then
+cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%*/} || die "eek!"
+fi
 done
 echo aufs > etc/modules/sqfsd || die "eek!"
 echo blowfish > etc/modules/boot || die "eek!"
@@ -71,8 +71,7 @@ if [ -n "$SPLASH" ]; then cp -ar $SPASH etc/splash/ || die "eek!"; fi
 find . -print0|cpio --null -ov --format=newc|$CMD > $INITRAMFS || die "eek!"
 
 echo ">>>... $INITRAMFS initramfs built"
-# clean up variables
-unset K_MODULES
+
 unset K_VERSION
 unset E_VERSION
 unset INITDIR
