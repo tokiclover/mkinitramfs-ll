@@ -12,7 +12,7 @@ die() {
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 GPG=$(emerge -pvO =app-crypt/gnupg-1.4*|grep -o "gnupg-[-0-9.r]*")
 USE="nls static" ebuild $GPG.ebuild compile || die "eek!"
-cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/$GPG/work/gnupg* || die "eek!"
+cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/$GPG/work/$GPG || die "eek!"
 cp -a gpg $CDIR/bin/ || die "eek!"
 cp g10/options.skel $CDIR/bin/ || die "eek!"
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"

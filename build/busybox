@@ -21,7 +21,7 @@ cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 BBT=$(emerge -pvO busybox|grep -o "busybox-[-0-9.r]*")
 ebuild $BBT.ebuild clean || die "eek"
 ebuild $BBT.ebuild unpack || die "eek!"
-cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/busybox* || die "eek!"
+cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/$BBT || die "eek!"
 
 if [ "$CONFIG" = "minimal" ]; then
 	make allnoconfig || die "eek!"
@@ -79,7 +79,7 @@ cp $KEYMAP_OUT $CDIR/bin/ || die "eek!"
 loadkeys default_keymap || die "eek!"
 
 cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
-ebuild $BBT.ebuild clean || die "eek"
+#ebuild $BBT.ebuild clean || die "eek"
 
 cd $CDIR || die "eek!"
 unset CONFIG
