@@ -7,3 +7,10 @@ usr and lib64 get mounted as earlier as possible with/without localmount help. T
 will do the trick putting usr and lib64 first in the config file. Additionaly, you could disable 
 rc_parallel and add more services in the `before' line if need be.
 
+NOTE on `/etc/con.d/sqfsdmount' configuration variables:
+	* the first letter S|L is a prefix for S[system] L[local] which speaks of itself: one has to
+	to put squashed dirs related to system in SSFQD, e.g. usr, and local ones in LSQFSD as the 
+	ones in LSQFSD will be unmounted right way when a the init service `/etc/init.d:sqfsdmount' is 
+	stopped which will happen for a reboot for example.
+	* SQFSDIR is the root directory where .sfs images and mount points are; and SQFSD is for
+	the squashed directry(ies), it's a `:' colon seperated list without the leading `/' slash.
