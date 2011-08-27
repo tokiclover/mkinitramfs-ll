@@ -19,7 +19,7 @@ case $1 in
 	-m|--minimal) CONFIG=m; shift;;
 	-i|--install) IBB=y; shift;;
 	--tmp=*) TMP_DIR=$(echo "$1"|cut -d'=' -f2); shift;;
-	--ucl-arch=*) UCL_ARCH=$(echo "$1"|cut -d'=' -f2)-; shift;;
+	--ucl-arch=*) UCL_ARCH=$(echo "$1"|cut -d'=' -f2)-uClibc-; shift;;
 	--kmap=*) KBB=y; KEYMAP_IN=$(echo "$1"|cut -d'=' -f2|cut -d':' -f1)
 		KEYMAP_OUT=$(echo "$1"|cut -d'=' -f2|cut -d':' -f2); shift;;
 	-h|--help|-*|--*) short_help && exit 0;;
