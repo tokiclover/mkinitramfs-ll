@@ -1,13 +1,13 @@
 #!/bin/bash
 # configuration option for busybox, set minimal for a minimat build
-CONFIG=$@
+:	${CONFIG:=$1}
 # set ut your input keymap name
-KEYMAP_IN=fr-latin1
+:	${KEYMAP_IN:=${2:-fr-latin1}}
 # convert keymap to unicode if need be
-UNICODE=yes
+:	${UNICODE:=${4:-y}}
 # set up your output keymap name with -<ARCH>
-KEYMAP_OUT=fr_l1-amd64.bin
-CDIR=$(pwd)
+:	${KEYMAP_OUT:=${3:-fr_l1-amd64.bin}}
+:	${CDIR:=$(pwd)}
 mkdir -p bin
 
 die() {
@@ -17,71 +17,95 @@ die() {
 
 . /etc/make.conf
 
-cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
-BBT=$(emerge -pvO busybox|grep -o "busybox-[-0-9.r]*")
-ebuild $BBT.ebuild clean || die "eek"
-ebuild $BBT.ebuild unpack || die "eek!"
-cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/$BBT || die "eek!"
+build_busybox() {
+	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
+	BBT=$(emerge -pvO busybox|grep -o "busybox-[-0-9.r]*")
+	ebuild $BBT.ebuild clean || die "clean failed"
+	ebuild $BBT.ebuild unpack || die "unpack failed"
+	cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/$BBT || die "eek!"
 
-if [ "$CONFIG" = "minimal" ]; then
-	make allnoconfig || die "eek!"
-	sed -e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
-	-e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
-	-e "s|CONFIG_FEATURE_SH_IS_NONE=y|# CONFIG_FEATURE_SH_IS_NONE is not set|" \
-	-e "s|# CONFIG_FEATURE_SH_IS_ASH is not set|CONFIG_FEATURE_SH_IS_ASH=y|" \
-	-e "s|# CONFIG_ASH is not set|CONFIG_ASH=y|" \
-	-e "s|# CONFIG_ASH_BUILTIN_ECHO is not set|CONFIG_ASH_BUILTIN_ECHO=y|" \
-	-e "s|# CONFIG_CAT is not set|CONFIG_CAT=y|" \
-	-e "s|# CONFIG_CP is not set|CONFIG_CP=y|" \
-	-e "s|# CONFIG_CUT is not set|CONFIG_CUT=y|" \
-	-e "s|# CONFIG_HEAD is not set|CONFIG_HEAD=y|" \
-	-e "s|# CONFIG_GREP is not set|CONFIG_GREP=y|" \
-	-e "s|# CONFIG_INIT is not set|CONFIG_INIT=y|" \
-	-e "s|# CONFIG_LN is not set|CONFIG_LN=y|" \
-	-e "s|# CONFIG_MKDIR is not set|CONFIG_MKDIR=y|" \
-	-e "s|# CONFIG_MKNOD is not set|CONFIG_MKNOD=y|" \
-	-e "s|# CONFIG_MODPROBE is not set|CONFIG_MODPROBE=y|" \
-	-e "s|# CONFIG_MOUNT is not set|CONFIG_MOUNT=y|" \
-	-e "s|# CONFIG_MV is not set|CONFIG_MV=y|" \
-	-e "s|# CONFIG_MDEV is not set|CONFIG_MDEV=y|" \
-	-e "s|# CONFIG_UMOUNT is not set|CONFIG_UMOUNT=y|" \
-	-e "s|# CONFIG_RM is not set|CONFIG_RM=y|" \
-	-e "s|# CONFIG_RMMOD is not set|CONFIG_RMMOD=y|" \
-	-e "s|# CONFIG_SED is not set|CONFIG_SED=y|" \
-	-e "s|# CONFIG_SLEEP is not set|CONFIG_SLEEP=y|" \
-	-e "s|# CONFIG_SWITCH_ROOT is not set|CONFIG_SWITCH_ROOT=y|" \
-	-e "s|# CONFIG_TEST is not set|CONFIG_TEST=y|" \
-	-e "s|# CONFIG_TR is not set|CONFIG_TR=y|" \
-	-e "s|# CONFIG_WHICH is not set|CONFIG_WHICH=y|" -i .config || die "eek!"
-else 
-	make defconfig || die "eek!"
-	sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
-	-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" -i .config || die "eek!"
+	if [ "$CONFIG" = "m" ]; then
+		make allnoconfig || die "eek!"
+		sed -e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
+		-e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
+		-e "s|CONFIG_FEATURE_SH_IS_NONE=y|# CONFIG_FEATURE_SH_IS_NONE is not set|" \
+		-e "s|# CONFIG_FEATURE_SH_IS_ASH is not set|CONFIG_FEATURE_SH_IS_ASH=y|" \
+		-e "s|# CONFIG_ASH is not set|CONFIG_ASH=y|" \
+		-e "s|# CONFIG_ASH_BUILTIN_ECHO is not set|CONFIG_ASH_BUILTIN_ECHO=y|" \
+		-e "s|# CONFIG_CAT is not set|CONFIG_CAT=y|" \
+		-e "s|# CONFIG_CP is not set|CONFIG_CP=y|" \
+		-e "s|# CONFIG_CUT is not set|CONFIG_CUT=y|" \
+		-e "s|# CONFIG_HEAD is not set|CONFIG_HEAD=y|" \
+		-e "s|# CONFIG_GREP is not set|CONFIG_GREP=y|" \
+		-e "s|# CONFIG_INIT is not set|CONFIG_INIT=y|" \
+		-e "s|# CONFIG_LN is not set|CONFIG_LN=y|" \
+		-e "s|# CONFIG_MKDIR is not set|CONFIG_MKDIR=y|" \
+		-e "s|# CONFIG_MKNOD is not set|CONFIG_MKNOD=y|" \
+		-e "s|# CONFIG_MODPROBE is not set|CONFIG_MODPROBE=y|" \
+		-e "s|# CONFIG_MOUNT is not set|CONFIG_MOUNT=y|" \
+		-e "s|# CONFIG_MV is not set|CONFIG_MV=y|" \
+		-e "s|# CONFIG_MDEV is not set|CONFIG_MDEV=y|" \
+		-e "s|# CONFIG_UMOUNT is not set|CONFIG_UMOUNT=y|" \
+		-e "s|# CONFIG_RM is not set|CONFIG_RM=y|" \
+		-e "s|# CONFIG_RMMOD is not set|CONFIG_RMMOD=y|" \
+		-e "s|# CONFIG_SED is not set|CONFIG_SED=y|" \
+		-e "s|# CONFIG_SLEEP is not set|CONFIG_SLEEP=y|" \
+		-e "s|# CONFIG_SWITCH_ROOT is not set|CONFIG_SWITCH_ROOT=y|" \
+		-e "s|# CONFIG_TEST is not set|CONFIG_TEST=y|" \
+		-e "s|# CONFIG_TR is not set|CONFIG_TR=y|" \
+		-e "s|# CONFIG_WHICH is not set|CONFIG_WHICH=y|" -i .config || die "minimal cfg failed"
+	else 
+		make defconfig || die "defcfg failed"
+		sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
+		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" -i .config || die "cfg failed"
+	fi
+
+	# For uClibc users, you need to adjust the cross compiler prefix properly (i386-uclibc-)
+	#sed -i -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"i386-uclibc-\"|" .config
+
+	make && make busybox.links || die "bb build failed"
+}
+
+install_busybox() {
+	# comment in this if need be--busybox/links are not installed in INITDIR
+	#make install CONFIG_PREFIX=/tmp/busybox; rm -rf /tmp/busybox
+	./applets/install.sh $CDIR/bin/ --symlinks
+}
+
+build_keymap() { 
+	# save the current keymap
+	dumpkeys > default_keymap || die "dumping keymap failed"
+	loadkeys $KEYMAP_IN || die "loading $KEMAP_IN failed"
+	if [ "$UNICODE" = "y" ]; then 
+		dumpkeys|loadkeys -u || die "unicode conversion failed"
+	fi
+	./busybox dumpkmap > $KEYMAP_OUT || die "keymap build failed"
+	# load back your keymap
+	loadkeys default_keymap && rm default_keymap || die "re-loading default keymap failed"
+	if [ "$(pwd)" != "$CDIR"/bin ]; then 
+		cp $KEYMAP_OUT $CDIR/bin/ || die "$KEYMAP_OUT copy failed"
+
+	fi
+}
+
+if [ "${BBB:-${1:+y}}" = "y" ]; then
+	build_busybox
+	[ "$IBB" = "y" ] && install_busybox
+	cp -a busybox $CDIR/bin/ || die "eek!"
+	#cp applets $CDIR/bin/ || die "eek!"
 fi
 
-# For uClibc users, you need to adjust the cross compiler prefix properly (i386-uclibc-)
-#sed -i -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"i386-uclibc-\"|" .config
+if [ "${KBB:-${3:+y}}" = "y" ]; then
+	[ "$BBB" = "y" ] || cd $CDIR/bin/ || die "eek!"
+	build_keymap
+fi
 
-make && make busybox.links || die "eek!"
+if [ "${BBB:-${1:+y}}" = "y" ]; then
+	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
+	#ebuild $BBT.ebuild clean || die "eek"
+	cd $CDIR || die "eek!"
+fi
 
-# comment in this if need be--busybox/links are not installed in INITDIR
-#make install CONFIG_PREFIX=/tmp/busybox; rm -rf /tmp/busybox
-#./applets/install.sh $CDIR/bin/ --symlinks
-cp -a busybox $CDIR/bin/ || die "eek!"
-
-# save the current keymap
-dumpkeys > default_keymap || die "eek!"
-loadkeys $KEYMAP_IN || die "eek!"
-if [ "$UNICODE" = "yes" ]; then dumpkeys >(loadkeys -u) || die "eek!"; fi
-./busybox dumpkmap > $KEYMAP_OUT || die "eek!"
-cp $KEYMAP_OUT $CDIR/bin/ || die "eek!"
-# load back your keymap
-loadkeys default_keymap || die "eek!"
-
-cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
-#ebuild $BBT.ebuild clean || die "eek"
-
-cd $CDIR || die "eek!"
 unset CONFIG
 unset KEMAP_IN
 unset KEMAP_OUT
