@@ -1,23 +1,33 @@
 #!/bin/bash
-# configuration option for busybox, set minimal for a minimat build
-:	${CONFIG:=$1}
-# set ut your input keymap name
-:	${KEYMAP_IN:=${2:-fr-latin1}}
-# convert keymap to unicode if need be
-:	${UNICODE:=${4:-y}}
-# set up your output keymap name with -<ARCH>
-:	${KEYMAP_OUT:=${3:-fr_l1-amd64.bin}}
 :	${CDIR:=$(pwd)}
-mkdir -p bin
+
+function short_help {
+	cat << EOF
+  -b|--build		build a static busybox.
+  -m|--minimal		build busybox with only the essential applets, default is to build all applets.
+  -i|--install		install busybox with symliks to './bin', require -b|--build to be effective.
+  --kmap=map:kmap	generate kmap keymap using map as input keymap.
+  -h|--help		display help and exit.
+EOF
+}
+
+case $1 in
+	-b|--build) CONFIG=y; BBB=y; shift;;
+	-m|--minimal) CONFIG=m; shift;;
+	-i|--install) IBB=y; shift;;
+	--kmap=*) KBB=y; KEYMAP_IN=$(echo "$1"|cut -d'=' -f2|cut -d':' -f1)
+		KEYMAP_OUT=$(echo "$1"|cut -d'=' -f2|cut -d':' -f2); shift;;
+	-h|--help|-*|--*) short_help && exit 0;;
+esac
 
 die() {
 	echo "* $@"
 	exit 1
 }
 
-. /etc/make.conf
 
 build_busybox() {
+	. /etc/make.conf
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 	BBT=$(emerge -pvO busybox|grep -o "busybox-[-0-9.r]*")
 	ebuild $BBT.ebuild clean || die "clean failed"
@@ -86,30 +96,34 @@ build_keymap() {
 		cp $KEYMAP_OUT $CDIR/bin/ || die "$KEYMAP_OUT copy failed"
 
 	fi
+	unset KEMAP_IN
+	unset KEMAP_OUT
+	unset UNICODE
 }
 
-if [ "${BBB:-${1:+y}}" = "y" ]; then
+if [ "${BBB}" = "y" ]; then
+	mkdir -p bin
 	build_busybox
 	[ "$IBB" = "y" ] && install_busybox
 	cp -a busybox $CDIR/bin/ || die "eek!"
 	#cp applets $CDIR/bin/ || die "eek!"
+	unset CONFIG
+	unset IBB
 fi
 
-if [ "${KBB:-${3:+y}}" = "y" ]; then
-	[ "$BBB" = "y" ] || cd $CDIR/bin/ || die "eek!"
+if [ "${KBB}" = "y" ]; then
+	mkdir -p bin
+	[ "${BBB}" = "y" ] || cd $CDIR/bin/ || die "eek!"
 	build_keymap
+	unset KBB
 fi
 
-if [ "${BBB:-${1:+y}}" = "y" ]; then
+if [ "${BBB}" = "y" ]; then
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 	#ebuild $BBT.ebuild clean || die "eek"
 	cd $CDIR || die "eek!"
+	unset BBB
+	unset BBT
 fi
-
-unset CONFIG
-unset KEMAP_IN
-unset KEMAP_OUT
-unset UNICODE
-unset CDIR
-unset BBT
+	unset CDIR
 exit 0
