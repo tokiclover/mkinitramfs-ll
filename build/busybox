@@ -7,6 +7,9 @@ function short_help {
   -m|--minimal		build busybox with only the essential applets, default is to build all applets.
   -i|--install		install busybox with symliks to './bin', require -b|--build to be effective.
   --kmap=map:kmap	generate kmap keymap using map as input keymap.
+  --tmp=/tmp		whether to install busybox in '/tmp' with the symlinks before installing
+  			busybox, in case the install fails.
+  --uCl-arch=i386	input an ARCH string for uClibc build.		
   -h|--help		display help and exit.
 EOF
 }
@@ -15,6 +18,8 @@ case $1 in
 	-b|--build) CONFIG=y; BBB=y; shift;;
 	-m|--minimal) CONFIG=m; shift;;
 	-i|--install) IBB=y; shift;;
+	--tmp=*) TMP_DIR=$(echo "$1"|cut -d'=' -f2); shift;;
+	--ucl-arch=*) UCL_ARCH=$(echo "$1"|cut -d'=' -f2)-; shift;;
 	--kmap=*) KBB=y; KEYMAP_IN=$(echo "$1"|cut -d'=' -f2|cut -d':' -f1)
 		KEYMAP_OUT=$(echo "$1"|cut -d'=' -f2|cut -d':' -f2); shift;;
 	-h|--help|-*|--*) short_help && exit 0;;
@@ -71,14 +76,17 @@ build_busybox() {
 	fi
 
 	# For uClibc users, you need to adjust the cross compiler prefix properly (i386-uclibc-)
-	#sed -i -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"i386-uclibc-\"|" .config
-
+	if [ -n "$UCL_ARCH" ]; then
+		sed -i -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"$UCL_ARCH\"|" .config
+	fi
 	make && make busybox.links || die "bb build failed"
 }
 
 install_busybox() {
-	# comment in this if need be--busybox/links are not installed in INITDIR
-	#make install CONFIG_PREFIX=/tmp/busybox; rm -rf /tmp/busybox
+	if [ -d "$TMP_DIR" ]; then
+		make install CONFIG_PREFIX="$TMP_DIR"/busybox
+		rm -rf /tmp/busybox
+	fi
 	./applets/install.sh $CDIR/bin/ --symlinks
 }
 
