@@ -1,5 +1,10 @@
 #!/bin/bash
+revision=0.3_p20110826
 :	${CDIR:=$(pwd)}
+
+function version {
+	echo "version $revision"
+}
 
 function short_help {
 	cat << EOF
@@ -11,6 +16,7 @@ function short_help {
   			busybox, in case the install fails.
   --uCl-arch=i386	input an ARCH string for uClibc build.		
   -h|--help		display help and exit.
+  -v, --version 	display version and exit.
 EOF
 }
 
@@ -22,6 +28,7 @@ case $1 in
 	--ucl-arch=*) UCL_ARCH=$(echo "$1"|cut -d'=' -f2)-uClibc-; shift;;
 	--kmap=*) KBB=y; KEYMAP_IN=$(echo "$1"|cut -d'=' -f2|cut -d':' -f1)
 		KEYMAP_OUT=$(echo "$1"|cut -d'=' -f2|cut -d':' -f2); shift;;
+	-v|--version) version; exit 0;;
 	-h|--help|-*|--*) short_help && exit 0;;
 esac
 
