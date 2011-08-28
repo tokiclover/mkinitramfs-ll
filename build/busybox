@@ -110,8 +110,8 @@ build_keymap() {
 		cp $KEYMAP_OUT $BIN/ || die "$KEYMAP_OUT copy failed"
 
 	fi
-	unset KEMAP_IN
-	unset KEMAP_OUT
+	unset KEYMAP_IN
+	unset KEYMAP_OUT
 	unset UNICODE
 }
 
