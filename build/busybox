@@ -1,7 +1,7 @@
 #!/bin/bash
 revision=0.3_p20110827
 
-function short_help {
+short_help() {
 	cat << EOF
   -b, --build		build a static busybox.
   -m, --minimal		build busybox with only the essential applets, default is to build all applets.
