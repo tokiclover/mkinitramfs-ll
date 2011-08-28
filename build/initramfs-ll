@@ -10,25 +10,22 @@ short_help() {
 	cat << EOF
    $0 [OPTIONS]
       --aufs		adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
-  -e, --e-version=STR 	optional, append str extra version after k_ver to the initramfs.
-  -k, --k-version=STR	required, build an initramfs for 'k-version=\${KV:-\$(uname -r)}' kernel version.
+  -e, --e-version=str 	optional, append str extra version after k-version to the initramfs.
+  -k, --k-version=str	build an initramfs for 'k-version=\${KV:-\$(uname -r)}' kernel version.
   -f, --full		optional, build an initramfs with '--aufs --bin-dir --fs --lvm --gpg --misc'.
       --fs=<fs>		adds <fs> drivers to the initramfs, if empty will try to include 
-      			{btr,j,reiser,squash,x}fs+reiser4; it's a comma ',' separated list.
+      			{btr,j,reiser,squash,x}fs,reiser4; it's a spaces ' ' separated list.
       --fsck=<rootfs>	adds fsck.<rootfs> plus linked libraries to get fsck support for rootfs,
       			if <rootfs> is the empty string will default to ext4.
-      --bin-dir=./bin 	use binaries [gpg/options.skel|busybox/applets|kmap-ARCH.bin] from './bin'.
-      --modules=<list>	list of modules separeted by a comma ':' in a modules group and ',' colons
-      			separated between groups boot,gpg,remdev,sqfsd,tuxonice to load.
+      --bin-dir=bin 	use binaries [gpg/options.skel|busybox/applets|kmap-ARCH.bin] from 'bin'.
       --comp-cmd=cmd	compression command to use to build initramfs, default is 'xz -9 --check=crc32'.
   -g, --gpg 		adds GPG support, require a static app-crypt/gnupg-1.4.x build and options.skel.
-      --prefix=mvlinux	prefix scheme to name the initrd, default is kernel.
+      --prefix=mvlinux	prefix scheme to name the initramfs default is kernel.
       --kmap=km-x86.bin adds 'km-x86.bin' key-map in the initramfs, full path is required.
   -l, --lvm 		adds LVM2 support, require a static sys-fs/lvm2 build.
-      --misc-dir=./misc use dir for 'dir/{.gnupg/gpg.conf,share/gnupg/options.skel}' for gpg, optionaly
-  			one can add manpages and info files of gpg/lvm in dir/share as the whole
-			directory will be copied over the initramfs, if the '=*' is omitted will default to
-			using './misc' directory which is only valid using.
+      --misc-dir=misc use 'misc/{.gnupg/gpg.conf,share/gnupg/options.skel,initramfs-ll.conf}', optionaly 
+      			one can add manpages and info files of gpg/lvm in dir/share as the whole directory 
+			will be copied over into the initramfs, if the '=*' is omitted will default to './misc'.
       --splash=theme	splash theme to include in the initramfs.
   -h, --help		print this help.
   -v, --version 	print version.
@@ -36,15 +33,17 @@ short_help() {
   usages:
   # called without an argument, will build an initramfs for \$(uname -r) with LUKS support.
 
-  # building with full LUKS/GPG/LVM2/AUFS2 for kernel 3.0.3-git with an extra 'd0' string version.
+  # building with full LUKS/GPG/LVM2/AUFS2 support for kernel 3.0.3-git with an extra 'd0' string version.
   $0 -e d0 -k 3.0.3-git -f
   
-  <STR> 	string
+  <str> 	string
   <fs> 		file system e.g. xfs, reiser4.
   <theme>	full path to splash 'theme'.
   <rootfs> 	root file sytem.
-  ./bin		directory with the necessary binaries to build an initramfs.
-  ./misc	second local directory with extra necessary files.
+  bin		directory with the necessary binaries to build an initramfs.
+  misc		second local directory with extra necessary files.
+  --*-dir	bin-dirand misc-dir argument can be used without =* and will default to using ./bin and ./misc.
+  --*=		all arguments will default to default value definied in \$MISC/initramfs-ll.conf if empty.
 EOF
 }
 
