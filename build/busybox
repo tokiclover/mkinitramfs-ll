@@ -33,6 +33,7 @@ die() {
 }
 
 :	${WORKDIR:=$(pwd)}
+:	${MISC:=$WORKDIR/misc}
 . 	$MISC/initramfs-ll.conf
 
 build_busybox() {
