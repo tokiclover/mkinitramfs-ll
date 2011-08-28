@@ -19,7 +19,8 @@ short_help() {
 	
 	<dir> 	directory
 	examples:
-	# squash two directries which speed up portage calculations/database/dependencies
+	# squash two directries which will speed up portage calculations (database,dependencies) and remove 
+	# the underlying files which take a much more spaces as there are numerous small files there.
 	$0 -r var/db:var/cache/edb
 	# [re-]build system related squashed directories
 	$0 [-u|--up] bin:sbin:lib32:lib64
