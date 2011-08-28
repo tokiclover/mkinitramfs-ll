@@ -23,7 +23,7 @@ while [[ $# > 0 ]]; do
 		--kmap=*) KBB=y; KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
 			KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2); shift;;
 		-v|--version)  echo "version $revision"; exit 0;;
-		-h|--help|*) short_help && exit 0;;
+		-h|--help|*) short_help; exit 0;;
 	esac
 done
 
