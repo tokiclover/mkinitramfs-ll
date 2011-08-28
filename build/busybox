@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3_p20110826
+revision=0.3_p20110827
 
 function short_help {
 	cat << EOF
