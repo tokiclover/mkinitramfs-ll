@@ -4,7 +4,7 @@ revision=0.3.1_p20110828
 short_help() {
 	cat << EOF
   usage:
-  $0 [-b|--build [-m|--minimal] [--uCl-arch=i386] ] [--kmap=map:kmap]
+  ${0##*/} [-b|--build [-m|--minimal] [--uCl-arch=i386] ] [--kmap=map:kmap]
   -b, --build		build a static busybox.
   -m, --minimal		build busybox with only the essential applets, default is to build all applets.
   -i, --install		install busybox with symliks to './bin', require -b|--build.

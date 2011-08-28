@@ -8,7 +8,7 @@ die() {
 
 short_help() {
 	cat << EOF
-   $0 [OPTIONS]
+   ${0##*/} [OPTIONS]
       --aufs		adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
   -e, --e-version=str 	optional, append str extra version after k-version to the initramfs.
   -k, --k-version=str	build an initramfs for 'k-version=\${KV:-\$(uname -r)}' kernel version.
@@ -34,7 +34,7 @@ short_help() {
   # called without an argument, will build an initramfs for \$(uname -r) with LUKS support.
 
   # building with full LUKS/GPG/LVM2/AUFS2 support for kernel 3.0.3-git with an extra 'd0' string version.
-  $0 -e d0 -k 3.0.3-git -f
+  ${0##*/} -e d0 -k 3.0.3-git -f
   
   <str> 	string
   <fs> 		file system e.g. xfs, reiser4.

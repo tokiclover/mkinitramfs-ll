@@ -4,7 +4,7 @@ revision=0.1_p20110828
 short_help() {
 	cat << EOF
    usage:
-   $0 [OPTINS]
+   ${0##*/} [OPTINS]
       --use="USE flags" extra USE flags to append to USE="nls static".
       --Version=<STR>	build gpg-<STR> version instead of gpg-1.4*.
   -h, --help		print this help.
