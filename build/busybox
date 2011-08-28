@@ -88,7 +88,7 @@ build_busybox() {
 }
 
 install_busybox() {
-	if [ -d "$TMP_DIR" ]; then
+	if [ -e "$TMP_DIR" ]; then
 		make install CONFIG_PREFIX="$TMP_DIR"/busybox
 		rm -rf /tmp/busybox
 	fi
@@ -115,7 +115,7 @@ build_keymap() {
 }
 
 if [ "${BBB}" = "y" ]; then
-	mkdir -p bin
+	mkdir -p $BIN
 	build_busybox
 	[ "$IBB" = "y" ] && install_busybox
 	cp -a busybox $WORKDIR/bin/ || die "eek!"
@@ -125,8 +125,8 @@ if [ "${BBB}" = "y" ]; then
 fi
 
 if [ "${KBB}" = "y" ]; then
-	mkdir -p bin
-	[ "${BBB}" = "y" ] || cd $WORKDIR/bin/ || die "eek!"
+	mkdir -p $BIN
+	[ "${BBB}" != "y" ] && cd $BIN || die "eek!"
 	build_keymap
 	unset KBB
 fi
