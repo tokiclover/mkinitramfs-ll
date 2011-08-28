@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3_p20110827
+revision=0.3.1_p20110828
 
 die() {
 	echo "* $@"
@@ -30,6 +30,7 @@ short_help() {
 			directory will be copied over the initramfs, if the '=*' is omitted will default to
 			using './misc' directory which is only valid using.
       --splash=theme	splash theme to include in the initramfs.
+  -h, --help		print this help.
   -v, --version 	print version.
 
   usages:
@@ -55,7 +56,7 @@ while [[ $# > 0 ]]; do
 		--bin-dir*) [ -n "${1#*=}" ] && BIN=${1#*=}; shift;;
 		--comp-cmd*) [ -n "${1#*=}" ] && CMD=${1#*=}; shift;;
 		-e) E_VERSION=$2; shift 2;;
-		--e-version=*) E_VERSION=${1#*=}; shift;;
+		--e-version=*) [ -n "${1#*=}" ] && E_VERSION=${1#*=}; shift;;
 		-f|--full) iAUFS=y; iGPG=y; iLVM=y; shift;;
 		--fs*)	[ -n "${1#*=}" ] && FS=kernel/fs/${1#*=}; shift;;
 		--fsck*) [ -n "${1#*=}" ] && FSCK=${1#*=}; shift;;
@@ -71,8 +72,14 @@ while [[ $# > 0 ]]; do
 	esac
 done
 
-:	${CDIR:=$(pwd)}
-. $CDIR/misc/initramfs-ll.conf 
+:	${WORKDIR:=$(pwd)}
+:	${MISC:=$WORKDIR/misc}
+. 	$MISC/initramfs-ll.conf
+: 	${K_VERSION:=$(uname -r)}
+:	${INITRAMFS:=/boot/${PREFIX:-kernel}-$K_VERSION$E_VERSION-ll-initrd.xz}
+:	${INITDIR:=${WORKDIR}/initrd-ll$(echo $K_VERSION|cut -b4-)}
+:	${BIN:=$WORKDIR/bin}
+:	${CMD:=xz -9 --check=crc32}
 
 case ${CMD%%\ *} in
 	bzip2)	INITRAMFS=${INITRAMFS/.xz/.bz2};;
@@ -89,7 +96,7 @@ mkdir -p lib64/{splash/cache,modules/$K_VERSION/{misc,kernel/{crypto,fs/nls}}} |
 ln -sf lib64 lib || die "eek!"
 
 cp -a /dev/{console,mem,null,tty1,zero} dev/ || die "eek!"
-cp -a $CDIR/init . || die "failed to copy init"
+cp -a $WORKDIR/init . || die "failed to copy init"
 cp -a $BIN/applets etc/ || die "failed to copy applets"
 cp -a /sbin/{cryptsetup,v86d} sbin/ || die "faied to copy v86d"
 cp -a $BIN/busybox bin/ || die "failed to copy busybox"
@@ -111,8 +118,8 @@ fi
 
 if [ -n "$iGPG" ]; then
 	cp -a $BIN/gpg usr/bin/ || die "failed to copy gpg"
-	cp -ar $CDIR/misc/share usr/ || die "failed to copy misc/share"
-	cp -ar $CDIR/misc/.gnupg . || die "failed to copy misc/.gnupg"
+	cp -ar $MISC/share usr/ || die "failed to copy $MISC/share"
+	cp -ar $MISC/.gnupg . || die "failed to copy $MISC/.gnupg"
 	unset iGPG
 fi
 
@@ -126,7 +133,7 @@ if [ -n "$iLVM" ]; then
 	unset iLVM
 fi
 
-for mod in $(echo $FS|tr ':' ' '); do
+for mod in $FS; do
 	if [ -e /lib/modules/$K_VERSION/kernel/fs/$mod ]; then
 	cp -ar /lib/modules/$K_VERSION/kernel/fs/$mod lib/modules/$K_VERSION/kernel/fs/${mod%*/} || \
 		die "mod copy failed"
@@ -142,9 +149,11 @@ for mod in $MOD; do
 done
 
 if [ -n "$FSCK" ]; then
-	cp -a /sbin/fsck.$FSCK sbin/
-	for lib in $(ldd /sbin/fsck.${FSCK}|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g"); do
-		cp -a $lib lib/ || die "failed to copy $lib library"
+	for fs in $FSCK; do
+		cp -a /sbin/fsck.$fs sbin/
+		for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g"); do
+			cp -a $lib lib/ || die "failed to copy $lib library"
+		done
 	done
 	unset FSCK
 fi
