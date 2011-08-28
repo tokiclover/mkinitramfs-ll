@@ -1,22 +1,85 @@
 #!/bin/bash
-# if not called with a kernel and extra version, default will be $(uname -r)
-E_VERSION=$2
-K_VERSION=$1
-: ${K_VERSION:-$(uname -r)}
-if [ -n "$E_VERSION" ]; then
-	E_VERSION=-$E_VERSION
-fi
-INITRAMFS=/boot/kernel-$K_VERSION$E_VERSION-ll-initrd.xz
-INITDIR=initrd-ll$(echo $K_VERSION|cut -b4-)
-BIN=../bin
-CMD="xz -9 --check=crc32"
-KEYMAP=$BIN/fr_l1-amd64.bin
-SPLASH=
+revision=0.3_p20110827
 
 die() {
 	echo "* $@"
 	exit 1
 }
+
+short_help() {
+	cat << EOF
+   $0 [OPTIONS]
+      --aufs		adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
+  -e, --e-version=STR 	optional, append str extra version after k_ver to the initramfs.
+  -k, --k-version=STR	required, build an initramfs for 'k-version=\${KV:-\$(uname -r)}' kernel version.
+  -f, --full		optional, build an initramfs with '--aufs --bin-dir --fs --lvm --gpg --misc'.
+      --fs=<fs>		adds <fs> drivers to the initramfs, if empty will try to include 
+      			{btr,j,reiser,squash,x}fs+reiser4; it's a comma ',' separated list.
+      --fsck=<rootfs>	adds fsck.<rootfs> plus linked libraries to get fsck support for rootfs,
+      			if <rootfs> is the empty string will default to ext4.
+      --bin-dir=./bin 	use binaries [gpg/options.skel|busybox/applets|kmap-ARCH.bin] from './bin'.
+      --modules=<list>	list of modules separeted by a comma ':' in a modules group and ',' colons
+      			separated between groups boot,gpg,remdev,sqfsd,tuxonice to load.
+      --comp-cmd=cmd	compression command to use to build initramfs, default is 'xz -9 --check=crc32'.
+  -g, --gpg 		adds GPG support, require a static app-crypt/gnupg-1.4.x build and options.skel.
+      --prefix=mvlinux	prefix scheme to name the initrd, default is kernel.
+      --kmap=km-x86.bin adds 'km-x86.bin' key-map in the initramfs, full path is required.
+  -l, --lvm 		adds LVM2 support, require a static sys-fs/lvm2 build.
+      --misc-dir=./misc use dir for 'dir/{.gnupg/gpg.conf,share/gnupg/options.skel}' for gpg, optionaly
+  			one can add manpages and info files of gpg/lvm in dir/share as the whole
+			directory will be copied over the initramfs, if the '=*' is omitted will default to
+			using './misc' directory which is only valid using.
+      --splash=theme	splash theme to include in the initramfs.
+  -v, --version 	print version.
+
+  usages:
+  # called without an argument, will build an initramfs for \$(uname -r) with LUKS support.
+
+  # building with full LUKS/GPG/LVM2/AUFS2 for kernel 3.0.3-git with an extra 'd0' string version.
+  $0 -e d0 -k 3.0.3-git -f
+  
+  <STR> 	string
+  <fs> 		file system e.g. xfs, reiser4.
+  <theme>	full path to splash 'theme'.
+  <rootfs> 	root file sytem.
+  ./bin		directory with the necessary binaries to build an initramfs.
+  ./misc	second local directory with extra necessary files.
+EOF
+}
+
+while [[ $# > 0 ]]; do
+	case $1 in
+		-h|--help) short_help; exit 0;;
+		-v|--version) echo "version $revision"; exit 0;;
+		--aufs) iAUFS=y; shift;;
+		--bin-dir*) [ -n "${1#*=}" ] && BIN=${1#*=}; shift;;
+		--comp-cmd*) [ -n "${1#*=}" ] && CMD=${1#*=}; shift;;
+		-e) E_VERSION=$2; shift 2;;
+		--e-version=*) E_VERSION=${1#*=}; shift;;
+		-f|--full) iAUFS=y; iGPG=y; iLVM=y; shift;;
+		--fs*)	[ -n "${1#*=}" ] && FS=kernel/fs/${1#*=}; shift;;
+		--fsck*) [ -n "${1#*=}" ] && FSCK=${1#*=}; shift;;
+		-g|--gpg) iGPG=y; shift;;
+		--prefix*) PREFIX=${1#*=}; shift;; 
+		-k) K_VERSION=$2; shift 2;;
+		--k-version*) K_VERSION=${1#*=}; shift;;
+		--kmap=*) [ -n "${1#*=}" ] && KEYMAP=${1#*=}; shift;;
+		--lvm|-l) iLVM=y; shift;;
+		--misc-dir*) [ -n "${1#*=}" ] && MISC=${1#*=}; shift;;
+		--splash=*) [ -n "${1#*=}" ] && SPLASH=${1#*=}; shift;;
+		*) short_help; exit 0;;
+	esac
+done
+
+:	${CDIR:=$(pwd)}
+. $CDIR/misc/initramfs-ll.conf 
+
+case ${CMD%%\ *} in
+	bzip2)	INITRAMFS=${INITRAMFS/.xz/.bz2};;
+	gzip) 	INITRAMFS=${INITRAMFS/.xz/.gz};;
+	lzma)	INITRAMFS=${INITRAMFS/.xz/.lzma};;
+	lzop)	INITRAMFS=${INITRAMFS/.xz/.lzo};;
+esac
 
 echo ">>> building $INITRAMFS..."
 rm -rf $INITDIR || die "eek!"
@@ -24,63 +87,97 @@ mkdir -p $INITDIR && cd $INITDIR || die "eek!"
 mkdir -p {{,s}bin,dev,etc/{modules,splash},mnt/tok,newroot,proc,root,sys,usr/{bin,sbin}} || die "eek!"
 mkdir -p lib64/{splash/cache,modules/$K_VERSION/{misc,kernel/{crypto,fs/nls}}} || die "eek!"
 ln -sf lib64 lib || die "eek!"
-#mknod --mode=0660 dev/null c 1 3
-#mknod --mode=0600 dev/console c 5 1
 
 cp -a /dev/{console,mem,null,tty1,zero} dev/ || die "eek!"
-cp -a ../init . || die "eek!"
-cp -a $BIN/applets etc/ || die "eek!"
-cp -a /sbin/{mount.aufs,umount.aufs,cryptsetup,fsck.ext4,v86d} sbin || die "eek!"
-cp -a $BIN/busybox bin/ || die "eek!"
-for app in $(< $BIN/applets); do
+cp -a $CDIR/init . || die "failed to copy init"
+cp -a $BIN/applets etc/ || die "failed to copy applets"
+cp -a /sbin/{cryptsetup,v86d} sbin/ || die "faied to copy v86d"
+cp -a $BIN/busybox bin/ || die "failed to copy busybox"
+
+for app in $(< etc/applets); do
 case ${app%/*} in
-	/bin) cd bin && ln -s busybox ${app##*/} && cd .. || die "eek!";;
-	/sbin) cd sbin && ln -s ../bin/busybox ${app##*/} && cd .. || die "eek!";;
-	*) ln -s bin/busybox ${app#*/} || die "eek";;
+	/bin) cd bin && ln -sf busybox ${app##*/} && cd .. || die "eek!";;
+	/sbin) cd sbin && ln -sf ../bin/busybox ${app##*/} && cd .. || die "eek!";;
+	*) ln -sf bin/busybox ${app#*/} || die "eek";;
 esac
 done
-cp -a $BIN/gpg usr/bin/ || die "eek!"
-cp -ar ../misc/share usr/ || die "eek!"
-cp -ar ../misc/.gnupg . || die "eek!"
-cp -a /sbin/lvm.static sbin/lvm || die "eek!"
-cd sbin
-for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge
-do 
-	ln -s lvm $lpv || die "eek!"
-done
-cd ..
-# fsck.ext4 related libraries, comment out if you don't need them or replace them with...
-cp -a /lib/{ld-*,libc{-*,.so*}} lib/ || die "eek!"
-cp -a /lib64/{libblkid.so.1*,libcom_err*,libe2p*,libext2fs*,libpthread*,libuuid*} lib || die "eek!"
-for mod in kernel/{fs/{j,x}fs,crypto/blowfish.ko}
-do
-	cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%*/} || die "eek!"
-done
-if [ ! -d /lib/modules/$K_VERSION/kernel/fs/aufs ]; then
-	cp -ar /lib/modules/$K_VERSION/misc/aufs.ko lib/modules/$K_VERSION/misc || die "eek!"
+
+if [ -n "$iAUFS" ]; then
+	MOD+=" kernel/fs/aufs misc/aufs.ko"
+	cp -a /sbin/{,u}mount.aufs sbin/ || die "failed to copy *mount.aufs"
+	echo aufs > etc/modules/sqfsd || die "eek!"
+	unset iAUFS
 fi
-for mod in fs/{reiser{fs,4},aufs}
-do
-	if [ -d /lib/modules/$K_VERSION/kernel/fs/$mod ]; then
-		cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%*/} || die "eek!"
+
+if [ -n "$iGPG" ]; then
+	cp -a $BIN/gpg usr/bin/ || die "failed to copy gpg"
+	cp -ar $CDIR/misc/share usr/ || die "failed to copy misc/share"
+	cp -ar $CDIR/misc/.gnupg . || die "failed to copy misc/.gnupg"
+	unset iGPG
+fi
+
+if [ -n "$iLVM" ]; then
+	cp -a /sbin/lvm.static sbin/lvm || die "eek!"
+	cd sbin
+	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge
+		do ln -s lvm $lpv || die "eek!"
+	done
+	cd ..
+	unset iLVM
+fi
+
+for mod in $(echo $FS|tr ':' ' '); do
+	if [ -e /lib/modules/$K_VERSION/kernel/fs/$mod ]; then
+	cp -ar /lib/modules/$K_VERSION/kernel/fs/$mod lib/modules/$K_VERSION/kernel/fs/${mod%*/} || \
+		die "mod copy failed"
 	fi
+	unset FS
 done
-echo aufs > etc/modules/sqfsd || die "eek!"
-echo blowfish > etc/modules/boot || die "eek!"
-cp -a $KEYMAP etc/ || die "eek!"
-#cp -a /lib/modules/$K_VERSION/kernel/fs/nls/nls_cp437.ko lib/modules/$K_VERSION/kernel/fs/nls/ || die "eek!"
-#echo nls_cp437 > etc/modules/remdev || die "eek!"
-if [ -n "$SPLASH" ]; then cp -ar $SPASH etc/splash/ || die "eek!"; fi
+
+for mod in $MOD; do
+	if [ -e /lib/modules/$K_VERSION/$mod ]; then
+	cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%*/} || die "mod copy failed"
+	fi
+	unset MOD
+done
+
+if [ -n "$FSCK" ]; then
+	cp -a /sbin/fsck.$FSCK sbin/
+	for lib in $(ldd /sbin/fsck.${FSCK}|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g"); do
+		cp -a $lib lib/ || die "failed to copy $lib library"
+	done
+	unset FSCK
+fi
+
+for key in ${!MODULES[@]}; do
+	for grp in ${MODULES[$key]}; do
+		if [ -n "${grp#*=}" ]; then
+			for mod in $(echo ${grp#*=}|tr ':' ' '); do
+				echo $mod >> etc/modules/${grp%=*}
+			done
+		fi
+	done
+	unset MODULES
+done
+
+if [ -e "$KEYMAP" ]; then 
+	cp -a "$KEYMAP" etc/ || die "failed to copy keymap"
+	unset KEYMAP
+fi
+
+if [ -n "$SPLASH" ]; then
+	cp -ar "$SPASH" etc/splash/ || die "splash themes does not exist"
+	unset SPLASH
+fi
 
 find . -print0|cpio --null -ov --format=newc|$CMD > $INITRAMFS || die "eek!"
 
-echo ">>>... $INITRAMFS initramfs built"
+echo ">>> $INITRAMFS initramfs built"
 
 unset K_VERSION
 unset E_VERSION
 unset INITDIR
 unset BIN
-unset KEYMAP
 unset CMD
 unset INITRAMFS
-unset SPLASH
+
