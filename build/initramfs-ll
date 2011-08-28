@@ -143,7 +143,7 @@ done
 
 for mod in $MOD; do
 	if [ -e /lib/modules/$K_VERSION/$mod ]; then
-	cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%*/} || die "mod copy failed"
+	cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%/*} || die "mod copy failed"
 	fi
 	unset MOD
 done
@@ -189,4 +189,6 @@ unset INITDIR
 unset BIN
 unset CMD
 unset INITRAMFS
+unset MISC
+exit0
 
