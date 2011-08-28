@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3_p20110827
+revision=0.3.1_p20110828
 
 short_help() {
 	cat << EOF
@@ -13,17 +13,19 @@ short_help() {
 EOF
 }
 
-case $1 in
-	-b|--build) CONFIG=y; BBB=y; shift;;
-	-m|--minimal) CONFIG=m; shift;;
-	-i|--install) IBB=y; shift;;
-	--tmp=*) TMP_DIR=${1#*=}; shift;;
-	--ucl-arch=*) UCL_ARCH=${1#*=}-uClibc-; shift;;
-	--kmap=*) KBB=y; KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
-		KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2); shift;;
-	-v|--version)  echo "version $revision"; exit 0;;
-	-h|--help|-*|--*) short_help && exit 0;;
-esac
+while [[ $# > 0 ]]; do
+	case $1 in
+		-b|--build) CONFIG=y; BBB=y; shift;;
+		-m|--minimal) CONFIG=m; shift;;
+		-i|--install) IBB=y; shift;;
+		--tmp=*) TMP_DIR=${1#*=}; shift;;
+		--ucl-arch=*) UCL_ARCH=${1#*=}-uClibc-; shift;;
+		--kmap=*) KBB=y; KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
+			KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2); shift;;
+		-v|--version)  echo "version $revision"; exit 0;;
+		-h|--help|-*|--*) short_help && exit 0;;
+	esac
+done
 
 die() {
 	echo "* $@"
@@ -31,7 +33,7 @@ die() {
 }
 
 :	${WORKDIR:=$(pwd)}
-. 	$WORKDIR/misc/initramfs-ll.conf
+. 	$MISC/initramfs-ll.conf
 
 build_busybox() {
 	. /etc/make.conf
@@ -135,5 +137,4 @@ if [ "${BBB}" = "y" ]; then
 	unset BBB
 	unset BBT
 fi
-	unset WORKDIR
 exit 0
