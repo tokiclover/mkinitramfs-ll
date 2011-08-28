@@ -23,7 +23,7 @@ short_help() {
 	# the underlying files which take a much more spaces as there are numerous small files there.
 	$0 -r var/db:var/cache/edb
 	# [re-]build system related squashed directories
-	$0 [-u|--up] bin:sbin:lib32:lib64
+	$0 [-u|--update] bin:sbin:lib32:lib64
 EOF
 }
 
