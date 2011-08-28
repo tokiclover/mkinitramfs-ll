@@ -1,24 +1,51 @@
 #!/bin/bash
-CDIR=$(pwd)
-mkdir -p bin
+revision=0.1_p20110828
+
+short_help() {
+	cat << EOF
+   usage:
+   $0 [OPTINS]
+      --use="USE flags" extra USE flags to append to USE="nls static".
+      --Version=<STR>	build gpg-<STR> version instead of gpg-1.4*.
+  -h, --help		print this help.
+  -v, --version 	print version.
+EOF
+}
+
+while [[ $# > 0 ]]; do
+	case $1 in 
+		--use=*) EUSE=${1#*=}; shift;;
+		--Version=*) Version=${1#*=}; shift;;
+		--version|-v) echo "version $revision"; exit 0;;
+		--help|-h|*) short_help; exit 0;;
+	esac
+done
 
 die() {
 	echo "* $@"
 	exit 1
 }
 
-. /etc/make.conf
+:	${WORKDIR:=$(pwd)}
+:	${MISC:=$WORKDIR/misc}
+. 	$MISC/initramfs-ll.conf
+:	${BIN:=$WORKDIR/bin}
+
+mkdir -p bin
 
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
-GPG=$(emerge -pvO =app-crypt/gnupg-1.4*|grep -o "gnupg-[-0-9.r]*")
-USE="nls static" ebuild $GPG.ebuild compile || die "eek!"
+GPG=$(emerge -pvO =app-crypt/gnupg-${Version:-1.4*}|grep -o "gnupg-[-0-9.r]*")
+USE="nls static $EUSE" ebuild $GPG.ebuild compile || die "eek!"
 cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/$GPG/work/$GPG || die "eek!"
-cp -a gpg $CDIR/bin/ || die "eek!"
-cp g10/options.skel $CDIR/bin/ || die "eek!"
+cp -a gpg $BIN/ || die "eek!"
+cp g10/options.skel $BIN/ || die "eek!"
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 ebuild $GPG.ebuild clean || die "eek!"
-cd $CDIR || die "eek!"
+cd $WORKDIR || die "eek!"
 
-unset CDIR
 unset GPG
+unset EUSE
+unset BIN
+unset Version
 exit 0
+
