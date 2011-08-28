@@ -1,13 +1,48 @@
 #!/bin/bash
+revision=0.3_p20110828
 
-BSIZE=131072
-COMP=gzip
-EXCL=$3
-EXT=$2
-sqfsd="$(echo $1|tr ':' ' ')"
-sqfsdir="/sqfsd"
-FSTAB=n
-if [ -n "$EXCL" ]; then EXCL="-e $(echo $3|tr ':' ' ')"; fi
+short_help() {
+	cat << EOF
+	usage:
+	$0 [-u[--update]|-r[--remove]] [--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>:<dir>
+	
+	-u, --update			update the underlying source [sub]directory e.g. bin:sbin:lib32:lib64.
+	-r, --remove			remove the underlying source [sub]directory e.g. usr:opt:\$PORTDIR.
+	    --sqfsdir=<dir>		override default value \`sqfsdir=/sqfsd'.
+	-d, --sqfsd=<dir>:<dir>		list of colons ':' seperated squashed directories.
+	-f, --fstab			whether to write the necessary mount lines to \`/etc/fstab'.
+	    --bsize=131072		use [128k] 131072 bytes block size which is the default value.
+	    --comp="xz -Xbjc x86"	use xz compressor instead of gzip, optionaly, one can append extra arguments.
+	    --excl=<dir>:<dir>		exlude <dir>:<dir> from being included into the .sfs squashed image.
+	-h, --help			print this help.
+	-v, --version			print the version string.
+	
+	<dir> 	directory
+	examples:
+	# squash two directries which speed up portage calculations/database/dependencies
+	$0 -r var/db:var/cache/edb
+	# [re-]build system related squashed directories
+	$0 [-u|--up] bin:sbin:lib32:lib64
+EOF
+}
+
+while [[ $# > 0 ]]; do
+	case $1 in
+		-v|--version) echo "version $revision"; exit 0;;
+		-d) sqfsd=$(echo $2|tr ':' ' '); shift 2;;
+		--sqfsd=*) sqfsd=$(echo ${1#*=}|tr ':' ' '); shift;;
+		--sqfsdir=*) sqfsdir=${1#*=}; shift;;
+		--excl=*) EXCL=$(echo ${1#*=}|tr ':' ' '); shift;;
+		-f|--fstab) FSTAB=y; shift;;
+		--comp=*) COMP=${1#*=}; shift;;
+		-u|--update) EXT=up; shift;;
+		-r|--remove) EXT=rm; shift;;
+		-h|--help|*) short_help; exit 0;;
+	esac
+done
+
+:	${sqfsdir:=/sqfsd}
+if [ -n "$EXCL" ]; then EXCL="-e $EXCL"; fi
 
 die() {
 	echo "* $1"
@@ -18,7 +53,7 @@ for dir in $sqfsd
 do
 	echo ">>> [re]building squashed $dir..."
 	mkdir -p "$sqfsdir/$dir"/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
-	mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b $BSIZE -comp $COMP $EXCL >/dev/null || \
+	mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp ${COMP:-gzip} $EXCL >/dev/null || \
 		die "failed to build $dir.sfs img."
 	if [ "$dir" = "lib64" ]; then # move rc-svcdir and cachedir.
 		mkdir -p /var/{lib/init.d,cache/splash}
@@ -34,7 +69,7 @@ do
 	rm -rf "$sqfsdir/$dir"/rw/* || die "failed to clean up $sqfdir/$dir/rw."
 	[ -e $sqfsdir/$dir.sfs ] && rm -f $sqfsdir/$dir.sfs 
 	mv $sqfsdir/$dir.tmp.sfs $sqfsdir/$dir.sfs || die "failed to move $dir.tmp.sfs img."
-	if [ "$FSTAB" = "y" ]; then
+	if [ "${FSTAB:-n}" = "y" ]; then
 		echo "$sqfsdir/$dir.sfs $sqfsdir/$dir/ro squashfs nodev,loop,ro 0 0" >>/etc/fstab || die "..."
 		echo "$dir /$dir aufs nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro 0 0" >>/etc/fstab || die "..."
 	fi
