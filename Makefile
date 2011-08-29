@@ -15,11 +15,15 @@ DOCS=AUTHORS COPYING README ChangeLog
 clean:
 
 install:
+	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}
+	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}_bb
+	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}_gen
+	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}_gpg
+	sed -e 's:\$$MISC/init:${datadir}${PACKAGE}:' -i mk${PACKAGE}
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)/$(PACKAGE)
 	install -pm 755 misc/$(PACKAGE).conf    $(sys_confdir)
-	install -pm 755 mkinitramfs 		$(bindir)
 	install -pm 755 mk$(PACKAGE) 		$(bindir)
 	install -pm 755 mk$(PACKAGE)_bb 	$(bindir)
 	install -pm 755 mk$(PACKAGE)_gen 	$(bindir)
