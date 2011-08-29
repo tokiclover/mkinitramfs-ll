@@ -1,8 +1,81 @@
-#!/bin/sh
-echo "<<< minimal busybox build or not? type in 'minimal' if so"
-read args
-build/busybox $args
-echo "<<< which kernel and extra version--two strings seperated by a space--? [$(uname -r)]"
-read args
-build/initramfs-ll $args
-unset args
+#!/bin/bash
+revision=0.2_p20110828
+
+short_help() {
+	cat << EOF
+  usage: ${0##*/} OPTIONS [OPTIONS...]
+  -a, --aufs		adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
+      --bin-dir=bin 	create, wen building busybox or gpg, or use binaries from bin directory.
+  -A, --build-all	build gnupg, busybox with unicode keymap and an initramfs with LVM2 support.
+  -b, --build-bb 	build a static busybox and copy the binary/applets to \$BIN and then build an initramfs.
+  -g, --build-gpg 	build a static gnupg-1.4.x and copy the binary/options.skel to \$BIN, 
+  			-g|--gpg is as if included to the cmd line as well, and then build an initramfs.
+      --conf-dir=<dir> 	use <dir> to copy gpg.conf for gpg configuration file.
+      --gpg 		adds GPG support, require a static app-crypt/gnupg-1.4.x build and options.skel.
+      --kmap=map:kmap	generate kmap keymap using map as input keymap.
+  -l, --lvm 		adds LVM2 support, require a static sys-fs/lvm2 build.
+      --misc-dir=misc 	use 'misc/{.gnupg/gpg.conf,share/gnupg/options.skel,initramfs-ll.conf}', optionaly 
+      			one can add manpages and info files of gpg/lvm in misc/share as the whole directory 
+			will be copied over into the initramfs, if the '=*' is omitted will default to './misc'.
+      --splash=theme	splash theme to include in the initramfs.
+  -h, --help		print this help.
+  -v, --version 	print version.
+
+  usages:
+  # runned without an argument, will build an initramfs using default values definded in \$MISC/initramfs-ll.conf
+
+  # build an initramfs, after building gnupg and busybox, 
+  # with AUFS2/LVM2/GPG support for \$(uname -r) if K_VERSION wasn't modified
+  ${0##*/} --build-all --aufs --lvm --bin-dir=~/bin --misc-dir=~/misc
+EOF
+}
+
+while [[ $# > 0 ]]; do
+	case $1 in
+		--aufs|-a) iAUFS=y; shift;;
+		--bin-dir*) [ -n "${1#*=}" ] && BIN=${1#*=}; shift;;
+		--build-all|-A) iLVM=y; iGPG=y; BBB=y; CONFIG=y; bGPG=y; KBB=y; UNICODE=y; shift;;
+		--build-bb|-b) BBB=y; CONFIG=y; IBB=y; shift;;
+		--build-gpg|-g) BGPG=y; iGPG=y; shift;;
+		--conf-dir*) CONF=${1#*=}; shift;;
+		--gpg|-g) iGPG=y; shift;;
+		--lvm|-l) iLVM=y; shift;; 
+		--kmap=*) KBB=y;
+			  KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
+			  KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2); shift;;
+		--lvm|-l) iLVM=y; shift;;
+		--minimal|-m) CONFIG=m; shift;;
+		--misc-dir*) [ -n "${1#*=}" ] && MISC=${1#*=}; shift;;
+		--splash=*) [ -n "${1#*=}" ] && SPLASH=${1#*=}; shift;;
+		--version|-v)  echo "version $revision"; exit 0;;
+		--help|-h|*) short_help; exit 0;;
+	esac
+done
+
+:	${WORKDIR:=$(pwd)}
+:	${MISC:=$WORKDIR/misc}
+. 	$MISC/initramfs-ll.conf
+
+build_busybox() { . ./mkinitramfs-ll_bb; }
+build_gpg() { . ./mkinitramfs-ll_gpg; }
+build_initrmafs() { . ./mkinitramfs-ll; }
+
+if [[ -n "$BBB" ]]; then 
+	mkdir -p "$BIN"
+	build_busybox
+fi
+
+if [[ -n "$bGPG" ]]; then 
+	mkdir -p "$BIN"
+	if [[ -n "$CONF" ]]; then
+		mkdir -p "$MISC"/{share/,.}/gnupg
+		cp "$CONF"/gpg.conf "$MISC"/.gnupg/
+		unset CONF
+	fi
+	build_gpg
+	cp "$BIN"/options.skel "$MISC"/share/gnupg/
+	unset bGPG
+fi
+
+build_initramfs
+
