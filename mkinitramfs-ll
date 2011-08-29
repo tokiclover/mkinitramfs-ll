@@ -24,7 +24,7 @@ short_help() {
       --kmap=km-x86.bin adds 'km-x86.bin' key-map in the initramfs, full path is required.
   -l, --lvm 		adds LVM2 support, require a static sys-fs/lvm2 build.
       --misc-dir=misc use 'misc/{.gnupg/gpg.conf,share/gnupg/options.skel,initramfs-ll.conf}', optionaly 
-      			one can add manpages and info files of gpg/lvm in dir/share as the whole directory 
+      			one can add manpages and info files of gpg/lvm in misc/share as the whole directory 
 			will be copied over into the initramfs, if the '=*' is omitted will default to './misc'.
       --splash=theme	splash theme to include in the initramfs.
   -h, --help		print this help.
