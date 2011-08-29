@@ -17,14 +17,14 @@ clean:
 install:
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
-	install -pd $(datadir)
+	install -pd $(datadir)/$(PACKAGE)
 	install -pm 755 misc/$(PACKAGE).conf    $(sys_confdir)
 	install -pm 755 mkinitramfs 		$(bindir)
 	install -pm 755 mk$(PACKAGE) 		$(bindir)
 	install -pm 755 mk$(PACKAGE)_bb 	$(bindir)
 	install -pm 755 mk$(PACKAGE)_gen 	$(bindir)
 	install -pm 755 mk$(PACKAGE)_gpg 	$(bindir)
-	install -pm 755 init 			$(datadir)
+	install -pm 755 init 			$(datadir)/$(PACKAGE)
 
 install_sqfsd:
 	install -pd $(svc_confdir)
@@ -33,8 +33,9 @@ install_sqfsd:
 	install -pm 644 sqfsd/sqfsdmount.conf 	$(svc_confdir)/sqfsdmount
 
 install_extras:
-	install -pd $(datadir)/misc/share/gnupg
-	install -pd bin $(datadir)
+	install -pd $(datadir)/$(PACKAGE)/misc/share/gnupg
+	install -pd $(datadir)/$(PACKAGE)/bin
+	install -pm 644 bin/applets $(datadir)/bin
 	install -pm 644 misc/share/gnupg/options.skel $(datadir)/misc/share/gnupg
 
 postinstall:
@@ -53,8 +54,8 @@ uninstall_sqfsd:
 	rm -f $(svc_initdir)/sqfsdmount
 
 uninstall_extras:
-	rm -f $(datadir)/bin/applets
-	rm -f $(datadir)/misc/share/gnupg/options.skel
+	rm -f $(datadir)/$(PACKAGE)/bin/applets
+	rm -f $(datadir)/$(PACKAGE)/misc/share/gnupg/options.skel
 
 postuninstall:
 
