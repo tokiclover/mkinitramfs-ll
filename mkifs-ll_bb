@@ -17,11 +17,6 @@ EOF
 
 if [[ $# = 0 ]]; then short_help; exit 0; fi
 
-:	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
-[[ -f $MISC/mkifs-ll.conf ]] && . $MISC/mkifs-ll.conf
-:	${BIN:=$WORKDIR/bin}
-
 while [[ $# > 0 ]]; do
 	case $1 in
 		-b|--build) CONFIG=y; BBB=y; shift;;
@@ -35,6 +30,11 @@ while [[ $# > 0 ]]; do
 		-h|--help|*) short_help; exit 0;;
 	esac
 done
+
+:	${WORKDIR:=$(pwd)}
+:	${MISC:=$WORKDIR/misc}
+[[ -f $MISC/mkifs-ll.conf ]] && . $MISC/mkifs-ll.conf
+:	${BIN:=$WORKDIR/bin}
 
 die() {
 	echo "* $@"

@@ -12,11 +12,6 @@ short_help() {
 EOF
 }
 
-:	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
-[[ -f $MISC/mkifs-ll.conf ]] && . $MISC/mkifs-ll.conf
-:	${BIN:=$WORKDIR/bin}
-
 while [[ $# > 0 ]]; do
 	case $1 in 
 		--use=*) EUSE=${1#*=}; shift;;
@@ -25,6 +20,11 @@ while [[ $# > 0 ]]; do
 		--help|-h|*) short_help; exit 0;;
 	esac
 done
+
+:	${WORKDIR:=$(pwd)}
+:	${MISC:=$WORKDIR/misc}
+[[ -f $MISC/mkifs-ll.conf ]] && . $MISC/mkifs-ll.conf
+:	${BIN:=$WORKDIR/bin}
 
 die() {
 	echo "* $@"
