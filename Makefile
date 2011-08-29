@@ -19,7 +19,7 @@ install:
 	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}_bb
 	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}_gen
 	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}_gpg
-	sed -e 's:\$$MISC/init:${datadir}${PACKAGE}:' -i mk${PACKAGE}
+	sed -e 's:\$$WORKDIR/init:${datadir}${PACKAGE}/init:' -i mk${PACKAGE}
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)/$(PACKAGE)
