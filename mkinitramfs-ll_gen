@@ -30,6 +30,10 @@ short_help() {
 EOF
 }
 
+:	${WORKDIR:=$(pwd)}
+:	${MISC:=$WORKDIR/misc}
+[[ -f $MISC/initramfs-ll.conf ]] && . $MISC/initramfs-ll.conf
+
 while [[ $# > 0 ]]; do
 	case $1 in
 		--aufs|-a) iAUFS=y; shift;;
@@ -51,10 +55,6 @@ while [[ $# > 0 ]]; do
 		--help|-h|*) short_help; exit 0;;
 	esac
 done
-
-:	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
-[[ -f $MISC/initramfs-ll.conf ]] && . $MISC/initramfs-ll.conf
 
 build_busybox() { . ./mkinitramfs-ll_bb; }
 build_gpg() { . ./mkinitramfs-ll_gpg; }
