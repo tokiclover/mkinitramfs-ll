@@ -143,4 +143,3 @@ if [ "${BBB}" = "y" ]; then
 	unset BBB
 	unset BBT
 fi
-exit 0

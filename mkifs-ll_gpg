@@ -47,5 +47,4 @@ unset GPG
 unset EUSE
 unset BIN
 unset Version
-exit 0
 

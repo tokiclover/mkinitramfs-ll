@@ -189,5 +189,4 @@ unset BIN
 unset CMD
 unset INITRAMFS
 unset MISC
-exit0
 
