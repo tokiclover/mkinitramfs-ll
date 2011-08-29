@@ -20,7 +20,7 @@ install:
 	sed -e "s:\$$MISC/${bin_prefix}:/etc/${bin_prefix}:g" -i ${bin_prefix}_bb
 	sed -e "s:\$$MISC/${bin_prefix}:/etc/${bin_prefix}:g" -i ${bin_prefix}_gen
 	sed -e "s:\$$MISC/${bin_prefix}:/etc/${bin_prefix}:g" -i ${bin_prefix}_gpg
-	sed -e 's:\$$WORKDIR/${bin_prefix}:/${prefix}/share/${PACKAGE}/${bin_prefix}:' -i mkifs-ll
+	sed -e 's:\$$WORKDIR/${bin_prefix}:/${prefix}/share/${PACKAGE}/${bin_prefix}:' -i ${bin_prefix}
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)/$(PACKAGE)
@@ -47,7 +47,6 @@ install_extras:
 postinstall:
 
 uninstall:
-	rm -f $(bindir)/mkinitramfs
 	rm -f $(bindir)/${bin_prefix}
 	rm -f $(bindir)/${bin_prefix}_bb
 	rm -f $(bindir)/${bin_prefix}_gen
