@@ -20,7 +20,7 @@ install:
 	sed -e "s:\$$MISC/init:/etc/init:g" -i ${bin_prefix}_bb
 	sed -e "s:\$$MISC/init:/etc/init:g" -i ${bin_prefix}_gen
 	sed -e "s:\$$MISC/init:/etc/init:g" -i ${bin_prefix}_gpg
-	sed -e 's:\$$WORKDIR/init:/${prefix}/share/${PACKAGE}/init:' -i mkifs-ll
+	sed -e 's:\$$WORKDIR/${bin_prefix}:/${prefix}/share/${PACKAGE}/${bin_prefix}:' -i mkifs-ll
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)/$(PACKAGE)

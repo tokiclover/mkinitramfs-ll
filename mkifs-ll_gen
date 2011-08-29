@@ -32,7 +32,7 @@ EOF
 
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
-[[ -f $MISC/initramfs-ll.conf ]] && . $MISC/initramfs-ll.conf
+[[ -f $MISC/mkifs-ll.conf ]] && . $MISC/mkifs-ll.conf
 
 while [[ $# > 0 ]]; do
 	case $1 in

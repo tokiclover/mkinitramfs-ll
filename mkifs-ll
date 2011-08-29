@@ -49,7 +49,7 @@ EOF
 
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
-[[ -f $MISC/initramfs-ll.conf ]] && . $MISC/initramfs-ll.conf
+[[ -f $MISC/mkifs-ll.conf ]] && . $MISC/mkifs-ll.conf
 : 	${K_VERSION:=$(uname -r)}
 :	${INITRAMFS:=/boot/${PREFIX:-kernel}-$K_VERSION$E_VERSION-ll-initrd.xz}
 :	${INITDIR:=${WORKDIR}/initrd-ll$(echo $K_VERSION|cut -b4-)}
