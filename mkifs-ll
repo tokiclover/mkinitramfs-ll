@@ -178,7 +178,7 @@ for key in ${!MODULES[@]}; do
 	unset MODULES
 done
 
-if [ -e "$KEYMAP" ]; then 
+if [ -n "$KEYMAP" ]; then 
 	cp -a "$KEYMAP" etc/ || die "failed to copy keymap"
 	unset KEYMAP
 fi
