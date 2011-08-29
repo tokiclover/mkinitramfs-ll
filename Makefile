@@ -23,7 +23,7 @@ install:
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)/$(PACKAGE)
-	install -pm 755 misc/$(PACKAGE).conf    $(sys_confdir)
+	install -pm 644 misc/$(PACKAGE).conf    $(sys_confdir)
 	install -pm 755 mk$(PACKAGE) 		$(bindir)
 	install -pm 755 mk$(PACKAGE)_bb 	$(bindir)
 	install -pm 755 mk$(PACKAGE)_gen 	$(bindir)
@@ -35,6 +35,7 @@ install_sqfsd:
 	install -pd $(svc_initdir)
 	install -pm 755 sqfsd/sqfsdmount 	$(svc_initdir)
 	install -pm 644 sqfsd/sqfsdmount.conf 	$(svc_confdir)/sqfsdmount
+	install -pm 755 sqfsd/sqfsd-rebuild 	$(bindir)/sdr
 
 install_extras:
 	install -pd $(datadir)/$(PACKAGE)/misc/share/gnupg
