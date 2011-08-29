@@ -12,6 +12,11 @@ short_help() {
 EOF
 }
 
+:	${WORKDIR:=$(pwd)}
+:	${MISC:=$WORKDIR/misc}
+[[ -f $MISC/initramfs-ll.conf ]] && . $MISC/initramfs-ll.conf
+:	${BIN:=$WORKDIR/bin}
+
 while [[ $# > 0 ]]; do
 	case $1 in 
 		--use=*) EUSE=${1#*=}; shift;;
@@ -25,11 +30,6 @@ die() {
 	echo "* $@"
 	exit 1
 }
-
-:	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
-. 	$MISC/initramfs-ll.conf
-:	${BIN:=$WORKDIR/bin}
 
 mkdir -p bin
 

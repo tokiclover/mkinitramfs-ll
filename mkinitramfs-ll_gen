@@ -54,7 +54,7 @@ done
 
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
-. 	$MISC/initramfs-ll.conf
+[[ -f $MISC/initramfs-ll.conf ]] && . $MISC/initramfs-ll.conf
 
 build_busybox() { . ./mkinitramfs-ll_bb; }
 build_gpg() { . ./mkinitramfs-ll_gpg; }

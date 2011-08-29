@@ -47,6 +47,15 @@ short_help() {
 EOF
 }
 
+:	${WORKDIR:=$(pwd)}
+:	${MISC:=$WORKDIR/misc}
+[[ -f $MISC/initramfs-ll.conf ]] && . $MISC/initramfs-ll.conf
+: 	${K_VERSION:=$(uname -r)}
+:	${INITRAMFS:=/boot/${PREFIX:-kernel}-$K_VERSION$E_VERSION-ll-initrd.xz}
+:	${INITDIR:=${WORKDIR}/initrd-ll$(echo $K_VERSION|cut -b4-)}
+:	${BIN:=$WORKDIR/bin}
+:	${CMD:=xz -9 --check=crc32}
+
 while [[ $# > 0 ]]; do
 	case $1 in
 		-h|--help) short_help; exit 0;;
@@ -70,15 +79,6 @@ while [[ $# > 0 ]]; do
 		*) short_help; exit 0;;
 	esac
 done
-
-:	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
-. 	$MISC/initramfs-ll.conf
-: 	${K_VERSION:=$(uname -r)}
-:	${INITRAMFS:=/boot/${PREFIX:-kernel}-$K_VERSION$E_VERSION-ll-initrd.xz}
-:	${INITDIR:=${WORKDIR}/initrd-ll$(echo $K_VERSION|cut -b4-)}
-:	${BIN:=$WORKDIR/bin}
-:	${CMD:=xz -9 --check=crc32}
 
 case ${CMD%%\ *} in
 	bzip2)	INITRAMFS=${INITRAMFS/.xz/.bz2};;
@@ -160,7 +160,7 @@ fi
 for key in ${!MODULES[@]}; do
 	for grp in ${MODULES[$key]}; do
 		if [ -n "${grp#*=}" ]; then
-			for mod in $(echo ${grp#*=}|tr ':' ' '); do
+			for mod in ${grp#*=}; do
 				echo $mod >> etc/modules/${grp%=*}
 			done
 		fi

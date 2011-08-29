@@ -17,6 +17,11 @@ EOF
 
 if [[ $# = 0 ]]; then short_help; exit 0; fi
 
+:	${WORKDIR:=$(pwd)}
+:	${MISC:=$WORKDIR/misc}
+[[ -f $MISC/initramfs-ll.conf ]] && . $MISC/initramfs-ll.conf
+:	${BIN:=$WORKDIR/bin}
+
 while [[ $# > 0 ]]; do
 	case $1 in
 		-b|--build) CONFIG=y; BBB=y; shift;;
@@ -35,11 +40,6 @@ die() {
 	echo "* $@"
 	exit 1
 }
-
-:	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
-. 	$MISC/initramfs-ll.conf
-:	${BIN:=$WORKDIR/bin}
 
 build_busybox() {
 	. /etc/make.conf
