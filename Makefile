@@ -24,11 +24,11 @@ install:
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)/$(PACKAGE)
-	install -pm 644 misc/$(PACKAGE).conf    $(sys_confdir)
-	install -pm 755 mk$(PACKAGE) 		$(bindir)
-	install -pm 755 mk$(PACKAGE)_bb 	$(bindir)
-	install -pm 755 mk$(PACKAGE)_gen 	$(bindir)
-	install -pm 755 mk$(PACKAGE)_gpg 	$(bindir)
+	install -pm 644 misc/${bin_prefix}.conf    $(sys_confdir)
+	install -pm 755 ${bin_prefix} 		$(bindir)
+	install -pm 755 ${bin_prefix}_bb 	$(bindir)
+	install -pm 755 ${bin_prefix}_gen 	$(bindir)
+	install -pm 755 ${bin_prefix}_gpg 	$(bindir)
 	install -pm 755 init 			$(datadir)/$(PACKAGE)
 
 install_sqfsd:
@@ -48,12 +48,12 @@ postinstall:
 
 uninstall:
 	rm -f $(bindir)/mkinitramfs
-	rm -f $(bindir)/mk$(PACKAGE)
-	rm -f $(bindir)/mk$(PACKAGE)_bb
-	rm -f $(bindir)/mk$(PACKAGE)_gen
-	rm -f $(bindir)/mk$(PACKEGE)_gpg
+	rm -f $(bindir)/${bin_prefix}
+	rm -f $(bindir)/${bin_prefix}_bb
+	rm -f $(bindir)/${bin_prefix}_gen
+	rm -f $(bindir)/${bin_prefix}_gpg
 	rm -f $(datadir)/init
-	rm -f $(docdir)/$(PACKAGE).conf
+	rm -f $(docdir)/${bin_prefix}.conf
 
 uninstall_sqfsd:
 	rm -f $(svc_confdir)/sqfsdmount
