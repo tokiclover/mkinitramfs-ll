@@ -36,7 +36,7 @@ install_extras:
 	install -pd $(datadir)/$(PACKAGE)/misc/share/gnupg
 	install -pd $(datadir)/$(PACKAGE)/bin
 	install -pm 644 bin/applets $(datadir)/$(PACKAGE)/bin
-	install -pm 644 misc/share/gnupg/options.skel $(datadir)/misc/share/gnupg
+	install -pm 644 misc/share/gnupg/options.skel $(datadir)/$[PACKAGE)/misc/share/gnupg
 
 postinstall:
 
