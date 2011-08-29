@@ -4,6 +4,7 @@ VERSION = $(shell grep revision= mkinitramfs-ll|sed -e 's:revision=::')
 
 prefix		= usr/local
 bindir 		= ${DESTDIR}/${prefix}/sbin
+bin_prefix	= mkifs-ll
 sys_confdir	= ${DESTDIR}/etc
 svc_confdir	= ${sys_confdir}/conf.d
 svc_initdir	= ${sys_confdir}/init.d
@@ -15,11 +16,11 @@ DOCS=AUTHORS COPYING README ChangeLog
 clean:
 
 install:
-	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}
-	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}_bb
-	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}_gen
-	sed -e "s:\$$MISC/init:/etc/init:g" -i mk${PACKAGE}_gpg
-	sed -e 's:\$$WORKDIR/init:/${prefix}/share/${PACKAGE}/init:' -i mk${PACKAGE}
+	sed -e "s:\$$MISC/init:/etc/init:g" -i ${bin_prefix}
+	sed -e "s:\$$MISC/init:/etc/init:g" -i ${bin_prefix}_bb
+	sed -e "s:\$$MISC/init:/etc/init:g" -i ${bin_prefix}_gen
+	sed -e "s:\$$MISC/init:/etc/init:g" -i ${bin_prefix}_gpg
+	sed -e 's:\$$WORKDIR/init:/${prefix}/share/${PACKAGE}/init:' -i mkifs-ll
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)/$(PACKAGE)
