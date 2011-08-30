@@ -1,8 +1,10 @@
 #!/bin/bash
-revision=0.3.1_p20110830
+revision=0.3.2_p20110830
+
+error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
 
 die() {
-	echo "* $@"
+	error "$@"
 	exit 1
 }
 
@@ -39,7 +41,7 @@ short_help() {
   ${0##*/} -e d0 -k 3.0.3-git -f
   
   <str> 	string
-  <fon>		full path to font.
+  <font>	full path to font.
   <fs> 		file system e.g. xfs, reiser4.
   <theme>	full path to splash 'theme'.
   <rootfs> 	root file sytem.

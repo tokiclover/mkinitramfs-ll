@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3.1_p20110828
+revision=0.3.2_p20110830
 
 short_help() {
 	cat << EOF
@@ -36,8 +36,10 @@ done
 [[ -f $MISC/mkifs-ll.conf ]] && . $MISC/mkifs-ll.conf
 :	${BIN:=$WORKDIR/bin}
 
+error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
+
 die() {
-	echo "* $@"
+	error "$@"
 	exit 1
 }
 
