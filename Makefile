@@ -20,7 +20,7 @@ install:
 	sed -e 's:\$$MISC/${bin_prefix}:/etc/${bin_prefix}:g' -i ${bin_prefix}_bb
 	sed -e 's:\$$MISC/${bin_prefix}:/etc/${bin_prefix}:g' -i ${bin_prefix}_gen
 	sed -e 's:\$$MISC/${bin_prefix}:/etc/${bin_prefix}:g' -i ${bin_prefix}_gpg
-	sed -e 's:\$$WORKDIR/${bin_prefix}:/${prefix}/share/${PACKAGE}/${bin_prefix}:' -i ${bin_prefix}
+	sed -e 's|:\t\$${WORKDIR:=\$$(pwd)}|#WORKDIR=/${prefix}/share/${PACKAGE}|' -i misc/${bin_prefix}.conf
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)/$(PACKAGE)
