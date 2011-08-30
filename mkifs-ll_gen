@@ -11,7 +11,7 @@ short_help() {
   -g, --build-gpg 	build a static gnupg-1.4.x and copy the binary/options.skel to \$BIN, 
   			-g|--gpg is as if included to the cmd line as well, and then build an initramfs.
       --conf-dir=<dir> 	use <dir> to copy gpg.conf for gpg configuration file.
-      --font=<font>	adds <font>, if \`=*' will add default font.
+      --font=<font>	adds <font>, if \`=*' is omitted will add default font if available.
       --gpg 		adds GPG support, require a static app-crypt/gnupg-1.4.x build and options.skel.
       --kmap=map:kmap	generate kmap keymap using map as input keymap.
   -l, --lvm 		adds LVM2 support, require a static sys-fs/lvm2 build.

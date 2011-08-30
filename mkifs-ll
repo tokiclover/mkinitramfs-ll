@@ -12,7 +12,7 @@ short_help() {
       --aufs		adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
   -e, --e-version=str 	optional, append str extra version after k-version to the initramfs.
   -k, --k-version=str	build an initramfs for 'k-version=\${KV:-\$(uname -r)}' kernel version.
-      --font=<font>	adds <font>, if \`=*' will add default font if available.
+      --font=<font>	adds <font>, if \`=*' is omitted will add default font if available.
   -f, --full		optional, build an initramfs with '--aufs --bin-dir --font --fs --lvm --gpg --misci --toi'.
       --fs=<fs>		adds <fs> drivers to the initramfs, if empty will try to include 
       			{btr,j,reiser,squash,x}fs,reiser4; it's a spaces ' ' separated list.
