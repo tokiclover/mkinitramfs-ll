@@ -59,7 +59,7 @@ while [[ $# > 0 ]]; do
 		--comp-cmd*) [ -n "${1#*=}" ] && CMD=${1#*=}; shift;;
 		-e) E_VERSION=$2; shift 2;;
 		--e-version=*) [ -n "${1#*=}" ] && E_VERSION=${1#*=}; shift;;
-		--font) [ -n "${1#*=}" ] && FONT=${1#*=}; shift;;
+		--font*) [ -n "${1#*=}" ] && FONT=${1#*=}; shift;;
 		-f|--full) iAUFS=y; iGPG=y; iLVM=y, iTOI=y; shift;;
 		--fs*)	[ -n "${1#*=}" ] && FS=kernel/fs/${1#*=}; shift;;
 		--fsck*) [ -n "${1#*=}" ] && FSCK=${1#*=}; shift;;
@@ -70,7 +70,7 @@ while [[ $# > 0 ]]; do
 		--kmap=*) [ -n "${1#*=}" ] && KEYMAP=${1#*=}; shift;;
 		--lvm|-l) iLVM=y; shift;;
 		--misc-dir*) [ -n "${1#*=}" ] && MISC=${1#*=}; shift;;
-		--splash=*) [ -n "${1#*=}" ] && SPLASH=${1#*=}; shift;;
+		--splash*) [ -n "${1#*=}" ] && SPLASH=${1#*=}; shift;;
 		--toi) iTOI=y; shift;;
 		*) short_help; exit 0;;
 	esac
@@ -123,8 +123,6 @@ case ${app%/*} in
 	*) ln -sf bin/busybox ${app#*/} || die "eek";;
 esac
 done
-
-[ -e "$FONT" ] && cp -a "$FONT" etc/
 
 if [ -n "$iAUFS" ]; then
 	MOD+=" kernel/fs/aufs misc/aufs.ko"
@@ -190,6 +188,8 @@ if [ -n "$KEYMAP" ]; then
 	cp -a "$KEYMAP" etc/ || die "failed to copy keymap"
 	unset KEYMAP
 fi
+
+[ -e "$FONT" ] && cp -a "$FONT" etc/
 
 if [ -n "$SPLASH" ]; then
 	if [ -n "$iTOI" ]; then

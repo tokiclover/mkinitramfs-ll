@@ -40,7 +40,7 @@ while [[ $# > 0 ]]; do
 		--build-bb|-b) BBB=y; CONFIG=y; IBB=y; shift;;
 		--build-gpg|-g) BGPG=y; iGPG=y; shift;;
 		--conf-dir*) CONF=${1#*=}; shift;;
-		--font) [ -n "${1#*=}" ] && FONT=${1#*=}; shift;;
+		--font*) [ -n "${1#*=}" ] && FONT=${1#*=}; shift;;
 		--gpg|-g) iGPG=y; shift;;
 		--lvm|-l) iLVM=y; shift;; 
 		--kmap=*) KBB=y;
@@ -49,7 +49,7 @@ while [[ $# > 0 ]]; do
 		--lvm|-l) iLVM=y; shift;;
 		--minimal|-m) CONFIG=m; shift;;
 		--misc-dir*) [ -n "${1#*=}" ] && MISC=${1#*=}; shift;;
-		--splash=*) [ -n "${1#*=}" ] && SPLASH=${1#*=}; shift;;
+		--splash*) [ -n "${1#*=}" ] && SPLASH=${1#*=}; shift;;
 		--toi) iTOI=y; shift;;
 		--version|-v)  echo "version $revision"; exit 0;;
 		--help|-h|*) short_help; exit 0;;
