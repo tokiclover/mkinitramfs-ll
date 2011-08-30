@@ -6,11 +6,12 @@ short_help() {
   usage: ${0##*/} OPTIONS [OPTIONS...]
   -a, --aufs		adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
       --bin-dir=bin 	create, wen building busybox or gpg, or use binaries from bin directory.
-  -A, --build-all	build gnupg, busybox with unicode keymap and an initramfs with LVM2 support.
+  -A, --build-all	build gnupg, busybox with unicode keymap, font if availabe and AUFS2/LVM2/TOI support.
   -b, --build-bb 	build a static busybox and copy the binary/applets to \$BIN and then build an initramfs.
   -g, --build-gpg 	build a static gnupg-1.4.x and copy the binary/options.skel to \$BIN, 
   			-g|--gpg is as if included to the cmd line as well, and then build an initramfs.
       --conf-dir=<dir> 	use <dir> to copy gpg.conf for gpg configuration file.
+      --font=<font>	adds <font>, if \`=*' will add default font.
       --gpg 		adds GPG support, require a static app-crypt/gnupg-1.4.x build and options.skel.
       --kmap=map:kmap	generate kmap keymap using map as input keymap.
   -l, --lvm 		adds LVM2 support, require a static sys-fs/lvm2 build.
@@ -18,6 +19,7 @@ short_help() {
       			one can add manpages and info files of gpg/lvm in misc/share as the whole directory 
 			will be copied over into the initramfs, if the '=*' is omitted will default to './misc'.
       --splash=theme	splash theme to include in the initramfs.
+      --toi		adds tuxonice support.
   -h, --help		print this help.
   -v, --version 	print version.
 
@@ -38,6 +40,7 @@ while [[ $# > 0 ]]; do
 		--build-bb|-b) BBB=y; CONFIG=y; IBB=y; shift;;
 		--build-gpg|-g) BGPG=y; iGPG=y; shift;;
 		--conf-dir*) CONF=${1#*=}; shift;;
+		--font) [ -n "${1#*=}" ] && FONT=${1#*=}; shift;;
 		--gpg|-g) iGPG=y; shift;;
 		--lvm|-l) iLVM=y; shift;; 
 		--kmap=*) KBB=y;
@@ -47,6 +50,7 @@ while [[ $# > 0 ]]; do
 		--minimal|-m) CONFIG=m; shift;;
 		--misc-dir*) [ -n "${1#*=}" ] && MISC=${1#*=}; shift;;
 		--splash=*) [ -n "${1#*=}" ] && SPLASH=${1#*=}; shift;;
+		--toi) iTOI=y; shift;;
 		--version|-v)  echo "version $revision"; exit 0;;
 		--help|-h|*) short_help; exit 0;;
 	esac
