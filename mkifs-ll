@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3.1_p20110828
+revision=0.3.1_p20110830
 
 die() {
 	echo "* $@"
