@@ -12,7 +12,8 @@ short_help() {
       --aufs		adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
   -e, --e-version=str 	optional, append str extra version after k-version to the initramfs.
   -k, --k-version=str	build an initramfs for 'k-version=\${KV:-\$(uname -r)}' kernel version.
-  -f, --full		optional, build an initramfs with '--aufs --bin-dir --fs --lvm --gpg --misc'.
+      --font=<font>	adds <font>, if \`=*' will add default font if available.
+  -f, --full		optional, build an initramfs with '--aufs --bin-dir --font --fs --lvm --gpg --misci --toi'.
       --fs=<fs>		adds <fs> drivers to the initramfs, if empty will try to include 
       			{btr,j,reiser,squash,x}fs,reiser4; it's a spaces ' ' separated list.
       --fsck=<rootfs>	adds fsck.<rootfs> plus linked libraries to get fsck support for rootfs,
@@ -27,6 +28,7 @@ short_help() {
       			one can add manpages and info files of gpg/lvm in misc/share as the whole directory 
 			will be copied over into the initramfs, if the '=*' is omitted will default to './misc'.
       --splash=theme	splash theme to include in the initramfs.
+      --toi		adds tuxonice support.
   -h, --help		print this help.
   -v, --version 	print version.
 
@@ -37,6 +39,7 @@ short_help() {
   ${0##*/} -e d0 -k 3.0.3-git -f
   
   <str> 	string
+  <fon>		full path to font.
   <fs> 		file system e.g. xfs, reiser4.
   <theme>	full path to splash 'theme'.
   <rootfs> 	root file sytem.
@@ -56,7 +59,8 @@ while [[ $# > 0 ]]; do
 		--comp-cmd*) [ -n "${1#*=}" ] && CMD=${1#*=}; shift;;
 		-e) E_VERSION=$2; shift 2;;
 		--e-version=*) [ -n "${1#*=}" ] && E_VERSION=${1#*=}; shift;;
-		-f|--full) iAUFS=y; iGPG=y; iLVM=y; shift;;
+		--font) [ -n "${1#*=}" ] && FONT=${1#*=}; shift;;
+		-f|--full) iAUFS=y; iGPG=y; iLVM=y, iTOI=y; shift;;
 		--fs*)	[ -n "${1#*=}" ] && FS=kernel/fs/${1#*=}; shift;;
 		--fsck*) [ -n "${1#*=}" ] && FSCK=${1#*=}; shift;;
 		-g|--gpg) iGPG=y; shift;;
@@ -67,6 +71,7 @@ while [[ $# > 0 ]]; do
 		--lvm|-l) iLVM=y; shift;;
 		--misc-dir*) [ -n "${1#*=}" ] && MISC=${1#*=}; shift;;
 		--splash=*) [ -n "${1#*=}" ] && SPLASH=${1#*=}; shift;;
+		--toi) iTOI=y; shift;;
 		*) short_help; exit 0;;
 	esac
 done
@@ -95,10 +100,11 @@ mkdir -p {{,s}bin,dev,etc/{modules,splash},mnt/tok,newroot,proc,root,sys,usr/{bi
 mkdir -p lib64/{splash/cache,modules/$K_VERSION/{misc,kernel/{crypto,fs/nls}}} || die "eek!"
 ln -sf lib64 lib || die "eek!"
 
-cp -a /dev/{console,random,urandom,null,tty,tty1,zero} dev/ || {
+cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || {
 	[ -c dev/console ] 	|| mknod dev/console c 5 1 	|| die "eek!"
 	[ -c dev/urandom ] 	|| mknod dev/urandom c 1 9 	|| die "eek!"
 	[ -c dev/random ] 	|| mknod dev/random c 1 8 	|| die "eek!"
+	[ -c dev/mem ] 		|| mknod dev/mem c 1 1 		|| die "eek!"
 	[ -c dev/null ] 	|| mknod dev/null c 1 3 	|| die "eek!"
 	[ -c dev/tty ] 		|| mknod dev/tty c 5 0 		|| die "eek!"
 	[ -c dev/tty1 ] 	|| mknod dev/tty1 c 4 1 	|| die "eek!"
@@ -117,6 +123,8 @@ case ${app%/*} in
 	*) ln -sf bin/busybox ${app#*/} || die "eek";;
 esac
 done
+
+[ -e "$FONT" ] && cp -a "$FONT" etc/
 
 if [ -n "$iAUFS" ]; then
 	MOD+=" kernel/fs/aufs misc/aufs.ko"
@@ -161,7 +169,7 @@ if [ -n "$FSCK" ]; then
 	for fs in $FSCK; do
 		cp -a /sbin/fsck.$fs sbin/
 		for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g"); do
-			cp -a $lib lib/ || die "failed to copy $lib library"
+			cp -adH $lib lib/ || die "failed to copy $lib library"
 		done
 	done
 	unset FSCK
@@ -184,6 +192,11 @@ if [ -n "$KEYMAP" ]; then
 fi
 
 if [ -n "$SPLASH" ]; then
+	if [ -n "$iTOI" ]; then
+		cp -a /sbin/tuxoniceui_text sbin/ || die "failed to copy toi helper"
+		unset iTOI
+	fi
+	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
 	cp -ar "$SPASH" etc/splash/ || die "splash themes does not exist"
 	unset SPLASH
 fi
