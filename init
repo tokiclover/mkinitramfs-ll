@@ -128,7 +128,7 @@ get_key() {
 	esac
 }
 
-test_key() {
+check_key() {
         if [ "${1}" = "ldk" ] || [ "${1}" = "gpg" ] || [ "${1}" = "reg" ]; then
                 [ -n "${2}" ] || die "Error: ikey_${4}: device field empty."
                 [ -n "${3}" ] || die "Error: ikey_${4}: filepath field empty."
@@ -173,7 +173,7 @@ exec_cryptsetup() {
 	elif [ ${gv_kldk} ]; then 
 		cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}" -d "${gv_kfile}"
 		[ "$?" ] || warn "...there's still a fallback..."; gv_kldk=; fi
-	if [ ! -e "/dev/mapper/${lv_map}" ]; then cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}"
+	if [ ! -b "/dev/mapper/${lv_map}" ]; then cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}"
 		[ "$?" ] || die "Failed to decrypt ${lv_dev}."; fi
 	echo /dev/mapper/${lv_map}
 }
@@ -193,7 +193,7 @@ exec_lvm() {
 			close_cryptsetup "${lv_pv%-*}" "${lv_pv}"; done
 		[ -n "${gv_fname}" ] && close_cryptsetup "${gv_fname}" "${gv_fname}"
 		die "Encrypted PV [and key-file] closed."; }
-	if   [ -b "/dev/mapper/${lv_vgm}" ]; 	then local lv_dev=/dev/mapper/${lv_vgm}
+	if   [ -b "/dev/mapper/${2}" ]; 	then local lv_dev=/dev/mapper/${2}
 	elif [ -b "/dev/${lv_vgm}" ]; 		then local lv_dev=/dev/${lv_vgm}
 	else die "${lv_vgm} VG/LV do not exist."; fi
 	echo ${lv_dev}
@@ -229,7 +229,7 @@ do_root_work() {
 	[ -n "${lv_rofs}" ]  && lv_rofs="-t ${lv_rofs}"
 	[ -n "${gv_root}" ] || die "iroot=* arg [PV|VG-LV][:fsck:<fs>] are missing."
 	[ "${lv_kmod}" != "none" ]  && local lv_crypt=0 && \
-		test_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
+		check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
 	shell_checkpoint 4
 	info "ROOT LV..."
 	if [ "${lv_crypt}" ]; then info "...encrypted rootfs."
@@ -269,7 +269,7 @@ do_swap_work() {
 	[ -n "$lv_sign" ] && lv_sign=:$lv_sign
 	shell_checkpoint 2
         info "SWAP LV..."
-        test_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_tmsg}"
+        check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_tmsg}"
         if [ -n "${lv_lvm}" ]; then
 		gv_dev=${lv_type}:$(exec_lvm "${lv_lvm}" "${lv_hdev}")${lv_sign}
 	else 	gv_dev=${lv_type}:$(exec_cryptsetup "${lv_hdev}" "${lv_tmsg}")${lv_sign}; fi
@@ -277,7 +277,7 @@ do_swap_work() {
 	shell_checkpoint 3
 }
 
-tuxonice_resume() {
+do_resume() {
         [ "${gv_splash_silent}" = "silent" ] || splash_message "Resuming..."
         splash_daemon_stop
         [ -n "$(echo "${gv_toi}"|cut -d':' -s -f2)" ] && {
@@ -338,7 +338,7 @@ do_work() {
 	if [ -n "${gv_swap}" ]; then
 :       	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -s -f2)}
 		do_swap_work "swap" "${gv_swap}" "${gv_kswap}"; fi
-	[ -n "${gv_toi}" ] && tuxonice_resume
+	[ -n "${gv_toi}" ] && do_resume
 	do_root_work
 	for lk in ${gv_ldk_key}; do close_cryptsetup ${lk} ${lk}; done
 	for ld in ${gv_ldk_dev}; do losetup -d ${ld}; done
