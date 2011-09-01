@@ -5,12 +5,15 @@
 
 # ---------------------------------------------------------------------------
 
+*2011-09-01:
+	* Heavy editing of the ChangeLog to be more readable.
+
 2011-08-30: 
-	* The previous clean up was threwn away as all the scripts went into a
-	major rewrite and renaming initramfs-ll -> mkifs-ll.
+	* The previous clean up was threwn away as all the scripts went into 
+	a major rewrite and renaming initramfs-ll -> mkifs-ll.
 	* Every script has now command line arguments/options which let one to
-	make whatever s-he likes. Well, mkifs-ll_bb can either build a static
-	binary and/or gene a keymap.
+	make whatever s-he likes, now mkifs-ll_bb can either build a static
+	binary and/or generate a keymap.
 	* mkifs-ll_gpg build a static binary with few options apart from USE
 	flags.
 	* mkifs-ll has a fully set of optinal arguments to be able to build an
@@ -20,19 +23,17 @@
 	media-gfx/splashutils for splash.
 
 	* The init script went into a major clean up as well with many fixes.
-	I don't know is somebody could make use of splash with the versions,
-	and fixed or essed TOI resume function--there were a piece of code
-	that I did not undestand so I cleaned it to be more undestandable, I
-	did not test it yest if it's still functional, there's no reason to
-	oyherwise;--cryptsetup first function part which check out if a PV is
-	a valid LUKS PV and ask if not to choose another PV or encrypt the
-	provided one should be function with new colors outputs.
-
-	* Heavy editing of the ChangeLog to be more readable.
+	I don't know if somebody could make use of splash with the previous 
+	versions. Anyway fixed or messed TOI resume function--there were a 
+	piece of code that I did not undestand so I cleaned it to be more 
+	understandable, I did not test it yet if it's still functional, there's 
+	no reason for otherwise;--cryptsetup first function part which check out 
+	if a PV is a valid LUKS PV and ask if not to choose another PV or 
+	encrypt the provided one should be functional with new colors outputs.
 
 * 2011-08-13:
 	* cleaned up the mess of initrd-ll.sh and bb-initrd.sh, those two
-	scripts should work now as expected which into a renaming...
+	scripts should work now as expected which went into a renaming...
 
 * 2011-08-04: 
 	* Added rootfs mount option for those who do not want automatic mount.
