@@ -1,5 +1,5 @@
 #!/bin/sh
-revision=0.3.5_p20110831
+revision=0.3.5_p20110901
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
@@ -91,8 +91,8 @@ exec_losetup() {
 
 get_ldk_key() {
         local lv_ldk_dev=$(exec_losetup ${1})
-	gv_ldk_dev+=" ${lv_ldk_dev}"
-	gv_ldk_key+=" ${2}"
+	gv_ldk_dev="${gv_ldk_dev} ${lv_ldk_dev}"
+	gv_ldk_key="${gv_ldk_key} ${2}"
 	exec_cryptsetup "${lv_ldk_dev}" "${2}" && gv_kfile=/dev/mapper/${2} 
 }
 
@@ -175,7 +175,6 @@ exec_cryptsetup() {
 		[ "$?" ] || warn "...there's still a fallback..."; gv_kldk=; fi
 	if [ ! -b "/dev/mapper/${lv_map}" ]; then cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}"
 		[ "$?" ] || die "Failed to decrypt ${lv_dev}."; fi
-	echo /dev/mapper/${lv_map}
 }
 
 exec_lvm() {
@@ -183,7 +182,6 @@ exec_lvm() {
 	local lv_vgm=${2/-//}
 	local lv_pvm=$(echo "${1}"|tr ':' ' ')
 	lvchange -ay ${lv_vgm} &>/dev/null || {  
-		info "Enabling ${lv_vgm} VG/LV..."
 		for lv_pv in ${lv_pvm}; do
 			exec_cryptsetup "${lv_pv#*-}" "${lv_pv%-*}"; done; }
 	lvchange -ay ${lv_vgm} &>/dev/null || { 
@@ -224,7 +222,7 @@ do_root_work() {
         local lv_rofs="$(echo "$gv_root"|cut -d':' -f3)"
         local lv_fscf=${gv_root##*:}
 :	local ${lv_mtopt:=$gv_mtopt} 
-:	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -f1)}
+:	local ${lv_lvm:=${gv_lvm%%,*}}
 	[ -n "${lv_mtopt}" ] && lv_mtopt="-o ${lv_mtopt}"
 	[ -n "${lv_rofs}" ]  && lv_rofs="-t ${lv_rofs}"
 	[ -n "${gv_root}" ] || die "iroot=* arg [PV|VG-LV][:fsck:<fs>] are missing."
@@ -235,13 +233,14 @@ do_root_work() {
 	if [ "${lv_crypt}" ]; then info "...encrypted rootfs."
 		if [ -n "${lv_lvm}" ]; then 
 			local lv_rdev=$(exec_lvm "${lv_lvm}" "${lv_root}")
-		else	local lv_rdev=$(exec_cryptsetup "${gv_root}" "${uv_root_map:-root}"); fi
+		else	exec_cryptsetup "${gv_root}" "${uv_root_map:-root}" 
+			local lv_rdev=/dev/mapper/${uv_root_map:-root}; fi
 	else 	info "...unencrypted rootfs." && local lv_rdev=/dev/${gv_root}; fi
 	shell_checkpoint 5
-	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_rdev} &>/dev/null 
-	[ "$?" ] || [ "${lv_fscf:-${uv_fsck_fail:-y}}" = "y" ] && die "Failed to fsck rootfs."
+#	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_rdev} &>/dev/null 
+#	[ "$?" ] || [ "${lv_fscf:-${uv_fsck_fail:-y}}" = "y" ] && die "Failed to fsck rootfs."
 	mount ${lv_mtopt} ${lv_rofs} ${lv_rdev} /newroot &>/dev/null
-	if [ ! "$?" ]; then
+	[ "$?" ] || {
 		if [ "${lv_crypt}" ]; then
 			if [ -n "${lv_lvm}" ]; then
 				warn "Disabling ${lv_root} VG-LV..."
@@ -250,7 +249,7 @@ do_root_work() {
 					close_cryptsetup "${lv_pv%-*}" "${lv_pv}"; done
 			else 	close_cryptsetup "${uv_root_map:-root}" "${uv_root_map:-root}"; fi
 			[ -n "${gv_fname}" ] && close_cryptsetup "${gv_fname}" "${gv_fname}"; fi
-		die "Failed to mount rootfs."; fi
+		die "Failed to mount rootfs."; }
 	[ -n "${sqfsd}" ] && do_sqfsd_work
 	lv_lvm=; lv_mtopt= 
 	shell_checkpoint 6
@@ -272,8 +271,9 @@ do_swap_work() {
         check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_tmsg}"
         if [ -n "${lv_lvm}" ]; then
 		gv_dev=${lv_type}:$(exec_lvm "${lv_lvm}" "${lv_hdev}")${lv_sign}
-	else 	gv_dev=${lv_type}:$(exec_cryptsetup "${lv_hdev}" "${lv_tmsg}")${lv_sign}; fi
-        lv_lvm=
+	else 	exec_cryptsetup "${lv_hdev}" "${lv_tmsg}" 
+		gv_dev=${lv_type}:/dev/mapper/${1}${lv_sign}; fi
+	lv_lvm=
 	shell_checkpoint 3
 }
 
@@ -281,7 +281,7 @@ do_resume() {
         [ "${gv_splash_silent}" = "silent" ] || splash_message "Resuming..."
         splash_daemon_stop
         [ -n "$(echo "${gv_toi}"|cut -d':' -s -f2)" ] && {
-:       	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -f3)}        
+:       	local ${lv_lvm:=${gv_lvm##*,}}        
         	do_swap_work "resume"  "${gv_toi}" "${gv_kresume}"; }
         modprobe_group tuxonice
         echo ${gv_dev} > /sys/power/tuxonice/resume
