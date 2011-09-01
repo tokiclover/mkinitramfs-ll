@@ -237,8 +237,8 @@ do_root_work() {
 			local lv_rdev=/dev/mapper/${uv_root_map:-root}; fi
 	else 	info "...unencrypted rootfs." && local lv_rdev=/dev/${gv_root}; fi
 	shell_checkpoint 5
-#	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_rdev} &>/dev/null 
-#	[ "$?" ] || [ "${lv_fscf:-${uv_fsck_fail:-y}}" = "y" ] && die "Failed to fsck rootfs."
+	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_rdev} &>/dev/null 
+	[ "$?" ] || [ "${lv_fscf:-${uv_fsck_fail:-y}}" = "y" ] && die "Failed to fsck rootfs."
 	mount ${lv_mtopt} ${lv_rofs} ${lv_rdev} /newroot &>/dev/null
 	[ "$?" ] || {
 		if [ "${lv_crypt}" ]; then
@@ -349,6 +349,7 @@ do_work() {
 }
 
 parse_cmdline_args() {
+	local dir
 	for arg in $(cat /proc/cmdline); do
     		case $arg in
 			rescue)     gv_shell_checkpoint=1;;
@@ -363,12 +364,12 @@ parse_cmdline_args() {
 			iroot=*)    gv_root=${arg#*=};;
 			ilvm=*)     gv_lvm=${arg#*=};;
 			imtopt=*)   gv_mtopt=${arg#*=};;
-			splash=*)   gv_splash_theme=$(echo ${arg#*=}|cut -d',' -f2)
-				    gv_splash_silent=$(echo ${arg#*=}|cut -d',' f1);;
+			splash=*)   dir=${arg#*=}
+				    gv_splash_theme=${dir#*:}
+				    gv_splash_silent=${dir%,*};;
 			CONSOLE=*)  gv_splash_console=${arg#*=};;
 	                iresume=*)  gv_toi=${arg#*=};;
-			ikmap=*)    gv_kmap=$(echo ${arg#*=}|cut -d':' -f1)
-				    gv_font=$(echo ${arg#*=}|cut -d':' -s -f2);;
+			ikmap=*)    dir=${arg#*=}; gv_kmap=${dir%:*}; gv_font=${dir#*:};;
 			ichkpt=*)   gv_shell_checkpoint=${arg#*=};;
 			iswap=*)    gv_swap=${arg#*=};;
 			ikroot=*)   gv_kroot=${arg#*=};;
