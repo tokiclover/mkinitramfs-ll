@@ -42,7 +42,7 @@ check_busybox_applets() {
 
 rmmod_group() {
         [ -f "/etc/modules/${1}" ] && for mod in $(cat /etc/modules/${1})
-		do rmmod ${mod} &>/dev/null; done
+		do rmmod $(echo ${mod}|sed 's/-/_/g') &>/dev/null; done
 }
 
 modprobe_group() {
@@ -70,10 +70,9 @@ splash_setup() {
 splash_daemon_stop() { [ $gv_active_splashutil ] && gv_active_splashutil=1 splash_command "exit"; }
 
 shell_checkpoint() {
-        local lv_level=$1
-        if [ ${gv_shell_checkpoint} = ${lv_level} ]; then 
+        if [ ${gv_shell_checkpoint} = ${1} ]; then 
 		splash_verbose
-		info "Checkpoint $lv_level"
+		info "Checkpoint ${1}"
                 exec /bin/sh; fi
 }
 
