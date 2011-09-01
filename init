@@ -36,24 +36,18 @@ bin_exist() {
 
 check_busybox_applets() {
 	if [ -e "/etc/applets" ]; then	
-		for app in $(cat /etc/applets); do 
-			bin_exist ${app} "--"; done
+		for app in $(cat /etc/applets); do bin_exist ${app} "--"; done
 	else die "Cannot check if BusyBox's /etc/applets exists"; fi
 }
 
 rmmod_group() {
-        local lv_group="$1" local lv_invert local lv_mod
-        [ -f "/etc/modules/$lv_group" ] && { 
-                for mod in $(cat /etc/modules/$lv_group)
-		do invert="$lv_mod $lv_invert"; done
-                for mod in $lv_invert; do 
-                        [ "$lv_mod" != "unix" ] && rmmod $(echo "$lv_mod"|sed 's/-/_/g'); done; }
+        [ -f "/etc/modules/${1}" ] && for mod in $(cat /etc/modules/${1})
+		do rmmod ${mod} &>/dev/null; done
 }
 
 modprobe_group() {
-        local lv_group="$1" local lv_mod
-        [ -f "/etc/modules/$lv_group" ] && for mod in $(cat /etc/modules/$lv_group); do	
-		modprobe "$lv_mod" &>/dev/null; done
+        [ -f "/etc/modules/${1}" ] && for mod in $(cat /etc/modules/${1})
+		do modprobe ${mod} &>/dev/null; done
 }
 
 splash_command() { [ $gv_active_splashutil ] && echo "$@" >/lib/splash/cache/.splash; }
