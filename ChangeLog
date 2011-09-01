@@ -241,12 +241,13 @@
 	[line 442-445] and a minor fix. - by the same [some]body who...
 
 *2011-05-05: 
-	* Hibernation to a swap file now and then. It seems, I'm the only one
-	who's interested in... - - by somebody who wanted
-	LUKS+AUFS2+SQUASHFS+ENCRYPTED KEY FILE and...
+	* - by somebody who wanted LUKS+AUFS2+SQUASHFS+ENCRYPTED KEY FILE 
+	and... hibernation to a swap file now and then. It seems, I'm the only
+	one who's interested in...to that kind of dirty stuff.
 
 *2006-08-24:
 	* Fixed call splash_setup() if fbsplash args exist
+
 *2006-08-06:
 	* Released - Federico Zagarzazu
 
