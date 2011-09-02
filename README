@@ -65,15 +65,14 @@
 #	or system related directories like usr:lib32:lib64:bin:sbin. Advantages are system speed/responsiveness.
 #	
 #	Squashed directories argument:
-#	* isqfsd=n,y,/sqfsdir[,<dir1>:<dirn>]	
-#			- here, only uv_sqfsd is used but not uv_sqfsdir, so providing sqfsdir is required.
-#	* isqfsd=/sqfsdir,<dir 1>:<dir n>	
-#			- neither uv_sqfsdir nor uv_sqfsd is used, one can threw away the 'n,n' argument and provide 
-#			sqfsdir and sqfsd.
+#	* isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]	
+#			- one can use uv_sqfsd and uv_sqfsdir or append directories after a `[n|a]:' for sqfsd.
+#	* isqfsd=/sqfsdir,n:<dir 1>:<dir n>	
+#			- neither uv_sqfsdir nor uv_sqfsd is used, appending sqfsdir and sqfsd dirs is required.
 #	* isqfsd=y,y				
 #			- using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
-#	* isqfsd=y,a,<dir 1>[:<dir n>]		
-#			- same as above, however, <dir 1> is  appended to sqfsd variable.
+#	* isqfsd=y,a:<dir 1>[:<dir n>]		
+#			- same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
 #
 #	 NOTE: leading `/' slash is only required for [uv_|]sqfsdir, else mounting squashed directories will fail. 
 #

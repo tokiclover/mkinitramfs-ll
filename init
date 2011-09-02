@@ -9,7 +9,7 @@ uv_root_map=root 		# self descriptive
 uv_check_env=0 			# test if busybox/applets and the other binaries exist 
 uv_sqfsdir=/sqfsd 		# squashed source dir related variable
 uv_sqfsd=usr:opt:bin:sbin:lib32	# squashed dirs variable
-uv_fsck_fail=n 			# whether to die after a failure to fsck rootfs
+uv_fsck_fail=y 			# whether to die after a failure to fsck rootfs
 
 # default values(don't edit)          
 gv_active_splashutil=1
@@ -344,13 +344,12 @@ parse_cmdline_args() {
     		case $arg in
 			rescue)     gv_shell_checkpoint=1;;
 			isqfsd=*)   dir=${arg#*=}
-                                [ "${dir%%,*}" = "y" ] 	&& sqfsdir=${uv_sqfsdir:-/sqfsd} || \
-					sqfsdir="$(echo "$dir"|cut -d',' -f3)"
-                                [ "${dir#*,}" = "y" ] 	&& sqfsd=${uv_sqfsd:-usr:opt:bin:sbin}
-                                [ "${dir#*,}" = "a" ] 	&& sqfsd=${uv_sqfsd}:${dir##*,}    
-                                [ -z "$sqfsdir" ]  	&& sqfsdir=${dir%,*}
-                                [ -z "$sqfsd" ]		&& sqfsd=${dir#*,}
-				[ -n "$sqfsd" ] 	&& gv_sqfsdir=0;;
+				if [ "${dir%,*}" = "y" ]; then sqfsdir=${uv_sqfsdir:-/sqfsd}
+				else sqfsdir=${dir%,*}; fi
+				if [ "${dir#*,}" = "y" ]; then sqfsd=${uv_sqfsd:-usr:opt:bin:sbin}
+				elif [ "$(echo ${dir#*,}|cut -d':' -f1)" = "a" ]; then
+					sqfsd=${uv_sqfsd:-usr:opt:bin:sbin}:$(echo ${dir#*,}|cut -b3-)
+				else 	sqfsd=$(echo ${dir#*,}|cut -b3-); fi;;
 			iroot=*)    gv_root=${arg#*=};;
 			ilvm=*)     gv_lvm=${arg#*=};;
 			imtopt=*)   gv_mtopt=${arg#*=};;
