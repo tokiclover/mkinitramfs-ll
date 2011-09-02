@@ -18,7 +18,7 @@
 #      * ikroot=<mode>:<device>:</path/to/file> ik* args for passwd|keyfile for root, swap and resume.
 #      * ikswap=<mode>:<device>:</path/to/file>
 #      * ikresume=<mode>:<device>:</path/to/key/file>
-#      * isqfsd=<y|n>,<y|n|a>,<dir1>:<dir2>	squashed directories, see below for more info.    
+#      * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]	squashed directories, see below for more info.    
 #      * ilvm=<pv1-sda1:pv2-sdb1:pv3-sdc2>,<pv4-sda2:pv5-sdd1:pv6-sdb5>,<pv7-sdb6:pv8-sdh1>
 #      						LVM2 arg: <mapping>-<PV> list seperated by a `:' in a VG and 
 #      						by a `,' between VGs.
