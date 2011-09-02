@@ -115,16 +115,15 @@ get_key() {
 			gv_kfile="/mnt/tok/${gv_fpath}"; gv_kgpg=0;;
 		reg) 	gv_kfile="/mnt/tok/${gv_fpath}";;
 		ldk)	[ -e "/dev/mapper/${gv_fname}" ] && gv_kfile=/dev/mapper/${gv_fname} || \
-				get_ldk_key "/mnt/tok/${gv_fpath}" "${gv_fname}"
-				gv_kldk=0;;
+				get_ldk_key "/mnt/tok/${gv_fpath}" "${gv_fname}"; gv_kldk=0;;
 		*) 	die "${lv_mode}:mode is not valid.";; 
 	esac
 }
 
 check_key() {
         if [ "${1}" = "ldk" ] || [ "${1}" = "gpg" ] || [ "${1}" = "reg" ]; then
-                [ -n "${2}" ] || die "Error: ikey_${4}: device field empty."
-                [ -n "${3}" ] || die "Error: ikey_${4}: filepath field empty."
+                [ -n "${2}" ] || die "ik${4}=${1}:${2}:${3} device field empty."
+                [ -n "${3}" ] || die "ik${4}=${1}:${2}:${3} filepath field empty."
                 get_key "${1}" "${2}" "${3}"; fi
 }
 
@@ -172,21 +171,19 @@ exec_cryptsetup() {
 
 exec_lvm() {
 	[ ${uv_check_env} ]  || bin_exist "lvm" "--"
-	local lv_vgm=${2/-//}
-	local lv_pvm=$(echo "${1}"|tr ':' ' ')
-	lvchange -ay ${lv_vgm} &>/dev/null || {  
-		for lv_pv in ${lv_pvm}; do
-			exec_cryptsetup "${lv_pv#*-}" "${lv_pv%-*}"; done; }
-	lvchange -ay ${lv_vgm} &>/dev/null || { 
-		vgchange -an ${lv_vgm%/*} &>/dev/null
-		warn "Disabling ${lv_vgm} VG/LV..."
-		for lv_pv in ${lv_pvm}; do
-			close_cryptsetup "${lv_pv%-*}" "${lv_pv}"; done
+	local lv_vg=${2/-//}
+	local lv_pv=$(echo "${1}"|tr ':' ' ')
+	lvchange -ay ${lv_vg} &>/dev/null || for pv in ${lv_pv}
+		do exec_cryptsetup "${pv#*-}" "${pv%-*}"; done
+	lvchange -ay ${lv_vg} &>/dev/null || { 
+		vgchange -an ${lv_vg%/*} &>/dev/null
+		warn "Disabling ${lv_vg} VG/LV..."
+		for pv in ${lv_pv}; do close_cryptsetup "${pv%-*}" "${pv}"; done
 		[ -n "${gv_fname}" ] && close_cryptsetup "${gv_fname}" "${gv_fname}"
 		die "Encrypted PV [and key-file] closed."; }
-	if   [ -b "/dev/mapper/${2}" ]; 	then local lv_dev=/dev/mapper/${2}
-	elif [ -b "/dev/${lv_vgm}" ]; 		then local lv_dev=/dev/${lv_vgm}
-	else die "${lv_vgm} VG/LV do not exist."; fi
+	if   [ -b "/dev/mapper/${2}" ]; then local lv_dev=/dev/mapper/${2}
+	elif [ -b "/dev/${lv_vg}" ]; 	then local lv_dev=/dev/${lv_vg}
+	else die "${lv_vg} VG/LV do not exist."; fi
 	echo ${lv_dev}
 }
 
@@ -360,7 +357,7 @@ parse_cmdline_args() {
 			splash=*)   dir=${arg#*=}
 				    gv_splash_theme=${dir#*:}
 				    gv_splash_silent=${dir%,*};;
-			CONSOLE=*)  gv_splash_console=${arg#*=};;
+			console=*)  gv_splash_console=${arg#*=};;
 	                iresume=*)  gv_toi=${arg#*=};;
 			ikmap=*)    dir=${arg#*=}; gv_kmap=${dir%:*}; gv_font=${dir#*:};;
 			ichkpt=*)   gv_shell_checkpoint=${arg#*=};;

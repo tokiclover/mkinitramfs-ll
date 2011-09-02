@@ -100,7 +100,7 @@
 #        == Kernel parameters example ==
 #        * Root--no key--unencrypted PV: iroot=sda3 ikroot=none ikmap=es-cp850_i686.bin    
 #        * Root--key regular passphrase--plus fbsplash: iroot=sda3 ikroot=pwd \
-#	    video=uvesafb:ywrap,1280x800-24@60 splash=verbose,theme:livecd-20007.0 CONSOLE=/dev/tty1
+#	    video=uvesafb:ywrap,1280x800-24@60 splash=verbose,theme:livecd-20007.0 console=/dev/tty1
 #        * Root--regular keyfile on usb stick: iroot=sda3 ikroot=reg:sdb1:/path/to/keyfile
 #        * Root--gpg encrypted key on usb stick: iroot=sda3 ikroot=gpg:sdb1:/path/to/file
 #        * Swap and root--ldk encrypted keyfiles: iroot=sda3 iswap=swap[|file]:sda2[:signature] \
