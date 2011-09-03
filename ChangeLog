@@ -4,6 +4,8 @@
 #############################################################################
 
 # ---------------------------------------------------------------------------
+*2011-09-03:
+	* major KnownIssue editing/update.
 
 *2011-09-01:
 	* Heavy editing of the ChangeLog to be more readable.
@@ -198,15 +200,13 @@
 
 *2011-05-20: 
 	* see `history' for a `change log'
-
 # ---------------------------------------------------------------------------
 
 ####################
-# History: (y/m/d) #
+# History: [y-m-d] #
 ####################
 
 # ---------------------------------------------------------------------------
-
 *2011-08-04:
 	* added rootfs option for mount and still debuging on
 	exec_cryptsetup() first two sections.
@@ -215,12 +215,12 @@
 	* gnupg 1.4.* update--now one has 3 attempts before the pwd fallback. 
 	- by the same ...
 
-*2011-06-17:
-	* added defaults mnt opts for rootfs and `nodev,noatime' for aufs - by
-	the same ...
-
 2011-06-18:
-	* mount--REVERSED on 06.18.
+	* noatime mount option--REVERTED on 06.18.
+
+*2011-06-17:
+	* added defaults mount opts for rootfs and `nodev,noatime' for aufs 
+	- by the same ...
 
 *2011-06-15:
 	* added fsck for rootfs `:c:<fs>' should be appeded to `iroot=*' arg.
@@ -229,7 +229,7 @@
 *2011-05-20:
 	* now +LVM2+mnt opt for rootfs [something like
 	imtopt=logdev=/dev/<VG>/<LV> works! Actually put this
-	/dev/mapper/<VG-LV> insted as /dev<VGs> are not available in the
+	/dev/mapper/<VG-LV> insted as /dev/<VGs> may not be available in the
 	limited environement]. 
 	* Major update/fix for swap[file]-resume. I did	not test for swap
 	PV|LV... it should work... as a swap|resume-file.
@@ -261,7 +261,6 @@
 
 *2006-06-20:
 	* pre release - Federico Zagarzazu
-
 # ---------------------------------------------------------------------------
 
 #############
