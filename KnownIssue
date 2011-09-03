@@ -1,4 +1,11 @@
 # ------------------------------------------------------------------------------
+# not so sure if the `echo|info $msg' disappeared totaly, one can safely input 
+# another PV without the `msg': hit Enter then input another PV and hit enter 
+# when dev/sdxy got remapped. Anyway, running the init script in a chrooted 
+# initrd-ll.* initramfs root directory with everything in it and using busybox 
+# as the shell, everything runs fine but the the fsck failure.  Every single msg
+# is printed properly. I have yet to test everything in a real system boot.
+# ------------------------------------------------------------------------------
 # it seems there's a lagging/racing of `echo $msg' that make fsck or mount 
 # fail or rather $lv_rdev seems to be empty just before fsck and mount cmd.
 # After removing an `info' and `echo' in exec_lvm() and an `echo' at the end 
