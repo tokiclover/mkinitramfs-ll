@@ -271,7 +271,7 @@ do_resume() {
         [ "${gv_splash_silent}" = "silent" ] || splash_message "Resuming..."
         splash_daemon_stop
         [ -n "$(echo "${gv_toi}"|cut -d':' -s -f2)" ] && {
-:       	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -f3)}
+:       	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -s -f3)}
 		do_swap_work "resume"  "${gv_toi}" "${gv_kresume}"; }
         modprobe_group tuxonice
         echo ${gv_dev} > /sys/power/tuxonice/resume
