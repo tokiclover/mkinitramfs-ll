@@ -26,13 +26,9 @@
 # this doesn't work on my desktop. After a hibernation to a swap file TuxOnIce 
 # fails to resume because if fails to lock the LV where the swapfile is located. 
 # I runned `cat /sys/power/tuxonice/resume' for sanity check and was stunned to 
-# notice this `file:/dev/<VG>/<LV>:<swap file signature>' instead of 
-# `file:/dev/mapper/<VG>-<LV>:<swap signature>' as that value should be assigned 
-# before the previous one. And then went to check if in fact `/dev/<my VG>' was 
+# notice this `file:/dev/<VG>/<LV>:<signature>' instead of 
+# `file:/dev/mapper/<VG>-<LV>:<signature>' as that value should be assigned 
+# before the previous one. And then went to check if in fact `/dev/<VG>' was 
 # available and IT WAS which is not on my laptop. Now I don't get why TOI fails 
 # to lock up the LV.
-# ------------------------------------------------------------------------------
-# not so sure if the `echo|info $msg' disappeared totaly, one can safely input 
-# another PV without the `msg': hit Enter then input another PV and hit enter 
-# when dev/sdxy got remapped.
 # ------------------------------------------------------------------------------
