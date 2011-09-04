@@ -1,5 +1,5 @@
 #!/bin/sh
-# revision=0.3.5_p20110902
+# revision=0.3.5_p20110904
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
@@ -271,8 +271,8 @@ do_resume() {
         [ "${gv_splash_silent}" = "silent" ] || splash_message "Resuming..."
         splash_daemon_stop
         [ -n "$(echo "${gv_toi}"|cut -d':' -s -f2)" ] && {
-:       	local ${lv_lvm:=${gv_lvm##*,}}        
-        	do_swap_work "resume"  "${gv_toi}" "${gv_kresume}"; }
+:       	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -s -f3)}
+		do_swap_work "resume"  "${gv_toi}" "${gv_kresume}"; }
         modprobe_group tuxonice
         echo ${gv_dev} > /sys/power/tuxonice/resume
 	local lv_img="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
