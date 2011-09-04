@@ -44,7 +44,6 @@ die() {
 }
 
 build_busybox() {
-	. /etc/make.conf
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 	BBT=$(emerge -pvO busybox|grep -o "busybox-[-0-9.r]*")
 	ebuild $BBT.ebuild clean || die "clean failed"

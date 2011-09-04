@@ -33,7 +33,7 @@ die() {
 	exit 1
 }
 
-mkdir -p bin
+mkdir -p "$BIN"
 
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 GPG=$(emerge -pvO =app-crypt/gnupg-${Version:-1.4*}|grep -o "gnupg-[-0-9.r]*")
