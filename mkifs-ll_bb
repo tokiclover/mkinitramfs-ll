@@ -124,8 +124,8 @@ if [ "${BBB}" = "y" ]; then
 	mkdir -p $BIN
 	build_busybox
 	[ "$IBB" = "y" ] && install_busybox
-	cp -a busybox $BIN/ || die "eek!"
-	#cp applets $BIN/ || die "eek!"
+	cp -a busybox $BIN/ || die "failed to copy bb binary"
+	cp busybox.links $BIN/applets || die "failed to copy applets"
 	unset CONFIG
 	unset IBB
 fi
@@ -139,7 +139,7 @@ fi
 
 if [ "${BBB}" = "y" ]; then
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
-	#ebuild $BBT.ebuild clean || die "eek"
+	ebuild $BBT.ebuild clean || die "eek"
 	cd $WORKDIR || die "eek!"
 	unset BBB
 	unset BBT
