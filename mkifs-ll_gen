@@ -60,13 +60,9 @@ done
 :	${MISC:=$WORKDIR/misc}
 [[ -f "$MISC"/mkifs-ll.conf ]] && . "$MISC"/mkifs-ll.conf
 
-build_busybox() { . "$WORKDIR"/mkifs-ll_bb; }
-build_gpg() { . "$WORKDIR"/mkifs-ll_gpg; }
-build_initrmafs() { . "$WORKDIR"/mkifs-ll; }
-
 if [[ -n "$BBB" ]]; then 
 	mkdir -p "$BIN"
-	build_busybox
+	./mkifs-ll_bb
 fi
 
 if [[ -n "$bGPG" ]]; then 
@@ -76,10 +72,10 @@ if [[ -n "$bGPG" ]]; then
 		cp "$CONF"/gpg.conf "$MISC"/.gnupg/
 		unset CONF
 	fi
-	build_gpg
+	./mkifs-ll_gpg
 	cp "$BIN"/options.skel "$MISC"/share/gnupg/
 	unset bGPG
 fi
 
-build_initramfs
+./mkifs-ll
 
