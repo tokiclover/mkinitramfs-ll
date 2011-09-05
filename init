@@ -11,7 +11,7 @@ uv_sqfsdir=/sqfsd 		# squashed source dir related variable
 uv_sqfsd=usr:opt:bin:sbin:lib32	# squashed dirs variable
 uv_fsck_fail=y 			# whether to die after a failure to fsck rootfs
 
-# default values(don't edit)          
+# default values(don't edit)
 gv_active_splashutil=1
 gv_splash_silent=verbose
 gv_shell_checkpoint=0
@@ -23,9 +23,9 @@ error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
 
 die() {
 	umount -ln /mnt/tok &>/dev/null
-        [ "${gv_splash_silent}" = "silent" ] || splash_verbose
+	[ "${gv_splash_silent}" = "silent" ] || splash_verbose
 	error "$@"
-        info "Dropping you into a minimal shell..."
+	info "Dropping you into a minimal shell..."
 	exec /bin/sh
 }
 
@@ -41,12 +41,12 @@ check_busybox_applets() {
 }
 
 rmmod_group() {
-        [ -f "/etc/modules/${1}" ] && for mod in $(cat /etc/modules/${1})
+	[ -f "/etc/modules/${1}" ] && for mod in $(cat /etc/modules/${1})
 		do rmmod $(echo ${mod}|sed 's/-/_/g') &>/dev/null; done
 }
 
 modprobe_group() {
-        [ -f "/etc/modules/${1}" ] && for mod in $(cat /etc/modules/${1})
+	[ -f "/etc/modules/${1}" ] && for mod in $(cat /etc/modules/${1})
 		do modprobe ${mod} &>/dev/null; done
 }
 
@@ -60,30 +60,30 @@ splash_message() { splash_command "set message $@"; splash_command "repaint"; }
 
 splash_setup() {
 	[ ${uv_check_env} ] || bin_exist "splash_util.static" "--"
-        [ -n "$gv_splash_console" ] && exec < "$gv_splash_console" > "$gv_splash_console" &>/dev/null
-        [ -e /lib/splash/cache ] || mkdir -p /lib/splash/cache
-        [ -e /lib/splash/cache/.splash ] || mknod /lib/splash/cache/.splash p
-        splash_util.static --daemon "--theme=$gv_splash_theme"
-        gv_active_splashutil=0
+	[ -n "$gv_splash_console" ] && exec < "$gv_splash_console" > "$gv_splash_console" &>/dev/null
+	[ -e /lib/splash/cache ] || mkdir -p /lib/splash/cache
+	[ -e /lib/splash/cache/.splash ] || mknod /lib/splash/cache/.splash p
+	splash_util.static --daemon "--theme=$gv_splash_theme"
+	gv_active_splashutil=0
 }
 
 splash_daemon_stop() { [ $gv_active_splashutil ] && gv_active_splashutil=1 splash_command "exit"; }
 
 shell_checkpoint() {
-        if [ ${gv_shell_checkpoint} = ${1} ]; then 
+	if [ ${gv_shell_checkpoint} = ${1} ]; then 
 		splash_verbose
 		info "Checkpoint ${1}"
-                exec /bin/sh; fi
+	exec /bin/sh; fi
 }
 
 exec_losetup() {
-        lv_ldk_dev="$(losetup -f)" || die "Create or append max_loop=<int> to the cmdline."
-        losetup ${lv_ldk_dev} ${1} || die "Failed to setup losetup."
-        echo ${lv_ldk_dev}
+	lv_ldk_dev="$(losetup -f)" || die "Create or append max_loop=<int> to the cmdline."
+	losetup ${lv_ldk_dev} ${1} || die "Failed to setup losetup."
+	echo ${lv_ldk_dev}
 }
 
 get_ldk_key() {
-        local lv_ldk_dev=$(exec_losetup ${1})
+	local lv_ldk_dev=$(exec_losetup ${1})
 	gv_ldk_dev="${gv_ldk_dev} ${lv_ldk_dev}"
 	gv_ldk_key="${gv_ldk_key} ${2}"
 	exec_cryptsetup "${lv_ldk_dev}" "${2}" && gv_kfile=/dev/mapper/${2} 
@@ -98,20 +98,20 @@ get_key() {
 	[ -n "$(mount|grep /mnt/tok)" ] || { 
 		[ -b "/dev/${lv_dev}" ] || { 
 			info "Insert removable device and press Enter."
-                        read local lv_d
+			read local lv_d
 			info "Please wait a few seconds...."
-                        sleep 3
-                	[ -b "/dev/${lv_dev}" ] || {
-                        	info "${lv_dev} does not exist, input a valid dev name e.g. sdb1"
-                        	read lv_dev
+			sleep 3
+			[ -b "/dev/${lv_dev}" ] || {
+				info "${lv_dev} does not exist, input a valid dev name e.g. sdb1"
+				read lv_dev
 				info "Please wait a few seconds...."
-                        	sleep 3; }
-                [ -b "/dev/${lv_dev}" ] || die "${lv_dev} remdev does not exist."; }
-        mount -n -r "/dev/${lv_dev}" /mnt/tok &>/dev/null || die "Failed to mount ${lv_dev} remdev."
-        	info "Removalble device mounted."; }
+				sleep 3; }
+		[ -b "/dev/${lv_dev}" ] || die "${lv_dev} remdev does not exist."; }
+	mount -n -r "/dev/${lv_dev}" /mnt/tok &>/dev/null || die "Failed to mount ${lv_dev} remdev."
+		info "Removalble device mounted."; }
 	[ -f "/mnt/tok/${gv_fpath}" ] || die "${gv_fpath} keyfile does not exist in ${lv_dev} remdev."
 	case ${lv_mode} in
-		gpg)  	[ ${uv_check_env} ] || bin_exist "gpg" "--"
+		gpg)	[ ${uv_check_env} ] || bin_exist "gpg" "--"
 			gv_kfile="/mnt/tok/${gv_fpath}"; gv_kgpg=0;;
 		reg) 	gv_kfile="/mnt/tok/${gv_fpath}";;
 		ldk)	[ -e "/dev/mapper/${gv_fname}" ] && gv_kfile=/dev/mapper/${gv_fname} || \
@@ -121,10 +121,10 @@ get_key() {
 }
 
 check_key() {
-        if [ "${1}" = "ldk" ] || [ "${1}" = "gpg" ] || [ "${1}" = "reg" ]; then
-                [ -n "${2}" ] || die "ik${4}=${1}:${2}:${3} device field empty."
-                [ -n "${3}" ] || die "ik${4}=${1}:${2}:${3} filepath field empty."
-                get_key "${1}" "${2}" "${3}"; fi
+	if [ "${1}" = "ldk" ] || [ "${1}" = "gpg" ] || [ "${1}" = "reg" ]; then
+	[ -n "${2}" ] || die "ik${4}=${1}:${2}:${3} device field empty."
+	[ -n "${3}" ] || die "ik${4}=${1}:${2}:${3} filepath field empty."
+	get_key "${1}" "${2}" "${3}"; fi
 }
 
 close_cryptsetup() { cryptsetup luksClose ${1} || cryptsetup remove ${1} || die "${2}"; }
@@ -170,7 +170,7 @@ exec_cryptsetup() {
 }
 
 exec_lvm() {
-	[ ${uv_check_env} ]  || bin_exist "lvm" "--"
+	[ ${uv_check_env} ] || bin_exist "lvm" "--"
 	local lv_vg=${2/-//}
 	local lv_pv=$(echo "${1}"|tr ':' ' ')
 	lvchange -ay ${lv_vg} &>/dev/null || for pv in ${lv_pv}
@@ -188,19 +188,19 @@ exec_lvm() {
 }
 
 do_sqfsd_work() {
-        [ -n "$sqfsdir" ] || die "uv_sqfsdir wasn't set and sqfsdir is empty."
-        [ -n "$sqfsd" ]   || die "uv_sqfsd wasn't set and sqfsd is empty."
-        [ -d /newroot/"$sqfsdir" ] || die "sqfsdir=$sqfsdir dir doesn't exist."
-        sqfsd="$(echo "$sqfsd"|tr ':' ' ')"
-        modprobe_group sqfsd
-        cd /newroot
+[ -n "$sqfsdir" ] || die "uv_sqfsdir wasn't set and sqfsdir is empty."
+[ -n "$sqfsd" ]   || die "uv_sqfsd wasn't set and sqfsd is empty."
+[ -d /newroot/"$sqfsdir" ] || die "sqfsdir=$sqfsdir dir doesn't exist."
+sqfsd="$(echo "$sqfsd"|tr ':' ' ')"
+modprobe_group sqfsd
+cd /newroot
 for dir in $sqfsd; do
-        [ -e ."$sqfsdir/$dir".sfs ] || die "$dir.sfs image doesn't exist."
-        mkdir -p ."$sqfsdir/$dir"/rw && mkdir -p ."$sqfsdir/$dir"/ro
-        mount -t squashfs .$sqfsdir/$dir.sfs .$sqfsdir/$dir/ro -o nodev,loop,ro 2>/dev/null
-        [ "$?" ] || die "Failed to mount squashed $dir image."
-        mount -t aufs $dir $dir -o nodev,udba=reval,br:.$sqfsdir/$dir/rw:.$sqfsdir/$dir/ro 2>/dev/null
-        [ "$?" ] || die "Failed to mount squashed $dir aufs branch."
+[ -e ."$sqfsdir/$dir".sfs ] || die "$dir.sfs image doesn't exist."
+	mkdir -p ."$sqfsdir/$dir"/rw && mkdir -p ."$sqfsdir/$dir"/ro
+	mount -t squashfs .$sqfsdir/$dir.sfs .$sqfsdir/$dir/ro -o nodev,loop,ro 2>/dev/null
+	[ "$?" ] || die "Failed to mount squashed $dir image."
+	mount -t aufs $dir $dir -o nodev,udba=reval,br:.$sqfsdir/$dir/rw:.$sqfsdir/$dir/ro 2>/dev/null
+	[ "$?" ] || die "Failed to mount squashed $dir aufs branch."
 done
 }
 do_root_work() {
@@ -209,8 +209,8 @@ do_root_work() {
 	local lv_kfpt="$(echo "$gv_kroot"|cut -d':' -f3)"
 	local lv_root=${gv_root%%:*}
 	local lv_fsck="$(echo "$gv_root"|cut -d':' -f2)"
-        local lv_rofs="$(echo "$gv_root"|cut -d':' -f3)"
-        local lv_fscf=${gv_root##*:}
+	local lv_rofs="$(echo "$gv_root"|cut -d':' -f3)"
+	local lv_fscf=${gv_root##*:}
 :	local ${lv_mtopt:=$gv_mtopt} 
 :	local ${lv_lvm:=${gv_lvm%%,*}}
 	[ -n "${lv_mtopt}" ] && lv_mtopt="-o ${lv_mtopt}"
@@ -250,16 +250,16 @@ do_swap_work() {
 	local lv_type=${2%%:*}
 	local lv_sign="$(echo "$2"|cut -d':' -s -f3)"
 	local lv_kmod=${3%%:*}
-        local lv_kdev="$(echo "$3"|cut -d':' -s -f2)"
+	local lv_kdev="$(echo "$3"|cut -d':' -s -f2)"
 	local lv_kfpt=${3##*:}
 	local lv_tmsg=${1}
-        [ -n "$lv_hdev" ] || die "${lv_tmsg} dev|VG-LV is missing."
-        [ -n "$lv_type" ] || die "${lv_tmsg} type file|swap is missing."
+	[ -n "$lv_hdev" ] || die "${lv_tmsg} dev|VG-LV is missing."
+	[ -n "$lv_type" ] || die "${lv_tmsg} type file|swap is missing."
 	[ -n "$lv_sign" ] && lv_sign=:$lv_sign
 	shell_checkpoint 2
-        info "SWAP LV..."
-        check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_tmsg}"
-        if [ -n "${lv_lvm}" ]; then
+	info "SWAP LV..."
+	check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_tmsg}"
+	if [ -n "${lv_lvm}" ]; then
 		gv_dev=${lv_type}:$(exec_lvm "${lv_lvm}" "${lv_hdev}")${lv_sign}
 	else 	exec_cryptsetup "${lv_hdev}" "${lv_tmsg}" 
 		gv_dev=${lv_type}:/dev/mapper/${1}${lv_sign}; fi
@@ -268,46 +268,46 @@ do_swap_work() {
 }
 
 do_resume() {
-        [ "${gv_splash_silent}" = "silent" ] || splash_message "Resuming..."
-        splash_daemon_stop
-        [ -n "$(echo "${gv_toi}"|cut -d':' -s -f2)" ] && {
+	[ "${gv_splash_silent}" = "silent" ] || splash_message "Resuming..."
+	splash_daemon_stop
+	[ -n "$(echo "${gv_toi}"|cut -d':' -s -f2)" ] && {
 :       	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -s -f3)}
 		do_swap_work "resume"  "${gv_toi}" "${gv_kresume}"; }
-        modprobe_group tuxonice
-        echo ${gv_dev} > /sys/power/tuxonice/resume
+	modprobe_group tuxonice
+	echo ${gv_dev} > /sys/power/tuxonice/resume
 	local lv_img="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
-        if [ ${lv_img} = 1 ]; then 
-                warn "There is no recognizable signature at location pointed by iresume|iswap"
-                warn "Do you want to proceed [NO|yes]? "
-                read local lv_asw
-                [ "${lv_asw:-no}" != "yes" ] && die "Resume aborted by user"
+	if [ ${lv_img} = 1 ]; then 
+		warn "There is no recognizable signature at location pointed by iresume|iswap"
+		warn "Do you want to proceed [NO|yes]? "
+		read local lv_asw
+		[ "${lv_asw:-no}" != "yes" ] && die "Resume aborted by user"
 	elif [ ${lv_img} = 0 ]; then 
 		die "No image exist at location pointed by iresume|iswap"; fi
-        [ -n "${gv_splash_theme}" ] && ln -sf "/etc/splash/${gv_splash_theme}" /etc/splash/tuxonice
-        [ -n "$(which tuxoniceui_text)" ] && echo $(which tuxoniceui_text) > \
+	[ -n "${gv_splash_theme}" ] && ln -sf "/etc/splash/${gv_splash_theme}" /etc/splash/tuxonice
+	[ -n "$(which tuxoniceui_text)" ] && echo $(which tuxoniceui_text) > \
 		/sys/power/tuxonice/user_interface/program
-        [ -z "$(cat /sys/power/tuxonice/user_interface/program)" ] && \
+	[ -z "$(cat /sys/power/tuxonice/user_interface/program)" ] && \
 		echo $(which tuxoniceui_fbsplash) >/sys/power/tuxonice/user_interface/program
-        mount -n -o remount,ro / &>/dev/null
-        info "RESUMING from hibernation S[4-5]."
+	mount -n -o remount,ro / &>/dev/null
+	info "RESUMING from hibernation S[4-5]."
 	echo > /sys/power/tuxonice/do_resume
-        mount -n -o remount,rw / &>/dev/null
-        echo > /sys/power/tuxonice/image_exists
+	mount -n -o remount,rw / &>/dev/null
+	echo > /sys/power/tuxonice/image_exists
 	rmmod_group tuxonice
-        die "Resume from hibernation failed, image destroied."
+	die "Resume from hibernation failed, image destroied."
 }
 
 do_switch() {
-        echo > /proc/sys/kernel/hotplug
-        [ "${gv_splash_silent}" = "silent" ] && splash_silent && splash_message "Switching / ..."
-        info "SWITCHING root '/'..."
-        splash_daemon_stop
-        sleep 1
-        /bin/umount -l /proc
-        /bin/umount -l /sys
-        /bin/umount -l /dev
-        shell_checkpoint 7
-        exec switch_root /newroot ${uv_init:-/sbin/init}
+	echo > /proc/sys/kernel/hotplug
+	[ "${gv_splash_silent}" = "silent" ] && splash_silent && splash_message "Switching / ..."
+	info "SWITCHING root '/'..."
+	splash_daemon_stop
+	sleep 1
+	/bin/umount -l /proc
+	/bin/umount -l /sys
+	/bin/umount -l /dev
+	shell_checkpoint 7
+	exec switch_root /newroot ${uv_init:-/sbin/init}
 }
 
 print_msg() {
@@ -357,13 +357,13 @@ parse_cmdline_args() {
 				    gv_splash_theme=${dir#*:}
 				    gv_splash_silent=${dir%,*};;
 			console=*)  gv_splash_console=${arg#*=};;
-	                iresume=*)  gv_toi=${arg#*=};;
+			iresume=*)  gv_toi=${arg#*=};;
 			ikmap=*)    dir=${arg#*=}; gv_kmap=${dir%:*}; gv_font=${dir#*:};;
 			ichkpt=*)   gv_shell_checkpoint=${arg#*=};;
 			iswap=*)    gv_swap=${arg#*=};;
 			ikroot=*)   gv_kroot=${arg#*=};;
 			ikswap=*)   gv_kswap=${arg#*=};;
-		        ikresume=*) gv_kresume=${arg#*=};;
+			ikresume=*) gv_kresume=${arg#*=};;
 	   	 esac
 	done
 }
@@ -371,10 +371,10 @@ parse_cmdline_args() {
 main() {
 	export PATH=/sbin:/bin:/usr/bin:/usr/sbin
 #	dmesg -n 1
-        umask 0077
+	umask 0077
 	for dir in proc tmp newroot mnt/tok; do mkdir -p /$dir; done
 	/bin/mount -t proc proc /proc
-        # install busybox applets
+	# install busybox applets
 #	/bin/busybox --install -s
 	[ ${uv_check_env} ] || check_busybox_applets
 	[ ${uv_check_env} ] || bin_exist "cryptsetup" "--"
