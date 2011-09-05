@@ -375,7 +375,7 @@ main() {
 	for dir in proc tmp newroot mnt/tok; do mkdir -p /$dir; done
 	/bin/mount -t proc proc /proc
         # install busybox applets
-#       /bin/busybox --install -s
+#	/bin/busybox --install -s
 	[ ${uv_check_env} ] || check_busybox_applets
 	[ ${uv_check_env} ] || bin_exist "cryptsetup" "--"
 	/bin/mount -t sysfs sysfs /sys

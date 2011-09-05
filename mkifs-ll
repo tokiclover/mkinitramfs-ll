@@ -118,13 +118,15 @@ cp -a $BIN/applets etc/ || die "failed to copy applets"
 cp -a /sbin/{cryptsetup,v86d} sbin/ || die "faied to copy v86d"
 cp -a $BIN/busybox bin/ || die "failed to copy busybox"
 
-for app in $(< etc/applets); do
-case ${app%/*} in
-	/bin) cd bin && ln -sf busybox ${app##*/} && cd .. || die "eek!";;
-	/sbin) cd sbin && ln -sf ../bin/busybox ${app##*/} && cd .. || die "eek!";;
-	*) ln -sf bin/busybox ${app#*/} || die "eek";;
-esac
-done
+if [ -e "$BIN"/applets ]; then
+	for app in $(< etc/applets); do
+	case ${app%/*} in
+		/bin) cd bin && ln -sf busybox ${app##*/} && cd .. || die "eek!";;
+		/sbin) cd sbin && ln -sf ../bin/busybox ${app##*/} && cd .. || die "eek!";;
+		*) ln -sf bin/busybox ${app#*/} || die "eek";;
+	esac
+	done
+else 	sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
 
 if [ -n "$iAUFS" ]; then
 	MOD+=" kernel/fs/aufs misc/aufs.ko"
