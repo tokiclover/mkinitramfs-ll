@@ -58,11 +58,11 @@ done
 
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
-[[ -f $MISC/mkifs-ll.conf ]] && . $MISC/mkifs-ll.conf
+[[ -f "$MISC"/mkifs-ll.conf ]] && . "$MISC"/mkifs-ll.conf
 
-build_busybox() { . ./mkinitramfs-ll_bb; }
-build_gpg() { . ./mkinitramfs-ll_gpg; }
-build_initrmafs() { . ./mkinitramfs-ll; }
+build_busybox() { . "$WORKDIR"/mkifs-ll_bb; }
+build_gpg() { . "$WORKDIR"/mkifs-ll_gpg; }
+build_initrmafs() { . "$WORKDIR"/mkifs-ll; }
 
 if [[ -n "$BBB" ]]; then 
 	mkdir -p "$BIN"
