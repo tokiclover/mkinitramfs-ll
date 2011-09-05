@@ -4,6 +4,10 @@
 #############################################################################
 
 # ---------------------------------------------------------------------------
+*2011-09-05:
+	fsck failure fixed; and the `echo $msg' issue is not definitely 
+	solved for a real world boot although everything works in chroot env.
+
 *2011-09-03:
 	* major KnownIssue editing/update.
 
