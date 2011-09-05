@@ -1,5 +1,5 @@
 #!/bin/sh
-# revision=0.3.5_p20110904
+# revision=0.3.5_p20110905
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
@@ -9,7 +9,7 @@ uv_root_map=root 		# self descriptive
 uv_check_env=0 			# test if busybox/applets and the other binaries exist 
 uv_sqfsdir=/sqfsd 		# squashed source dir related variable
 uv_sqfsd=usr:opt:bin:sbin:lib32	# squashed dirs variable
-uv_fsck_fail=y 			# whether to die after a failure to fsck rootfs
+uv_fscf=y 			# whether to die after a failure to fsck rootfs
 
 # default values(don't edit)
 gv_active_splashutil=1
@@ -188,20 +188,20 @@ exec_lvm() {
 }
 
 do_sqfsd_work() {
-[ -n "$sqfsdir" ] || die "uv_sqfsdir wasn't set and sqfsdir is empty."
-[ -n "$sqfsd" ]   || die "uv_sqfsd wasn't set and sqfsd is empty."
-[ -d /newroot/"$sqfsdir" ] || die "sqfsdir=$sqfsdir dir doesn't exist."
-sqfsd="$(echo "$sqfsd"|tr ':' ' ')"
-modprobe_group sqfsd
-cd /newroot
-for dir in $sqfsd; do
-[ -e ."$sqfsdir/$dir".sfs ] || die "$dir.sfs image doesn't exist."
-	mkdir -p ."$sqfsdir/$dir"/rw && mkdir -p ."$sqfsdir/$dir"/ro
-	mount -t squashfs .$sqfsdir/$dir.sfs .$sqfsdir/$dir/ro -o nodev,loop,ro 2>/dev/null
-	[ "$?" ] || die "Failed to mount squashed $dir image."
-	mount -t aufs $dir $dir -o nodev,udba=reval,br:.$sqfsdir/$dir/rw:.$sqfsdir/$dir/ro 2>/dev/null
-	[ "$?" ] || die "Failed to mount squashed $dir aufs branch."
-done
+	[ -n "$sqfsdir" ] || die "uv_sqfsdir wasn't set and sqfsdir is empty."
+	[ -n "$sqfsd" ]   || die "uv_sqfsd wasn't set and sqfsd is empty."
+	[ -d /newroot/"$sqfsdir" ] || die "sqfsdir=$sqfsdir dir doesn't exist."
+	sqfsd="$(echo "$sqfsd"|tr ':' ' ')"
+	modprobe_group sqfsd
+	cd /newroot
+	for dir in $sqfsd; do
+		[ -e ."$sqfsdir/$dir".sfs ] || die "$dir.sfs image doesn't exist."
+		mkdir -p ."$sqfsdir/$dir"/rw && mkdir -p ."$sqfsdir/$dir"/ro
+		mount -t squashfs .$sqfsdir/$dir.sfs .$sqfsdir/$dir/ro -o nodev,loop,ro &>/dev/null
+		[ "$?" ] || die "Failed to mount squashed $dir image."
+	mount -t aufs $dir $dir -o nodev,udba=reval,br:.$sqfsdir/$dir/rw:.$sqfsdir/$dir/ro &>/dev/null
+		[ "$?" ] || die "Failed to mount squashed $dir aufs branch."
+	done
 }
 do_root_work() {
 	local lv_kmod=${gv_kroot%%:*}
@@ -227,8 +227,9 @@ do_root_work() {
 			local lv_rdev=/dev/mapper/${uv_root_map:-root}; fi
 	else 	info "...unencrypted rootfs." && local lv_rdev=/dev/${gv_root}; fi
 	shell_checkpoint 5
-	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_rdev} &>/dev/null 
-	[ "$?" ] || [ "${lv_fscf:-${uv_fsck_fail:-y}}" = "y" ] && die "Failed to fsck rootfs."
+	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_rdev} 2>/dev/null 
+	[ "$?" ] || {
+		[ "${lv_fscf:-${uv_fscf:-y}}" = "y" ] && die "Failed to fsck rootfs, exit-code: $?"; }
 	mount ${lv_mtopt} ${lv_rofs} ${lv_rdev} /newroot &>/dev/null
 	[ "$?" ] || {
 		if [ "${lv_crypt}" ]; then
@@ -252,17 +253,17 @@ do_swap_work() {
 	local lv_kmod=${3%%:*}
 	local lv_kdev="$(echo "$3"|cut -d':' -s -f2)"
 	local lv_kfpt=${3##*:}
-	local lv_tmsg=${1}
-	[ -n "$lv_hdev" ] || die "${lv_tmsg} dev|VG-LV is missing."
-	[ -n "$lv_type" ] || die "${lv_tmsg} type file|swap is missing."
+	local lv_mapp=${1}
+	[ -n "$lv_hdev" ] || die "${lv_mapp} dev|VG-LV is missing."
+	[ -n "$lv_type" ] || die "${lv_mapp} type file|swap is missing."
 	[ -n "$lv_sign" ] && lv_sign=:$lv_sign
 	shell_checkpoint 2
 	info "SWAP LV..."
-	check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_tmsg}"
+	check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_mapp}"
 	if [ -n "${lv_lvm}" ]; then
 		gv_dev=${lv_type}:$(exec_lvm "${lv_lvm}" "${lv_hdev}")${lv_sign}
-	else 	exec_cryptsetup "${lv_hdev}" "${lv_tmsg}" 
-		gv_dev=${lv_type}:/dev/mapper/${1}${lv_sign}; fi
+	else 	exec_cryptsetup "${lv_hdev}" "${lv_mapp}" 
+		gv_dev=${lv_type}:/dev/mapper/${lv_mapp}${lv_sign}; fi
 	lv_lvm=
 	shell_checkpoint 3
 }
