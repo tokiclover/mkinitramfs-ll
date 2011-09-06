@@ -1,8 +1,9 @@
 #!/sbin/runscript
 # Copyright 1999-2011 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v3
+# $Header: https://github.com/tokiclover/initramfs-luks-lvm-sqfsd/tree/master/sqfsd/sqfsdmount, v1.3 2011/09/05 -tclover Exp $
 
-description="Mounts squashed directory"
+description="Manage squashed directories"
 
 depend() {
         need fsck localmount
@@ -14,34 +15,39 @@ depend() {
 
 start() {
 	einfo "mounting system disk-squashed dirs."
-	for DIR in $(echo "$SQFSD_SYS"|tr ':' ' '); do sqfsd_mount "$SQFSDIR" "$DIR"; done
+	for DIR in $(echo "$SQFSD_SYS"|tr ':' ' ')
+	do sqfsd_mount "$SQFSDIR" "$DIR"; done
         einfo "mounting local disk-squashed dirs."
-        for DIR in $(echo "$SQFSD_LOCAL"|tr ':' ' '); do sqfsd_mount "$SQFSDIR" "$DIR"; done
+        for DIR in $(echo "$SQFSD_LOCAL"|tr ':' ' ')
+	do sqfsd_mount "$SQFSDIR" "$DIR"; done
 }
 
 stop() {
 	einfo "umounting local disk-squashed dirs."
-	for DIR in $(echo "$SQFSD_LOCAL"|tr ':' ' '); do sqfsd_umount "$SQFSDIR" "$DIR"; done
+	for DIR in $(echo "$SQFSD_LOCAL"|tr ':' ' ')
+	do sqfsd_umount "$SQFSDIR" "$DIR"; done
         einfo "remounting in ro mode sys squashed dirs."
         for DIR in $(echo "$SQFSD_SYS"|tr ':' ' '); do 
-		if [ "$DIR" = "usr" ]; then sqfsd_remountro "$SQFSDIR" "$DIR"
+		if   [ "$DIR" = "usr" ]; then sqfsd_remountro "$SQFSDIR" "$DIR"
 		elif [ "$DIR" != "lib64" ]; then sqfsd_umount "$SQFSDIR" "$DIR"
 		fi
 	done
 }
 
 sqfsd_mount() {
-	if [ -n "$(mount -t aufs|grep /${2})" ]; then einfo "${2} aufs branch already mounted"
+	if [ -n "$(mount -t aufs|grep /${2})" ]; then 
+		einfo "${2} aufs branch already mounted"
 	else	
-		if [ -n "$(mount -t squashfs|grep ${1}/${2}/ro)" ]; then einfo "${1}/${2}/ro already mounted."
+		if [ -n "$(mount -t squashfs|grep ${1}/${2}/ro)" ]; then 
+			einfo "${1}/${2}/ro already mounted."
 		else	ebegin "mounting squashed ${2}.sfs image"
-			mount -t squashfs ${1}/${2}.sfs ${1}/${2}/ro -o nodev,loop,ro &>/dev/null
-       			eend "$?" "mount squashed ${2}.sfs image failed."
-		fi
+			mount -t squashfs ${1}/${2}.sfs ${1}/${2}/ro \
+			-o nodev,loop,ro &>/dev/null
+       			eend "$?" "mount squashed ${2}.sfs image failed."; fi
 		ebegin "mounting squashed ${2} aufs branch"
-		mount -t aufs ${2} /${2} -o nodev,udba=reval,br:${1}/${2}/rw:${1}/${2}/ro &>/dev/null
-		eend "$?" "mount ${2} aufs branch failed."
-	fi
+		mount -t aufs ${2} /${2} \
+		-o nodev,udba=reval,br:${1}/${2}/rw:${1}/${2}/ro &>/dev/null
+		eend "$?" "mount ${2} aufs branch failed."; fi
 }
 
 sqfsd_umount() {
