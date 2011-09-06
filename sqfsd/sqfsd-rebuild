@@ -1,29 +1,29 @@
 #!/bin/bash
-revision=0.3_p20110828
+revision=0.3_p20110905
 
 short_help() {
 	cat << EOF
 	usage:
-	$0 [-u[--update]|-r[--remove]] [--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>:<dir>
+	${0##*/} [-u[--update]|-r[--remove]] [--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>:<dir>
 	
-	-u, --update			update the underlying source [sub]directory e.g. bin:sbin:lib32:lib64.
-	-r, --remove			remove the underlying source [sub]directory e.g. usr:opt:\$PORTDIR.
+	-u, --update			update the underlying source directory e.g. bin:sbin:lib32:lib64.
+	-r, --remove			remove the underlying source directory e.g. usr:opt:\$PORTDIR.
 	    --sqfsdir=<dir>		override default value \`sqfsdir=/sqfsd'.
 	-d, --sqfsd=<dir>:<dir>		list of colons ':' seperated squashed directories.
 	-f, --fstab			whether to write the necessary mount lines to \`/etc/fstab'.
 	    --bsize=131072		use [128k] 131072 bytes block size which is the default value.
-	    --comp="xz -Xbjc x86"	use xz compressor instead of gzip, optionaly, one can append extra arguments.
-	    --excl=<dir>:<dir>		exlude <dir>:<dir> from being included into the .sfs squashed image.
+	    --comp="xz -Xbjc x86"	use xz compressor optionaly, one can append extra arguments.
+	    --excl=<dir>		exlude <dir> from being included into the .sfs squashed image.
 	-h, --help			print this help.
 	-v, --version			print the version string.
 	
 	<dir> 	directory
 	examples:
-	# squash two directries which will speed up portage calculations (database,dependencies) and remove 
+	# squash directries which will speed up portage calculations--database,dependencies--and remove 
 	# the underlying files which take a much more spaces as there are numerous small files there.
-	$0 -r var/db:var/cache/edb
+	${0##*/} -r var/db:var/cache/edb
 	# [re-]build system related squashed directories
-	$0 [-u|--update] bin:sbin:lib32:lib64
+	${0##*/} [-u|--update] bin:sbin:lib32:lib64
 EOF
 }
 
@@ -45,13 +45,15 @@ done
 :	${sqfsdir:=/sqfsd}
 if [ -n "$EXCL" ]; then EXCL="-e $EXCL"; fi
 
+info() 	{ echo -ne "\033[1;32m* \033[0m$@\n"; }
+error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
+
 die() {
-	echo "* $1"
+	error "$@"
 	exit 1
 }
 
-for dir in $sqfsd
-do
+for dir in $sqfsd; do
 	echo ">>> [re]building squashed $dir..."
 	mkdir -p "$sqfsdir/$dir"/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
 	mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp ${COMP:-gzip} $EXCL >/dev/null || \
@@ -80,7 +82,7 @@ do
 		case $EXT in
 			rm) rm -rf /$dir/*;;
 			up) cp -aru "$sqfsdir/$dir"/ro/* /$dir;;
-			*) echo "* nothing to do, usage is [up|rm].";;
+			*) info "nothing to do, usage is [up|rm].";;
 		esac
 	fi
 	mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro &>/dev/null || \
