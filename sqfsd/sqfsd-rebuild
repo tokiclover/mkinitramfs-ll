@@ -56,12 +56,14 @@ die() {
 for dir in $sqfsd; do
 	echo ">>> [re]building squashed $dir..."
 	mkdir -p "$sqfsdir/$dir"/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
-	mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp ${COMP:-gzip} $EXCL >/dev/null || \
-		die "failed to build $dir.sfs img."
+	mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp ${COMP:-gzip} $EXCL \
+		>/dev/null || die "failed to build $dir.sfs img."
 	if [ "$dir" = "lib64" ]; then # move rc-svcdir and cachedir.
 		mkdir -p /var/{lib/init.d,cache/splash}
-		mount --move "/$dir/splash/cache" /var/cache/splash &>/dev/null || die "fled to move cachedir."
-		mount --move "/$dir/rc/init.d" /var/lib/init.d &>/dev/null || die "failed to move rc-svcdir."
+		mount --move "/$dir/splash/cache" /var/cache/splash &>/dev/null \
+			|| die "fled to move cachedir."
+		mount --move "/$dir/rc/init.d" /var/lib/init.d &>/dev/null \
+			|| die "failed to move rc-svcdir."
 	fi
 	if [ -n "$(mount -t aufs|grep -w $dir)" ]; then 
 		umount -l /$dir &>/dev/null || die "failed to umount $dir aufs branch."
@@ -73,11 +75,13 @@ for dir in $sqfsd; do
 	[ -e $sqfsdir/$dir.sfs ] && rm -f $sqfsdir/$dir.sfs 
 	mv $sqfsdir/$dir.tmp.sfs $sqfsdir/$dir.sfs || die "failed to move $dir.tmp.sfs img."
 	if [ "${FSTAB:-n}" = "y" ]; then
-		echo "$sqfsdir/$dir.sfs $sqfsdir/$dir/ro squashfs nodev,loop,ro 0 0" >>/etc/fstab || die "..."
-		echo "$dir /$dir aufs nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro 0 0" >>/etc/fstab || die "..."
+		echo "$sqfsdir/$dir.sfs $sqfsdir/$dir/ro squashfs nodev,loop,ro 0 0" \
+			>> /etc/fstab || die "fstab write failure 1."
+		echo "$dir /$dir aufs nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro 0 0" \
+			>> /etc/fstab || die "fstab write failure 2."
 	fi
-	mount -t squashfs $sqfsdir/$dir.sfs $sqfsdir/$dir/ro -o nodev,loop,ro &>/dev/null || \
-		die "failed to mount $dir.sfs img."
+	mount -t squashfs $sqfsdir/$dir.sfs $sqfsdir/$dir/ro -o nodev,loop,ro &>/dev/null \
+		|| die "failed to mount $dir.sfs img."
 	if [ -n "$EXT" ]; then # now you can up[date] or rm squashed dir.
 		case $EXT in
 			rm) rm -rf /$dir/*;;
@@ -85,11 +89,13 @@ for dir in $sqfsd; do
 			*) info "nothing to do, usage is [up|rm].";;
 		esac
 	fi
-	mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro &>/dev/null || \
-		die "failed to mount $dir aufs branch."
+	mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
+		&>/dev/null || die "failed to mount $dir aufs branch."
 	if [ "$dir" = "lib64" ]; then # move back rc-svcdir and cachedir.
-		mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul || die "failed to move back cachedir."
-		mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null || die "failed to move back rc-svcdir."
+		mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul \
+			|| die "failed to move back cachedir."
+		mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null \
+			|| die "failed to move back rc-svcdir."
 	fi
 	echo ">>> ...squashed $dir sucessfully [re]build."
 done
