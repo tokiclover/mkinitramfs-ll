@@ -21,7 +21,7 @@ install:
 	sed -e 's:\$$MISC/${bin_prefix}:/etc/${bin_prefix}:g' \
 		-e 's:\.\/mk:mk:g' -i ${bin_prefix}_gen
 	sed -e 's:\$$MISC/${bin_prefix}:/etc/${bin_prefix}:g' -i ${bin_prefix}_gpg
-	sed -e 's|:\t\$${WORKDIR:=\$$(pwd)}|#WORKDIR=/${prefix}/share/${PACKAGE}|' \
+	sed -e 's|:\t\$${WORKDIR:=\$$(pwd)}|WORKDIR=/${prefix}/share/${PACKAGE}|' \
 		-e 's:\$$BIN/fr_l1-amd64.bin::' -i misc/${bin_prefix}.conf
 	install -pd $(sys_confdir)
 	install -pd $(bindir)

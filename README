@@ -25,7 +25,7 @@
 #
 #	== About LVM2 argument ==
 #	Actually a PV in a group, respectively root, swap, resume is given by <mapping>-<device>, 
-#	mmapping being a mapping name for cryptsetup and a block device|partition without the `/dev/' prefix.
+#	mapping being a mapping name for cryptsetup and a block device|partition without the `/dev/' prefix.
 #
 #       <vgZYX-sdYX> 		- each device|PV of a given VG is given with <mapping>-<device|partition|PV>. 
 #       <LV|PV|VG>		- Logical|Physical Volume, Volume Group.
@@ -89,7 +89,7 @@
 #					However, decryption goes as expected, it seems. No issue at the moment.
 #        * regular key-file       -> 	will be passed to cryptsetup as `-d /path/to/keyfile'.
 #	 * pwd			  ->	it's not mandatory to append any `ikroot=pwd' in the cmdline for this mode. 
-#					argument to be prompted for a password as a fallback, set `ikroot=pwd'.
+#					argument to be prompted for a password as a fallback.
 #	 * none		   	  ->	it should be explicitely appended to mount an unencrypted rootfs. 
 # 					I added this mode for testing purpose for those, like me, 
 #					who have a working system before encrypting rootfs with LUKS.
@@ -107,7 +107,7 @@
 #        * Regular swap--AND TuxOnIce resume on a different PV--regular passphrase: 
 #           iswap=swap:sda2 iresume=swap:sda3:0x4400 ikswap=pwd ikresume=pwd
 #        * Swap file--resuming from hibernation--ldk protected keyfile on usb stick:
-#           iswap=file:sda3:0x4400 iresume=toi[|or any CHAR or WORD] ikswap=ldk:sdb1:/path/to/swapkey
+#           iswap=file:sda3:0x4400 iresume=toi[|CHAR|WORD] ikswap=ldk:sdb1:/path/to/swapkey
 #	    
 #	NOTE: For ldk mode I use a single LUKS encrypted keyfile to decrypt rootfs, PV|LV host of a swapfile.
 #	One can use multiple LUKS encrypted keyfile if one want to, or even type a pwd for each PV, however, 
