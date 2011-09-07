@@ -163,7 +163,7 @@ else 	sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
 
 if [ -n "$iAUFS" ]; then
 	for fs in {au,squash}fs
-	do [ $(echo ${MODULES[2]}|grep $fs) ] || MODULES[2]+=,$fs; done
+	do [ $(echo ${MODULES[2]}|grep $fs) ] || MODULES[2]=${MODULES[2]},$fs; done
 	cp -a /sbin/{,u}mount.aufs sbin/ || die "failed to copy *mount.aufs"
 	unset iAUFS; fi
 
