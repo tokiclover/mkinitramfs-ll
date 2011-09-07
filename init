@@ -1,5 +1,5 @@
 #!/bin/sh
-# revision=0.3.5_p20110905
+# revision=0.3.5_p20110906
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
@@ -359,7 +359,8 @@ parse_cmdline_args() {
 				    gv_splash_silent=${dir%,*};;
 			console=*)  gv_splash_console=${arg#*=};;
 			iresume=*)  gv_toi=${arg#*=};;
-			ikmap=*)    dir=${arg#*=}; gv_kmap=${dir%:*}; gv_font=${dir#*:};;
+			ikmap=*)    gv_kmap=$(echo ${arg#*=}|cut -d':' -f1)
+				    gv_font=$(echo ${arg#*=}|cut -d':' -f2);;
 			ichkpt=*)   gv_shell_checkpoint=${arg#*=};;
 			iswap=*)    gv_swap=${arg#*=};;
 			ikroot=*)   gv_kroot=${arg#*=};;
@@ -373,25 +374,20 @@ main() {
 	export PATH=/sbin:/bin:/usr/bin:/usr/sbin
 #	dmesg -n 1
 	umask 0077
-	for dir in proc tmp newroot mnt/tok; do mkdir -p /$dir; done
+	for dir in proc sys newroot mnt/tok; do mkdir -p /$dir; done
 	/bin/mount -t proc proc /proc
-	# install busybox applets
 #	/bin/busybox --install -s
 	[ ${uv_check_env} ] || check_busybox_applets
 	[ ${uv_check_env} ] || bin_exist "cryptsetup" "--"
 	/bin/mount -t sysfs sysfs /sys
 	parse_cmdline_args
 	modprobe_group boot
-	# populate /dev from /sys
 	/bin/mount -t tmpfs tmpfs /dev
 	/sbin/mdev -s
-	# handle hotplug events
 	echo /sbin/mdev > /proc/sys/kernel/hotplug
 	[ -n "$gv_splash_theme" ] && splash_setup
-	# fix: /dev/device-mapper should be /dev/mapper/control
-	# otherwise it fails on my amd64 system(busybox v1.2.1), weird that it works
-	# on my laptop(i686, /dev/mapper/control gets created on luksOpen).
-	[ -e "/dev/mapper/control" ] || { # see: /proc/misc, /sys/class/misc/device-mapper/dev 
+	# fix /dev/device-mapper should be /dev/mapper/control on amd64?
+	[ -e "/dev/mapper/control" ] || { # see /sys/class/misc/device-mapper/dev 
 		mkdir -p /dev/mapper && mv /dev/device-mapper /dev/mapper/control
 		echo "device-mapper mapper/control issue fixed.." >> /.initlog;	}
 	do_work
