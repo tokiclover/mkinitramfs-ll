@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3.3_p20110906
+revision=0.3.4_p20110906
 
 usage() {
 	cat << EOF
@@ -26,7 +26,7 @@ usage() {
   -v, --version 	print version.
 
   usages:
-  # called without an argument, will build an initramfs for \$(uname -r) with LUKS support.
+  # runned without an argument, build an initramfs for \$(uname -r) with only LUKS support.
 
   # build with LUKS/GPG/LVM2/AUFS2 support for kernel 3.0.3-git with 'd0' string extra version.
   ${0##*/} --e-version=d0 --k-version=3.0.3-git --full
@@ -52,13 +52,45 @@ die() {
 	exit 1
 }
 
+addnodes() {
+	[ -c dev/console ] 	|| mknod dev/console c 5 1 	|| die "eek!"
+	[ -c dev/urandom ] 	|| mknod dev/urandom c 1 9 	|| die "eek!"
+	[ -c dev/random ] 	|| mknod dev/random c 1 8 	|| die "eek!"
+	[ -c dev/mem ] 		|| mknod dev/mem c 1 1 		|| die "eek!"
+	[ -c dev/null ] 	|| mknod dev/null c 1 3 	|| die "eek!"
+	[ -c dev/tty ] 		|| mknod dev/tty c 5 0 		|| die "eek!"
+	[ -c dev/tty1 ] 	|| mknod dev/tty1 c 4 1 	|| die "eek!"
+	[ -c dev/zero ] 	|| mknod dev/zero c 1 5 	|| die "eek!"
+}
+
+addsplsh() {
+	if [ -n "$iTOI" ]; then
+		cp -a /sbin/tuxoniceui_text sbin/ || die "failed to copy toi helper"
+		unset iTOI; fi
+	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
+	cp -ar "$SPLASH" etc/splash/ || die "splash themes does not exist"
+}
+
 addmodule() {
+	local IFS=","
 	for mod in $@; do
 		local module=$(find /lib/modules/$K_VERSION -name $mod.ko)
-		if [ -z $module ]; then info "$mod does not exist"
+		if [ -z $module ]; then info "$mod does not exist"; return 1
 		else 	mkdir -p .${module%/*}
-			cp -ar $module .${module%/*} || die "$module copy failed"
-		fi
+			cp -ar $module .${module%/*} || die "$module copy failed"; fi
+	done
+}
+
+modules() {
+	for key in ${!MODULES[@]}; do
+		for grp in ${MODULES[$key]}; do
+			local modules=${grp#*=}
+			if [ -n "$modules" ]; then
+				local IFS=","
+				for mod in ${grp#*=}; do 
+				addmodule $mod && echo $mod >> etc/modules/${grp%=*}; done
+			fi
+		done
 	done
 }
 
@@ -113,17 +145,7 @@ mkdir -p {,s}bin dev proc root sys usr/{bin,sbin} newroot || die "eek!"
 mkdir -p lib64/splash/cache etc/{modules,splash} mnt/tok || die "eek!"
 ln -sf lib64 lib || die "eek!"
 
-cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || {
-	[ -c dev/console ] 	|| mknod dev/console c 5 1 	|| die "eek!"
-	[ -c dev/urandom ] 	|| mknod dev/urandom c 1 9 	|| die "eek!"
-	[ -c dev/random ] 	|| mknod dev/random c 1 8 	|| die "eek!"
-	[ -c dev/mem ] 		|| mknod dev/mem c 1 1 		|| die "eek!"
-	[ -c dev/null ] 	|| mknod dev/null c 1 3 	|| die "eek!"
-	[ -c dev/tty ] 		|| mknod dev/tty c 5 0 		|| die "eek!"
-	[ -c dev/tty1 ] 	|| mknod dev/tty1 c 4 1 	|| die "eek!"
-	[ -c dev/zero ] 	|| mknod dev/zero c 1 5 	|| die "eek!"
-}
-
+cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || addnodes
 cp -a $WORKDIR/init . || die "failed to copy init"
 cp -a $BIN/applets etc/ || die "failed to copy applets"
 cp -a /sbin/{cryptsetup,v86d} sbin/ || die "faied to copy v86d"
@@ -140,9 +162,7 @@ if [ -e "$BIN"/applets ]; then
 else 	sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
 
 if [ -n "$iAUFS" ]; then
-	MOD+=" aufs"
 	cp -a /sbin/{,u}mount.aufs sbin/ || die "failed to copy *mount.aufs"
-	echo aufs > etc/modules/sqfsd || die "eek!"
 	unset iAUFS; fi
 
 if [ -n "$iGPG" ]; then
@@ -161,37 +181,22 @@ if [ -n "$iLVM" ]; then
 	unset iLVM; fi
 
 addmodule "$MOD" && unset MOD
+modules && unset MODULES
 
 if [ -n "$FSCK" ]; then
-	for fs in $FSCK; do
+	for fs in $(echo $FSCK|tr ',' ' '); do
 		cp -a /sbin/fsck.$fs sbin/
 		for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
 			do cp -adH $lib lib/ || die "failed to copy $lib library"; done
 	done
 	unset FSCK; fi
 
-for key in ${!MODULES[@]}; do
-	for grp in ${MODULES[$key]}; do
-		if [ -n "${grp#*=}" ]; then
-			for mod in ${grp#*=}
-				do echo $mod >> etc/modules/${grp%=*}; done
-		fi
-	done
-	unset MODULES; done
-
 if [ -n "$KEYMAP" ]; then 
 	cp -a "$KEYMAP" etc/ || die "failed to copy keymap"
 	unset KEYMAP; fi
 
-[ -e "$FONT" ] && cp -a "$FONT" etc/
-
-if [ -n "$SPLASH" ]; then
-	if [ -n "$iTOI" ]; then
-		cp -a /sbin/tuxoniceui_text sbin/ || die "failed to copy toi helper"
-		unset iTOI; fi
-	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
-	cp -ar "$SPASH" etc/splash/ || die "splash themes does not exist"
-	unset SPLASH; fi
+[ -e "$FONT" ] && cp -a "$FONT" etc/ && unset FONT
+[ -n "$SPLASH" ] && addsplash && unset SPLASH
 
 find . -print0|cpio --null -ov --format=newc|$CMD > $INITRAMFS || die "eek!"
 

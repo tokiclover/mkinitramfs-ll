@@ -24,10 +24,10 @@ usage() {
   -v, --version 	print version.
 
   usages:
-  # runned without an argument, will build an initramfs using default values from mkifs-ll.conf
+  # runned without an argument, build an initramfs using default values defined in mkifs-ll.conf
 
   # build an initramfs, after building gnupg and busybox, with AUFS2/LVM2/GPG support
-  ${0##*/} --build-all --aufs --lvm --bin-dir=~/bin --misc-dir=~/misc
+  ${0##*/} --build-all --aufs --lvm
 EOF
 }
 
