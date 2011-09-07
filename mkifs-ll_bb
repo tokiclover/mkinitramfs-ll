@@ -31,9 +31,9 @@ while [[ $# > 0 ]]; do
 	esac
 done
 
+[ -f ./mkifs-ll.conf ] && . ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
-[[ -f $MISC/mkifs-ll.conf ]] && . $MISC/mkifs-ll.conf
 :	${BIN:=$WORKDIR/bin}
 
 error() { echo -ne "\033[1;31m* \033[0m$@\n"; }

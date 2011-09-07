@@ -121,12 +121,12 @@ while [[ $# > 0 ]]; do
 	esac
 done
 
+[ -f ./mkifs-ll.conf ] && . ./mkifs-ll.conf
+: 	${K_VERSION:=$(uname -r)}
+[ -n "$E_VERSION" ] && E_VERSION=-$E_VERSION
+:	${INITRAMFS:=/boot/${PREFIX:-kernel-}$K_VERSION$E_VERSION-ll-initrd.xz}
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
-[[ -f "$MISC/mkifs-ll.conf" ]] && . $MISC/mkifs-ll.conf
-: 	${K_VERSION:=$(uname -r)}
-[[ -n "$E_VERSION" ]] && E_VERSION=-$E_VERSION
-:	${INITRAMFS:=/boot/${PREFIX:-kernel-}$K_VERSION$E_VERSION-ll-initrd.xz}
 :	${INITDIR:=${WORKDIR}/initrd-ll$(echo $K_VERSION|cut -b4-)}
 :	${BIN:=$WORKDIR/bin}
 :	${CMD:=xz -9 --check=crc32}

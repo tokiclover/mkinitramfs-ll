@@ -56,9 +56,9 @@ while [[ $# > 0 ]]; do
 	esac
 done
 
+[ -f ./mkifs-ll.conf ] && . ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
-[[ -f "$MISC"/mkifs-ll.conf ]] && . "$MISC"/mkifs-ll.conf
 
 if [[ -n "$BBB" ]]; then 
 	mkdir -p "$BIN"
