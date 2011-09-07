@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3.4_p20110906
+revision=0.3.4_p20110907
 
 usage() {
 	cat << EOF
@@ -147,11 +147,11 @@ ln -sf lib64 lib || die "eek!"
 
 cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || addnodes
 cp -a $WORKDIR/init . || die "failed to copy init"
-cp -a $BIN/applets etc/ || die "failed to copy applets"
 cp -a /sbin/{cryptsetup,v86d} sbin/ || die "faied to copy v86d"
 cp -a $BIN/busybox bin/ || die "failed to copy busybox"
 
 if [ -e "$BIN"/applets ]; then
+	cp -a $BIN/applets etc/
 	for app in $(< etc/applets); do
 	case ${app%/*} in
 		/bin) cd bin && ln -sf busybox ${app##*/} && cd .. || die "eek!";;
