@@ -60,7 +60,7 @@ splash_message() { splash_command "set message $@"; splash_command "repaint"; }
 
 splash_setup() {
 	[ ${uv_check_env} ] || bin_exist "splash_util.static" "--"
-	[ -n "$gv_splash_console" ] && exec < "$gv_splash_console" > "$gv_splash_console" &>/dev/null
+	[ -n "$gv_splash_console" ] && exec < /dev/$gv_splash_console > /dev/$gv_splash_console &>/dev/null
 	[ -e /lib/splash/cache ] || mkdir -p /lib/splash/cache
 	[ -e /lib/splash/cache/.splash ] || mknod /lib/splash/cache/.splash p
 	splash_util.static --daemon "--theme=$gv_splash_theme"
