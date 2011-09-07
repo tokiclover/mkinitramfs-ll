@@ -1,5 +1,5 @@
-PACKAGE = initramfs-ll
-VERSION = $(shell grep revision= mkinitramfs-ll|sed -e 's:revision=::')
+PACKAGE = mkinitramfs-ll
+VERSION = $(shell grep revision= ${bin_prefix}|sed -e 's:revision=::')
 
 
 prefix		= usr/local
