@@ -1,7 +1,7 @@
 #!/bin/bash
-revision=0.1.1_p20110830
+revision=0.1.1_p20110906
 
-short_help() {
+usage() {
 	cat << EOF
    usage:
    ${0##*/} [OPTINS]
@@ -17,7 +17,7 @@ while [[ $# > 0 ]]; do
 		--use=*) EUSE=${1#*=}; shift;;
 		--Version=*) Version=${1#*=}; shift;;
 		--version|-v) echo "version $revision"; exit 0;;
-		--help|-h|*) short_help; exit 0;;
+		--help|-h|*) usage; exit 0;;
 	esac
 done
 
@@ -49,4 +49,3 @@ unset GPG
 unset EUSE
 unset BIN
 unset Version
-

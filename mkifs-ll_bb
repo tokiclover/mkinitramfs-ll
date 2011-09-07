@@ -1,12 +1,12 @@
 #!/bin/bash
-revision=0.3.2_p20110904
+revision=0.3.2_p20110906
 
-short_help() {
+usage() {
 	cat << EOF
   usage:
   ${0##*/} [-b|--build [-m|--minimal] [--uCl-arch=i386] ] [--kmap=map:kmap]
   -b, --build		build a static busybox.
-  -m, --minimal		build busybox with only the essential applets, default is to build all applets.
+  -m, --minimal		build busybox with minimal applets, default is to build all applets.
   -i, --install		install busybox with symliks to './bin', require -b|--build.
       --kmap=map:kmap	generate kmap keymap using map as input keymap.
       --uCl-arch=i386	ARCH string for uClibc build.		
@@ -15,7 +15,7 @@ short_help() {
 EOF
 }
 
-if [[ $# = 0 ]]; then short_help; exit 0; fi
+if [[ $# = 0 ]]; then usage; exit 0; fi
 
 while [[ $# > 0 ]]; do
 	case $1 in
@@ -27,7 +27,7 @@ while [[ $# > 0 ]]; do
 		--kmap=*) KBB=y; KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
 			KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2); shift;;
 		-v|--version)  echo "version $revision"; exit 0;;
-		-h|--help|*) short_help; exit 0;;
+		-h|--help|*) usage; exit 0;;
 	esac
 done
 
@@ -79,25 +79,25 @@ build_busybox() {
 		-e "s|# CONFIG_SWITCH_ROOT is not set|CONFIG_SWITCH_ROOT=y|" \
 		-e "s|# CONFIG_TEST is not set|CONFIG_TEST=y|" \
 		-e "s|# CONFIG_TR is not set|CONFIG_TR=y|" \
-		-e "s|# CONFIG_WHICH is not set|CONFIG_WHICH=y|" -i .config || die "minimal cfg failed"
+		-e "s|# CONFIG_WHICH is not set|CONFIG_WHICH=y|" \
+		-i .config || die "minimal cfg failed"
 	else 
 		make defconfig || die "defcfg failed"
 		sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
-		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" -i .config || die "cfg failed"
-	fi
+		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
+		-i .config || die "cfg failed"; fi
 
 	# For uClibc users, you need to adjust the cross compiler prefix properly (i386-uclibc-)
 	if [ -n "$UCL_ARCH" ]; then
-		sed -i -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"$UCL_ARCH\"|" .config
-	fi
+	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"$UCL_ARCH\"|" \
+		-i .config || die "setting uClib ARCH failed"; fi
 	make && make busybox.links || die "bb build failed"
 }
 
 install_busybox() {
 	if [ -e "$TMP_DIR" ]; then
 		make install CONFIG_PREFIX="$TMP_DIR"/busybox
-		rm -rf /tmp/busybox
-	fi
+		rm -rf /tmp/busybox; fi
 	./applets/install.sh $BIN/ --symlinks
 }
 
@@ -106,15 +106,12 @@ build_keymap() {
 	dumpkeys > default_keymap || die "dumping keymap failed"
 	loadkeys $KEYMAP_IN || die "loading $KEMAP_IN failed"
 	if [ "$UNICODE" = "y" ]; then 
-		dumpkeys|loadkeys -u || die "unicode conversion failed"
-	fi
+		dumpkeys|loadkeys -u || die "unicode conversion failed"; fi
 	./busybox dumpkmap > $KEYMAP_OUT || die "keymap build failed"
 	# load back your keymap
 	loadkeys default_keymap && rm default_keymap || die "re-loading default keymap failed"
 	if [ "$(pwd)" != "$WORKDIR"/bin ]; then 
-		cp $KEYMAP_OUT $BIN/ || die "$KEYMAP_OUT copy failed"
-
-	fi
+		cp $KEYMAP_OUT $BIN/ || die "$KEYMAP_OUT copy failed"; fi
 	unset KEYMAP_IN
 	unset KEYMAP_OUT
 	unset UNICODE
@@ -127,20 +124,17 @@ if [ "${BBB}" = "y" ]; then
 	cp -a busybox $BIN/ || die "failed to copy bb binary"
 	cp busybox.links $BIN/applets || die "failed to copy applets"
 	unset CONFIG
-	unset IBB
-fi
+	unset IBB; fi
 
 if [ "${KBB}" = "y" ]; then
 	mkdir -p $BIN
 	[ "${BBB}" != "y" ] && cd $BIN || die "eek!"
 	build_keymap
-	unset KBB
-fi
+	unset KBB; fi
 
 if [ "${BBB}" = "y" ]; then
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 	ebuild $BBT.ebuild clean || die "eek"
 	cd $WORKDIR || die "eek!"
 	unset BBB
-	unset BBT
-fi
+	unset BBT; fi

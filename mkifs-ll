@@ -1,34 +1,25 @@
 #!/bin/bash
-revision=0.3.2_p20110830
+revision=0.3.3_p20110906
 
-error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
-
-die() {
-	error "$@"
-	exit 1
-}
-
-short_help() {
+usage() {
 	cat << EOF
    ${0##*/} [OPTIONS]
-      --aufs		adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
-  -e, --e-version=str 	optional, append str extra version after k-version to the initramfs.
-  -k, --k-version=str	build an initramfs for 'k-version=\${KV:-\$(uname -r)}' kernel version.
-      --font=<font>	adds <font>, if \`=*' is omitted will add default font if available.
-  -f, --full		optional, build an initramfs with '--aufs --bin-dir --font --fs --lvm --gpg --misci --toi'.
-      --fs=<fs>		adds <fs> drivers to the initramfs, if empty will try to include 
-      			{btr,j,reiser,squash,x}fs,reiser4; it's a spaces ' ' separated list.
-      --fsck=<rootfs>	adds fsck.<rootfs> plus linked libraries to get fsck support for rootfs,
-      			if <rootfs> is the empty string will default to ext4.
+      --aufs		adds aufs[2] support to the initramfs for (aufs2+squashfs).
+  -e, --e-version=<str>	append <str> extra version after k-version to the initramfs.
+  -k, --k-version=<str>	build an initramfs for 'k-version=\${KV:-\$(uname -r)}' kernel version.
+      --font=<font>	adds <font> to the initramfs.
+  -f, --full		build with '--aufs --bin-dir --font --lvm --gpg --misci --toi' options.
+      --mod=<mod>	adds '<mod>' module, space separated list, to the initramfs.
+      --fsck=<fs>	adds fsck.<fs> binary with linked libraries for fsck.<fs> support.
       --bin-dir=bin 	use binaries [gpg/options.skel|busybox/applets|kmap-ARCH.bin] from 'bin'.
-      --comp-cmd=cmd	compression command to use to build initramfs, default is 'xz -9 --check=crc32'.
-  -g, --gpg 		adds GPG support, require a static app-crypt/gnupg-1.4.x build and options.skel.
-      --prefix=mvlinu.	prefix scheme to name the initramfs default is \`kernel-'.
+      --comp-cmd=cmd	compression command to use to build initramfs, default is xz.
+  -g, --gpg 		adds GPG support, require a static app-crypt/gnupg-1.4 and options.skel.
+      --prefix=mvlinuz.	prefix scheme to name the initramfs default is \`kernel-'.
       --kmap=km-x86.bin adds 'km-x86.bin' key-map in the initramfs, full path is required.
   -l, --lvm 		adds LVM2 support, require a static sys-fs/lvm2 build.
-      --misc-dir=misc use 'misc/{.gnupg/gpg.conf,share/gnupg/options.skel,initramfs-ll.conf}', optionaly 
-      			one can add manpages and info files of gpg/lvm in misc/share as the whole directory 
-			will be copied over into the initramfs, if the '=*' is omitted will default to './misc'.
+      --misc-dir=misc 	use 'misc/{.gnupg/gpg.conf,share/gnupg/options.skel,mkifs-ll.conf}',  
+      			one can add manpages and info files of gpg/lvm in misc/share as the whole 
+			directory will be copied over into the initramfs.
       --splash=theme	splash theme to include in the initramfs.
       --toi		adds tuxonice support.
   -h, --help		print this help.
@@ -37,44 +28,64 @@ short_help() {
   usages:
   # called without an argument, will build an initramfs for \$(uname -r) with LUKS support.
 
-  # building with full LUKS/GPG/LVM2/AUFS2 support for kernel 3.0.3-git with an extra 'd0' string version.
-  ${0##*/} -e d0 -k 3.0.3-git -f
+  # build with LUKS/GPG/LVM2/AUFS2 support for kernel 3.0.3-git with 'd0' string extra version.
+  ${0##*/} --e-version=d0 --k-version=3.0.3-git --full
   
   <str> 	string
-  <font>	full path to font.
-  <fs> 		file system e.g. xfs, reiser4.
+  <font>	full path to font, easy to include one into 'bin' directory and add its name
+  		into \${FONT:=\$BIN/<name>} definition into mkifs-ll.conf
+  <km-x86.bin>	same as above for KEYMMAP variable.
+  <fs> 		file system e.g. xfs, default is 'btrfs jfs reiserfs squashfs xfs reiser4'.
   <theme>	full path to splash 'theme'.
-  <rootfs> 	root file sytem.
-  bin		directory with the necessary binaries to build an initramfs.
-  misc		second local directory with extra necessary files.
-  --*-dir	bin-dirand misc-dir argument can be used without =* and will default to using ./bin and ./misc.
-  --*=		all arguments will default to default value definied in \$MISC/initramfs-ll.conf if empty.
+  <fs> 		file sytem.
+  bin		full path to directory with the necessary binaries to build an initramfs.
+  misc		second full path to directory with extra necessary files.
+  --*=		all arguments will use default value definied in mkifs-ll.conf if empty.
 EOF
 }
 
+error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
+info() 	{ echo -ne "\033[1;32m* \033[0m$@\n"; }
+
+die() {
+	error "$@"
+	exit 1
+}
+
+addmodule() {
+	for mod in $@; do
+		local module=$(find /lib/modules/$K_VERSION -name $mod.ko)
+		if [ -z $module ]; then info "$mod does not exist"
+		else 	mkdir -p .${module%/*}
+			cp -ar $module .${module%/*} || die "$module copy failed"
+		fi
+	done
+}
+
+[ $# = 0 ] && info "initramfs will be build with only LUKS support."
+
 while [[ $# > 0 ]]; do
 	case $1 in
-		-h|--help) short_help; exit 0;;
 		-v|--version) echo "version $revision"; exit 0;;
 		--aufs) iAUFS=y; shift;;
-		--bin-dir*) [ -n "${1#*=}" ] && BIN=${1#*=}; shift;;
-		--comp-cmd*) [ -n "${1#*=}" ] && CMD=${1#*=}; shift;;
+		--bin-dir=*) [ -n "${1#*=}" ] && BIN=${1#*=}; shift;;
+		--comp-cmd=*) [ -n "${1#*=}" ] && CMD=${1#*=}; shift;;
 		-e) E_VERSION=$2; shift 2;;
 		--e-version=*) [ -n "${1#*=}" ] && E_VERSION=${1#*=}; shift;;
-		--font*) [ -n "${1#*=}" ] && FONT=${1#*=}; shift;;
+		--font=*) [ -n "${1#*=}" ] && FONT=${1#*=}; shift;;
 		-f|--full) iAUFS=y; iGPG=y; iLVM=y, iTOI=y; shift;;
-		--fs*)	[ -n "${1#*=}" ] && FS=kernel/fs/${1#*=}; shift;;
-		--fsck*) [ -n "${1#*=}" ] && FSCK=${1#*=}; shift;;
+		--mod=*) [ -n "${1#*=}" ] && MOD=${1#*=}; shift;;
+		--fsck=*) [ -n "${1#*=}" ] && FSCK=${1#*=}; shift;;
 		-g|--gpg) iGPG=y; shift;;
-		--prefix*) PREFIX=${1#*=}; shift;; 
+		--prefix=*) PREFIX=${1#*=}; shift;; 
 		-k) K_VERSION=$2; shift 2;;
-		--k-version*) K_VERSION=${1#*=}; shift;;
+		--k-version=*) K_VERSION=${1#*=}; shift;;
 		--kmap=*) [ -n "${1#*=}" ] && KEYMAP=${1#*=}; shift;;
 		--lvm|-l) iLVM=y; shift;;
-		--misc-dir*) [ -n "${1#*=}" ] && MISC=${1#*=}; shift;;
-		--splash*) [ -n "${1#*=}" ] && SPLASH=${1#*=}; shift;;
+		--misc-dir=*) [ -n "${1#*=}" ] && MISC=${1#*=}; shift;;
+		--splash=*) [ -n "${1#*=}" ] && SPLASH=${1#*=}; shift;;
 		--toi) iTOI=y; shift;;
-		*) short_help; exit 0;;
+		-h|--help|*) usage; exit 0;;
 	esac
 done
 
@@ -98,8 +109,8 @@ esac
 echo ">>> building $INITRAMFS..."
 rm -rf $INITDIR || die "eek!"
 mkdir -p $INITDIR && cd $INITDIR || die "eek!"
-mkdir -p {{,s}bin,dev,etc/{modules,splash},mnt/tok,newroot,proc,root,sys,usr/{bin,sbin}} || die "eek!"
-mkdir -p lib64/{splash/cache,modules/$K_VERSION/{misc,kernel/{crypto,fs/nls}}} || die "eek!"
+mkdir -p {,s}bin dev proc root sys usr/{bin,sbin} newroot || die "eek!"
+mkdir -p lib64/splash/cache etc/{modules,splash} mnt/tok || die "eek!"
 ln -sf lib64 lib || die "eek!"
 
 cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || {
@@ -129,18 +140,16 @@ if [ -e "$BIN"/applets ]; then
 else 	sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
 
 if [ -n "$iAUFS" ]; then
-	MOD+=" kernel/fs/aufs misc/aufs.ko"
+	MOD+=" aufs"
 	cp -a /sbin/{,u}mount.aufs sbin/ || die "failed to copy *mount.aufs"
 	echo aufs > etc/modules/sqfsd || die "eek!"
-	unset iAUFS
-fi
+	unset iAUFS; fi
 
 if [ -n "$iGPG" ]; then
 	cp -a $BIN/gpg usr/bin/ || die "failed to copy gpg"
 	cp -ar $MISC/share usr/ || die "failed to copy $MISC/share"
 	cp -ar $MISC/.gnupg . || die "failed to copy $MISC/.gnupg"
-	unset iGPG
-fi
+	unset iGPG; fi
 
 if [ -n "$iLVM" ]; then
 	cp -a /sbin/lvm.static sbin/lvm || die "eek!"
@@ -149,61 +158,40 @@ if [ -n "$iLVM" ]; then
 		do ln -s lvm $lpv || die "eek!"
 	done
 	cd ..
-	unset iLVM
-fi
+	unset iLVM; fi
 
-for mod in $FS; do
-	if [ -e /lib/modules/$K_VERSION/kernel/fs/$mod ]; then
-	cp -ar /lib/modules/$K_VERSION/kernel/fs/$mod lib/modules/$K_VERSION/kernel/fs/${mod%*/} || \
-		die "mod copy failed"
-	fi
-	unset FS
-done
-
-for mod in $MOD; do
-	if [ -e /lib/modules/$K_VERSION/$mod ]; then
-	cp -ar /lib/modules/$K_VERSION/$mod lib/modules/$K_VERSION/${mod%/*} || die "mod copy failed"
-	fi
-	unset MOD
-done
+addmodule "$MOD" && unset MOD
 
 if [ -n "$FSCK" ]; then
 	for fs in $FSCK; do
 		cp -a /sbin/fsck.$fs sbin/
-		for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g"); do
-			cp -adH $lib lib/ || die "failed to copy $lib library"
-		done
+		for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
+			do cp -adH $lib lib/ || die "failed to copy $lib library"; done
 	done
-	unset FSCK
-fi
+	unset FSCK; fi
 
 for key in ${!MODULES[@]}; do
 	for grp in ${MODULES[$key]}; do
 		if [ -n "${grp#*=}" ]; then
-			for mod in ${grp#*=}; do
-				echo $mod >> etc/modules/${grp%=*}
-			done
+			for mod in ${grp#*=}
+				do echo $mod >> etc/modules/${grp%=*}; done
 		fi
 	done
-	unset MODULES
-done
+	unset MODULES; done
 
 if [ -n "$KEYMAP" ]; then 
 	cp -a "$KEYMAP" etc/ || die "failed to copy keymap"
-	unset KEYMAP
-fi
+	unset KEYMAP; fi
 
 [ -e "$FONT" ] && cp -a "$FONT" etc/
 
 if [ -n "$SPLASH" ]; then
 	if [ -n "$iTOI" ]; then
 		cp -a /sbin/tuxoniceui_text sbin/ || die "failed to copy toi helper"
-		unset iTOI
-	fi
+		unset iTOI; fi
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
 	cp -ar "$SPASH" etc/splash/ || die "splash themes does not exist"
-	unset SPLASH
-fi
+	unset SPLASH; fi
 
 find . -print0|cpio --null -ov --format=newc|$CMD > $INITRAMFS || die "eek!"
 
@@ -216,4 +204,3 @@ unset BIN
 unset CMD
 unset INITRAMFS
 unset MISC
-
