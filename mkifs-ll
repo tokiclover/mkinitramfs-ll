@@ -84,11 +84,10 @@ addmodule() {
 modules() {
 	for key in ${!MODULES[@]}; do
 		for grp in ${MODULES[$key]}; do
-			local modules=${grp#*=}
-			if [ -n "$modules" ]; then
+			if [ -n "${grp#*=}" ]; then
 				local IFS=","
-				for mod in ${grp#*=}; do 
-				addmodule $mod && echo $mod >> etc/modules/${grp%=*}; done
+				for mod in ${grp#*=}
+				do addmodule $mod && echo $mod >> etc/modules/${grp%=*}; done
 			fi
 		done
 	done
@@ -200,14 +199,8 @@ if [ -n "$KEYMAP" ]; then
 [ -e "$FONT" ] && cp -a "$FONT" etc/ && unset FONT
 [ -n "$SPLASH" ] && addsplash && unset SPLASH
 
-find . -print0|cpio --null -ov --format=newc|$CMD > $INITRAMFS || die "eek!"
+find . -print0 | cpio --null -ov --format=newc | $CMD > "$INITRAMFS" || die "eek!"
 
 echo ">>> $INITRAMFS initramfs built"
 
-unset K_VERSION
-unset E_VERSION
-unset INITDIR
-unset BIN
-unset CMD
-unset INITRAMFS
-unset MISC
+unset K_VERSION E_VERSION INITDIR BIN CMD INITRAMFS MISC

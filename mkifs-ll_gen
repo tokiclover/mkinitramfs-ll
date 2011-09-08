@@ -60,18 +60,16 @@ done
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
 
-if [[ -n "$BBB" ]]; then 
-	mkdir -p "$BIN"
-	./mkifs-ll_bb; fi
+if [[ -n "$BBB" ]]; then mkdir -p "$BIN"; ./mkifs-ll_bb; fi
 
 if [[ -n "$bGPG" ]]; then 
 	mkdir -p "$BIN"
 	if [[ -n "$CONF" ]]; then
-		mkdir -p "$MISC"/{share/,.}/gnupg
-		cp "$CONF"/gpg.conf "$MISC"/.gnupg/
+		mkdir -p "$MISC"/{share/,.}gnupg
+		cp "$CONF"/gpg.conf "$MISC"/.gnupg/ || die "eek!"
 		unset CONF; fi
 	./mkifs-ll_gpg
-	cp "$BIN"/options.skel "$MISC"/share/gnupg/
+	cp "$BIN"/options.skel "$MISC"/share/gnupg/ || die "eek!"
 	unset bGPG; fi
 
 ./mkifs-ll
