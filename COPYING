@@ -1,5 +1,10 @@
-Copyleft ( do not know how to include a reverted C) tokiclover 'tclover' at gmail dot com.
+initramfs script with building scripts 
+with LUKS+LVM2+AUFS2+SQUASHFS+crypted keyfiles (LUKS/GnuPG) support
+by tokiclover -tclover at gmail dot com
+@COPYLEFT
+ALL WRONGS RESERVED
+
 License: 
 	GPL-3 http://www.gnu.org/licenses/gpl-3.0.html
 	or 
-	CC BY-NC-SA-3.0 https://creativecommons.org/licenses/by-nc-sa/3.0/legalcode
+	CC BY-SA-3.0 https://creativecommons.org/licenses/by-nc-sa/3.0/legalcode
