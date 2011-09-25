@@ -60,7 +60,8 @@ splash_message() { splash_command "set message $@"; splash_command "repaint"; }
 
 splash_setup() {
 	[ ${uv_check_env} ] || bin_exist "splash_util.static" "--"
-	[ -n "$gv_splash_console" ] && exec < /dev/$gv_splash_console > /dev/$gv_splash_console &>/dev/null
+	[ -n "$gv_splash_console" ] && exec < /dev/$gv_splash_console > \
+		/dev/$gv_splash_console &>/dev/null
 	[ -e /lib/splash/cache ] || mkdir -p /lib/splash/cache
 	[ -e /lib/splash/cache/.splash ] || mknod /lib/splash/cache/.splash p
 	splash_util.static --daemon "--theme=$gv_splash_theme"
@@ -352,6 +353,7 @@ parse_cmdline_args() {
 					sqfsd=${uv_sqfsd:-usr:opt:bin:sbin}:$(echo ${dir#*,}|cut -b3-)
 				else 	sqfsd=$(echo ${dir#*,}|cut -b3-); fi;;
 			iroot=*)    gv_root=${arg#*=};;
+			*init=*)    uv_init=${arg#*=};;
 			ilvm=*)     gv_lvm=${arg#*=};;
 			imtopt=*)   gv_mtopt=${arg#*=};;
 			splash=*)   dir=${arg#*=}

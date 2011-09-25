@@ -64,8 +64,8 @@ if [[ -n "$BBB" ]]; then mkdir -p "$BIN"; ./mkifs-ll_bb; fi
 
 if [[ -n "$bGPG" ]]; then 
 	mkdir -p "$BIN"
+	mkdir -p "$MISC"/{share/,.}gnupg
 	if [[ -n "$CONF" ]]; then
-		mkdir -p "$MISC"/{share/,.}gnupg
 		cp "$CONF"/gpg.conf "$MISC"/.gnupg/ || die "eek!"
 		unset CONF; fi
 	./mkifs-ll_gpg
