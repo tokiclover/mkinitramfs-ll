@@ -43,8 +43,8 @@ usage() {
 EOF
 }
 
-error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
-info() 	{ echo -ne "\e[1;32m* \e[0m$@\n"; }
+error() { echo -ne "\033[1;31m* \e[0m$@\n"; }
+info() 	{ echo -ne "\033[1;32m* \e[0m$@\n"; }
 
 die() {
 	error "$@"
@@ -150,8 +150,13 @@ cp -a $BIN/busybox bin/ || die "failed to copy busybox"
 
 if [ -e "$BIN"/applets ]; then
 	cp -a $BIN/applets etc/
-	for app in $(< etc/applets)
-	do cd .${app%/*} && ln -s busybox ${app##*/} && cd .. || die "eek!"; done
+	for app in $(< etc/applets); do
+	case ${app%/*} in
+		/bin) cd bin && ln -sf busybox ${app##*/} && cd .. || die "eek!";;
+		/sbin) cd sbin && ln -sf ../bin/busybox ${app##*/} && cd .. || die "eek!";;
+		*) ln -sf bin/busybox ${app#*/} || die "eek";;
+	esac
+	done
 else 	sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
 
 if [ -n "$iAUFS" ]; then
