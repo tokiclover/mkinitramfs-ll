@@ -1,4 +1,4 @@
-# revision=0.3.5_p20110902
+# revision=0.3.5_p20110928
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
@@ -27,7 +27,6 @@
 #	Actually a PV in a group, respectively root, swap, resume is given by <mapping>-<device>, 
 #	mapping being a mapping name for cryptsetup and a block device|partition without the `/dev/' prefix.
 #
-#       <vgZYX-sdYX> 		- each device|PV of a given VG is given with <mapping>-<device|partition|PV>. 
 #       <LV|PV|VG>		- Logical|Physical Volume, Volume Group.
 #
 #       == About mount options ==
