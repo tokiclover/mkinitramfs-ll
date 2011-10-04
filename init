@@ -36,8 +36,10 @@ bin_exist() {
 
 check_busybox_applets() {
 	if [ -e "/etc/applets" ]; then	
-		for app in $(cat /etc/applets); do bin_exist ${app} "--"; done
-	else die "Cannot check if BusyBox's /etc/applets exists"; fi
+		for app in $(cat /etc/applets)
+		do [[ -h ${app} ]] || /bin/busybox --install -s && break; done
+	else	info "There's no /etc/applets, installing symlinks."
+		/bin/busybox --install -s; fi
 }
 
 rmmod_group() {
