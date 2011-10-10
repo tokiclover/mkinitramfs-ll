@@ -1,10 +1,9 @@
 #!/bin/bash
-revision=0.3_p20110905
+revision=0.3_p20111010
 
 short_help() {
 	cat << EOF
-	usage:
-	${0##*/} [-u[--update]|-r[--remove]] [--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>:<dir>
+	usage: ${0##*/} [-u[|--update]|-r[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>:<dir>
 	
 	-u, --update			update the underlying source directory e.g. bin:sbin:lib32:lib64.
 	-r, --remove			remove the underlying source directory e.g. usr:opt:\$PORTDIR.
@@ -22,8 +21,8 @@ short_help() {
 	# squash directries which will speed up portage calculations--database,dependencies--and remove 
 	# the underlying files which take a much more spaces as there are numerous small files there.
 	${0##*/} -r var/db:var/cache/edb
-	# [re-]build system related squashed directories
-	${0##*/} [-u|--update] bin:sbin:lib32:lib64
+	# [re-]build system related squashed directories and update the sources/unsquashed directories
+	${0##*/} -u -d bin:sbin:lib32:lib64
 EOF
 }
 
@@ -100,11 +99,4 @@ for dir in $sqfsd; do
 	echo ">>> ...squashed $dir sucessfully [re]build."
 done
 
-unset BSIZE
-unset COMP
-unset EXCL
-unset EXT
-unset sqfsd
-unset sqfsdir
-unset FSTAB
-
+unset BSIZE COMP EXCL EXT sqfsd sqfsdir FSTAB
