@@ -1,4 +1,12 @@
 # ------------------------------------------------------------------------------
+# there's a bug with the previous release, `ikmap' need an extra colon `:' even 
+# if there's no font appended after the key map! just append a colon `:' 
+# to avoid it. I will fix it latter.
+# I commited (4b7842f) a fix for `ikmap=<kmap>:' mandatory colon `:' issue, that 
+# commit should fix it, if not... append one again. I've just seen a peculiar 
+# failure after rebooting yesterday with that fix so I rm-ed my previous 
+# initramfs for new ones. I did not reboot yet. 
+# ------------------------------------------------------------------------------
 # not so sure if the `echo|info $msg' disappeared totaly, one can safely input 
 # another PV without the `msg': hit Enter then input another PV and hit enter 
 # when dev/sdxy get remapped. Anyway, running the init script in a chrooted 
