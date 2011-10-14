@@ -1,28 +1,28 @@
 #!/bin/bash
-revision=0.3_p20111010
+revision=0.3.1_p20111014
 
-short_help() {
-	cat << EOF
-	usage: ${0##*/} [-u[|--update]|-r[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>:<dir>
+usage() {
+  cat << EOF
+  usage: ${0##*/} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>:<dir>
+
+  -up, --update			update the underlying source directory e.g. bin:sbin:lib32:lib64.
+  -rm, --remove			remove the underlying source directory e.g. usr:opt:\$PORTDIR.
+       --sqfsdir=<dir>		override default value \`sqfsdir=/sqfsd'.
+  -d, --sqfsd=<dir>:<dir>		list of colons ':' seperated squashed directories.
+  -f, --fstab			whether to write the necessary mount lines to \`/etc/fstab'.
+      --bsize=131072		use [128k] 131072 bytes block size which is the default value.
+      --comp="xz -Xbjc x86"	use xz compressor optionaly, one can append extra arguments.
+      --excl=<dir>		exlude <dir> from being included into the .sfs squashed image.
+  -h, --help			print this help.
+  -v, --version			print the version string.
 	
-	-u, --update			update the underlying source directory e.g. bin:sbin:lib32:lib64.
-	-r, --remove			remove the underlying source directory e.g. usr:opt:\$PORTDIR.
-	    --sqfsdir=<dir>		override default value \`sqfsdir=/sqfsd'.
-	-d, --sqfsd=<dir>:<dir>		list of colons ':' seperated squashed directories.
-	-f, --fstab			whether to write the necessary mount lines to \`/etc/fstab'.
-	    --bsize=131072		use [128k] 131072 bytes block size which is the default value.
-	    --comp="xz -Xbjc x86"	use xz compressor optionaly, one can append extra arguments.
-	    --excl=<dir>		exlude <dir> from being included into the .sfs squashed image.
-	-h, --help			print this help.
-	-v, --version			print the version string.
-	
-	<dir> 	directory
-	examples:
-	# squash directries which will speed up portage calculations--database,dependencies--and remove 
-	# the underlying files which take a much more spaces as there are numerous small files there.
-	${0##*/} -r var/db:var/cache/edb
-	# [re-]build system related squashed directories and update the sources/unsquashed directories
-	${0##*/} -u -d bin:sbin:lib32:lib64
+  <dir> 	directory
+  examples:
+  # squash directries which will speed up portage calculations--database,dependencies--and remove 
+  # the underlying files which take a much more spaces as there are numerous small files there.
+  ${0##*/} -r var/db:var/cache/edb
+  # [re-]build system related squashed directories and update the sources/unsquashed directories
+  ${0##*/} -u -d bin:sbin:lib32:lib64
 EOF
 }
 
@@ -35,9 +35,9 @@ while [[ $# > 0 ]]; do
 		--excl=*) EXCL=$(echo ${1#*=}|tr ':' ' '); shift;;
 		-f|--fstab) FSTAB=y; shift;;
 		--comp=*) COMP=${1#*=}; shift;;
-		-u|--update) EXT=up; shift;;
-		-r|--remove) EXT=rm; shift;;
-		-h|--help|*) short_help; exit 0;;
+		-up|--update) EXT=up; shift;;
+		-rm|--remove) EXT=rm; shift;;
+		-h|--help|*) usage; exit 0;;
 	esac
 done
 
@@ -84,8 +84,8 @@ for dir in $sqfsd; do
 	if [ -n "$EXT" ]; then # now you can up[date] or rm squashed dir.
 		case $EXT in
 			rm) rm -rf /$dir/*;;
-			up) cp -aru "$sqfsdir/$dir"/ro/* /$dir;;
-			*) info "nothing to do, usage is [up|rm].";;
+			up) cp -aru "$sqfsdir/$dir"/ro/* /$dir/;;
+			*) info "nothing to do, usage is [-up|-rm].";;
 		esac
 	fi
 	mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
