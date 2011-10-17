@@ -194,7 +194,7 @@ if [[ -n "$KEYMAP" ]] {
 if [[ -e "$FONT" ]] { cp -a "$FONT" etc/ && unset FONT }
 if [[ -n "$SPLASH" ]] { addsplash && unset SPLASH }
 
-find . -print0 | cpio --null -ov --format=newc | $(CMD) > "$INITRAMFS" || die "eek!"
+find . -print0 | cpio --null -ov --format=newc | $CMD > "$INITRAMFS" || die "eek!"
 
 echo ">>> $INITRAMFS initramfs built"
 
