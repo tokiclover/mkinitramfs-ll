@@ -113,6 +113,9 @@
 #	One can use multiple LUKS encrypted keyfile if one want to, or even type a pwd for each PV, however, 
 #	this will take some time. Now LVM2...
 #
+#	 * Crypted LV for root using LVM2 and GnuPG encrypted key file, notice the `,,' 
+#	 assing no or null LVM gorup to swap and resume:
+#	    iroot=enc-root ikroot=gpg:sdb1:/keyfile.gpg ilvm=enc-sda1,,
 #	 * Crypted LVs [root,swap] using LVM2--ldk crypted keyfile and--plus mount options for rootfs:
 #	    iroot=vg0-lv1 iswap=file:vg1-lv0:0x4400 ilvm=vg0a1-sda1:vg0b2-sdb2,vg1c1-sdc1 \
 #	    ikroot=ldk:sdg1:/path/to/keyfile ikswap=ldk:sdg1:/path/to/keyfile \
