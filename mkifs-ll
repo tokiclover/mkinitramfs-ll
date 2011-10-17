@@ -65,9 +65,9 @@ addnodes() {
 }
 
 addsplsh() {
-	if [ -n "$iTOI" ]; then
+	[ -n "$iTOI" ] && {
 		cp -a /sbin/tuxoniceui_text sbin/ || die "failed to copy toi helper"
-		unset iTOI; fi
+		unset iTOI; }
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
 	cp -ar "$SPLASH" etc/splash/ || die "splash themes does not exist"
 }
@@ -85,10 +85,9 @@ addmodule() {
 modules() {
 	for key in ${!MODULES[@]}; do
 		for grp in ${MODULES[$key]}; do
-			if [ -n "${grp#*=}" ]; then
-				for mod in $(echo ${grp#*=}|tr ',' ' ')
-				do addmodule $mod && echo $mod >> etc/modules/${grp%=*}; done
-			fi
+			[ -n "${grp#*=}" ] && {
+			for mod in $(echo ${grp#*=}|tr ',' ' ')
+			do addmodule $mod && echo $mod >> etc/modules/${grp%=*}; done; }
 		done
 	done
 }
@@ -160,42 +159,42 @@ if [ -e "$BIN"/applets ]; then
 	done
 else 	sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
 
-if [ -n "$iAUFS" ]; then
+[ -n "$iAUFS" ] && {
 	for fs in {au,squash}fs
 	do [ -n "$(echo ${MODULES[2]}|grep $fs)" ] || MODULES[2]=${MODULES[2]},$fs; done
 	cp -a /sbin/{,u}mount.aufs sbin/ || die "failed to copy *mount.aufs"
-	unset iAUFS; fi
+	unset iAUFS; }
 
-if [ -n "$iGPG" ]; then
+[ -n "$iGPG" ] && {
 	cp -a $BIN/gpg usr/bin/ || die "failed to copy gpg"
 	cp -ar $MISC/share usr/ || die "failed to copy $MISC/share"
 	cp -ar $MISC/.gnupg . || die "failed to copy $MISC/.gnupg"
-	unset iGPG; fi
+	unset iGPG; }
 
-if [ -n "$iLVM" ]; then
+[ -n "$iLVM" ] && {
 	cp -a /sbin/lvm.static sbin/lvm || die "eek!"
 	cd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge
 		do ln -s lvm $lpv || die "eek!"
 	done
 	cd ..
-	unset iLVM; fi
+	unset iLVM; }
 
 addmodule "$MOD" && unset MOD
 modules && unset MODULES
 
-if [ -n "$FSCK" ]; then
+[ -n "$FSCK" ] && {
 	for fs in ${FSCK//,/ }; do
 		cp -aH /sbin/fsck.$fs sbin/
 		[[ "$(ldd /sbin/fsck.xfs)" != *"not a dynamic executable" ]] && {
 		for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
 			do cp -adH $lib lib/ || die "failed to copy $lib library"; done; }
 	done
-	unset FSCK; fi
+	unset FSCK; }
 
-if [ -n "$KEYMAP" ]; then 
+[ -n "$KEYMAP" ] && { 
 	cp -a "$KEYMAP" etc/ || die "failed to copy keymap"
-	unset KEYMAP; fi
+	unset KEYMAP; }
 
 [ -e "$FONT" ] && cp -a "$FONT" etc/ && unset FONT
 [ -n "$SPLASH" ] && addsplash && unset SPLASH
