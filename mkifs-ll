@@ -44,8 +44,8 @@ usage() {
 EOF
 }
 
-error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
-info() 	{ echo -ne "\033[1;32m* \033[0m$@\n"; }
+error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
+info() 	{ echo -ne "\e[1;32m* \e[0m$@\n"; }
 
 die() {
 	error "$@"
@@ -185,10 +185,11 @@ addmodule "$MOD" && unset MOD
 modules && unset MODULES
 
 if [ -n "$FSCK" ]; then
-	for fs in $(echo $FSCK|tr ',' ' '); do
-		cp -a /sbin/fsck.$fs sbin/
+	for fs in ${FSCK//,/ }; do
+		cp -aH /sbin/fsck.$fs sbin/
+		[[ "$(ldd /sbin/fsck.xfs)" != *"not a dynamic executable" ]] && {
 		for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
-			do cp -adH $lib lib/ || die "failed to copy $lib library"; done
+			do cp -adH $lib lib/ || die "failed to copy $lib library"; done; }
 	done
 	unset FSCK; fi
 
