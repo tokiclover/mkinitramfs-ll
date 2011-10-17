@@ -1,5 +1,5 @@
-#!/bin/bash
-revision=0.3.4_p20110907
+#!/bin/zsh
+revision=0.3.5_p20111017
 
 usage() {
 	cat << EOF
@@ -25,8 +25,7 @@ usage() {
   -h, --help		print this help.
   -v, --version 	print version.
 
-  usages:
-  # runned without an argument, build an initramfs for \$(uname -r) with only LUKS support.
+  usages: runned without an argument, build an initramfs for \$(uname -r) with only LUKS support.
 
   # build with LUKS/GPG/LVM2/AUFS2 support for kernel 3.0.3-git with 'd0' string extra version.
   ${0##*/} --e-version=d0 --k-version=3.0.3-git --full
@@ -44,8 +43,8 @@ usage() {
 EOF
 }
 
-error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
-info() 	{ echo -ne "\033[1;32m* \033[0m$@\n"; }
+error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
+info() 	{ echo -ne "\e[1;32m* \e[0m$@\n"; }
 
 die() {
 	error "$@"
@@ -64,32 +63,27 @@ addnodes() {
 }
 
 addsplsh() {
-	if [ -n "$iTOI" ]; then
+	if [[ -n "$iTOI" ]] {
 		cp -a /sbin/tuxoniceui_text sbin/ || die "failed to copy toi helper"
-		unset iTOI; fi
+		unset iTOI }
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
 	cp -ar "$SPLASH" etc/splash/ || die "splash themes does not exist"
 }
 
 addmodule() {
-	local IFS=","
 	for mod in $@; do
 		local module=$(find /lib/modules/$K_VERSION -name $mod.ko)
-		if [ -z $module ]; then info "$mod does not exist"; return 1
-		else 	mkdir -p .${module%/*}
-			cp -ar $module .${module%/*} || die "$module copy failed"; fi
+		if [[ -z $module ]] { info "$mod does not exist"; return 1 
+		} else { mkdir -p .$module:h
+		cp -ar $module .$module:h/ || die "$module copy failed" }
 	done
 }
 
 modules() {
-	for key in ${!MODULES[@]}; do
-		for grp in ${MODULES[$key]}; do
-			if [ -n "${grp#*=}" ]; then
-				local IFS=","
-				for mod in ${grp#*=}
-				do addmodule $mod && echo $mod >> etc/modules/${grp%=*}; done
-			fi
-		done
+	for grp in boot gpg remdev sqfsd tuxonice; do
+		if [[ -n ${MODULES[$grp]} ]] {
+			for mod in ${(pws:,:)MODULES[$grp]}
+			do addmodule $mod && echo $mod >> etc/modules/$grp; done }
 	done
 }
 
@@ -120,13 +114,14 @@ while [[ $# > 0 ]]; do
 	esac
 done
 
+typeset -A MODULES
 [ -f ./mkifs-ll.conf ] && . ./mkifs-ll.conf
 : 	${K_VERSION:=$(uname -r)}
 [ -n "$E_VERSION" ] && E_VERSION=-$E_VERSION
 :	${INITRAMFS:=/boot/${PREFIX:-initrd-}$K_VERSION$E_VERSION.cpio.xz}
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
-:	${INITDIR:=${WORKDIR}/${PREFIX:-initrd-}$K_VERSION$E_VERSION}
+:	${INITDIR:=${WORKDIR}/${PREFIX:-initrd-ll-}$K_VERSION$E_VERSION}
 :	${BIN:=$WORKDIR/bin}
 :	${CMD:=xz -9 --check=crc32}
 
@@ -149,7 +144,7 @@ cp -a $WORKDIR/init . || die "failed to copy init"
 cp -a /sbin/{cryptsetup,v86d} sbin/ || die "faied to copy v86d"
 cp -a $BIN/busybox bin/ || die "failed to copy busybox"
 
-if [ -e "$BIN"/applets ]; then
+if [[ -e "$BIN"/applets ]] {
 	cp -a $BIN/applets etc/
 	for app in $(< etc/applets); do
 	case ${app%/*} in
@@ -157,49 +152,49 @@ if [ -e "$BIN"/applets ]; then
 		/sbin) cd sbin && ln -sf ../bin/busybox ${app##*/} && cd .. || die "eek!";;
 		*) ln -sf bin/busybox ${app#*/} || die "eek";;
 	esac
-	done
-else 	sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
+	done } else { sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!" }
 
-if [ -n "$iAUFS" ]; then
+if [[ -n "$iAUFS" ]] {
 	for fs in {au,squash}fs
-	do [ -n "$(echo ${MODULES[2]}|grep $fs)" ] || MODULES[2]=${MODULES[2]},$fs; done
+	do [[ -n ${MODULES[(r)$fs,sqfsd]} ]] || MODULES[sqfsd]+=",$fs"; done
 	cp -a /sbin/{,u}mount.aufs sbin/ || die "failed to copy *mount.aufs"
-	unset iAUFS; fi
+	unset iAUFS }
 
-if [ -n "$iGPG" ]; then
+if [[ -n "$iGPG" ]] {
 	cp -a $BIN/gpg usr/bin/ || die "failed to copy gpg"
 	cp -ar $MISC/share usr/ || die "failed to copy $MISC/share"
 	cp -ar $MISC/.gnupg . || die "failed to copy $MISC/.gnupg"
-	unset iGPG; fi
+	unset iGPG }
 
-if [ -n "$iLVM" ]; then
+if [[ -n "$iLVM" ]] {
 	cp -a /sbin/lvm.static sbin/lvm || die "eek!"
 	cd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge
 		do ln -s lvm $lpv || die "eek!"
 	done
 	cd ..
-	unset iLVM; fi
+	unset iLVM }
 
-addmodule "$MOD" && unset MOD
+addmodule ${(pws:,:)MOD} && unset MOD
 modules && unset MODULES
 
-if [ -n "$FSCK" ]; then
-	for fs in $(echo $FSCK|tr ',' ' '); do
-		cp -a /sbin/fsck.$fs sbin/
+if [[ -n $FSCK ]] {
+	for fs in ${(pws:,:)FSCK}; do
+		cp -aL /sbin/fsck.$fs sbin/
+		if [[ "$(ldd /sbin/fsck.$fs)" != *"not a dynamic executable" ]] {
 		for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
-			do cp -adH $lib lib/ || die "failed to copy $lib library"; done
+			do cp -adH $lib lib/ || die "failed to copy $lib library"; done }
 	done
-	unset FSCK; fi
+	unset FSCK }
 
-if [ -n "$KEYMAP" ]; then 
+if [[ -n "$KEYMAP" ]] { 
 	cp -a "$KEYMAP" etc/ || die "failed to copy keymap"
-	unset KEYMAP; fi
+	unset KEYMAP }
 
-[ -e "$FONT" ] && cp -a "$FONT" etc/ && unset FONT
-[ -n "$SPLASH" ] && addsplash && unset SPLASH
+if [[ -e "$FONT" ]] { cp -a "$FONT" etc/ && unset FONT }
+if [[ -n "$SPLASH" ]] { addsplash && unset SPLASH }
 
-find . -print0 | cpio --null -ov --format=newc | $CMD > "$INITRAMFS" || die "eek!"
+find . -print0 | cpio --null -ov --format=newc | $(CMD) > "$INITRAMFS" || die "eek!"
 
 echo ">>> $INITRAMFS initramfs built"
 
