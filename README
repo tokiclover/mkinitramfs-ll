@@ -15,13 +15,14 @@
 #      * iswap=<type>:<PV|VG-LV>[:signature] 	e.g. iswap=swap:sda2 for a swap device.
 #      * iresume=<type>:<PV|VG-LV>[:signature] 	e.g. iresume=file:<VG>-<LV>:0x4400 for a swapfile in a LV.
 #      * ichkpt=<n>                 		Interrupts init and drops to shell to <n> shell-level.
-#      * ikroot=<mode>:<device>:</path/to/file> ik* args for passwd|keyfile for root, swap and resume.
-#      * ikswap=<mode>:<device>:</path/to/file>
-#      * ikresume=<mode>:<device>:</path/to/key/file>
-#      * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]	squashed directories, see below for more info.    
+#      * ikroot=<mode>:<device>:</path/to/file> ikroot argument for for [i]root keyfile or [no-]password.
+#      * ikswap=<mode>:<device>:</path/to/file>        iswap argument for for [i]swap keyfile or [no-]password.
+#      * ikresume=<mode>:<device>:</path/to/key/file>  same as above but for [i]resume.
+#      * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]   squashed directories, see below for more info.    
 #      * ilvm=<pv1-sda1:pv2-sdb1:pv3-sdc2>,<pv4-sda2:pv5-sdd1:pv6-sdb5>,<pv7-sdb6:pv8-sdh1>
-#      						LVM2 arg: <mapping>-<PV> list seperated by a `:' in a VG and 
-#      						by a `,' between VGs.
+#                                                      LVM2 arg: <mapping>-<PV> list seperated by a `:' in a VG and 
+#                                                      by a `,' between VGs; the <1st,,> group for root, the <,2nd,> 
+#                                                      group for swap and the <,,3rd> for resume.
 #
 #	== About LVM2 argument ==
 #	Actually a PV in a group, respectively root, swap, resume is given by <mapping>-<device>, 
