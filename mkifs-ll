@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3.4_p20110907
+revision=0.3.4_p20111017
 
 usage() {
 	cat << EOF
@@ -41,6 +41,7 @@ usage() {
   bin		full path to directory with the necessary binaries to build an initramfs.
   misc		second full path to directory with extra necessary files.
   --*=		all arguments will use default value definied in mkifs-ll.conf if empty.
+  b
 EOF
 }
 
@@ -85,8 +86,7 @@ modules() {
 	for key in ${!MODULES[@]}; do
 		for grp in ${MODULES[$key]}; do
 			if [ -n "${grp#*=}" ]; then
-				local IFS=","
-				for mod in ${grp#*=}
+				for mod in $(echo ${grp#*=}|tr ',' ' ')
 				do addmodule $mod && echo $mod >> etc/modules/${grp%=*}; done
 			fi
 		done
