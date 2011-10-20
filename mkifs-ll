@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3.5_p20111019
+revision=0.3.5_p20111020
 
 usage() {
   cat << EOF
@@ -107,7 +107,7 @@ echo ">>> building $INITRAMFS..."
 rm -rf $INITDIR || die "eek!"
 mkdir -p $INITDIR && cd $INITDIR || die "eek!"
 mkdir -p {,s}bin dev proc root sys usr/{bin,sbin} newroot || die "eek!"
-[[ -n ${$(uname -a)[(r)x86_64]} ]] && ARCH=64 || ARCH=32
+[[ -n "$(uname -a|grep x86_64)" ]] && ARCH=64 || ARCH=32
 mkdir -p lib$ARCH/splash/cache etc/{modules,splash} mnt/tok || die "eek!"
 ln -sf lib$ARCH lib || die "eek!" && unset ARCH
 
