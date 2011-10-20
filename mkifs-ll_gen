@@ -59,7 +59,7 @@ done
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
 
-[[ -n "$BBB" ]] && mkdir -p "$BIN" && ./mkifs-ll_bb && unset BBB
+[[ -n "$BBB" ]] && mkdir -p "$BIN" && ./mkifs-ll_bb
 
 [[ -n "$bGPG" ]] && { 
 	mkdir -p "$BIN"
