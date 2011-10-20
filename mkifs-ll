@@ -145,7 +145,7 @@ addmodule() {
 	} else { mkdir -p .$mod:h && cp -ar $mod .$mod:h/ || die "$mod copy failed" }; done
 }
 
-for module (${(pws:,:)MODS}) addmodule $module; unset MODS
+addmodule \{$MODS\}; unset MODS
 for grp boot gpg remdev sqfsd tuxonice; do
 	if [[ -n $MODULES[$grp] ]] {
 		for module (${(pws:,:)MODULES[$grp]})
