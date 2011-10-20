@@ -1,10 +1,9 @@
 #!/bin/bash
-revision=0.1.1_p20110906
+revision=0.1.2_p20111020
 
 usage() {
-	cat << EOF
-   usage:
-   ${0##*/} [OPTINS]
+   cat << EOF
+   usage: ${0##*/} [OPTINS]...
       --use="USE flags" extra USE flags to append to USE="nls static".
       --Version=<STR>	build gpg-<STR> version instead of gpg-1.4*.
   -h, --help		print this help.
@@ -14,24 +13,20 @@ EOF
 
 while [[ $# > 0 ]]; do
 	case $1 in 
-		--use=*) EUSE=${1#*=}; shift;;
+		--use=*) EUSE=i"${1#*=}"; shift;;
 		--Version=*) Version=${1#*=}; shift;;
 		--version|-v) echo "version $revision"; exit 0;;
 		--help|-h|*) usage; exit 0;;
 	esac
 done
 
-[ -f ./mkifs-ll.conf ] && . ./mkifs-ll.conf
+[[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
 :	${BIN:=$WORKDIR/bin}
 
 error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
-
-die() {
-	error "$@"
-	exit 1
-}
+die() { error "$@"; exit 1; }
 
 mkdir -p "$BIN"
 
@@ -45,4 +40,5 @@ cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 ebuild $GPG.ebuild clean || die "eek!"
 cd $WORKDIR || die "eek!"
 
+set iGPG=y
 unset GPG EUSE BIN Version

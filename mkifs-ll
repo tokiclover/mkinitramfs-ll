@@ -66,8 +66,8 @@ while [[ $# > 0 ]]; do
 	case $1 in
 		-v|--version) echo "version $revision"; exit 0;;
 		--aufs) iAUFS=y; shift;;
-		--bin-dir=*) [[ -n ${1#*=} ]] && BIN=${1#*=}; shift;;
-		--comp-cmd=*) [[ -n ${1#*=} ]] && CMD=${1#*=}; shift;;
+		--bin-dir=*) [[ -n ${1#*=} ]] && BIN="${1#*=}"; shift;;
+		--comp-cmd=*) [[ -n ${1#*=} ]] && CMD="${1#*=}"; shift;;
 		-e) E_VERSION=$2; shift 2;;
 		--e-version=*) E_VERSION=${1#*=}; shift;;
 		--font=*) [[ -n ${1#*=} ]] && FONTS+=",${1#*=}"; shift;;
@@ -80,7 +80,7 @@ while [[ $# > 0 ]]; do
 		--k-version=*) K_VERSION=${1#*=}; shift;;
 		--kmap=*) [[ -n ${1#*=} ]] && KEYMAPS+=",${1#*=}"; shift;;
 		--lvm|-l) iLVM=y; shift;;
-		--misc-dir=*) [[ -n ${1#*=} ]] && MISC=${1#*=}; shift;;
+		--misc-dir=*) [[ -n ${1#*=} ]] && MISC="${1#*=}"; shift;;
 		--splash=*) [[ -n ${1#*=} ]] && SPLASHS+=",${1#*=}"; shift;;
 		-h|--help|*) usage; exit 0;;
 	esac
