@@ -107,8 +107,9 @@ echo ">>> building $INITRAMFS..."
 rm -rf $INITDIR || die "eek!"
 mkdir -p $INITDIR && cd $INITDIR || die "eek!"
 mkdir -p {,s}bin dev proc root sys usr/{bin,sbin} newroot || die "eek!"
-mkdir -p lib64/splash/cache etc/{modules,splash} mnt/tok || die "eek!"
-ln -sf lib64 lib || die "eek!"
+[[ -n ${$(uname -a)[(r)x86_64]} ]] && ARCH=64 || ARCH=32
+mkdir -p lib$ARCH/splash/cache etc/{modules,splash} mnt/tok || die "eek!"
+ln -sf lib$ARCH lib || die "eek!" && unset ARCH
 
 cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || addnodes
 cp -a $WORKDIR/init . || die "failed to copy init"
@@ -147,24 +148,24 @@ addmodule() {
 			cp -ar $module .${module%/*} || die "$module copy failed"; fi
 	done
 }
-modules() {
-	for key in ${!MODULES[@]}; do
-		for grp in ${MODULES[$key]}; do
-			[ -n "${grp#*=}" ] && {
-			for mod in $(echo ${grp#*=}|tr ',' ' ')
-			do addmodule $mod && echo $mod >> etc/modules/${grp%=*}; done; }
-		done
+
+addmodule ${MOD//,/ }; unset MOD
+for key in ${!MODULES[@]}; do
+	for grp in ${MODULES[$key]}; do
+		[ -n "${grp#*=}" ] && {
+		for mod in $(echo ${grp#*=}|tr ',' ' ')
+		do addmodule $mod && echo $mod >> etc/modules/${grp%=*}; done; }
 	done
-}
-addmodule ${MOD//,/ } && unset MOD
-modules && unset MODULES
+done
+unset MODULES
 
 [[ -n "$FSCK" ]] && {
 	for fs in ${FSCK//,/ }; do
-		cp -aH /sbin/fsck.$fs sbin/
-		[[ "$(ldd /sbin/fsck.xfs)" != *"not a dynamic executable" ]] && {
-		for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
-			do cp -adH $lib lib/ || die "failed to copy $lib library"; done; }
+		if [[ -e /sbin/fsck.$fs ]]; then cp -aH /sbin/fsck.$fs sbin/
+			[[ "$(ldd /sbin/fsck.xfs)" != *"not a dynamic executable" ]] && {
+			for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
+				do cp -adH $lib lib/ || die "failed to copy $lib library"; done; }
+		else info "/sbin/fsck.$fs binary doesn't exist"; fi
 	done
 	unset FSCK; }
 
@@ -174,7 +175,7 @@ modules && unset MODULES
 
 [[ -e "$FONTS" ]] && {  
 	for font in ${FONTS//,/ }
-		do [[ -e "$font" ]] && cp -a "$font" etc/ || die "failed to copy $font font"; done
+		do [[ -e "$font" ]] && cp -a "$font" etc/ || info "failed to copy $font font"; done
 	unset FONTS; }
 
 [[ -n "$SPLASHS" ]] && {
@@ -183,7 +184,7 @@ modules && unset MODULES
 		unset iTOI; }
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
 	for splash in ${FONTS//,/ }
-	do [[ -e "$splash" ]] && cp -ar "$splash" etc/splash/ || die "failed to copy $splash theme"
+	do [[ -e "$splash" ]] && cp -ar "$splash" etc/splash/ || info "failed to copy $splash theme"
 	done
 	unset SPLASH; }
 
