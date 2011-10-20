@@ -11,7 +11,7 @@ usage() {
   -f, --full		build with '--aufs --bin-dir --font --lvm --gpg --misci --toi' options.
       --mod=<mod>	adds '<mod>' module, space separated list, to the initramfs.
       --fsck=<fs>	adds fsck.<fs> binary with linked libraries for fsck.<fs> support.
-      --bin-dir=bin 	use binaries [gpg/options.skel|busybox/applets|kmap-ARCH.bin] from 'bin'.
+      --bin-dir=bin 	use binaries [gpg/options.skel|busybox/applets|kmap-\$ARCH.bin] from 'bin'.
       --comp-cmd=cmd	compression command to use to build initramfs, default is xz.
   -g, --gpg 		adds GPG support, require a static app-crypt/gnupg-1.4 and options.skel.
       --prefix=mvlinuz.	prefix scheme to name the initramfs default is \`kernel-'.
@@ -107,8 +107,9 @@ echo ">>> building $INITRAMFS..."
 rm -rf $INITDIR || die "eek!"
 mkdir -p $INITDIR && cd $INITDIR || die "eek!"
 mkdir -p {,s}bin dev proc root sys usr/{bin,sbin} newroot || die "eek!"
-mkdir -p lib64/splash/cache etc/{modules,splash} mnt/tok || die "eek!"
-ln -sf lib64 lib || die "eek!"
+[[ -n ${$(uname -a)[(r)x86_64]} ]] && ARCH=64 || ARCH=32
+mkdir -p lib$ARCH/splash/cache etc/{modules,splash} mnt/tok || die "eek!"
+ln -sf lib$ARCH lib || die "eek!" && unset ARCH
 
 cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || addnodes
 cp -a $WORKDIR/init . || die "failed to copy init"
@@ -122,7 +123,7 @@ if [[ -e $BIN/applets ]] {
 
 if [[ -n $iAUFS ]] {
 	for fs ({au,squash}fs) 
-		do [[ -n ${MODULES[(r)$fs,sqfsd]} ]] || MODULES[sqfsd]+=",$fs"; done
+	do [[ -n ${MODULES[(r)$fs,sqfsd]} ]] || MODULES[sqfsd]+=",$fs"; done
 	cp -a /sbin/{,u}mount.aufs sbin/ || die "failed to copy *mount.aufs"
 	unset iAUFS }
 
@@ -135,33 +136,31 @@ if [[ -n $iGPG ]] {
 if [[ -n $iLVM ]] {
 	cp -a /sbin/lvm.static sbin/lvm || die "eek!"
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge)
-		do ln -sf sbin/{lvm,$lpv} || die "eek!"; done
+	do ln -sf sbin/{lvm,$lpv} || die "eek!"; done
 	unset iLVM }
 
 addmodule() {
-	for mod ($@); do
-		local module=$(find /lib/modules/$K_VERSION -name $mod.ko)
-		if [[ -z $module ]] { info "$mod does not exist"; return 1 
-		} else { mkdir -p .$module:h
-		cp -ar $module .$module:h/ || die "$module copy failed" }
-	done
+	for mod (/lib/modules/$K_VERSION/**/*$@.ko); do
+	if [[ ! -e $mod ]] { info "$mod does not exist"; return 1 
+	} else { mkdir -p .$mod:h && cp -ar $mod .$mod:h/ || die "$mod copy failed" }; done
 }
-modules() {
-	for grp boot gpg remdev sqfsd tuxonice; do
-		if [[ -n $MODULES[$grp] ]] {
-			for mod (${(pws:,:)MODULES[$grp]})
-				do addmodule $mod && echo $mod >> etc/modules/$grp; done }
-	done
-}
-addmodule ${(pws:,:)MODS} && unset MODS
-modules && unset MODULES
+
+for module (${(pws:,:)MODS}) addmodule $module; unset MODS
+for grp boot gpg remdev sqfsd tuxonice; do
+	if [[ -n $MODULES[$grp] ]] {
+		for module (${(pws:,:)MODULES[$grp]})
+		do addmodule $module && echo $module >> etc/modules/$grp; done }
+done
+unset MODULES
 
 if [[ -n $FSCK ]] {
-	for fs (${(pws:,:)FSCK[*]}); do
-		cp -aL /sbin/fsck.$fs sbin/
-		if [[ "$(ldd /sbin/fsck.$fs)" != *"not a dynamic executable" ]] {
-		for lib ($(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g"))
-			do cp -adH $lib lib/ || die "failed to copy $lib library"; done }
+	for fs (${(pws:,:)FSCK[*]}); do 
+		if [[ -e /sbin/fsck.$fs ]] { 
+			cp -aL /sbin/fsck.$fs sbin/
+			if [[ "$(ldd /sbin/fsck.$fs)" != *"not a dynamic executable" ]] {
+				for lib ($(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g"))
+				do cp -adH $lib lib/ || die "failed to copy $lib library"; done }
+		} else { info "/sbin/fsck.$fs binary doesn't exist" }
 	done
 	unset FSCK }
 
@@ -185,7 +184,7 @@ if [[ -n $SPLASHS ]] {
 	done
 	unset SPLASH }
 
-find . -print0|cpio --null -ov --format=newc| ${=CMD} > $INITRAMFS || die "eek!"
+find . -print0|cpio --null -ov --format=newc|${=CMD} > $INITRAMFS || die "eek!"
 
 echo ">>> $INITRAMFS initramfs built"
 
