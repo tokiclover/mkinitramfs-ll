@@ -122,12 +122,6 @@ if [[ -e $BIN/applets ]] {
 	for app ($(< etc/applets)) ln -sf bin/busybox .$app || die "eek!" 
 } else { sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!" }
 
-if [[ -n $iAUFS ]] {
-	for fs ({au,squash}fs) 
-		[[ -z ${MODULES[(r)$fs,sqfsd]} ]] && MODULES[sqfsd]+=",$fs"
-	cp -a /sbin/{,u}mount.aufs sbin/ || die "failed to copy *mount.aufs"
-	unset iAUFS }
-
 if [[ -n $iGPG ]] {
 	cp -a $BIN/gpg usr/bin/ || die "failed to copy gpg"
 	cp -ar $MISC/share usr/ || die "failed to copy $MISC/share"
@@ -137,14 +131,20 @@ if [[ -n $iGPG ]] {
 
 if [[ -n $iLVM ]] {
 	cp -a /sbin/lvm.static sbin/lvm || die "eek!"
-	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge)
-	do ln -sf sbin/{lvm,$lpv} || die "eek!"; done
+	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge) 
+		ln -sf sbin/{lvm,$lpv} || die "eek!"
 	unset iLVM 
+}
+
+if [[ -n $iAUFS ]] {
+	for fs ({au,squash}fs) [[ -z ${MODULES[(r)$fs,sqfsd]} ]] && MODULES[sqfsd]+=",$fs"
+	cp -a /sbin/{,u}mount.aufs sbin/ || die "failed to copy *mount.aufs"
+	unset iAUFS
 }
 
 addmodule() {
 	for mod (/lib/modules/$K_VERSION/**/*$@.(ko|o))
-		if [[ ! -e $mod ]] { info "$mod does not exist"; return 1 
+		if [[ ! -e $mod ]] { warn "$mod does not exist"; return 1 
 		} else { mkdir -p .$mod:h && cp -ar $mod .$mod:h/ || die "$mod copy failed" }
 }
 
@@ -157,7 +157,7 @@ unset MODS
 for grp (boot gpg remdev sqfsd tuxonice) 
 	if [[ -n $MODULES[$grp] ]] { 
 		for module (${(pws:,:)MODULES[$grp]}) 
-		addmodule $module && echo $module >> etc/modules/$grp }
+			addmodule $module && echo $module >> etc/modules/$grp }
 unset MODULES
 
 if [[ -n $FSCK ]] {
