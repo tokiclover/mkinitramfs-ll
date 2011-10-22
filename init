@@ -1,5 +1,5 @@
 #!/bin/sh
-# revision=0.3.5_p20110906
+# revision=0.3.6_p20111022
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
@@ -357,6 +357,7 @@ parse_cmdline_args() {
 			iroot=*)    gv_root=${arg#*=};;
 			*init=*)    uv_init=${arg#*=};;
 			ilvm=*)     gv_lvm=${arg#*=};;
+			imod=*)     gv_mod=${arg#*=};;
 			imtopt=*)   gv_mtopt=${arg#*=};;
 			splash=*)   dir=${arg#*=}
 				    gv_splash_theme=${dir#*:}
@@ -385,6 +386,9 @@ main() {
 	[ ${uv_check_env} ] || bin_exist "cryptsetup" "--"
 	/bin/mount -t sysfs sysfs /sys
 	parse_cmdline_args
+	[ -n "${gv_mod}" ] && {
+		for module in $(echo "${gv_mod}"||tr ',' ' ')
+		do echo "${module}" >> /etc/modules/boot; done; }
 	modprobe_group boot
 	/bin/mount -t tmpfs tmpfs /dev
 	/sbin/mdev -s
