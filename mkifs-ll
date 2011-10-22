@@ -96,7 +96,7 @@ typeset -A MODULES
 :	${BIN:=$WORKDIR/bin}
 :	${CMD:=xz -9 --check=crc32}
 
-case ${(A)CMD[(w)1} in
+case $=CMD[(w)1] in
 	bzip2)	INITRAMFS=${INITRAMFS/.xz/.bz2};;
 	gzip) 	INITRAMFS=${INITRAMFS/.xz/.gz};;
 	lzma)	INITRAMFS=${INITRAMFS/.xz/.lzma};;
@@ -140,13 +140,17 @@ if [[ -n $iLVM ]] {
 	unset iLVM }
 
 addmodule() {
-	for mod (/lib/modules/$K_VERSION/**/*$@.ko); do
+	for mod (/lib/modules/$K_VERSION/**/*$@.(ko|o)); do
 	if [[ ! -e $mod ]] { info "$mod does not exist"; return 1 
 	} else { mkdir -p .$mod:h && cp -ar $mod .$mod:h/ || die "$mod copy failed" }; done
 }
 
-addmodule \{$MODS\}; unset MODS
-for grp boot gpg remdev sqfsd tuxonice; do
+set EXTENDED_GLOB
+set NULL_GLOB
+set NOMATCH
+
+for module (${(pws:,:)MODS}) addmodule $module; unset MODS
+for grp (boot gpg remdev sqfsd tuxonice); do
 	if [[ -n $MODULES[$grp] ]] {
 		for module (${(pws:,:)MODULES[$grp]})
 		do addmodule $module && echo $module >> etc/modules/$grp; done }
