@@ -174,23 +174,24 @@ if [[ -n $FSCK ]] {
 
 if [[ -n $KEYMAPS ]] { 
 	for keymap (${(pws:,:)KEYMAPS}) 
-		[[ -e $keymap ]] && cp -a $keymap etc/ || warn "failed to copy $keymap keymap"
+		if [[ -e $keymap ]] { cp -a $keymap etc/ || warn "failed to copy $keymap keymap" }
 	unset KEYMAPS
 }
 
 if [[ -n $FONTS ]] { 
 	for font (${(pws:,:FONTS})
-		[[ -e $font ]] && cp -a $font etc/ || warn "failed to copy $font font" 
+		if [[ -e $font ]] { cp -a $font etc/ || warn "failed to copy $font font" }
 	unset FONTS 
 }
 
 if [[ -n $SPLASHS ]] { 
 	if [[ -n $iTOI ]] {
 		cp -a /sbin/tuxoniceui_text sbin/ || die "failed to copy toi helper"
-		unset iTOI }
+		unset iTOI 
+	}
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
 	for splash (${(pws:,:SPLASHS})
-		[[ -e $splash ]] && cp -ar $splash etc/splash/ || warn "splash themes does not exist"
+		if [[ -e $splash ]] { cp -ar $splash etc/splash/ || warn "splash themes does not exist" }
 	unset SPLASHS
 }
 
