@@ -1,5 +1,5 @@
 #!/bin/zsh
-revision=0.3.4_p20111022
+revision=0.3.5_p20111022
 usage() {
   cat <<-EOF
   usage: ${0} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>
@@ -71,8 +71,13 @@ squashed() {
 		|| die "failed to mount $dir.sfs img."
 		if [[ -n $EXT ]] { # now you can up[date] or rm squashed dir.
 			case $EXT in
-				rm) rm -rf /$dir/*;;
-				up) cp -aru $sqfsdir/$dir/ro/* /$dir/;;
+				rm) rm -rf /$dir/* || die "failed to clean up $sqfsdir/$dir.";;
+				up) echo >|/tmp/sdr
+					cp -aru $sqfsdir/$dir/ro/* /$dir/ 2>>|/tmp/sdr
+					[[ $? ]] || for file ($(sed -e "s|.*\`||g" -e "s|':.*||g" /tmp/sdr)) {
+						cp -a $file /tmp/ && mv /tmp/$file:t $file:h \
+						|| info "failed to move $file." }
+					;;
 				*) info "nothing to do, usage is [-up|-rm].";;
 			esac 
 		}
