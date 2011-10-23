@@ -155,7 +155,7 @@ else sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
 addmodule() {
 	for mod in $@; do
 		local module=$(find /lib/modules/$K_VERSION -name $mod.ko -or -name $mod.o)
-		if [ -z $module ]; then info "$mod does not exist"; return 1
+		if [ -z $module ]; then warn "$mod does not exist"; return 1
 		else mkdir -p .${module%/*}
 			cp -ar $module .${module%/*} || die "$module copy failed"; fi
 	done
@@ -175,11 +175,11 @@ unset MODULES
 [[ -n "$FSCK" ]] && {
 	for fs in ${FSCK//,/ }; do
 		if [[ -e /sbin/fsck.$fs ]]; then cp -aH /sbin/fsck.$fs sbin/
-			if [[ "$(ldd /sbin/fsck.xfs)" != *"not a dynamic executable" ]]; then
+			if [[ "$(ldd /sbin/fsck.$fs)" != *"not a dynamic executable"* ]]; then
 				for lib in $(ldd /sbin/fsck.$fs|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
 				do cp -adH $lib lib/ || die "failed to copy $lib library"; done
-			else info "fsck.$fs is a static binary."; fi
-		else info "fsck.$fs binary doesn't exist"; fi
+			else  info "fsck.$fs is a static binary."; fi
+		else warn "fsck.$fs binary doesn't exist"; fi
 	done
 	unset FSCK
 }
@@ -203,7 +203,7 @@ unset MODULES
 	}
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
 	for splash in ${SPLASHS//,/ }
-	do [[ -e "$splash" ]] && cp -ar "$splash" etc/splash/ || info "failed to copy $splash theme"
+	do [[ -e "$splash" ]] && cp -ar "$splash" etc/splash/ || warn "failed to copy $splash theme"
 	done
 	unset SPLASHS
 }
