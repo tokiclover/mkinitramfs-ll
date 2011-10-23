@@ -123,7 +123,7 @@ if [[ -e "$BIN"/applets ]]; then
 		case ${app%/*} in
 			/sbin) cd sbin && ln -s ../bin/busybox ${app##*/} && cd .. || die "eek!";;
 			/bin) cd bin && ln -s busybox ${app##*/} && cd .. || die "eek!";;
-			/) ln -s bin/busybox .$app || die "eek!";;
+			*) ln -s bin/busybox .$app || die "eek!";;
 		esac
 	done
 else sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
