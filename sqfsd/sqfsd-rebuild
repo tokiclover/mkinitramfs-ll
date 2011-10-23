@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3_p20111023
+revision=0.3.4_p20111023
 usage() {
   cat <<-EOF
   usage: ${0} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>
