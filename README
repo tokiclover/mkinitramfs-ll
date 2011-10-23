@@ -127,7 +127,7 @@
 #          * tuxonice     - tuxonice module, wich aren't removed if you don't comment in a line.
 #          * remdev       - modules required to access removable device
 #          * gpg          - modules required to access gpg protected file.
-#		   * sqfsd 	    - modules required for squashfs+aufs2, you can still build them into the kernel.
+#          * sqfsd 	    - modules required for squashfs+aufs2, you can still build them into the kernel.
 #
 #		Modules should exist on `/lib/modules/$KV/', like in your system.
 # 		Your kernel has to support module unloading for rmmod to work.
