@@ -1,133 +1,134 @@
-# revision=0.3.5_p20110928
+# revision=0.3.6_p20111023
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
-# Arguments:
-#   init script supports the following:
-#     init specific: 
-#      * iroot=<PV|VG-LV>[:c:<fs>:n]		root device--required, recommanded optinal `:c:ext4' 
-#      						for an ext4 to fsck rootfs, last argument is to disable 
-#      						a `die' after fsck failure,default is y. 
-#      * [imtopt=<ro,inode64,...>]   		optional mount options for rootfs e.g. 
-#      						imtopt=inode64,logdev=/dev/<VG>/<LV>.
-#      * ikmap=<kmap>[:<font>]      		Load key map and optional font.
-#      * rescue                     		Drops you into a minimal shell
-#      * iswap=<type>:<PV|VG-LV>[:signature] 	e.g. iswap=swap:sda2 for a swap device.
-#      * iresume=<type>:<PV|VG-LV>[:signature] 	e.g. iresume=file:<VG>-<LV>:0x4400 for a swapfile in a LV.
-#      * ichkpt=<n>                 		Interrupts init and drops to shell to <n> shell-level.
-#      * ikroot=<mode>:<device>:</path/to/file> ikroot argument for for [i]root keyfile or [no-]password.
-#      * ikswap=<mode>:<device>:</path/to/file>	iswap argument for for [i]swap keyfile or [no-]password.
-#      * ikresume=<mode>:<device>:</path/to/key/file> 	same as above but for [i]resume.
-#      * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]	squashed directories, see below for more info.    
-#      * ilvm=<pv1-sda1:pv2-sdb1:pv3-sdc2>,<pv4-sda2:pv5-sdd1:pv6-sdb5>,<pv7-sdb6:pv8-sdh1>
-#      						LVM2 arg: <mapping>-<PV> list seperated by a `:' in a VG and 
-#      						by a `,' between VGs; the <1st,,> group for root, the <,2nd,> 
-#      						group for swap and the <,,3rd> for resume.
+# 	Arguments:
+#	init script supports the following specific arguments: 
+#      * iroot=<PV|VG-LV>[:c:<fs>:n]        root device--required, recommanded optinal `:c:ext4' for an ext4 rootfs, 
+#                                           last argument is to disable a `die' after fsck failure,default is y. 
+#      * [imtopt=<ro,inode64,...>]          optional mount options for rootfs e.g. 
+#      * [imod=<i915,radeon,drm,ttm>]       optional (comma seperated list) modules to load (in the boot group).
+#      * ikmap=<kmap>[:<font>]              load key map and optional font.
+#      * rescue                             drops into a minimal shell.
+#      * iswap=<type>:<VG-LV>[:signature]   e.g. iswap=swap:sda2 for a swap device.
+#      * iresume=<type>:<VG-LV>[:signature] e.g. iresume=file:<VG-LV>:0x4400 for a swapfile in a LV.
+#      * ichkpt=<n>                         Interrupts init and drops to shell <n> shell-level.
+#      * ikroot=<mode>:<device>:</path/to/file>        ikroot argument for for [i]root keyfile or [no-]password.
+#      * ikswap=<mode>:<device>:</path/to/file>        iswap argument for for [i]swap keyfile or [no-]password.
+#      * ikresume=<mode>:<device>:</path/to/key/file>  same as above but for [i]resume.
+#      * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]           squashed directories, see below for more info.    
+#      * ilvm=<map-PV>,<map-PV>,<map-PV>    LVM2 argument <mapping-PV>: collon `:' separated list of LVs in a VG and 
+#                                           comma `,' separated in a VG. 1st group for root, 2nd for swap and the 3rd 
+#                                           for resume, hence one can append commas to asign a particular group.
 #
 #	== About LVM2 argument ==
 #	Actually a PV in a group, respectively root, swap, resume is given by <mapping>-<device>, 
 #	mapping being a mapping name for cryptsetup and a block device|partition without the `/dev/' prefix.
 #
-#       <LV|PV|VG>		- Logical|Physical Volume, Volume Group.
+#      <LV|PV|VG>  - <Logical|Physical Volume|Volume Group>.
+#      <VG-LV>     - <Volume Group name-Logical Volume name>
+#      <map-PV>    - comma separated list <mapping-PV> e.g. <pv1-sda1,pv2-sdb1,...> for a Volume Group (VG), 
+#                    the 1st being for root, the 2nd for swap and the 3rd for resume. So if this `ilvm=,swp-sdc1,' 
+#                    asign a VG for only swap VG (one can boot directly from unencrypted PV for example).
 #
-#       == About mount options ==
+# 	== About mount options ==
 #	imtopt=<rootfs mount options>
 #	Say, you have a rootfs=xfs|jsf|reiser|ext* and want to mount your rootfs with specific opts. In case 
 #	of xfs, for exemple, just create your log LV on a different PV than what you're logging from and 
 #	everything is set up--well if the logging LV is in the swap VG--and, in fact, you do not need a swap 
 #	LV there--you just use that VG as if there were one. 
 #
-#       == About key files|modes ==
-#       For partitions or PVs that are encrypted with a key, setting 'ikroot' and/or 'ikswap' and/or 'ikresume'
-#       is required, otherwise a passphrase is required for *each* PV as fall back.
-#       This information is then used to obtain each key file from the specified removable media if any. 
+#	== About key files|modes ==
+# 	For partitions or PVs that are encrypted with a key, setting 'ikroot' and/or 'ikswap' and/or 'ikresume'
+#	is required, otherwise a passphrase is required for *each* PV as fall back.
+#	This information is then used to obtain each key file from the specified removable media if any. 
 #
-#       <mode>           	- defines how the init script shall treat the supplied keyfile (see below). 
-#       Supported modes:
-#       	* gpg 	-> keyfile is GnuPG-protected
-#       	* ldk 	-> keyfile is LUKS encrypted, via loop back device.
-#       	* reg 	-> keyfile is regular file
-#       	* pwd 	-> encrypted on a regular passphrase, if no argument is passed to ik* arg, fallback 
-#       		   will be pwd mode.
-#       	* none 	-> root only mode--rootfs will be mounted on an unencrypted PV, this argument should be 
-#       		   explicitely set.
+#      <mode>      - defines how the init script shall treat the supplied keyfile (see below). 
+#      Supported modes:
+#        * gpg 	-> keyfile is GnuPG-protected
+#        * ldk 	-> keyfile is LUKS encrypted, via loop back device.
+#        * reg 	-> keyfile is regular file
+#        * pwd 	-> encrypted on a regular passphrase, if no argument is passed to ik* arg, fallback 
+#       	       will be pwd mode.
+#        * none -> root only mode--rootfs will be mounted on an unencrypted PV, this argument should be 
+#                  explicitely set.
 #
-#	<device|dev>	- the device or PV that will be assigned to the removable media e.g. sda<int>, sdb<int>.
-#       </path/to/file> - full path to file inside the removable media.
+#	   <device|dev>    - the device or PV that will be assigned to the removable media e.g. sda<int>, sdb<int>.
+#      </path/to/file> - full path to file inside the removable media.
 #
-#       == About `/dev/' prefix ==
-#       And there's no need to provide the `/dev/' prefix for device. In fact, if one do provide a `/dev/' 
-#       prefix for any of those init args, processing those args may fail. cryptsetup_exec() check for that, 
-#       and if there's not `/dev/' prefix, append one. This was done to limit the length of the init arguments.
+#	== About `/dev/' prefix ==
+#	And there's no need to provide the `/dev/' prefix for device. In fact, if one do provide a `/dev/' 
+#	prefix for any of those init args, processing those args may fail. cryptsetup_exec() check for that, 
+#	and if there's not `/dev/' prefix, append one. This was done to limit the length of the init arguments.
 #
-#       == About squashed directories ==
+#	== About squashed directories ==
 #	One can use squashfs+aufs2 to 'squash' partitions or preferably directories like $PORTDIR:var/lib/layamn, 
 #	or system related directories like usr:lib32:lib64:bin:sbin. Advantages are system speed/responsiveness.
 #	
-#	Squashed directories argument:
-#	* isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]	
-#			- one can use uv_sqfsd and uv_sqfsdir or append directories after a `[n|a]:' for sqfsd.
-#	* isqfsd=/sqfsdir,n:<dir 1>:<dir n>	
-#			- neither uv_sqfsdir nor uv_sqfsd is used, appending sqfsdir and sqfsd dirs is required.
-#	* isqfsd=y,y				
-#			- using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
-#	* isqfsd=y,a:<dir 1>[:<dir n>]		
-#			- same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
+# 	Squashed directories argument:
+#        * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]	
+#            - one can use uv_sqfsd and uv_sqfsdir or append directories after a `[n|a]:' for sqfsd.
+#        * isqfsd=/sqfsdir,n:<dir 1>:<dir n>	
+#            - neither uv_sqfsdir nor uv_sqfsd is used, appending sqfsdir and sqfsd dirs is required.
+#        * isqfsd=y,y				
+#            - using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
+#        * isqfsd=y,a:<dir 1>[:<dir n>]		
+#            - same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
 #
 #	 NOTE: leading `/' slash is only required for [uv_|]sqfsdir, else mounting squashed directories will fail. 
 #
-#        == Notes on key modes ==
-#        * gpg encrypted key-file -> 	now gpg mode works quite well with... tested with 1.4.11, passed as 
-#        				`gpg -qd ...'; 2.0 seems to rquire too much trouble; 
-#        				`/usr/share/gnupg/options.skel' is required, additionally, one can add a 
-#        				`/.gnupg/gpg.conf' in the initramfs root to avoid its creattion on each 
-#        				reboot--no idea if the config options are taken into account. 
-#	 * ldk encrypted key-file -> 	passed to cryptsetup as `-d /dev/mapper/$(basename /path/to/keyfile)' 
-#	 				after being decrypted. Now, there's a warning:
-#	 				`Warning: exhausting read requested, but key file is not a regular file, 
-#					function might never return.' that I can't figure out after googling. 
-#					However, decryption goes as expected, it seems. No issue at the moment.
-#        * regular key-file       -> 	will be passed to cryptsetup as `-d /path/to/keyfile'.
-#	 * pwd			  ->	it's not mandatory to append any `ikroot=pwd' in the cmdline for this mode. 
-#					argument to be prompted for a password as a fallback.
-#	 * none		   	  ->	it should be explicitely appended to mount an unencrypted rootfs. 
-# 					I added this mode for testing purpose for those, like me, 
-#					who have a working system before encrypting rootfs with LUKS.
+#	== Notes on key modes ==
+#      * gpg encrypted key-file -> now gpg mode works quite well with... tested with 1.4.11, passed as 
+#                                  `gpg -qd ...'; 2.0 seems to rquire too much trouble; 
+#                                  `/usr/share/gnupg/options.skel' is required, additionally, one can add a 
+#                                  `/.gnupg/gpg.conf' in the initramfs root to avoid its creattion on each 
+#                                  reboot--no idea if the config options are taken into account. 
+#      * ldk encrypted key-file -> passed to cryptsetup as `-d /dev/mapper/$(basename /path/to/keyfile)' 
+#	                               after being decrypted. Now, there's a warning: 
+#	                               `Warning: exhausting read requested, but key file is not a regular file, 
+#	                               function might never return.' that I can't figure out after googling. 
+#	                               However, decryption goes as expected, it seems. No issue at the moment.
+#      * regular key-file       -> will be passed to cryptsetup as `-d /path/to/keyfile'.
+#      * pwd                    -> it's not mandatory to append any `ikroot=pwd' in the cmdline for this mode. 
+#                                  argument to be prompted for a password as a fallback.
+#      * none                   -> it should be explicitely appended to mount an unencrypted rootfs. 
+#                                  I added this mode for testing purpose for those, like me, 
+#                                  who have a working system before encrypting rootfs with LUKS.
 #	
-#        WARNING: Back up your data! else... you may lose a few of... them by carelessness.
+#	WARNING: Back up your data! else... you may lose a few of... them by carelessness.
 # 
-#        == Kernel parameters example ==
-#        * Root--no key--unencrypted PV: iroot=sda3 ikroot=none ikmap=es-cp850_i686.bin    
-#        * Root--key regular passphrase--plus fbsplash: iroot=sda3 ikroot=pwd \
-#	    video=uvesafb:ywrap,1280x800-24@60 splash=verbose,theme:livecd-20007.0 console=tty1
-#        * Root--regular keyfile on usb stick: iroot=sda3 ikroot=reg:sdb1:/path/to/keyfile
-#        * Root--gpg encrypted key on usb stick: iroot=sda3 ikroot=gpg:sdb1:/path/to/file
-#        * Swap and root--ldk encrypted keyfiles: iroot=sda3 iswap=swap[|file]:sda2[:signature] \
-#	    ikroot=ldk:sdb1:/path/to/rootkey ikswap=ldk:sdb1:/path/to/swapkey
-#        * Regular swap--AND TuxOnIce resume on a different PV--regular passphrase: 
-#           iswap=swap:sda2 iresume=swap:sda3:0x4400 ikswap=pwd ikresume=pwd
-#        * Swap file--resuming from hibernation--ldk protected keyfile on usb stick:
-#           iswap=file:sda3:0x4400 iresume=toi[|CHAR|WORD] ikswap=ldk:sdb1:/path/to/swapkey
+# 	== Kernel parameters example ==
+#      * Root--no key--unencrypted PV: iroot=sda3 ikroot=none ikmap=es-cp850_i686.bin    
+#      * Root--key regular passphrase--plus fbsplash: iroot=sda3 ikroot=pwd \
+#	     video=uvesafb:ywrap,1280x800-24@60 splash=verbose,theme:livecd-20007.0 console=tty1
+#      * Root--regular keyfile on usb stick: iroot=sda3 ikroot=reg:sdb1:/path/to/keyfile
+#      * Root--gpg encrypted key on usb stick: iroot=sda3 ikroot=gpg:sdb1:/path/to/file
+#      * Swap and root--ldk encrypted keyfiles: iroot=sda3 iswap=swap[|file]:sda2[:signature] \
+#	     ikroot=ldk:sdb1:/path/to/rootkey ikswap=ldk:sdb1:/path/to/swapkey
+#      * Regular swap--AND TuxOnIce resume on a different PV--regular passphrase: 
+#        iswap=swap:sda2 iresume=swap:sda3:0x4400 ikswap=pwd ikresume=pwd
+#      * Swap file--resuming from hibernation--ldk protected keyfile on usb stick:
+#        iswap=file:sda3:0x4400 iresume=toi[|CHAR|WORD] ikswap=ldk:sdb1:/path/to/swapkey
 #	    
 #	NOTE: For ldk mode I use a single LUKS encrypted keyfile to decrypt rootfs, PV|LV host of a swapfile.
 #	One can use multiple LUKS encrypted keyfile if one want to, or even type a pwd for each PV, however, 
 #	this will take some time. Now LVM2...
 #
-#	 * Crypted LVs [root,swap] using LVM2--ldk crypted keyfile and--plus mount options for rootfs:
-#	    iroot=vg0-lv1 iswap=file:vg1-lv0:0x4400 ilvm=vg0a1-sda1:vg0b2-sdb2,vg1c1-sdc1 \
-#	    ikroot=ldk:sdg1:/path/to/keyfile ikswap=ldk:sdg1:/path/to/keyfile \
-#	    imtopt=logdev=/dev/vg1/lv1,inode64,barrier
+#      * Crypted LVs [root,swap] using LVM2--ldk crypted keyfile and--plus mount options for rootfs:
+#        iroot=vg0-lv1 iswap=file:vg1-lv0:0x4400 ilvm=vg0a1-sda1:vg0b2-sdb2,vg1c1-sdc1 \
+#        ikroot=ldk:sdg1:/path/to/keyfile ikswap=ldk:sdg1:/path/to/keyfile \
+#        imtopt=logdev=/dev/vg1/lv1,inode64,barrier
 #
 #	== Modules == 	
-#       If one need to load modules, create the groups you need in /etc/modules/ (inside initramfs),each file 
-#       should be a list of the modules, and each file name denotes the step in the init where they should be loaded.
-#       Supported groups:
-#                * boot         - boot time modules loaded but not removed.
-#                * tuxonice     - tuxonice module, wich aren't removed if you don't comment in a line.
-#                * remdev       - modules required to access removable device
-#                * gpg          - modules required to access gpg protected file.
-#		 * sqfsd 	- modules required for squashfs+aufs2, you can still build them into the kernel.
+# 	If one need to load modules, create the groups you need in /etc/modules/ (inside initramfs),each file 
+# 	should be a list of the modules, and each file name denotes the step in the init where they should be loaded.
+# 		Supported groups:
+#          * boot         - boot time modules loaded but not removed.
+#          * tuxonice     - tuxonice module, wich aren't removed if you don't comment in a line.
+#          * remdev       - modules required to access removable device
+#          * gpg          - modules required to access gpg protected file.
+#          * sqfsd        - modules required for squashfs+aufs2, you can still build them into the kernel.
 #
-#	* The modules should exist on `/lib/modules/$KV/', like in your system.
-#       * Your kernel has to support module unloading for rmmod to work.
+#		Modules should exist on `/lib/modules/$KV/', like in your system.
+# 		Your kernel has to support module unloading for rmmod to work.
 #
