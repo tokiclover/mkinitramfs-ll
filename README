@@ -114,10 +114,10 @@
 #	One can use multiple LUKS encrypted keyfile if one want to, or even type a pwd for each PV, however, 
 #	this will take some time. Now LVM2...
 #
-#	   * Crypted LVs [root,swap] using LVM2--ldk crypted keyfile and--plus mount options for rootfs:
-#	     iroot=vg0-lv1 iswap=file:vg1-lv0:0x4400 ilvm=vg0a1-sda1:vg0b2-sdb2,vg1c1-sdc1 \
-#	     ikroot=ldk:sdg1:/path/to/keyfile ikswap=ldk:sdg1:/path/to/keyfile \
-#	      imtopt=logdev=/dev/vg1/lv1,inode64,barrier
+#      * Crypted LVs [root,swap] using LVM2--ldk crypted keyfile and--plus mount options for rootfs:
+#        iroot=vg0-lv1 iswap=file:vg1-lv0:0x4400 ilvm=vg0a1-sda1:vg0b2-sdb2,vg1c1-sdc1 \
+#        ikroot=ldk:sdg1:/path/to/keyfile ikswap=ldk:sdg1:/path/to/keyfile \
+#        imtopt=logdev=/dev/vg1/lv1,inode64,barrier
 #
 #	== Modules == 	
 # 	If one need to load modules, create the groups you need in /etc/modules/ (inside initramfs),each file 
@@ -127,7 +127,7 @@
 #          * tuxonice     - tuxonice module, wich aren't removed if you don't comment in a line.
 #          * remdev       - modules required to access removable device
 #          * gpg          - modules required to access gpg protected file.
-#          * sqfsd 	    - modules required for squashfs+aufs2, you can still build them into the kernel.
+#          * sqfsd        - modules required for squashfs+aufs2, you can still build them into the kernel.
 #
 #		Modules should exist on `/lib/modules/$KV/', like in your system.
 # 		Your kernel has to support module unloading for rmmod to work.
