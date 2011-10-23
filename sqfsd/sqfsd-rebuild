@@ -88,7 +88,6 @@ squashed() {
 }
 
 squash() {
-	source /etc/conf.d/sqfsdmount
 	if [[ -z $SQFSDIR ]] { die "sqfsdir is empty, nothing to do."
 	} else { for SQFSD (SQFSD_{SYS,LOCAL}) [[ -n $SQFSD ]] && squashed $SQFSDIR $SQFSD }
 }
