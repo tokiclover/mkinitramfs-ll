@@ -40,5 +40,5 @@ cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 ebuild $GPG.ebuild clean || die "eek!"
 cd $WORKDIR || die "eek!"
 
-set iGPG=y
+iGPG=y
 unset GPG EUSE BIN Version

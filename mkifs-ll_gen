@@ -33,22 +33,22 @@ EOF
 while [[ $# > 0 ]]; do
 	case $1 in
 		--aufs|-a) set iAUFS=y; shift;;
-		--bin-dir=*) [[ -n ${1#*=} ]] && set BIN=${1#*=}; shift;;
-		--build-all|-A) set iLVM=y; set iGPG=y; set BBB=y; set CONFIG=y; 
-				set bGPG=y; set KBB=y; set UNICODE=y; shift;;
-		--build-bb|-b) BBB=y; set CONFIG=y; set IBB=y; shift;;
-		--build-gpg|-g) bGPG=y; set iGPG=y; shift;;
-		--conf-dir*) set CONF="${1#*=}"; shift;;
-		--font=*) [[ -n ${1#*=} ]] && set FONTS+=",${1#*=}"; shift;;
-		--gpg|-g) set iGPG=y; shift;;
-		--lvm|-l) set iLVM=y; shift;; 
+		--bin-dir=*) [[ -n ${1#*=} ]] && BIN=${1#*=}; shift;;
+		--build-all|-A) set iLVM=y; iGPG=y; set BBB=y; set CONFIG=y; 
+				set bGPG=y; set KBB=y; UNICODE=y; shift;;
+		--build-bb|-b) BBB=y; CONFIG=y; IBB=y; shift;;
+		--build-gpg|-g) bGPG=y; iGPG=y; shift;;
+		--conf-dir*) CONF="${1#*=}"; shift;;
+		--font=*) [[ -n ${1#*=} ]] && FONTS+=",${1#*=}"; shift;;
+		--gpg|-g) iGPG=y; shift;;
+		--lvm|-l) iLVM=y; shift;; 
 		--kmap=*) KEYMAP_IN=${${${1#*=}/:/ }[(w)1]}; KBB=y 
 		         KEYMAP_OUT=${${${1#*=}/:/ }[(w)2]}; shift;;
-		--lvm|-l) set iLVM=y; shift;;
-		--minimal|-m) set CONFIG=m; shift;;
-		--misc-dir*) [[ -n ${1#*=} ]] && set MISC=${1#*=}; shift;;
-		--splash=*) [[ -n ${1#*=} ]] && set SPLASHS+=",${1#*=}"; shift;;
-		--toi) set iTOI=y; shift;;
+		--lvm|-l) iLVM=y; shift;;
+		--minimal|-m) CONFIG=m; shift;;
+		--misc-dir*) [[ -n ${1#*=} ]] && MISC=${1#*=}; shift;;
+		--splash=*) [[ -n ${1#*=} ]] && SPLASHS+=",${1#*=}"; shift;;
+		--toi) iTOI=y; shift;;
 		--version|-v)  echo "version $revision"; exit 0;;
 		--help|-h|*) usage; exit 0;;
 	esac
