@@ -1,4 +1,4 @@
-# revision=0.3.6_p20111022
+# revision=0.3.6_p20111023
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
@@ -7,12 +7,12 @@
 #      * iroot=<PV|VG-LV>[:c:<fs>:n]        root device--required, recommanded optinal `:c:ext4' for an ext4 rootfs, 
 #                                           last argument is to disable a `die' after fsck failure,default is y. 
 #      * [imtopt=<ro,inode64,...>]          optional mount options for rootfs e.g. 
-#      * [imod=<i915,radeon,drm,ttm>]		optional (comma seperated list) modules to load (in the boot group).
-#      * ikmap=<kmap>[:<font>]      		load key map and optional font.
+#      * [imod=<i915,radeon,drm,ttm>]       optional (comma seperated list) modules to load (in the boot group).
+#      * ikmap=<kmap>[:<font>]              load key map and optional font.
 #      * rescue                             drops into a minimal shell.
-#      * iswap=<type>:<VG-LV>[:signature] 	e.g. iswap=swap:sda2 for a swap device.
+#      * iswap=<type>:<VG-LV>[:signature]   e.g. iswap=swap:sda2 for a swap device.
 #      * iresume=<type>:<VG-LV>[:signature] e.g. iresume=file:<VG-LV>:0x4400 for a swapfile in a LV.
-#      * ichkpt=<n>                 		Interrupts init and drops to shell <n> shell-level.
+#      * ichkpt=<n>                         Interrupts init and drops to shell <n> shell-level.
 #      * ikroot=<mode>:<device>:</path/to/file>        ikroot argument for for [i]root keyfile or [no-]password.
 #      * ikswap=<mode>:<device>:</path/to/file>        iswap argument for for [i]swap keyfile or [no-]password.
 #      * ikresume=<mode>:<device>:</path/to/key/file>  same as above but for [i]resume.
@@ -27,9 +27,9 @@
 #
 #      <LV|PV|VG>  - <Logical|Physical Volume|Volume Group>.
 #      <VG-LV>     - <Volume Group name-Logical Volume name>
-#      <map-PV>    - comma separated list <mapping-PV> e.g. <pv1-sda1,pv2-sdb1,...> etc. for a Volume Group (VG), the 1st
-#		              being for root, the 2nd for swap and the 3rd for resume. So if this `ilvm=,swp-sdc1,' asign a VG for 
-#		              only swap VG (one can boot directly from unencrypted PV for example).
+#      <map-PV>    - comma separated list <mapping-PV> e.g. <pv1-sda1,pv2-sdb1,...> for a Volume Group (VG), 
+#                    the 1st being for root, the 2nd for swap and the 3rd for resume. So if this `ilvm=,swp-sdc1,' 
+#                    asign a VG for only swap VG (one can boot directly from unencrypted PV for example).
 #
 # 	== About mount options ==
 #	imtopt=<rootfs mount options>
@@ -65,15 +65,15 @@
 #	One can use squashfs+aufs2 to 'squash' partitions or preferably directories like $PORTDIR:var/lib/layamn, 
 #	or system related directories like usr:lib32:lib64:bin:sbin. Advantages are system speed/responsiveness.
 #	
-#	Squashed directories argument:
-#      * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]	
-#          - one can use uv_sqfsd and uv_sqfsdir or append directories after a `[n|a]:' for sqfsd.
-#      * isqfsd=/sqfsdir,n:<dir 1>:<dir n>	
-#          - neither uv_sqfsdir nor uv_sqfsd is used, appending sqfsdir and sqfsd dirs is required.
-#      * isqfsd=y,y				
-#          - using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
-#      * isqfsd=y,a:<dir 1>[:<dir n>]		
-#          - same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
+# 	Squashed directories argument:
+#        * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]	
+#            - one can use uv_sqfsd and uv_sqfsdir or append directories after a `[n|a]:' for sqfsd.
+#        * isqfsd=/sqfsdir,n:<dir 1>:<dir n>	
+#            - neither uv_sqfsdir nor uv_sqfsd is used, appending sqfsdir and sqfsd dirs is required.
+#        * isqfsd=y,y				
+#            - using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
+#        * isqfsd=y,a:<dir 1>[:<dir n>]		
+#            - same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
 #
 #	 NOTE: leading `/' slash is only required for [uv_|]sqfsdir, else mounting squashed directories will fail. 
 #
@@ -83,7 +83,7 @@
 #                                  `/usr/share/gnupg/options.skel' is required, additionally, one can add a 
 #                                  `/.gnupg/gpg.conf' in the initramfs root to avoid its creattion on each 
 #                                  reboot--no idea if the config options are taken into account. 
-#	   * ldk encrypted key-file -> passed to cryptsetup as `-d /dev/mapper/$(basename /path/to/keyfile)' 
+#      * ldk encrypted key-file -> passed to cryptsetup as `-d /dev/mapper/$(basename /path/to/keyfile)' 
 #	                               after being decrypted. Now, there's a warning: 
 #	                               `Warning: exhausting read requested, but key file is not a regular file, 
 #	                               function might never return.' that I can't figure out after googling. 
