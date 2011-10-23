@@ -153,12 +153,15 @@ else sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
 }
 
 addmodule() {
+	local ret
 	for mod in $@; do
 		local module=$(find /lib/modules/$K_VERSION -name $mod.ko -or -name $mod.o)
-		if [ -z $module ]; then warn "$mod does not exist"; return 1
+		if [ -z $module ]; then warn "$mod does not exist"
+		let ret+=1; break
 		else mkdir -p .${module%/*}
 			cp -ar $module .${module%/*} || die "$module copy failed"; fi
 	done
+	return $ret
 }
 
 addmodule ${MODS//,/ }
