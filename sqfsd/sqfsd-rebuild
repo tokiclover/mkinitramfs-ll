@@ -72,8 +72,13 @@ squashed() {
 		|| die "failed to mount $dir.sfs img."
 		if [[ -n "$EXT" ]]; then # now you can up[date] or rm squashed dir.
 			case $EXT in
-				rm) rm -rf /$dir/*;;
-				up) cp -aru "$sqfsdir/$dir"/ro/* /$dir;;
+				rm) rm -rf /$dir/* || die "failed to clean up $sqfsdir/$dir.";;
+				up) echo >/tmp/sdr
+					cp -aru $sqfsdir/$dir/ro/* /$dir/ 2>>/tmp/sdr
+					[[ $? ]] || for file in $(sed -e "s|.*\`||g" -e "s|':.*||g" /tmp/sdr)
+						do cp -a $sqfsdir/$dir/ro/${file/$dir} /tmp/ && \
+						mv /tmp/${file##*/} ${file%/*}/ || info "failed to move $file."; done
+					;;
 				*) info "nothing to do, usage is [up|rm].";;
 			esac
 		fi
