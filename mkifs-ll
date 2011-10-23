@@ -164,7 +164,6 @@ for module (${(pws:,:)MODS}) addmodule $module
 unset MODS
 for grp (boot gpg remdev sqfsd tuxonice) 
 	if [[ -n ${MODULES[$grp]} ]] {
-	info $MODULES[$grp]
 		for module (${(pws:,:)MODULES[$grp]}) 
 			addmodule $module && echo $module >> etc/modules/$grp }
 unset MODULES
