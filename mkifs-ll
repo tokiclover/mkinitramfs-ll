@@ -119,7 +119,12 @@ cp -a $BIN/busybox bin/ || die "failed to copy busybox"
 
 if [[ -e $BIN/applets ]] {
 	cp -a $BIN/applets etc/
-	for app ($(< etc/applets)) ln -sf bin/busybox .$app || die "eek!" 
+	for app ($(< etc/applets)) 
+	case $app:h in
+		/sbin) cd sbin && ln -s ../bin/busybox $app:t && cd .. || die "eek!";;
+		/bin) cd bin && ln -s busybox $app:t && cd .. || die "eek!";;
+		/) ln -s bin/busybox $app:t || die "eek!";;
+	esac
 } else { sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!" }
 
 if [[ -n $iGPG ]] {
@@ -131,31 +136,35 @@ if [[ -n $iGPG ]] {
 
 if [[ -n $iLVM ]] {
 	cp -a /sbin/lvm.static sbin/lvm || die "eek!"
+	cd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} {lv,vg}reduce lvresize vgmerge) 
-		ln -sf sbin/{lvm,$lpv} || die "eek!"
-	unset iLVM 
+		ln -s {lvm,$lpv} || die "eek!"
+	unset iLVM
+	cd ..
 }
 
 if [[ -n $iAUFS ]] {
-	for fs ({au,squash}fs) [[ -z ${MODULES[(r)$fs,sqfsd]} ]] && MODULES[sqfsd]+=",$fs"
+	for fs ({au,squash}fs) 
+		[[ -n ${${(pws:,:)MODULES[sqfsd]}[(rw)$fs]} ]] || MODULES[sqfsd]+=",$fs"
 	cp -a /sbin/{,u}mount.aufs sbin/ || die "failed to copy *mount.aufs"
 	unset iAUFS
-}
-
-addmodule() {
-	for mod (/lib/modules/$K_VERSION/**/*$@.(ko|o))
-		if [[ ! -e $mod ]] { warn "$mod does not exist"; return 1 
-		} else { mkdir -p .$mod:h && cp -ar $mod .$mod:h/ || die "$mod copy failed" }
 }
 
 set EXTENDED_GLOB
 set NULL_GLOB
 set NOMATCH
 
+addmodule() {
+	for mod ($(find /lib/modules/$K_VERSION/ -type f -name $@.ko))
+		if [[ ! -e $mod ]] { warn "$mod does not exist"; break 
+		} else { mkdir -p .$mod:h && cp -ar $mod .$mod:h/ || die "$mod copy failed" }
+}
+
 for module (${(pws:,:)MODS}) addmodule $module
 unset MODS
 for grp (boot gpg remdev sqfsd tuxonice) 
-	if [[ -n $MODULES[$grp] ]] { 
+	if [[ -n ${MODULES[$grp]} ]] {
+	info $MODULES[$grp]
 		for module (${(pws:,:)MODULES[$grp]}) 
 			addmodule $module && echo $module >> etc/modules/$grp }
 unset MODULES
