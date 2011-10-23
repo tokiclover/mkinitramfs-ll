@@ -1,10 +1,9 @@
-#!/bin/bash
-revision=0.3.3_p20111020
+#!/bin/zsh
+revision=0.3.3_p20111022
 
 usage() {
   cat << EOF
-  usage:
-  ${0##*/} [-b|--build [-m|--minimal] [--uCl-arch=i386] ] [--kmap=map:kmap]
+  usage: ${0##*/} [-b|--build [-m|--minimal] [--uCl-arch=i386] ] [--kmap=map:kmap]
   -b, --build		build a static busybox.
   -m, --minimal		build busybox with minimal applets, default is to build all applets.
   -i, --install		install busybox with symliks to './bin', require -b|--build.
@@ -24,8 +23,8 @@ while [[ $# > 0 ]]; do
 		-i|--install) IBB=y; shift;;
 		--tmp=*) TMP_DIR=${1#*=}; shift;;
 		--ucl-arch=*) UCL_ARCH=${1#*=}-uClibc-; shift;;
-		--kmap=*) KBB=y; KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
-			KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2); shift;;
+		--kmap=*) KEYMAP_IN=${${${1#*=}/:/ }[(w)1]}; KBB=y 
+		         KEYMAP_OUT=${${${1#*=}/:/ }[(w)2]}; shift;;
 		-v|--version)  echo "version $revision"; exit 0;;
 		-h|--help|*) usage; exit 0;;
 	esac
@@ -36,7 +35,7 @@ done
 :	${MISC:=$WORKDIR/misc}
 :	${BIN:=$WORKDIR/bin}
 
-error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
+error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
 
 build_busybox() {
@@ -46,7 +45,7 @@ build_busybox() {
 	ebuild $BBT.ebuild unpack || die "unpack failed"
 	cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/$BBT || die "eek!"
 
-	if [[ "$CONFIG" = "m" ]]; then
+	if [[ $CONFIG = m ]] {
 		make allnoconfig || die "eek!"
 		sed -e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
 		-e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
@@ -77,56 +76,60 @@ build_busybox() {
 		-e "s|# CONFIG_TR is not set|CONFIG_TR=y|" \
 		-e "s|# CONFIG_WHICH is not set|CONFIG_WHICH=y|" \
 		-i .config || die "minimal cfg failed"
-	else 
+	} else {
 		make defconfig || die "defcfg failed"
 		sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
 		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
-		-i .config || die "cfg failed"; fi
+		-i .config || die "cfg failed" 
+	}
 
 	# For uClibc users, you need to adjust the cross compiler prefix properly (i386-uclibc-)
-	if [[ -n "$UCL_ARCH" ]]; then
+	if [[ -n $UCL_ARCH ]] {
 	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"$UCL_ARCH\"|" \
-		-i .config || die "setting uClib ARCH failed"; fi
+	-i .config || die "setting uClib ARCH failed" 
+	}
 	make && make busybox.links || die "bb build failed"
 }
 
 install_busybox() {
-	[[ -e "$TMP_DIR" ]] && {
-		make install CONFIG_PREFIX="$TMP_DIR"/busybox
-		rm -rf /tmp/busybox; }
-	./applets/install.sh "$BIN" --symlinks
+	if [[ -e $TMP_DIR ]] { 
+		make install CONFIG_PREFIX=$TMP_DIR/busybox
+		rm -rf /tmp/busybox 
+	}
+	./applets/install.sh $BIN --symlinks
 }
 
 build_keymap() { 
 	# save the current keymap
 	dumpkeys > default_keymap || die "dumping keymap failed"
 	loadkeys $KEYMAP_IN || die "loading $KEMAP_IN failed"
-	[[ "$UNICODE" = "y" ]] && { 
-		dumpkeys|loadkeys -u || die "unicode conversion failed"; }
+	if [[ $UNICODE = y ]] { dumpkeys|loadkeys -u || die "unicode conversion failed" }
 	./busybox dumpkmap > $KEYMAP_OUT || die "keymap build failed"
 	# load back your keymap
 	loadkeys default_keymap && rm default_keymap || die "re-loading default keymap failed"
 }
 
-[[ "${BBB}" = "y" ]] && {
-	mkdir -p "$BIN"
+if [[ ${BBB} = y ]] {
+	mkdir -p $BIN
 	build_busybox
-	[[ "$IBB" = "y" ]] && install_busybox
-	cp -a busybox "$BIN"/ || die "failed to copy bb binary"
-	cp busybox.links "$BIN"/applets || die "failed to copy applets"
-	unset CONFIG IBB; }
+	[[ $IBB = y ]] && install_busybox
+	cp -a busybox $BIN/ || die "failed to copy bb binary"
+	cp busybox.links $BIN/applets || die "failed to copy applets"
+	unset CONFIG IBB 
+}
 
-[[ "${KBB}" = "y" ]] && {
-	mkdir -p "$BIN"
-	[[ "$BBB" != "y" ]] && cd "$BIN" || die "eek!"
+if [[ $KBB = y ]] {
+	mkdir -p $BIN
+	[[ $BBB != y ]] && cd $BIN || die "eek!"
 	build_keymap
-	[[ "$BBB" = "y" ]] && { 
-		cp $KEYMAP_OUT "$BIN"/ || die "$KEYMAP_OUT copy failed"; }
-	export KEYMAPS+=",$KEYMAP_OUT"
-	unset KEYMAP_IN KEYMAP_OUT UNICODE KBB; }
+	if [[ $BBB = y ]] { cp $KEYMAP_OUT $BIN/ || die "$KEYMAP_OUT copy failed" }
+	KEYMAPS+=",$KEYMAP_OUT"
+	unset KEYMAP_IN KEYMAP_OUT UNICODE KBB 
+}
 
-[[ "${BBB}" = "y" ]] && {
+if [[ $BBB = y ]] {
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 	ebuild $BBT.ebuild clean || die "eek"
 	cd $WORKDIR || die "eek!"
-	unset BBB BBT; }
+	unset BBB BBT 
+}

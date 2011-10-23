@@ -1,9 +1,9 @@
-#!/bin/bash
-revision=0.1.2_p20111020
+#!/bin/zsh
+revision=0.1.2_p20111022
 
 usage() {
    cat << EOF
-   usage: ${0##*/} [OPTINS]...
+   usage: ${0##*/} [--use="falgs"] [--Version=<str>]
       --use="USE flags" extra USE flags to append to USE="nls static".
       --Version=<STR>	build gpg-<STR> version instead of gpg-1.4*.
   -h, --help		print this help.
@@ -13,7 +13,7 @@ EOF
 
 while [[ $# > 0 ]]; do
 	case $1 in 
-		--use=*) EUSE=i"${1#*=}"; shift;;
+		--use=*) EUSE=${1#*=}; shift;;
 		--Version=*) Version=${1#*=}; shift;;
 		--version|-v) echo "version $revision"; exit 0;;
 		--help|-h|*) usage; exit 0;;
@@ -25,14 +25,14 @@ done
 :	${MISC:=$WORKDIR/misc}
 :	${BIN:=$WORKDIR/bin}
 
-error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
-die() { error "$@"; exit 1; }
+error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
+die()   { error "$@"; exit 1; }
 
-mkdir -p "$BIN"
+mkdir -p $BIN
 
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 GPG=$(emerge -pvO =app-crypt/gnupg-${Version:-1.4*}|grep -o "gnupg-[-0-9.r]*")
-USE="nls static $EUSE" ebuild $GPG.ebuild compile || die "eek!"
+USE="nls static ${=EUSE}" ebuild $GPG.ebuild compile || die "eek!"
 cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/$GPG/work/$GPG || die "eek!"
 cp -a gpg $BIN/ || die "eek!"
 cp g10/options.skel $BIN/ || die "eek!"

@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/zsh
 revision=0.2.2_p20111020
 
 usage() {
   cat << EOF
-  usage: ${0##*/} OPTIONS [OPTIONS...]
+  usage: ${0##*/} [OPTIONS] [OPTIONS...]
   -a, --aufs		adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
       --bin-dir=bin 	create, wen building busybox or gpg, or use binaries from bin directory.
   -A, --build-all	build gnupg, busybox with unicode keymap with AUFS2/LVM2/TOI support.
@@ -32,24 +32,23 @@ EOF
 
 while [[ $# > 0 ]]; do
 	case $1 in
-		--aufs|-a) export iAUFS=y; shift;;
-		--bin-dir=*) [[ -n ${1#*=} ]] && export BIN="${1#*=}"; shift;;
-		--build-all|-A) export iLVM=y; export iGPG=y; export BBB=y; export CONFIG=y; 
-				export bGPG=y; export KBB=y; export UNICODE=y; shift;;
-		--build-bb|-b) BBB=y; export CONFIG=y; export IBB=y; shift;;
-		--build-gpg|-g) bGPG=y; export iGPG=y; shift;;
-		--conf-dir*) export CONF="${1#*=}"; shift;;
-		--font=*) [[ -n ${1#*=} ]] && export FONTS+=",${1#*=}"; shift;;
-		--gpg|-g) export iGPG=y; shift;;
-		--lvm|-l) export iLVM=y; shift;; 
-		--kmap=*) export KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
-			  export KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2)
-			  export KBB=y; shift;;
-		--lvm|-l) export iLVM=y; shift;;
-		--minimal|-m) export CONFIG=m; shift;;
-		--misc-dir*) [[ -n "${1#*=}" ]] && export MISC="${1#*=}"; shift;;
-		--splash=*) [[ -n ${1#*=} ]] && export SPLASHS+=",${1#*=}"; shift;;
-		--toi) export iTOI=y; shift;;
+		--aufs|-a) set iAUFS=y; shift;;
+		--bin-dir=*) [[ -n ${1#*=} ]] && set BIN=${1#*=}; shift;;
+		--build-all|-A) set iLVM=y; set iGPG=y; set BBB=y; set CONFIG=y; 
+				set bGPG=y; set KBB=y; set UNICODE=y; shift;;
+		--build-bb|-b) BBB=y; set CONFIG=y; set IBB=y; shift;;
+		--build-gpg|-g) bGPG=y; set iGPG=y; shift;;
+		--conf-dir*) set CONF="${1#*=}"; shift;;
+		--font=*) [[ -n ${1#*=} ]] && set FONTS+=",${1#*=}"; shift;;
+		--gpg|-g) set iGPG=y; shift;;
+		--lvm|-l) set iLVM=y; shift;; 
+		--kmap=*) KEYMAP_IN=${${${1#*=}/:/ }[(w)1]}; KBB=y 
+		         KEYMAP_OUT=${${${1#*=}/:/ }[(w)2]}; shift;;
+		--lvm|-l) set iLVM=y; shift;;
+		--minimal|-m) set CONFIG=m; shift;;
+		--misc-dir*) [[ -n ${1#*=} ]] && set MISC=${1#*=}; shift;;
+		--splash=*) [[ -n ${1#*=} ]] && set SPLASHS+=",${1#*=}"; shift;;
+		--toi) set iTOI=y; shift;;
 		--version|-v)  echo "version $revision"; exit 0;;
 		--help|-h|*) usage; exit 0;;
 	esac
@@ -59,16 +58,15 @@ done
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
 
-[[ -n "$BBB" ]] && mkdir -p "$BIN" && ./mkifs-ll_bb
+if [[ -n $BBB ]] { mkdir -p $BIN; ./mkifs-ll_bb }
 
-[[ -n "$bGPG" ]] && { 
-	mkdir -p "$BIN"
-	mkdir -p "$MISC"/{share/,.}gnupg
-	[[ -n "$CONF" ]] && {
-		cp "$CONF"/gpg.conf "$MISC"/.gnupg/ || die "eek!"
-		unset CONF; }
+if [[ -n $bGPG ]] { 
+	mkdir -p $BIN
+	mkdir -p $MISC/{share/,.}gnupg
+	if [[ -n $CONF ]] {	cp $CONF/gpg.conf $MISC/.gnupg/ || die "eek!"; unset CONF }
 	./mkifs-ll_gpg
-	cp "$BIN"/options.skel "$MISC"/share/gnupg/ || die "eek!"
-	unset bGPG; }
+	cp $BIN/options.skel $MISC/share/gnupg/ || die "eek!"
+	unset bGPG 
+}
 
 ./mkifs-ll
