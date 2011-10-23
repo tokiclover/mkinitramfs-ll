@@ -150,12 +150,11 @@ if [[ -n $iAUFS ]] {
 	unset iAUFS
 }
 
-set EXTENDED_GLOB
-set NULL_GLOB
-set NOMATCH
+setopt EXTENDED_GLOB
+setopt NULL_GLOB
 
 addmodule() {
-	for mod ($(find /lib/modules/$K_VERSION/ -type f -name $@.ko))
+	for mod (/lib/modules/$K_VERSION/**/*$@.(ko|o))
 		if [[ ! -e $mod ]] { warn "$mod does not exist"; break 
 		} else { mkdir -p .$mod:h && cp -ar $mod .$mod:h/ || die "$mod copy failed" }
 }
