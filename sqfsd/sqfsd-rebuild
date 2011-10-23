@@ -1,102 +1,127 @@
-#!/bin/bash
-revision=0.3.1_p20111014
-
+#!/bin/zsh
+revision=0.3.4_p20111022
 usage() {
-  cat << EOF
-  usage: ${0##*/} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>:<dir>
+  cat <<-EOF
+  usage: ${0} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>
 
-  -up, --update			update the underlying source directory e.g. bin:sbin:lib32:lib64.
-  -rm, --remove			remove the underlying source directory e.g. usr:opt:\$PORTDIR.
-       --sqfsdir=<dir>		override default value \`sqfsdir=/sqfsd'.
-  -d, --sqfsd=<dir>:<dir>		list of colons ':' seperated squashed directories.
-  -f, --fstab			whether to write the necessary mount lines to \`/etc/fstab'.
-      --bsize=131072		use [128k] 131072 bytes block size which is the default value.
-      --comp="xz -Xbjc x86"	use xz compressor optionaly, one can append extra arguments.
-      --excl=<dir>		exlude <dir> from being included into the .sfs squashed image.
-  -h, --help			print this help.
-  -v, --version			print the version string.
+  -up, --update             update the underlying source directory e.g. bin:sbin:lib32:lib64.
+  -rm, --remove             remove the underlying source directory e.g. usr:opt:\$PORTDIR.
+       --sqfsdir=<dir>      override default value \`sqfsdir=/sqfsd'.
+  -d, --sqfsd=<dir>         colon ':' seperated directories list without the leading \`/'..
+  -f, --fstab               whether to write the necessary mount lines to \`/etc/fstab'.
+      --bsize=131072        use [128k] 131072 bytes block size which is the default value.
+      --comp="xz -Xbjc x86" use xz compressor optionaly, one can append extra arguments.
+      --excl=<dir>          exlude <dir> from being included into the .sfs squashed image.
+  -o, --offset=<int>        offset used for rebuilding squashed dirs, default is 10[%].
+  -u, --usage               print this help.
+  -v, --version	            print the version string.
 	
-  <dir> 	directory
-  examples:
+  usages:
   # squash directries which will speed up portage calculations--database,dependencies--and remove 
   # the underlying files which take a much more spaces as there are numerous small files there.
-  ${0##*/} -r var/db:var/cache/edb
+  ${0} -r var/db:var/cache/edb
   # [re-]build system related squashed directories and update the sources/unsquashed directories
-  ${0##*/} -u -d bin:sbin:lib32:lib64
+  ${0} -u -d bin:sbin:lib32:lib64
 EOF
 }
 
-while [[ $# > 0 ]]; do
-	case $1 in
-		-v|--version) echo "version $revision"; exit 0;;
-		-d) sqfsd=$(echo $2|tr ':' ' '); shift 2;;
-		--sqfsd=*) sqfsd=$(echo ${1#*=}|tr ':' ' '); shift;;
-		--sqfsdir=*) sqfsdir=${1#*=}; shift;;
-		--excl=*) EXCL=$(echo ${1#*=}|tr ':' ' '); shift;;
-		-f|--fstab) FSTAB=y; shift;;
-		--comp=*) COMP=${1#*=}; shift;;
-		-up|--update) EXT=up; shift;;
-		-rm|--remove) EXT=rm; shift;;
-		-h|--help|*) usage; exit 0;;
-	esac
-done
+info() 	{ print "\e[1;32m* \e[0m$@"; }
+error() { print "\e[1;31m* \e[0m$@"; }
+die()   { error "$@"; exit 1; }
+setopt NULL_GLOB
 
-:	${sqfsdir:=/sqfsd}
-if [ -n "$EXCL" ]; then EXCL="-e $EXCL"; fi
-
-info() 	{ echo -ne "\033[1;32m* \033[0m$@\n"; }
-error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
-
-die() {
-	error "$@"
-	exit 1
+squashed() {
+:	${sqfsdir:=${1}}
+:	${sqfsd:=${2}}
+	for dir (${(pws,:,)sqfsd}) {
+		mkdir -p $sqfsdir/$dir/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
+		if [[ -e /sqfsd/$dir.sfs ]] { 
+			if [[ $OFFSET != 0 ]] {
+				local ro_size=${(A)$(du -sk $sqfsdir/$dir/ro)[1]}
+				local rw_size=${(A)$(du -sk $sqfsdir/$dir/rw)[1]}
+				if (( $rw_size/$ro_size*100 <= ${OFFSET:-10} )) { 
+					info "$dir: skiping... there's an '-o' offset option."; break
+				} 
+				echo ">>> updating squashed $dir..."
+			}
+		} else { echo ">>> building squashed $dir..." }
+		mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp \
+		${=COMP:-gzip} ${=EXCL} >/dev/null || die "failed to build $dir.sfs img."
+		if [[ $dir = lib64 ]] {	# move rc-svcdir and cachedir.
+			mkdir -p /var/{lib/init.d,cache/splash}
+			mount --move /$dir/splash/cache /var/cache/splash &>/dev/null \
+			|| die "fled to move cachedir."
+			mount --move /$dir/rc/init.d /var/lib/init.d &>/dev/null \
+			|| die "failed to move rc-svcdir." 
+		}
+		if [[ -n $(mount -t aufs|grep -w $dir) ]] {
+			umount -l /$dir &>/dev/null || die "failed to umount $dir aufs branch." }
+		if [[ -n $(mount -t squashfs|grep $sqfsdir/$dir/ro) ]] {
+			umount -l $sqfsdir/$dir/ro &>/dev/null || die "failed to umount sfs img." }
+		rm -rf $sqfsdir/$dir/rw/* || die "failed to clean up $sqfdir/$dir/rw."
+		[[ -e $sqfsdir/$dir.sfs ]] && rm -f $sqfsdir/$dir.sfs 
+		mv $sqfsdir/$dir.tmp.sfs $sqfsdir/$dir.sfs || die "failed to move $dir.tmp.sfs img."
+		if [[ ${FSTAB:-n} = y ]] {
+			echo "$sqfsdir/$dir.sfs $sqfsdir/$dir/ro squashfs nodev,loop,ro 0 0" \
+			>> /etc/fstab || die "fstab write failure 1."
+			echo "$dir /$dir aufs nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
+			0 0" >> /etc/fstab || die "fstab write failure 2." 
+		}
+		mount -t squashfs $sqfsdir/$dir.sfs $sqfsdir/$dir/ro -o nodev,loop,ro &>/dev/null \
+		|| die "failed to mount $dir.sfs img."
+		if [[ -n $EXT ]] { # now you can up[date] or rm squashed dir.
+			case $EXT in
+				rm) rm -rf /$dir/*;;
+				up) cp -aru $sqfsdir/$dir/ro/* /$dir/;;
+				*) info "nothing to do, usage is [-up|-rm].";;
+			esac 
+		}
+		mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
+		&>/dev/null || die "failed to mount $dir aufs branch."
+		if [[ $dir = lib64 ]] { # move back rc-svcdir and cachedir.
+			mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul \
+			|| die "failed to move back cachedir."
+			mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null \
+			|| die "failed to move back rc-svcdir." }
+		echo ">>> ...squashed $dir sucessfully [re]build."
+	}
 }
 
-for dir in $sqfsd; do
-	echo ">>> [re]building squashed $dir..."
-	mkdir -p "$sqfsdir/$dir"/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
-	mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp ${COMP:-gzip} $EXCL \
-		>/dev/null || die "failed to build $dir.sfs img."
-	if [ "$dir" = "lib64" ]; then # move rc-svcdir and cachedir.
-		mkdir -p /var/{lib/init.d,cache/splash}
-		mount --move "/$dir/splash/cache" /var/cache/splash &>/dev/null \
-			|| die "fled to move cachedir."
-		mount --move "/$dir/rc/init.d" /var/lib/init.d &>/dev/null \
-			|| die "failed to move rc-svcdir."
-	fi
-	if [ -n "$(mount -t aufs|grep -w $dir)" ]; then 
-		umount -l /$dir &>/dev/null || die "failed to umount $dir aufs branch."
-	fi
-	if [ -n "$(mount -t squashfs|grep $sqfsdir/$dir/ro)" ]; then 
-		umount -l $sqfsdir/$dir/ro &>/dev/null || die "failed to umount sfs img."
-	fi
-	rm -rf "$sqfsdir/$dir"/rw/* || die "failed to clean up $sqfdir/$dir/rw."
-	[ -e $sqfsdir/$dir.sfs ] && rm -f $sqfsdir/$dir.sfs 
-	mv $sqfsdir/$dir.tmp.sfs $sqfsdir/$dir.sfs || die "failed to move $dir.tmp.sfs img."
-	if [ "${FSTAB:-n}" = "y" ]; then
-		echo "$sqfsdir/$dir.sfs $sqfsdir/$dir/ro squashfs nodev,loop,ro 0 0" \
-			>> /etc/fstab || die "fstab write failure 1."
-		echo "$dir /$dir aufs nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro 0 0" \
-			>> /etc/fstab || die "fstab write failure 2."
-	fi
-	mount -t squashfs $sqfsdir/$dir.sfs $sqfsdir/$dir/ro -o nodev,loop,ro &>/dev/null \
-		|| die "failed to mount $dir.sfs img."
-	if [ -n "$EXT" ]; then # now you can up[date] or rm squashed dir.
-		case $EXT in
-			rm) rm -rf /$dir/*;;
-			up) cp -aru "$sqfsdir/$dir"/ro/* /$dir/;;
-			*) info "nothing to do, usage is [-up|-rm].";;
-		esac
-	fi
-	mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
-		&>/dev/null || die "failed to mount $dir aufs branch."
-	if [ "$dir" = "lib64" ]; then # move back rc-svcdir and cachedir.
-		mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul \
-			|| die "failed to move back cachedir."
-		mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null \
-			|| die "failed to move back rc-svcdir."
-	fi
-	echo ">>> ...squashed $dir sucessfully [re]build."
-done
+squash() {
+	source /etc/conf.d/sqfsdmount
+	if [[ -z $SQFSDIR ]] { die "sqfsdir is empty, nothing to do."
+	} else { for SQFSD (SQFSD_{SYS,LOCAL}) [[ -n $SQFSD ]] && squashed $SQFSDIR $SQFSD }
+}
 
-unset BSIZE COMP EXCL EXT sqfsd sqfsdir FSTAB
+if [[ $# = 0 ]] {
+	if [[ -e /etc/conf.d/sqfsdmount ]] { 
+		info "sourcing /etc/conf.d/sqfsdmount..."
+		squash
+	} elif [[ -e sqfsd/sqfsdmount.conf ]] { 
+		info "sourcing sqfsd/sqfsdmount.conf..."
+		source sqfsd/sqfsdmount.conf
+		squash
+	} else { usage }
+}
+
+while [[ $# > 0 ]] {
+	case $1 in
+		-v|--version) echo "version $revision"; exit 0;;
+		-d) sqfsd=${2}; shift 2;;
+		--sqfsd=*) sqfsd=${1#*=}; shift;;
+		--sqfsdir=*) sqfsdir=${1#*=}; shift;;
+		--excl=*) EXCL=${1#*=}; shift;;
+		-f|--fstab) FSTAB=y; shift;;
+		--comp=*) COMP=${1#*=}; shift;;
+		-o) OFFSET=${2}; shift 2;;
+		--offset=*) OFFSET=${1#*=}; shift;;
+		-up|--update) EXT=up; shift;;
+		-rm|--remove) EXT=rm; shift;;
+		-u|--usage|*) usage; exit 0;;
+	esac
+:	${sqfsdir:=/sqfsd}
+	[[ -n $EXCL ]] && EXCL="-e ${(pws,:,)EXCL}"
+	squashed
+}
+
+unset sqfsdir sqfsd EXCL EXT COMP FSTAB SQFSDIR SQFSD_SYS

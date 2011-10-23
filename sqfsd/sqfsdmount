@@ -17,8 +17,8 @@ start() {
 	einfo "mounting system disk-squashed dirs."
 	for DIR in $(echo "$SQFSD_SYS"|tr ':' ' ')
 	do sqfsd_mount "$SQFSDIR" "$DIR"; done
-        einfo "mounting local disk-squashed dirs."
-        for DIR in $(echo "$SQFSD_LOCAL"|tr ':' ' ')
+	einfo "mounting local disk-squashed dirs."
+	for DIR in $(echo "$SQFSD_LOCAL"|tr ':' ' ')
 	do sqfsd_mount "$SQFSDIR" "$DIR"; done
 }
 
@@ -29,7 +29,7 @@ stop() {
         einfo "remounting in ro mode sys squashed dirs."
         for DIR in $(echo "$SQFSD_SYS"|tr ':' ' '); do 
 		if   [ "$DIR" = "usr" ]; then sqfsd_remountro "$SQFSDIR" "$DIR"
-		elif [ "$DIR" != "lib64" ]; then sqfsd_umount "$SQFSDIR" "$DIR"
+		elif [ "$DIR" != "lib"* ]; then sqfsd_umount "$SQFSDIR" "$DIR"
 		fi
 	done
 }
