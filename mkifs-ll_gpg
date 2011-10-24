@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.1.2_p20111020
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.1.2 2011/10/24 -tclover Exp $
 
 usage() {
    cat << EOF
@@ -25,7 +25,7 @@ done
 :	${MISC:=$WORKDIR/misc}
 :	${BIN:=$WORKDIR/bin}
 
-error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
+error() { echo -ne "\e[1;31m* \e[0m$@"; }
 die() { error "$@"; exit 1; }
 
 mkdir -p "$BIN"
@@ -42,3 +42,5 @@ cd $WORKDIR || die "eek!"
 
 set iGPG=y
 unset GPG EUSE BIN Version
+
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

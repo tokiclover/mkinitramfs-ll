@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3.5_p20111023
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/10/24 -tclover Exp $
 
 usage() {
   cat << EOF
@@ -216,3 +216,5 @@ find . -print0|cpio --null -ov --format=newc|$CMD > "$INITRAMFS" || die "eek!"
 echo ">>> $INITRAMFS initramfs built"
 
 unset K_VERSION E_VERSION INITDIR BIN CMD INITRAMFS MISC
+
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

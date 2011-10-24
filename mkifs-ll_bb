@@ -1,5 +1,5 @@
 #!/bin/bash
-revision=0.3.3_p20111020
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.3 2011/10/24 -tclover Exp $
 
 usage() {
   cat << EOF
@@ -36,7 +36,7 @@ done
 :	${MISC:=$WORKDIR/misc}
 :	${BIN:=$WORKDIR/bin}
 
-error() { echo -ne "\033[1;31m* \033[0m$@\n"; }
+error() { echo -ne "\e[1;31m* \e[0m$@"; }
 die()   { error "$@"; exit 1; }
 
 build_busybox() {
@@ -102,7 +102,8 @@ build_keymap() {
 	dumpkeys > default_keymap || die "dumping keymap failed"
 	loadkeys $KEYMAP_IN || die "loading $KEMAP_IN failed"
 	[[ "$UNICODE" = "y" ]] && { 
-		dumpkeys|loadkeys -u || die "unicode conversion failed"; }
+		dumpkeys|loadkeys -u || die "unicode conversion failed"
+	}
 	./busybox dumpkmap > $KEYMAP_OUT || die "keymap build failed"
 	# load back your keymap
 	loadkeys default_keymap && rm default_keymap || die "re-loading default keymap failed"
@@ -114,19 +115,25 @@ build_keymap() {
 	[[ "$IBB" = "y" ]] && install_busybox
 	cp -a busybox "$BIN"/ || die "failed to copy bb binary"
 	cp busybox.links "$BIN"/applets || die "failed to copy applets"
-	unset CONFIG IBB; }
+	unset CONFIG IBB
+}
 
 [[ "${KBB}" = "y" ]] && {
 	mkdir -p "$BIN"
 	[[ "$BBB" != "y" ]] && cd "$BIN" || die "eek!"
 	build_keymap
 	[[ "$BBB" = "y" ]] && { 
-		cp $KEYMAP_OUT "$BIN"/ || die "$KEYMAP_OUT copy failed"; }
+		cp $KEYMAP_OUT "$BIN"/ || die "$KEYMAP_OUT copy failed"
+	}
 	export KEYMAPS+=",$KEYMAP_OUT"
-	unset KEYMAP_IN KEYMAP_OUT UNICODE KBB; }
+	unset KEYMAP_IN KEYMAP_OUT UNICODE KBB
+}
 
 [[ "${BBB}" = "y" ]] && {
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 	ebuild $BBT.ebuild clean || die "eek"
 	cd $WORKDIR || die "eek!"
-	unset BBB BBT; }
+	unset BBB BBT
+}
+
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

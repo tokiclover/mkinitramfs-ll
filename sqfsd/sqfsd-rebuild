@@ -126,3 +126,5 @@ while [[ $# > 0 ]]; do
 done
 
 unset BSIZE COMP EXCL EXT sqfsd sqfsdir FSTAB
+
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
