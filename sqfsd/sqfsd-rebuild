@@ -9,7 +9,8 @@ usage() {
       --sqfsdir=<dir>        override default value \`sqfsdir=/sqfsd'.
   -d, --sqfsd=<dir>          colon ':' seperated directories list without the leading \`/'..
       --arch=32              ARCH to use for lib\$ARCH rebuilding (for rc-svcdir, cachedir).
-  -f, --fstab                whether to write the necessary mount lines to \`/etc/fstab'.
+      --fstab                whether to write the necessary mount lines to \`/etc/fstab'.
+  -f, --force                force rebuilding, equivalent to `\--offset=0'.
       --bsize=131072         use [128k] 131072 bytes block size which is the default value.
       --comp="xz -Xbjc x86"  use xz compressor optionaly, one can append extra arguments.
       --excl=<dir>           exlude <dir> from being included into the .sfs squashed image.
@@ -112,7 +113,8 @@ while [[ $# > 0 ]]; do
 		--sqfsdir=*) sqfsdir=${1#*=}; shift;;
 		--excl=*) EXCL=${1#*=}; shift;;
 		--arch=*) ARCH=${1#*=}; shift;;
-		-f|--fstab) FSTAB=y; shift;;
+		-f|--force) OFFSET=0; shift;;
+		--fstab) FSTAB=y; shift;;
 		--comp=*) COMP=${1#*=}; shift;;
 		-o) OFFSET=${2}; shift 2;;
 		--offset=*) OFFSET=${1#*=}; shift;;
