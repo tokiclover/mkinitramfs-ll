@@ -1,5 +1,5 @@
 #!/bin/zsh
-revision=0.3.5_p20111022
+revision=0.3.5_p20111024
 usage() {
   cat <<-EOF
   usage: ${0} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>
