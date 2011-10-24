@@ -8,6 +8,7 @@ usage() {
   -rm,--remove               remove the underlying source directory e.g. usr:opt:\$PORTDIR.
       --sqfsdir=<dir>        override default value \`sqfsdir=/sqfsd'.
   -d, --sqfsd=<dir>          colon ':' seperated directories list without the leading \`/'..
+      --arch=32              ARCH to use for lib\$ARCH rebuilding (for rc-svcdir, cachedir).
   -f, --fstab                whether to write the necessary mount lines to \`/etc/fstab'.
       --bsize=131072         use [128k] 131072 bytes block size which is the default value.
       --comp="xz -Xbjc x86"  use xz compressor optionaly, one can append extra arguments.
@@ -46,7 +47,7 @@ squashed() {
 		else echo ">>> building squashed $dir..."; fi			
 		mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp ${COMP:-gzip} $EXCL \
 			>/dev/null || die "failed to build $dir.sfs img."
-		if [[ "$dir" = "lib64" ]]; then # move rc-svcdir and cachedir.
+		if [[ "$dir" = lib${ARCH:-64} ]]; then # move rc-svcdir and cachedir.
 			mkdir -p /var/{lib/init.d,cache/splash}
 			mount --move "/$dir/splash/cache" /var/cache/splash &>/dev/null \
 				|| die "fled to move cachedir."
@@ -70,7 +71,7 @@ squashed() {
 		fi
 		mount -t squashfs $sqfsdir/$dir.sfs $sqfsdir/$dir/ro -o nodev,loop,ro &>/dev/null \
 		|| die "failed to mount $dir.sfs img."
-		if [[ -n "$EXT" ]]; then # now you can up[date] or rm squashed dir.
+		if [[ -n "$EXT" ]]; then # now you can up[date] or rm the source dir.
 			case $EXT in
 				rm) rm -rf /$dir/* || die "failed to clean up $sqfsdir/$dir.";;
 				up) echo >/tmp/sdr
@@ -84,7 +85,7 @@ squashed() {
 		fi
 		mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
 			&>/dev/null || die "failed to mount $dir aufs branch."
-		if [[ "$dir" = "lib64" ]]; then # move back rc-svcdir and cachedir.
+		if [[ "$dir" = lib${ARCH:-64} ]]; then # move back rc-svcdir and cachedir.
 			mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul \
 			|| die "failed to move back cachedir."
 			mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null \
@@ -120,6 +121,7 @@ while [[ $# > 0 ]]; do
 		--sqfsd=*) sqfsd=${1#*=}; shift;;
 		--sqfsdir=*) sqfsdir=${1#*=}; shift;;
 		--excl=*) EXCL=${1#*=}; shift;;
+		--arch=*) ARCH=${1#*=}; shift;;
 		-f|--fstab) FSTAB=y; shift;;
 		--comp=*) COMP=${1#*=}; shift;;
 		-o) OFFSET=${2}; shift 2;;
