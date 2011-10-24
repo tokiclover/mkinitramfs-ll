@@ -155,7 +155,7 @@ setopt NULL_GLOB
 
 addmodule() {
 	local ret
-	for mod (/lib/modules/$K_VERSION/**/*$@.(ko|o))
+	for mod (/lib/modules/$K_VERSION/**/$@.(ko|o))
 		if [[ ! -e $mod ]] { warn "$mod does not exist"
 			let ret+=1; break 
 		} else { mkdir -p .$mod:h && cp -ar $mod .$mod:h/ || die "$mod copy failed" }
