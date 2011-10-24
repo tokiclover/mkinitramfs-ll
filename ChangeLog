@@ -4,9 +4,18 @@
 #############################################################################
 
 # ---------------------------------------------------------------------------
+*2011-10-24:
+	* released v0.3.6_p20111024.
+	* added imod=* kernel cmdline argument to load extra modules (boot group).
+	* parse and use init=* kernel cmdline argument to properly switch root.
+	* sqfsd-rebuild|sdr update/fixes to not rebuild squashed dirs unecessarly,
+	  attempt to fix updating underlying system wide squashed dirs after
+	  updating util-linux.
+	* migration of the shell scripts in devel branch (from bash) to zsh.
+
 *2011-09-05:
-	fsck failure fixed; and the `echo $msg' issue is not definitely 
-	solved for a real world boot although everything works in chroot env.
+	* fsck failure fixed; and the `echo $msg' issue is not definitely solved 
+	  for a real world boot although everything works in chroot env.
 
 *2011-09-03:
 	* major KnownIssue editing/update.
