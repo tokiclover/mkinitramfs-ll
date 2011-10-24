@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild for long][.zsh],v 0.3.5 2011/10/24 -tclover Exp $
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.3.5 2011/10/24 -tclover Exp $
 
 usage() {
   cat <<-EOF
