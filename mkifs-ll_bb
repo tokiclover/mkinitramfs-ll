@@ -1,5 +1,5 @@
 #!/bin/zsh
-revision=0.3.3_p20111022
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.3.3 2011/10/24 -tclover Exp $
 
 usage() {
   cat << EOF
@@ -133,3 +133,5 @@ if [[ $BBB = y ]] {
 	cd $WORKDIR || die "eek!"
 	unset BBB BBT 
 }
+
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

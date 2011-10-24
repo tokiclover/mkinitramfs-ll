@@ -1,5 +1,5 @@
 #!/bin/zsh
-revision=0.1.2_p20111022
+# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.1.2 2011/10/24 -tclover Exp $
 
 usage() {
    cat << EOF
@@ -42,3 +42,5 @@ cd $WORKDIR || die "eek!"
 
 iGPG=y
 unset GPG EUSE BIN Version
+
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

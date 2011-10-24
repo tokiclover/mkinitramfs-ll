@@ -1,5 +1,5 @@
 #!/bin/zsh
-revision=0.2.2_p20111020
+# $Id: mkinitramfs-ll/mkifs-ll_gen[.zsh],v 0.2.2 2011/10/24 -tclover Exp $
 
 usage() {
   cat << EOF
@@ -70,3 +70,5 @@ if [[ -n $bGPG ]] {
 }
 
 ./mkifs-ll
+
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
