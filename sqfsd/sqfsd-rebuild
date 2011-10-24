@@ -11,7 +11,7 @@ usage() {
   -d, --sqfsd=<dir>         colon ':' seperated directories list without the leading \`/'.
       --arch=32             ARCH to use for lib\$ARCH rebuilding (for rc-svcdir, cachedir).
       --fstab               whether to write the necessary mount lines to \`/etc/fstab'.
-  -f, --force               force rebuilding, equivalent to `\--offset=0'.
+  -f, --force               force rebuilding, equivalent to \`--offset=0'.
       --bsize=131072        use [128k] 131072 bytes block size which is the default value.
       --comp="xz -Xbjc x86" use xz compressor optionaly, one can append extra arguments.
       --excl=<dir>          exlude <dir> from being included into the .sfs squashed image.
@@ -40,17 +40,17 @@ squashed() {
 		mkdir -p $sqfsdir/$dir/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
 		if [[ -e /sqfsd/$dir.sfs ]] { 
 			if [[ $OFFSET != 0 ]] {
-				local ro_size=${(A)$(du -sk $sqfsdir/$dir/ro)[1]}
-				local rw_size=${(A)$(du -sk $sqfsdir/$dir/rw)[1]}
+				local ro_size=${$(du -sk $sqfsdir/$dir/ro)[1]}
+				local rw_size=${$(du -sk $sqfsdir/$dir/rw)[1]}
 				if (( $rw_size/$ro_size*100 <= ${OFFSET:-10} )) { 
-					info "$dir: skiping... there's an '-o' offset option."; break
+					info "$dir: skiping... there's \`-o|-f' options."; break
 				} 
 				echo ">>> updating squashed $dir..."
 			}
 		} else { echo ">>> building squashed $dir..." }
 		mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp \
 		${=COMP:-gzip} ${=EXCL} >/dev/null || die "failed to build $dir.sfs img."
-		if [[ $dir = lib${ARCH:-64} ]] {	# move rc-svcdir and cachedir.
+		if [[ $dir = lib${ARCH:-64} ]] { # move rc-svcdir and cachedir.
 			mkdir -p /var/{lib/init.d,cache/splash}
 			mount --move /$dir/splash/cache /var/cache/splash &>/dev/null \
 			|| die "fled to move cachedir."
@@ -100,7 +100,7 @@ squash() {
 	} else { for SQFSD (SQFSD_{SYS,LOCAL}) [[ -n $SQFSD ]] && squashed $SQFSDIR $SQFSD }
 }
 
-[ $# = 0 ]] && usage 
+[[ $# = 0 ]] && usage 
 while [[ $# > 0 ]] {
 	case $1 in
 		-v|--version) echo "version $revision"; exit 0;;
