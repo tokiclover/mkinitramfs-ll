@@ -132,3 +132,4 @@
 #		Modules should exist on `/lib/modules/$KV/', like in your system.
 # 		Your kernel has to support module unloading for rmmod to work.
 #
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

@@ -124,4 +124,5 @@ while [[ $# > 0 ]] {
 }
 
 unset sqfsdir sqfsd EXCL EXT COMP FSTAB SQFSDIR SQFSD_SYS
+
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

@@ -1,9 +1,10 @@
-#############################################################################
+# $Id: mkinitramfs-ll/ChangeLog -tclover Exp $
+#
+#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
 # ToDo: Done. However, if somebody want anything else... feel free to do it #
-# of course. And now I added LVM2... done I'm saying...			    #
-#############################################################################
-
-# ---------------------------------------------------------------------------
+# of course. And now I added LVM2... done I'm saying...                     #
+#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
+#
 *2011-10-24:
 	* released v0.3.6_p20111024.
 	* added imod=* kernel cmdline argument to load extra modules (boot group).
@@ -24,42 +25,41 @@
 	* Heavy editing of the ChangeLog to be more readable.
 
 2011-08-30: 
-	* The previous clean up was threwn away as all the scripts went into 
-	a major rewrite and renaming initramfs-ll -> mkifs-ll.
+	* The previous clean up was threwn away as all the scripts went into a
+	  majori rewrite and renaming initramfs-ll -> mkifs-ll.
 	* Every script has now command line arguments/options which let one to
-	make whatever s-he likes, now mkifs-ll_bb can either build a static
-	binary and/or generate a keymap.
-	* mkifs-ll_gpg build a static binary with few options apart from USE
-	flags.
+	  make whatever s-he likes, now mkifs-ll_bb can either build a static
+	  binary and/or generate a keymap.
+	* mkifs-ll_gpg build a static binary with few options apart from USE flags.
 	* mkifs-ll has a fully set of optinal arguments to be able to build an
-	initramfs with app-crypt/cryptsetup and sys-apps/v86d as a minimal
-	requirement; and with sys-fs/aufs2[|aufs-standlone] sys-fs/lvm2
-	app-crypt/gnupg-1.4* and sys-apps/tuxonice-userui with
-	media-gfx/splashutils for splash.
+	  initramfs with app-crypt/cryptsetup and sys-apps/v86d as a minimal
+	  requirement; and with sys-fs/aufs2[|aufs-standlone] sys-fs/lvm2
+	  app-crypt/gnupg-1.4* and sys-apps/tuxonice-userui with
+	  media-gfx/splashutils for splash.
 
 	* The init script went into a major clean up as well with many fixes.
-	I don't know if somebody could make use of splash with the previous 
-	versions. Anyway fixed or messed TOI resume function--there were a 
-	piece of code that I did not undestand so I cleaned it to be more 
-	understandable, I did not test it yet if it's still functional, there's 
-	no reason for otherwise;--cryptsetup first function part which check out 
-	if a PV is a valid LUKS PV and ask if not to choose another PV or 
-	encrypt the provided one should be functional with new colors outputs.
+	  I don't know if somebody could make use of splash with the previous 
+	  versions. Anyway fixed or messed TOI resume function--there were a 
+	  piece of code that I did not undestand so I cleaned it to be more 
+	  understandable, I did not test it yet if it's still functional, there's 
+	  no reason for otherwise;--cryptsetup first function part which check out 
+	  if a PV is a valid LUKS PV and ask if not to choose another PV or 
+	  encrypt the provided one should be functional with new colors outputs.
 
 * 2011-08-13:
 	* cleaned up the mess of initrd-ll.sh and bb-initrd.sh, those two
-	scripts should work now as expected which went into a renaming...
+	  scripts should work now as expected which went into a renaming...
 
 * 2011-08-04: 
 	* Added rootfs mount option for those who do not want automatic mount.
 	* I'm trying to implement a clever exec_cryptsetup() which should ask
-	for another PV if the device is not a valid LUKS PV or
-	creater/luksFormat the PV with default value for -c* -s* and -d/* if 
-	there's any key-file. Now, it's been a while since a few messages 
-	from `echo' are not displayed and I have no clue on the whys--at first
-	I suspected the different `/bin/sh' instances but it seems it's not
-	the case. Running the script with bash as the /bin/sh works without 
-	the echo output messages, I got nothing than an unresponsive sh.
+	  for another PV if the device is not a valid LUKS PV or
+	  create/luksFormat the PV with default value for -c* -s* and -d/* if 
+	  there's any key-file. Now, it's been a while since a few messages 
+	  from `echo' are not displayed and I have no clue on the whys--at first
+	  I suspected the different `/bin/sh' instances but it seems it's not
+	  the case. Running the script with bash as the /bin/sh works without 
+	  the echo output messages, I got nothing than an unresponsive sh.
 
 *2011-06-27.2: 
 	* second release of the day... because of an error line 500,11 on
@@ -213,13 +213,9 @@
 
 *2011-05-20: 
 	* see `history' for a `change log'
-# ---------------------------------------------------------------------------
-
-####################
-# History: [y-m-d] #
-####################
-
-# ---------------------------------------------------------------------------
+#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
+# History: [y-m-d]                                                          #
+#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
 *2011-08-04:
 	* added rootfs option for mount and still debuging on
 	exec_cryptsetup() first two sections.
@@ -274,14 +270,12 @@
 
 *2006-06-20:
 	* pre release - Federico Zagarzazu
-# ---------------------------------------------------------------------------
-
-#############
-# Thanks to #
-#############
-
-# ---------------------------------------------------------------------------
+#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
+# Thanks to                                                                 #
+#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
 	* Alon Bar-Lev [http://wiki.tuxonice.net/EncryptedSwapAndRoot]
 	I stole ideas, general structure and entire functions from his init script.
 	* Andreas Steinmetz [kernel doc: power/swsusp-dmcrypt.txt]
-# ---------------------------------------------------------------------------
+#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
+
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
