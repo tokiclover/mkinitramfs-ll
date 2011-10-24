@@ -4,10 +4,11 @@ usage() {
   cat <<-EOF
   usage: ${0} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>
 
-  -up, --update             update the underlying source directory e.g. bin:sbin:lib32:lib64.
-  -rm, --remove             remove the underlying source directory e.g. usr:opt:\$PORTDIR.
-       --sqfsdir=<dir>      override default value \`sqfsdir=/sqfsd'.
-  -d, --sqfsd=<dir>         colon ':' seperated directories list without the leading \`/'..
+  -up,--update              update the underlying source directory e.g. bin:sbin:lib32:lib64.
+  -rm,--remove              remove the underlying source directory e.g. usr:opt:\$PORTDIR.
+      --sqfsdir=<dir>       override default value \`sqfsdir=/sqfsd'.
+  -d, --sqfsd=<dir>         colon ':' seperated directories list without the leading \`/'.
+      --arch=32             ARCH to use for lib\$ARCH rebuilding (for rc-svcdir, cachedir).
   -f, --fstab               whether to write the necessary mount lines to \`/etc/fstab'.
       --bsize=131072        use [128k] 131072 bytes block size which is the default value.
       --comp="xz -Xbjc x86" use xz compressor optionaly, one can append extra arguments.
@@ -47,7 +48,7 @@ squashed() {
 		} else { echo ">>> building squashed $dir..." }
 		mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp \
 		${=COMP:-gzip} ${=EXCL} >/dev/null || die "failed to build $dir.sfs img."
-		if [[ $dir = lib64 ]] {	# move rc-svcdir and cachedir.
+		if [[ $dir = lib${ARCH:-64} ]] {	# move rc-svcdir and cachedir.
 			mkdir -p /var/{lib/init.d,cache/splash}
 			mount --move /$dir/splash/cache /var/cache/splash &>/dev/null \
 			|| die "fled to move cachedir."
@@ -83,7 +84,7 @@ squashed() {
 		}
 		mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
 		&>/dev/null || die "failed to mount $dir aufs branch."
-		if [[ $dir = lib64 ]] { # move back rc-svcdir and cachedir.
+		if [[ $dir = lib${ARCH:-64} ]] { # move back rc-svcdir and cachedir.
 			mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul \
 			|| die "failed to move back cachedir."
 			mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null \
@@ -112,6 +113,7 @@ while [[ $# > 0 ]] {
 	case $1 in
 		-v|--version) echo "version $revision"; exit 0;;
 		-d) sqfsd=${2}; shift 2;;
+		--arch=*) ARCH=${1#*=}; shift;;
 		--sqfsd=*) sqfsd=${1#*=}; shift;;
 		--sqfsdir=*) sqfsdir=${1#*=}; shift;;
 		--excl=*) EXCL=${1#*=}; shift;;
