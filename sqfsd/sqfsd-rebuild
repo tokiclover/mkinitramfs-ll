@@ -98,17 +98,7 @@ squash() {
 	} else { for SQFSD (SQFSD_{SYS,LOCAL}) [[ -n $SQFSD ]] && squashed $SQFSDIR $SQFSD }
 }
 
-if [[ $# = 0 ]] {
-	if [[ -e /etc/conf.d/sqfsdmount ]] { 
-		info "sourcing /etc/conf.d/sqfsdmount..."
-		squash
-	} elif [[ -e sqfsd/sqfsdmount.conf ]] { 
-		info "sourcing sqfsd/sqfsdmount.conf..."
-		source sqfsd/sqfsdmount.conf
-		squash
-	} else { usage }
-}
-
+[ $# = 0 ]] && usage 
 while [[ $# > 0 ]] {
 	case $1 in
 		-v|--version) echo "version $revision"; exit 0;;
