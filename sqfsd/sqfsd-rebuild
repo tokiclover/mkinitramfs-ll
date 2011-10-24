@@ -103,17 +103,7 @@ squash() {
 	fi
 }
 
-if [[ $# = 0 ]]; then
-	if [[ -e /etc/conf.d/sqfsdmount ]]; then
-		info "sourcing /etc/conf.d/sqfsdmount..."
-		squash
-	elif [[ -e sqfsd/sqfsdmount.conf ]]; then
-		info "sourcing sqfsd/sqfsdmount.conf..."
-		source sqfsd/sqfsdmount.conf
-		squash
-	else usage; fi
-fi
-
+[[ $# = 0 ]] && usage
 while [[ $# > 0 ]]; do
 	case $1 in
 		-v|--version) echo "version $revision"; exit 0;;
