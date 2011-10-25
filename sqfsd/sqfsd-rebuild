@@ -43,7 +43,7 @@ squashed() {
 			if [[ $OFFSET != 0 ]] {
 				local ro_size=${$(du -sk $sqfsdir/$dir/ro)[1]}
 				local rw_size=${$(du -sk $sqfsdir/$dir/rw)[1]}
-				if (( $rw_size/$ro_size*100 <= ${OFFSET:-10} )) { 
+				if (( ($rw_size*100/$ro_size) <= ${OFFSET:-10} )) { 
 					info "$dir: skiping... there's \`-o|-f' options."; break
 				} 
 			}
