@@ -44,8 +44,8 @@ squashed() {
 				if ((${rw_size}/${ro_size}*100 < ${OFFSET:-10})); then
 					info "$dir: skiping... there's an '-o' offset option."; break
 				fi
-				echo ">>> updating squashed $dir..."
 			fi
+			echo ">>> updating squashed $dir..."
 		else echo ">>> building squashed $dir..."; fi			
 		mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp ${COMP:-gzip} $EXCL \
 			>/dev/null || die "failed to build $dir.sfs img."
