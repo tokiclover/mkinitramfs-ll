@@ -1,27 +1,27 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_bb[.bash],v 0.2.2 2011/10/24 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.bash],v 0.2.2 2011/10/25 -tclover Exp $
 
 usage() {
-  cat << EOF
+  cat <<-EOF
   usage: ${0##*/} OPTIONS [OPTIONS...]
-  -a, --aufs		adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
-      --bin-dir=bin 	create, wen building busybox or gpg, or use binaries from bin directory.
-  -A, --build-all	build gnupg, busybox with unicode keymap with AUFS2/LVM2/TOI support.
-  -b, --build-bb 	build a static busybox, copy binary/applets to \$BIN, then build initramfs.
-  -g, --build-gpg 	build a static gnupg-1.4.x and copy the binary/options.skel to \$BIN, 
-  			-g|--gpg is as if included to the cmdline as well, then build an initramfs.
-      --conf-dir=<dir> 	use <dir> to copy gpg.conf for gpg configuration file.
-      --font=<font>	adds <font>, if \`=*' is omitted will add default font if available.
-      --gpg 		adds GPG support, require a static app-crypt/gnupg-1.4 and options.skel.
-      --kmap=map:kmap	generate kmap keymap using map as input keymap.
-  -l, --lvm 		adds LVM2 support, require a static sys-fs/lvm2 build.
-      --misc-dir=misc 	use 'misc/{.gnupg/gpg.conf,share/gnupg/options.skel,initramfs-ll.conf}',  
-      			one can add manpages and info files of gpg/lvm in misc/share as the whole
-			directory will be copied over into the initramfs.
-      --splash=theme	splash theme to include in the initramfs.
-      --toi		adds tuxonice support.
-  -h, --help		print this help.
-  -v, --version 	print version.
+  -a, --aufs             adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
+      --bin-dir=bin      create, wen building busybox or gpg, or use binaries from bin directory.
+  -A, --build-all        build gnupg, busybox with unicode keymap with AUFS2/LVM2/TOI support.
+  -b, --build-bb         build a static busybox, copy binary/applets to \$BIN, then build initramfs.
+  -g, --build-gpg        build a static gnupg-1.4.x and copy the binary/options.skel to \$BIN, 
+  	                     -g|--gpg is not necessary to append on the cmdline as well.
+      --conf-dir=<dir>   use <dir> to copy gpg.conf for gpg configuration file.
+      --font=<font>	     comma seperated list of  font(s) to include to the initramfs.
+      --gpg              adds GPG support, require a static app-crypt/gnupg-1.4 and options.skel.
+      --kmap=map:kmap    generate kmap keymap using map as input keymap.
+  -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2 build.
+      --misc-dir=misc 	 use \`misc/{.gnupg/gpg.conf,share/gnupg/options.skel,initramfs-ll.conf}\',  
+                         one can add manpages and info files of gpg/lvm in misc/share as the whole
+                         directory will be copied over into the initramfs.
+      --splash=theme     comma sepatarated list of splash(s) theme to include in the initramfs.
+      --toi	             adds tuxonice support.
+  -u, --usage            print this help.
+  -v, --version          print version.
 
   usages: runned without arguments, build an initramfs using default values defined in mkifs-ll.conf
 
@@ -51,7 +51,7 @@ while [[ $# > 0 ]]; do
 		--splash=*) [[ -n ${1#*=} ]] && export SPLASHS+=",${1#*=}"; shift;;
 		--toi) export iTOI=y; shift;;
 		--version|-v)  echo "version $revision"; exit 0;;
-		--help|-h|*) usage; exit 0;;
+		--usage|-u|*) usage; exit 0;;
 	esac
 done
 
@@ -69,10 +69,12 @@ die()   { error "$@"; exit 1; }
 	mkdir -p "$MISC"/{share/,.}gnupg
 	[[ -n "$CONF" ]] && {
 		cp "$CONF"/gpg.conf "$MISC"/.gnupg/ || die "eek!"
-		unset CONF; }
+		unset CONF
+	}
 	./mkifs-ll_gpg
 	cp "$BIN"/options.skel "$MISC"/share/gnupg/ || die "eek!"
-	unset bGPG; }
+	unset bGPG
+}
 
 ./mkifs-ll
 

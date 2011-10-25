@@ -4,10 +4,10 @@
 usage() {
    cat << EOF
    usage: ${0##*/} [OPTINS]...
-      --use="USE flags" extra USE flags to append to USE="nls static".
-      --Version=<STR>	build gpg-<STR> version instead of gpg-1.4*.
-  -h, --help		print this help.
-  -v, --version 	print version.
+      --use="USE flags"  extra USE flags to append to USE="nls static".
+      --Version=<STR>    build gpg-<STR> version instead of gpg-1.4*.
+  -u, --usage            print this help.
+  -v, --version          print version.
 EOF
 }
 
@@ -16,7 +16,7 @@ while [[ $# > 0 ]]; do
 		--use=*) EUSE=i"${1#*=}"; shift;;
 		--Version=*) Version=${1#*=}; shift;;
 		--version|-v) echo "version $revision"; exit 0;;
-		--help|-h|*) usage; exit 0;;
+		--usage|-u|*) usage; exit 0;;
 	esac
 done
 
