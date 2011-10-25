@@ -1,53 +1,45 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/10/24 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/10/25 -tclover Exp $
 
 usage() {
-  cat << EOF
+  cat <<-EOF
   usage: ${0##*/} [OPTIONS...]
-      --aufs		adds aufs[2] support to the initramfs for (aufs2+squashfs).
-  -e, --e-version=<str>	append <str> extra version after k-version to the initramfs.
-  -k, --k-version=<str>	build an initramfs for 'k-version=\${KV:-\$(uname -r)}' kernel version.
-      --font=<font>	adds <font> to the initramfs.
-  -f, --full		build with '--aufs --bin-dir --font --lvm --gpg --misci --toi' options.
-      --mod=<mod>	adds '<mod>' module, space separated list, to the initramfs.
-      --fsck=<fs>	adds fsck.<fs> binary with linked libraries for fsck.<fs> support.
-      --bin-dir=bin 	use binaries [gpg/options.skel|busybox/applets|kmap-ARCH.bin] from 'bin'.
-      --comp-cmd=cmd	compression command to use to build initramfs, default is xz.
-  -g, --gpg 		adds GPG support, require a static app-crypt/gnupg-1.4 and options.skel.
-      --prefix=mvlinuz.	prefix scheme to name the initramfs default is \`kernel-'.
-      --kmap=km-x86.bin adds 'km-x86.bin' key-map in the initramfs, full path is required.
-  -l, --lvm 		adds LVM2 support, require a static sys-fs/lvm2 build.
-      --misc-dir=misc 	use 'misc/{.gnupg/gpg.conf,share/gnupg/options.skel,mkifs-ll.conf}',  
-      			one can add manpages and info files of gpg/lvm in misc/share as the whole 
-			directory will be copied over into the initramfs.
-      --splash=theme	splash theme to include in the initramfs.
-      --toi		adds tuxonice support.
-  -h, --help		print this help.
-  -v, --version 	print version.
+      --aufs             adds aufs support to the initramfs for (aufs[2|3]+squashfs).
+  -e, --e-version=<str>	 append <str> extra version after k-version to the initramfs.
+  -k, --k-version=<str>	 build an initramfs for \`--k-version=\${KV:-\$(uname -r)}\' kernel version.
+      --font=<font>	     comma seperated list of  font(s) to include to the initramfs.
+  -f, --full             build with \`--aufs --bin-dir --font --lvm --gpg --misci --toi\' options.
+      --mod=<mod>        comma seperated list of modules to include in the initramfs.
+      --fsck=<fs>        comma seperated list of fsck.\$fs binary with linked libraries to include.
+      --bin-dir=bin      use binaries [gpg/options.skel|busybox/applets|kmap-\$ARCH.bin] from \`bin\'.
+      --comp-cmd=cmd     compression command to use to build initramfs, default is xz.
+  -g, --gpg              adds GPG support, require a static app-crypt/gnupg-1.4 and options.skel.
+      --prefix=mvlinuz.  prefix scheme to name the initramfs default is \`initrd-\'.
+      --kmap=km-x86.bin  comma seperated list of keymap(s) to include in the initramfs.
+  -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2 build.
+      --misc-dir=misc    use \'misc/{.gnupg/gpg.conf,share/gnupg/options.skel,mkifs-ll.conf}, one can 
+                         add manpages and info files of gpg/lvm in misc/share as the whole directory 
+                         will be copied over into the initramfs.
+      --splash=theme     comma sepatarated list of splash(s) theme to include in the initramfs.
+      --toi	             adds tuxonice support.
+  -u, --usage            print this help.
+  -v, --version          print version.
 
-  usages:
-  # runned without an argument, build an initramfs for \$(uname -r) with only LUKS support.
+  # usages: runned without an argument, build an initramfs for $(uname -r) with only LUKS support.
 
-  # build with LUKS/GPG/LVM2/AUFS2 support for kernel 3.0.3-git with 'd0' string extra version.
+  # build with LUKS/GPG/LVM2/AUFS2 support for 3.0.3-git kernel with `d0' string extra version.
   ${0##*/} --e-version=d0 --k-version=3.0.3-git --full
   
-  <str> 	string
-  <font>	full path to font, easy to include one into 'bin' directory and add its name
-  		into \${FONT:=\$BIN/<name>} definition into mkifs-ll.conf
-  <km-x86.bin>	same as above for KEYMMAP variable.
-  <fs> 		file system e.g. xfs, default is 'btrfs jfs reiserfs squashfs xfs reiser4'.
-  <theme>	full path to splash 'theme'.
-  <fs> 		file sytem.
-  bin		full path to directory with the necessary binaries to build an initramfs.
-  misc		second full path to directory with extra necessary files.
-  --<arg>=	all arguments will use default value definied in mkifs-ll.conf if empty.
-  b
+  # <str>    string
+  # <fs>     fsck.\$fs to include default is `ext4,jfs,xfs'.
+  # bin      full path to directory with the necessary binaries to build an initramfs.
+  # misc     second full path to directory with extra necessary files.
 EOF
 }
 
-error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
-info() 	{ echo -ne "\e[1;32m* \e[0m$@\n"; }
-warn() 	{ echo -ne "\e[1;33m* \e[0m$@\n"; }
+error() { echo -ne "\e[1;31m* \e[0m$@"; }
+info() 	{ echo -ne "\e[1;32m* \e[0m$@"; }
+warn() 	{ echo -ne "\e[1;33m* \e[0m$@"; }
 die()   { error "$@"; exit 1; }
 
 addnodes() {
@@ -83,7 +75,7 @@ while [[ $# > 0 ]]; do
 		--lvm|-l) iLVM=y; shift;;
 		--misc-dir=*) [[ -n ${1#*=} ]] && MISC="${1#*=}"; shift;;
 		--splash=*) [[ -n ${1#*=} ]] && SPLASHS+=",${1#*=}"; shift;;
-		-h|--help|*) usage; exit 0;;
+		-u|--usage|*) usage; exit 0;;
 	esac
 done
 
