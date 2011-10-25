@@ -97,14 +97,6 @@ squashed() {
 	done
 }
 
-squash() {
-	if [[ -z $SQFSDIR ]]; then die "sqfsdir is empty, nothing to do."
-	else 
-		for SQFSD in SQFSD_{SYS,LOCAL}
-		do [[ -n $SQFSD ]] && squashed $SQFSDIR $SQFSD; done
-	fi
-}
-
 [[ $# = 0 ]] && usage
 while [[ $# > 0 ]]; do
 	case $1 in
