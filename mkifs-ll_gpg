@@ -1,13 +1,13 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.1.2 2011/10/24 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.1.2 2011/10/25 -tclover Exp $
 
 usage() {
-   cat << EOF
-   usage: ${0##*/} [--use="falgs"] [--Version=<str>]
-      --use="USE flags" extra USE flags to append to USE="nls static".
-      --Version=<STR>	build gpg-<STR> version instead of gpg-1.4*.
-  -h, --help		print this help.
-  -v, --version 	print version.
+   cat <<-EOF
+   usage: ${(%):-%1x} [--use="falgs"] [--Version=<str>]
+      --use="USE flags"  extra USE flags to append to USE="nls static".
+      --Version=<STR>	 build gpg-<STR> version instead of gpg-1.4*.
+  -u, --usage            print this help.
+  -v, --version          print version.
 EOF
 }
 
@@ -16,17 +16,18 @@ while [[ $# > 0 ]]; do
 		--use=*) EUSE=${1#*=}; shift;;
 		--Version=*) Version=${1#*=}; shift;;
 		--version|-v) echo "version $revision"; exit 0;;
-		--help|-h|*) usage; exit 0;;
+		--usage|-u|*) usage; exit 0;;
 	esac
 done
+
+error() { print -P "%B%F{red}*%b%f $@"; }
+die()   { error $@; exit 1; }
+alias die='die "%1x:%U${(%):-%I:%N}:%u" $@'
 
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
 :	${MISC:=$WORKDIR/misc}
 :	${BIN:=$WORKDIR/bin}
-
-error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
-die()   { error "$@"; exit 1; }
 
 mkdir -p $BIN
 
