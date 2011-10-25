@@ -3,7 +3,7 @@
 
 usage() {
   cat <<-EOF
-  usage: ${0} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>
+  usage: ${(%):-%1x} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>
 
   -up,--update              update the underlying source directory e.g. bin:sbin:lib32:lib64.
   -rm,--remove              remove the underlying source directory e.g. usr:opt:\$PORTDIR.
@@ -22,15 +22,16 @@ usage() {
   usages:
   # squash directries which will speed up portage calculations--database,dependencies--and remove 
   # the underlying files which take a much more spaces as there are numerous small files there.
-  ${0} -r var/db:var/cache/edb
+  ${(%):-%1x} -rm var/db:var/cache/edb
   # [re-]build system related squashed directories and update the sources/unsquashed directories
-  ${0} -u -d bin:sbin:lib32:lib64
+  ${(%):-%1x} -up -d bin:sbin:lib32:lib64
 EOF
 }
 
-info() 	{ print "\e[1;32m* \e[0m$@"; }
-error() { print "\e[1;31m* \e[0m$@"; }
-die()   { error "$@"; exit 1; }
+info() 	{ print -P "%B%F{green}*%b%f $@"; }
+error() { print -P "%B%F{red}*%b%f $@"; }
+die()   { error $@; exit 1; }
+alias die='die "%1x:%U${(%):-%I:%N}:%u" $@'
 setopt NULL_GLOB
 
 squashed() {
@@ -93,11 +94,6 @@ squashed() {
 			|| die "failed to move back rc-svcdir." }
 		echo ">>> ...squashed $dir sucessfully [re]build."
 	}
-}
-
-squash() {
-	if [[ -z $SQFSDIR ]] { die "sqfsdir is empty, nothing to do."
-	} else { for SQFSD (SQFSD_{SYS,LOCAL}) [[ -n $SQFSD ]] && squashed $SQFSDIR $SQFSD }
 }
 
 [[ $# = 0 ]] && usage 
