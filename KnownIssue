@@ -1,6 +1,27 @@
 # $Header: mkinitramfs-ll/KnownIssue,v 0.3.6 2011/10/24 -tclover Exp $
 #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+# well, this should have been added to begin with, when using sdr|sqfsd-rebuild
+# to rebuild bin:lib64 after having updated util-linux/coreutiles, cp cannot
+# override itself of course and the libraries linked to cp. So one has to copy
+# (with a `cp -a') and move those files afterwards to where they should be.
+# WARING: if libraries from lib64 for amd64 users, or lib32 for x86 users, are 
+# part of that very few files which werent copied over the underlying directory
+# one should reboot ASAP! because in that case rc-svcdir, for OpenRC users, is 
+# moved to `/var/lib/init.d' and one cannot do that moving quick enough before 
+# rc update `/lib/rc/init.d'--MEANING--rc will take an empty directory for NO
+# services is running/or services were killed or something. For those who use
+# GNOME or KDE you may not have enough time to reboot before that thing happen
+# meaning you'll be forced to hard reboot because your box will be running fine
+# but you cannot use it anymore for some reason-well there's no services running
+# for rc even if they are, in fact, running. I can reboot without any hassle e17 
+# and I could barely do it with GNOME-2.3x--I had to watch over when rebuilding 
+# lib64 after a util-linux/coreutils update and reboot asap. 
+# SO A REBOOT IS NECESSARY TO COPY OVER `/newroot/sqfsd/lib64/ro' 
+# (with a `cp -ar') to `/newroot/lib64' in the minimal shell--easily done.
+# Of course if you can ssh over your box and move back rc-svcdir maybe... or 
+# wait untill next reboot to update the underlying bin:lib$ARCH--easily done.
+#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 # there's a bug with the previous release, `ikmap' need an extra colon `:' even 
 # if there's no font appended after the key map! just append a colon `:' 
 # to avoid it. I will fix it latter.
