@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.3.5 2011/10/24 -tclover Exp $
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.3.5 2011/10/25 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -45,8 +45,8 @@ squashed() {
 				if (( $rw_size/$ro_size*100 <= ${OFFSET:-10} )) { 
 					info "$dir: skiping... there's \`-o|-f' options."; break
 				} 
-				echo ">>> updating squashed $dir..."
 			}
+			echo ">>> updating squashed $dir..."
 		} else { echo ">>> building squashed $dir..." }
 		mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp \
 		${=COMP:-gzip} ${=EXCL} >/dev/null || die "failed to build $dir.sfs img."
