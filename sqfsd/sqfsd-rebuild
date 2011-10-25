@@ -41,7 +41,7 @@ squashed() {
 				local ro_size=$(du -sk $sqfsdir/$dir/ro|sed -e 's:\t.*::')
 				local rw_size=$(du -sk $sqfsdir/$dir/rw|sed -e 's:\t.*::')
 				info $ro_size:$rw_size
-				if ((${rw_size}/${ro_size}*100 < ${OFFSET:-10})); then
+				if (( ( ${rw_size}*100/${ro_size} ) < ${OFFSET:-10} )); then
 					info "$dir: skiping... there's an '-o' offset option."; break
 				fi
 			fi
