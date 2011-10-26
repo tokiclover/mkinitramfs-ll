@@ -180,14 +180,20 @@ unset MODULES
 }
 
 [[ -n "$KEYMAPS" ]] && { 
-	for keymap in ${KEYMAPS//,/ }
-		do [[ -e "$keymap" ]] && cp -a "$keymap" etc/ || warn "failed to copy keymap"; done
+	for keymap in ${KEYMAPS//,/ }; do 
+		if [[ -e "$keymap" ]] && cp -a "$keymap" etc/
+		elif [[ -e "$BIN/$keymap" ]] && cp -a "$BIN/$keymap" etc/ 
+		else warn "failed to copy $keymap keymap"; fi
+	done
 	unset KEYMAPS
 }
 
 [[ -e "$FONTS" ]] && {  
-	for font in ${FONTS//,/ }
-		do [[ -e "$font" ]] && cp -a "$font" etc/ || warn "failed to copy $font font"; done
+	for font in ${FONTS//,/ }; do 
+		if [[ -e "$font" ]] && cp -a "$font" etc/
+		elif [[ -e "$BIN/$font" ]] && cp -a "$BIN/$font" etc/ 
+		else warn "failed to copy $font font"; fi
+	done
 	unset FONTS
 }
 
@@ -197,8 +203,10 @@ unset MODULES
 		unset iTOI
 	}
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
-	for splash in ${SPLASHS//,/ }
-	do [[ -e "$splash" ]] && cp -ar "$splash" etc/splash/ || warn "failed to copy $splash theme"
+	for splash in ${SPLASHS//,/ }; do 
+		if [[ -e "$splash" ]]; then cp -ar "$splash" etc/splash/ 
+		elif [[ -e "$BIN/$splash" ]]; then cp -ar "$BIN/$splash" etc/splash/	
+		else warn "failed to copy $splash theme"; fi
 	done
 	unset SPLASHS
 }
