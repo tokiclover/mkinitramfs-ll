@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll[.zsh],v 0.3.5 2011/10/25 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll[.zsh],v 0.3.5 2011/10/26 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -17,7 +17,7 @@ usage() {
       --prefix=mvlinuz.  prefix scheme to name the initramfs default is \`initrd-\'.
       --kmap=km-x86.bin  comma seperated list of keymap(s) to include in the initramfs.
   -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2 build.
-      --misc-dir=misc    use \'misc/{.gnupg/gpg.conf,share/gnupg/options.skel,mkifs-ll.conf}, one can 
+      --misc-dir=misc    use \`misc/{.gnupg/gpg.conf,share/gnupg/options.skel,mkifs-ll.conf}\', one can 
                          add manpages and info files of gpg/lvm in misc/share as the whole directory 
                          will be copied over into the initramfs.
       --splash=theme     comma sepatarated list of splash(s) theme to include in the initramfs.
@@ -179,13 +179,17 @@ if [[ -n $FSCK ]] {
 
 if [[ -n $KEYMAPS ]] { 
 	for keymap (${(pws:,:)KEYMAPS}) 
-		if [[ -e $keymap ]] { cp -a $keymap etc/ || warn "failed to copy $keymap keymap" }
+		if [[ -e $keymap ]] { cp -a $keymap etc/ 
+		} elif [[ -e $BIN/$keymap ]] { cp -a $BIN/$keymap etc/
+		} else { warn "failed to copy $keymap keymap " }
 	unset KEYMAPS
 }
 
 if [[ -n $FONTS ]] { 
 	for font (${(pws:,:)FONTS})
-		if [[ -e $font ]] { cp -a $font etc/ || warn "failed to copy $font font" }
+		if [[ -e $font ]] { cp -a $font etc/
+		} elif [[ -e $BIN/$font ]] { cp -a $BIN/$font etc/ 
+		} else { warn "failed to copy $font font" } 
 	unset FONTS 
 }
 
@@ -196,7 +200,9 @@ if [[ -n $SPLASHS ]] {
 	}
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
 	for splash (${(pws:,:)SPLASHS})
-		if [[ -e $splash ]] { cp -ar $splash etc/splash/ || warn "splash themes does not exist" }
+		if [[ -e $splash ]] { cp -ar $splash etc/splash/ 
+		} elif [[ -e $BIN/$splash ]] { cp -ar $BIN/$splash etc/splash/  
+		} else { warn "splash themes does not exist" }
 	unset SPLASHS
 }
 
