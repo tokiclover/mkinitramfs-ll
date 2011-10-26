@@ -205,7 +205,7 @@ unset MODULES
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
 	for splash in ${SPLASHS//,/ }; do 
 		if [[ -e "$splash" ]]; then cp -ar "$splash" etc/splash/ 
-		elif [[ -e "$BIN/$splash" ]]; then cp -ar "$BIN/$splash" etc/splash/	
+		elif [[ -e "$MISC/$splash" ]]; then cp -ar "$MISC/$splash" etc/splash/	
 		else warn "failed to copy $splash theme"; fi
 	done
 	unset SPLASHS
