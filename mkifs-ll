@@ -6,18 +6,18 @@ usage() {
   usage: ${(%):-%1x} [OPTIONS...]
       --aufs             adds aufs support to the initramfs for (aufs[2|3]+squashfs).
   -e, --e-version=<str>	 append <str> extra version after k-version to the initramfs.
-  -k, --k-version=<str>	 build an initramfs for \`--k-version=\${KV:-\$(uname -r)}\' kernel version.
+  -k, --k-version=<str>	 build an initramfs for --k-version=\$(uname -r) kernel version.
       --font=<font>	     comma seperated list of  font(s) to include to the initramfs.
-  -f, --full             build with \`--aufs --bin-dir --font --lvm --gpg --misci --toi\' options.
+  -f, --full             build with --aufs --bin-dir --font --lvm --gpg --misci --toi options.
       --mod=<mod>        comma seperated list of modules to include in the initramfs.
       --fsck=<fs>        comma seperated list of fsck.\$fs binary with linked libraries to include.
-      --bin-dir=bin      use binaries [gpg/options.skel|busybox/applets|kmap-\$ARCH.bin] from \`bin\'.
+      --bin-dir=bin      use binaries [gpg/options.skel|busybox/applets|kmap-\$ARCH.bin] from bin.
       --comp-cmd=cmd     compression command to use to build initramfs, default is xz.
   -g, --gpg              adds GPG support, require a static app-crypt/gnupg-1.4 and options.skel.
-      --prefix=mvlinuz.  prefix scheme to name the initramfs default is \`initrd-\'.
+      --prefix=mvlinuz.  prefix scheme to name the initramfs default is initrd-.
       --kmap=km-x86.bin  comma seperated list of keymap(s) to include in the initramfs.
   -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2 build.
-      --misc-dir=misc    use \`misc/{.gnupg/gpg.conf,share/gnupg/options.skel,mkifs-ll.conf}\', one can 
+      --misc-dir=misc    use misc/{.gnupg/gpg.conf,share/gnupg/options.skel,mkifs-ll.conf}, one can 
                          add manpages and info files of gpg/lvm in misc/share as the whole directory 
                          will be copied over into the initramfs.
       --splash=theme     comma sepatarated list of splash(s) theme to include in the initramfs.
@@ -25,13 +25,13 @@ usage() {
   -u, --usage            print this help.
   -v, --version          print version.
 
-  # usages: runned without an argument, build an initramfs for $(uname -r) with only LUKS support.
+  # usages: runned without an argument, build an initramfs for \$(uname -r) with only LUKS support.
 
-  # build with LUKS/GPG/LVM2/AUFS2 support for 3.0.3-git kernel with `d0' string extra version.
+  # build with LUKS/GPG/LVM2/AUFS2 support for 3.0.3-git kernel with d0 string extra version.
   ${(%):-%1x} --e-version=d0 --k-version=3.0.3-git --full
   
   # <str>    string
-  # <fs>     fsck.\$fs to include default is `ext4,jfs,xfs'.
+  # <fs>     fsck.\$fs to include default is ext4,jfs,xfs.
   # bin      full path to directory with the necessary binaries to build an initramfs.
   # misc     second full path to directory with extra necessary files.
 EOF
@@ -201,7 +201,7 @@ if [[ -n $SPLASHS ]] {
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
 	for splash (${(pws:,:)SPLASHS})
 		if [[ -e $splash ]] { cp -ar $splash etc/splash/ 
-		} elif [[ -e $BIN/$splash ]] { cp -ar $BIN/$splash etc/splash/  
+		} elif [[ -e $MISC/$splash ]] { cp -ar $MISC/$splash etc/splash/  
 		} else { warn "splash themes does not exist" }
 	unset SPLASHS
 }
