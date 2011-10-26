@@ -184,7 +184,7 @@ if [[ -n $KEYMAPS ]] {
 }
 
 if [[ -n $FONTS ]] { 
-	for font (${(pws:,:FONTS})
+	for font (${(pws:,:)FONTS})
 		if [[ -e $font ]] { cp -a $font etc/ || warn "failed to copy $font font" }
 	unset FONTS 
 }
@@ -195,7 +195,7 @@ if [[ -n $SPLASHS ]] {
 		unset iTOI 
 	}
 	cp -a /sbin/splash_util.static sbin/ || die "failed to copy splash_util.static"
-	for splash (${(pws:,:SPLASHS})
+	for splash (${(pws:,:)SPLASHS})
 		if [[ -e $splash ]] { cp -ar $splash etc/splash/ || warn "splash themes does not exist" }
 	unset SPLASHS
 }
