@@ -5,6 +5,25 @@
 # of course. And now I added LVM2... done I'm saying...                     #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
 #
+*2011-10-27:
+	* modified `ichkpt' cmdline to `ishrl' that means shell runlevel;
+	* ishrl take one of two argument <n> or :<n>, first one has the previous
+	  meaning: drop to <n> [init] runlevel, say, after swap has been 
+	  set or before mounting rootfs etc. and the second one will be passed to 
+	  real [/sbin/]init that means a runlevel. I needed to drop to the minimal
+	  shell and then run the exec cmd with `/sbin/init 2' so this is solved now!
+	  I have no idea what one can do with [/bin/]systemd... maybe appending 
+	  `:--crash-shell' maybe be of use.
+	* [WARN] init runlevels numbers have been changed! previous numbers have
+	  absolutly no sense, I found myself asking what number I needed to append
+	  to the previous `ichkpt' cmdline argument. In an attempt to solve this
+	  I've ended up by replacing most of previous runlevels numbers.
+	  	* [runlevel] 2: is dedicated for... 2s -> swap / 2r -> resume;
+	  	* [runlevel] 3: for root... 3d -> decrypt / 3f -> fsck / 3m -> mount;
+	  	* [runlevel] 4: 4c -> clean up / 4u -> umount / 4s -> switch root.
+	  	* so one could append something like `ishrl=4s' to the kernel cmdline
+	  	  to be dropped in the minimal shell before switching root.
+
 *2011-10-24:
 	* released v0.3.6_p20111024.
 	* added imod=* kernel cmdline argument to load extra modules (boot group).
