@@ -12,10 +12,10 @@ uv_sqfsdir=/sqfsd 		# squashed source dir related variable
 uv_sqfsd=usr:opt:bin:sbin:lib32	# squashed dirs variable
 uv_fscf=y 			# whether to die after a failure to fsck rootfs
 
-# default values(don't edit)
+# default values (do not edit)
 gv_active_splashutil=1
 gv_splash_silent=verbose
-gv_shell_checkpoint=0
+gv_shell_runlevel=0
 
 # functions
 info() 	{ echo -ne "\033[1;32m* \033[0m$@\n"; }
@@ -73,10 +73,10 @@ splash_setup() {
 
 splash_daemon_stop() { [ $gv_active_splashutil ] && gv_active_splashutil=1 splash_command "exit"; }
 
-shell_checkpoint() {
-	if [ ${gv_shell_checkpoint} = ${1} ]; then 
+shell_runlevel() {
+	if [ ${gv_shell_runlevel} = ${1} ]; then 
 		splash_verbose
-		info "Checkpoint ${1}"
+		info "Shell runlevel: ${1}"
 	exec /bin/sh; fi
 }
 
@@ -222,7 +222,7 @@ do_root_work() {
 	[ -n "${gv_root}" ] || die "iroot=* arg [PV|VG-LV][:fsck:<fs>] are missing."
 	[ "${lv_kmod}" != "none" ]  && local lv_crypt=0 && \
 		check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
-	shell_checkpoint 4
+	shell_runlevel 3d
 	info "ROOT LV..."
 	if [ "${lv_crypt}" ]; then info "...encrypted rootfs."
 		if [ -n "${lv_lvm}" ]; then 
@@ -230,10 +230,11 @@ do_root_work() {
 		else	exec_cryptsetup "${gv_root}" "${uv_root_map:-root}" 
 			local lv_rdev=/dev/mapper/${uv_root_map:-root}; fi
 	else 	info "...unencrypted rootfs." && local lv_rdev=/dev/${gv_root}; fi
-	shell_checkpoint 5
+	shell_runlevel 3f
 	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_rdev} 2>/dev/null 
 	[ "$?" ] || {
 		[ "${lv_fscf:-${uv_fscf:-y}}" = "y" ] && die "Failed to fsck rootfs, exit-code: $?"; }
+	shell_runlevel 3m
 	mount ${lv_mtopt} ${lv_rofs} ${lv_rdev} /newroot &>/dev/null
 	[ "$?" ] || {
 		if [ "${lv_crypt}" ]; then
@@ -247,11 +248,10 @@ do_root_work() {
 		die "Failed to mount rootfs."; }
 	[ -n "${sqfsd}" ] && do_sqfsd_work
 	lv_lvm=; lv_mtopt= 
-	shell_checkpoint 6
 }
 
 do_swap_work() {
-       	local lv_hdev="$(echo "$2"|cut -d':' -s -f2)" 
+	local lv_hdev="$(echo "$2"|cut -d':' -s -f2)" 
 	local lv_type=${2%%:*}
 	local lv_sign="$(echo "$2"|cut -d':' -s -f3)"
 	local lv_kmod=${3%%:*}
@@ -261,7 +261,6 @@ do_swap_work() {
 	[ -n "$lv_hdev" ] || die "${lv_mapp} dev|VG-LV is missing."
 	[ -n "$lv_type" ] || die "${lv_mapp} type file|swap is missing."
 	[ -n "$lv_sign" ] && lv_sign=:$lv_sign
-	shell_checkpoint 2
 	info "SWAP LV..."
 	check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_mapp}"
 	if [ -n "${lv_lvm}" ]; then
@@ -269,14 +268,13 @@ do_swap_work() {
 	else 	exec_cryptsetup "${lv_hdev}" "${lv_mapp}" 
 		gv_dev=${lv_type}:/dev/mapper/${lv_mapp}${lv_sign}; fi
 	lv_lvm=
-	shell_checkpoint 3
 }
 
 do_resume() {
 	[ "${gv_splash_silent}" = "silent" ] || splash_message "Resuming..."
 	splash_daemon_stop
 	[ -n "$(echo "${gv_toi}"|cut -d':' -s -f2)" ] && {
-:       	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -s -f3)}
+:      	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -s -f3)}
 		do_swap_work "resume"  "${gv_toi}" "${gv_kresume}"; }
 	modprobe_group tuxonice
 	echo ${gv_dev} > /sys/power/tuxonice/resume
@@ -308,11 +306,12 @@ do_switch() {
 	info "SWITCHING root '/'..."
 	splash_daemon_stop
 	sleep 1
+	shell_runlevel 4u
 	/bin/umount -l /proc
 	/bin/umount -l /sys
 	/bin/umount -l /dev
-	shell_checkpoint 7
-	exec switch_root /newroot ${uv_init:-/sbin/init}
+	shell_runlevel 4s
+	exec switch_root /newroot ${uv_init:-/sbin/init} ${gv_init_runlevel}
 }
 
 print_msg() {
@@ -327,14 +326,16 @@ do_work() {
 	[ -n "$gv_font" ] && [ -e "/etc/${gv_font}" ] && { 
 		loadfont < "/etc/${gv_font}" || die "Failed to load ${gv_font} font."; }
 	print_msg
-	shell_checkpoint 1
+	shell_runlevel 1
 	modprobe_group gpg
 	modprobe_group remdev
 	if [ -n "${gv_swap}" ]; then
-:       	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -s -f2)}
+:      	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -s -f2)}
+		shell_runlevel 2s
 		do_swap_work "swap" "${gv_swap}" "${gv_kswap}"; fi
-	[ -n "${gv_toi}" ] && do_resume
+	[ -n "${gv_toi}" ] && shell_runlevel 2r && do_resume
 	do_root_work
+	shell_runlevel 4c
 	for lk in ${gv_ldk_key}; do close_cryptsetup ${lk} ${lk}; done
 	for ld in ${gv_ldk_dev}; do losetup -d ${ld}; done
 	rmmod_group gpg
@@ -347,7 +348,7 @@ parse_cmdline_args() {
 	local dir
 	for arg in $(cat /proc/cmdline); do
     		case $arg in
-			rescue)     gv_shell_checkpoint=1;;
+			rescue)     gv_shell_runlevel=1;;
 			isqfsd=*)   dir=${arg#*=}
 				if [ "${dir%,*}" = "y" ]; then sqfsdir=${uv_sqfsdir:-/sqfsd}
 				else sqfsdir=${dir%,*}; fi
@@ -366,8 +367,9 @@ parse_cmdline_args() {
 			console=*)  gv_splash_console=${arg#*=};;
 			iresume=*)  gv_toi=${arg#*=};;
 			ikmap=*)    gv_kmap=$(echo ${arg#*=}|cut -d':' -f1)
-				    gv_font=$(echo ${arg#*=}|cut -d':' -f2);;
-			ichkpt=*)   gv_shell_checkpoint=${arg#*=};;
+				        gv_font=$(echo ${arg#*=}|cut -d':' -f2);;
+			ishrl=*)    gv_shell_runlevel=$(echo ${arg#*=}|cut -d':' -f1)
+				        gv_init_runlevel=$(echo ${arg#*=}|cut -d':' -f2);;
 			iswap=*)    gv_swap=${arg#*=};;
 			ikroot=*)   gv_kroot=${arg#*=};;
 			ikswap=*)   gv_kswap=${arg#*=};;

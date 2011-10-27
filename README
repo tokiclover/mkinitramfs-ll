@@ -2,24 +2,26 @@
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
-# 	Arguments:
+# 	OPTIONAL ARGUMENTS [ONLY iroot IS REQUIRED else nothing will happen but maybe a kernel panic]:
 #	init script supports the following specific arguments: 
 #      * iroot=<PV|VG-LV>[:c:<fs>:n]        root device--required, recommanded optinal `:c:ext4' for an ext4 rootfs, 
 #                                           last argument is to disable a `die' after fsck failure,default is y. 
 #      * [imtopt=<ro,inode64,...>]          optional mount options for rootfs e.g. 
 #      * [imod=<i915,radeon,drm,ttm>]       optional (comma seperated list) modules to load (in the boot group).
 #      * ikmap=<kmap>[:<font>]              load key map and optional font.
+#      * ishrl=<n>|:<n>                     interrupts and drops to shell <n> level or pass <n> argument to real *init*.
 #      * rescue                             drops into a minimal shell.
-#      * iswap=<type>:<VG-LV>[:signature]   e.g. iswap=swap:sda2 for a swap device.
-#      * iresume=<type>:<VG-LV>[:signature] e.g. iresume=file:<VG-LV>:0x4400 for a swapfile in a LV.
-#      * ichkpt=<n>                         Interrupts init and drops to shell <n> shell-level.
-#      * ikroot=<mode>:<device>:</path/to/file>        ikroot argument for for [i]root keyfile or [no-]password.
-#      * ikswap=<mode>:<device>:</path/to/file>        iswap argument for for [i]swap keyfile or [no-]password.
-#      * ikresume=<mode>:<device>:</path/to/key/file>  same as above but for [i]resume.
-#      * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]           squashed directories, see below for more info.    
 #      * ilvm=<map-PV>,<map-PV>,<map-PV>    LVM2 argument <mapping-PV>: collon `:' separated list of LVs in a VG and 
 #                                           comma `,' separated in a VG. 1st group for root, 2nd for swap and the 3rd 
 #                                           for resume, hence one can append commas to asign a particular group.
+#
+#      * iswap=<type>:<VG-LV>[:signature]              e.g. iswap=swap:sda2 for a swap device.
+#      * iresume=<type>:<VG-LV>[:signature]            e.g. iresume=file:<VG-LV>:0x4400 for a swapfile in a LV.
+#      * ikroot=<mode>:<device>:</path/to/file>        ikroot argument for for [i]root keyfile or [no-]password.
+#      * ikswap=<mode>:<device>:</path/to/file>        iswap argument for for [i]swap keyfile or [no-]password.
+#      * ikresume=<mode>:<device>:</path/to/key/file>  same as above but for [i]resume.
+#
+#      * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]           squashed directories, see below for more info.    
 #
 #	== About LVM2 argument ==
 #	Actually a PV in a group, respectively root, swap, resume is given by <mapping>-<device>, 
