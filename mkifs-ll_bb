@@ -33,7 +33,7 @@ done
 
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
-:	${MISDIR:=$WORKDIR/misc}
+:	${MISCDIR:=$WORKDIR/misc}
 :	${BINDIR:=$WORKDIR/bin}
 
 error() { echo -ne "\e[1;31m* \e[0m$@"; }

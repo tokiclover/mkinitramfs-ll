@@ -118,7 +118,7 @@ if [[ -e "$BINDIR"/applets ]]; then
 	done
 else sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
 
-[[ -n "$iAUFS" ]] && { BINARIES+=:sbin/umount.aufs:/sbin/mount.aufs
+[[ -n "$iAUFS" ]] && { BINARIES+=:umount.aufs:mount.aufs
 	for fs in {au,squash}fs
 	do [ -n "$(echo ${MODULES[2]}|grep $fs)" ] || MODULES[2]+=",$fs"; done
 	unset iAUFS
@@ -134,7 +134,7 @@ else sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"; fi
 	chmod 700 .gnupg; chmod 600 .gnupg/gpg.conf; unset iGPG
 }
 
-[[ -n "$iLVM" ]] && { BINARIES+=:/sbin/lvm.static
+[[ -n "$iLVM" ]] && { BINARIES+=:lvm.static
 	cd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
 	{lv,vg}reduce lvresize vgmerge
@@ -185,8 +185,8 @@ unset MODULES
 	unset FONTS
 }
 
-[[ -n "$SPLASHS" ]] && { BINARIES+=:/sbin/splash_util.static
-	[[ -n "$iTOI" ]] && BINARIES+=:sbin/tuxoniceui_text && unset iTOI
+[[ -n "$SPLASHS" ]] && { BINARIES+=:splash_util.static
+	[[ -n "$iTOI" ]] && BINARIES+=:tuxoniceui_text && unset iTOI
 	for splash in ${SPLASHS//:/ }; do 
 		if [[ -e "$splash" ]]; then cp -ar "$splash" etc/splash/ 
 		elif [[ -e "$MISCDIR/$splash" ]]; then cp -ar "$MISCDIR/$splash" etc/splash/	
