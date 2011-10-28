@@ -5,6 +5,15 @@
 # of course. And now I added LVM2... done I'm saying...                     #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
 #
+*2011-10-28:
+	* updated a few things and mkifs-ll, now only busybox is required to run
+	  that script (what's the point?) if one remove cryptsetup/v86d/fsck.*
+	  from the newly introduced BINARIES array. FSCK *array* is already old..
+	  noticeable changes is that a little function will take care of copying
+	  all binaries whch will strip away `.static' suffix(es) and now 
+	  $(which bb) will be copied with a warning, if any, if no suitable 
+	  static busybox is foundi (in $BINDIR).
+
 *2011-10-27:
 	* modified `ichkpt' cmdline to `ishrl' that means shell runlevel;
 	* ishrl take one of two argument <n> or :<n>, first one has the previous

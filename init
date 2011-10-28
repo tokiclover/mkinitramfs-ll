@@ -62,12 +62,12 @@ splash_silent() { splash_command "set mode silent"; }
 splash_message() { splash_command "set message $@"; splash_command "repaint"; }
 
 splash_setup() {
-	[ ${uv_check_env} ] || bin_exist "splash_util.static" "--"
+	[ ${uv_check_env} ] || bin_exist "splash_util" "--"
 	[ -n "$gv_splash_console" ] && exec < /dev/$gv_splash_console > \
 		/dev/$gv_splash_console &>/dev/null
 	[ -e /lib/splash/cache ] || mkdir -p /lib/splash/cache
 	[ -e /lib/splash/cache/.splash ] || mknod /lib/splash/cache/.splash p
-	splash_util.static --daemon "--theme=$gv_splash_theme"
+	splash_util --daemon "--theme=$gv_splash_theme"
 	gv_active_splashutil=0
 }
 
