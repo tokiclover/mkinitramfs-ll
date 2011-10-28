@@ -13,7 +13,7 @@ EOF
 
 while [[ $# > 0 ]]; do
 	case $1 in 
-		--use=*) EUSE=i"${1#*=}"; shift;;
+		--use=*) EUSE="${1#*=}"; shift;;
 		--Version=*) Version=${1#*=}; shift;;
 		--version|-v) echo "version $revision"; exit 0;;
 		--usage|-u|*) usage; exit 0;;
@@ -22,25 +22,25 @@ done
 
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
-:	${BIN:=$WORKDIR/bin}
+:	${MISDIR:=$WORKDIR/misc}
+:	${BINDIR:=$WORKDIR/bin}
 
 error() { echo -ne "\e[1;31m* \e[0m$@"; }
 die() { error "$@"; exit 1; }
 
-mkdir -p "$BIN"
+mkdir -p "$BINDIR"
 
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 GPG=$(emerge -pvO =app-crypt/gnupg-${Version:-1.4*}|grep -o "gnupg-[-0-9.r]*")
 USE="nls static $EUSE" ebuild $GPG.ebuild compile || die "eek!"
-cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/$GPG/work/$GPG || die "eek!"
-cp -a gpg $BIN/ || die "eek!"
-cp g10/options.skel $BIN/ || die "eek!"
-cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
+cd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/app-crypt/$GPG/work/$GPG || die "eek!"
+cp -a gpg "$BINDIR"/ || die "eek!"
+cp g10/options.skel "$BINDIR"/ || die "eek!"
+cd "${PORTDIR:-/usr/portage}"/app-crypt/gnupg || die "eek"
 ebuild $GPG.ebuild clean || die "eek!"
-cd $WORKDIR || die "eek!"
+cd "$WORKDIR" || die "eek!"
 
 set iGPG=y
-unset GPG EUSE BIN Version
+unset GPG EUSE Version
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

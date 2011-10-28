@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.3 2011/10/24 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.3 2011/10/28 -tclover Exp $
 
 usage() {
   cat << EOF
@@ -8,7 +8,7 @@ usage() {
   -b, --build           build a static busybox.
   -m, --minimal         build busybox with minimal applets, default is to build all applets.
   -i, --install	        install busybox with symliks to './bin', require -b|--build.
-      --kmap=map:kmap   generate kmap keymap using map as input keymap.
+      --keymap=map:kmap generate kmap keymap using map as input keymap.
       --uCl-arch=i386   ARCH string for uClibc build.		
   -u, --usage           display help and exit.
   -v, --version         display version and exit.
@@ -24,7 +24,7 @@ while [[ $# > 0 ]]; do
 		-i|--install) IBB=y; shift;;
 		--tmp=*) TMP_DIR=${1#*=}; shift;;
 		--ucl-arch=*) UCL_ARCH=${1#*=}-uClibc-; shift;;
-		--kmap=*) KBB=y; KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
+		--keymap=*) KBB=y; KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
 			KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2); shift;;
 		-v|--version)  echo "version $revision"; exit 0;;
 		-u|--usage|*) usage; exit 0;;
@@ -33,18 +33,18 @@ done
 
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
-:	${BIN:=$WORKDIR/bin}
+:	${MISDIR:=$WORKDIR/misc}
+:	${BINDIR:=$WORKDIR/bin}
 
 error() { echo -ne "\e[1;31m* \e[0m$@"; }
 die()   { error "$@"; exit 1; }
 
 build_busybox() {
-	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
+	cd "${PORTDIR:-/usr/portage}"/sys-apps/busybox || die "eek"
 	BBT=$(emerge -pvO busybox|grep -o "busybox-[-0-9.r]*")
 	ebuild $BBT.ebuild clean || die "clean failed"
 	ebuild $BBT.ebuild unpack || die "unpack failed"
-	cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/$BBT || die "eek!"
+	cd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/$BBT/work/$BBT || die "eek!"
 
 	if [[ "$CONFIG" = "m" ]]; then
 		make allnoconfig || die "eek!"
@@ -94,7 +94,7 @@ install_busybox() {
 	[[ -e "$TMP_DIR" ]] && {
 		make install CONFIG_PREFIX="$TMP_DIR"/busybox
 		rm -rf /tmp/busybox; }
-	./applets/install.sh "$BIN" --symlinks
+	./applets/install.sh "$BINDIR" --symlinks
 }
 
 build_keymap() { 
@@ -110,29 +110,29 @@ build_keymap() {
 }
 
 [[ "${BBB}" = "y" ]] && {
-	mkdir -p "$BIN"
+	mkdir -p "$BINDIR"
 	build_busybox
 	[[ "$IBB" = "y" ]] && install_busybox
-	cp -a busybox "$BIN"/ || die "failed to copy bb binary"
-	cp busybox.links "$BIN"/applets || die "failed to copy applets"
+	cp -a busybox "$BINDIR"/ || die "failed to copy bb binary"
+	cp busybox.links "$BINDIR"/applets || die "failed to copy applets"
 	unset CONFIG IBB
 }
 
 [[ "${KBB}" = "y" ]] && {
-	mkdir -p "$BIN"
-	[[ "$BBB" != "y" ]] && cd "$BIN" || die "eek!"
+	mkdir -p "$BINDIR"
+	[[ "$BBB" != "y" ]] && cd "$BINDIR" || die "eek!"
 	build_keymap
 	[[ "$BBB" = "y" ]] && { 
-		cp $KEYMAP_OUT "$BIN"/ || die "$KEYMAP_OUT copy failed"
+		cp $KEYMAP_OUT "$BINDIR"/ || die "$KEYMAP_OUT copy failed"
 	}
-	export KEYMAPS+=",$KEYMAP_OUT"
+	KEYMAPS+=":$KEYMAP_OUT"
 	unset KEYMAP_IN KEYMAP_OUT UNICODE KBB
 }
 
 [[ "${BBB}" = "y" ]] && {
-	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
+	cd "${PORTDIR:-/usr/portage}"/sys-apps/busybox || die "eek"
 	ebuild $BBT.ebuild clean || die "eek"
-	cd $WORKDIR || die "eek!"
+	cd "$WORKDIR" || die "eek!"
 	unset BBB BBT
 }
 
