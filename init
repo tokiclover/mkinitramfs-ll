@@ -112,7 +112,7 @@ get_key() {
 				sleep 3; }
 		[ -b "/dev/${lv_dev}" ] || die "${lv_dev} remdev does not exist."; }
 	mount -n -r "/dev/${lv_dev}" /mnt/tok &>/dev/null || die "Failed to mount ${lv_dev} remdev."
-		info "Removalble device mounted."; }
+		info "Removable device mounted."; }
 	[ -f "/mnt/tok/${gv_fpath}" ] || die "${gv_fpath} keyfile does not exist in ${lv_dev} remdev."
 	case ${lv_mode} in
 		gpg)	[ ${uv_check_env} ] || bin_exist "gpg" "--"
