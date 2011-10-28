@@ -168,7 +168,7 @@ done
 unset MODULES
 
 [[ -n "$KEYMAPS" ]] && { 
-	for keymap in ${KEYMAPS//,/ }; do 
+	for keymap in ${KEYMAPS//:/ }; do 
 		if [[ -e "$keymap" ]]; then cp -a "$keymap" etc/
 		elif [[ -e "$BINDIR/$keymap" ]]; then cp -a "$BINDIR/$keymap" etc/ 
 		else warn "failed to copy $keymap keymap"; fi
