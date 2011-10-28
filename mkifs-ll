@@ -130,7 +130,7 @@ if [[ -n $iGPG ]] {
 	chmod 700 .gnupg; chmod 600 .gnupg/gpg.conf; unset iGPG
 }
 
-if [[ -n $iLVM ]] { BINARIES+=:/sbin/lvm.static
+if [[ -n $iLVM ]] { BINARIES+=:lvm.static
 	cd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
 			 {lv,vg}reduce lvresize vgmerge)
