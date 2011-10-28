@@ -22,7 +22,7 @@ install:
 		-e 's:\.\/mk:mk:g' -i ${bin_prefix}_gen
 	sed -e 's:\./${bin_prefix}\.conf:/etc/${bin_prefix}.conf:g' -i ${bin_prefix}_gpg
 	sed -e 's:\$$(pwd):/${prefix}/share/$(PACKAGE):' \
-		-e 's:\$$BIN/fr_l1-amd64.bin::' -i ${bin_prefix}.conf
+		-e 's:\$$BINDIR/fr_l1-amd64.bin::' -i ${bin_prefix}.conf
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)
