@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.3.5 2011/10/25 -tclover Exp $
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.3.5 2011/10/28 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -7,11 +7,11 @@ usage() {
 
   -up,--update              update the underlying source directory e.g. bin:sbin:lib32:lib64.
   -rm,--remove              remove the underlying source directory e.g. usr:opt:\$PORTDIR.
-      --sqfsdir=<dir>       override default value \`sqfsdir=/sqfsd'.
-  -d, --sqfsd=<dir>         colon ':' seperated directories list without the leading \`/'.
+      --sqfsdir=<dir>       override default value 'sqfsdir=/sqfsd'.
+  -d, --sqfsd=<dir>         colon ':' seperated directories list without the leading '/'.
       --arch=32             ARCH to use for lib\$ARCH rebuilding (for rc-svcdir, cachedir).
-      --fstab               whether to write the necessary mount lines to \`/etc/fstab'.
-  -f, --force               force rebuilding, equivalent to \`--offset=0'.
+      --fstab               whether to write the necessary mount lines to '/etc/fstab'.
+  -f, --force               force rebuilding, equivalent to '--offset=0'.
       --bsize=131072        use [128k] 131072 bytes block size which is the default value.
       --comp="xz -Xbjc x86" use xz compressor optionaly, one can append extra arguments.
       --excl=<dir>          exlude <dir> from being included into the .sfs squashed image.
@@ -31,7 +31,7 @@ EOF
 info() 	{ print -P "%B%F{green}*%b%f $@"; }
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
-alias die='die "%1x:%U${(%):-%I:%N}:%u" $@'
+alias die='die "%F{yellow}%1x:%U${(%):-%I:%N}:%u%f" $@'
 setopt NULL_GLOB
 
 squashed() {

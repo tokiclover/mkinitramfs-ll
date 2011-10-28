@@ -1,12 +1,12 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.3.3 2011/10/25 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.3.3 2011/10/28 -tclover Exp $
 
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-b|--build [-m|--minimal] [--uCl-arch=i386] ] [--kmap=map:kmap]
   -b, --build	        build a static busybox.
   -m, --minimal	        build busybox with minimal applets, default is to build all applets.
-  -i, --install	        install busybox with symliks to \`./bin\', require -b|--build.
+  -i, --install	        install busybox with symliks to ./bin, require -b|--build.
       --kmap=map:kmap   generate kmap keymap using map as input keymap.
       --uCl-arch=i386   ARCH string for uClibc build.		
   -u, --usage           display help and exit.
@@ -23,8 +23,8 @@ while [[ $# > 0 ]]; do
 		-i|--install) IBB=y; shift;;
 		--tmp=*) TMP_DIR=${1#*=}; shift;;
 		--ucl-arch=*) UCL_ARCH=${1#*=}-uClibc-; shift;;
-		--kmap=*) KEYMAP_IN=${${${1#*=}/:/ }[(w)1]}; KBB=y 
-		         KEYMAP_OUT=${${${1#*=}/:/ }[(w)2]}; shift;;
+		--kmap=*) KEYMAP_IN=${${(pws,:,)${1#*=}}[(w)1]}; KBB=y 
+		         KEYMAP_OUT=${${(pws,:,)${1#*=}}[(w)2]}; shift;;
 		-v|--version)  echo "version $revision"; exit 0;;
 		-u|--usage|*) usage; exit 0;;
 	esac
@@ -32,12 +32,12 @@ done
 
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
-alias die='die "%1x:%U${(%):-%I:%N}:%u" $@'
+alias die='die "%F{yellow}%1x:%U${(%):-%I:%N}:%u%f" $@'
 
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
-:	${BIN:=$WORKDIR/bin}
+:	${MISCDIR:=$WORKDIR/misc}
+:	${BINDIR:=$WORKDIR/bin}
 
 build_busybox() {
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
@@ -97,7 +97,7 @@ install_busybox() {
 		make install CONFIG_PREFIX=$TMP_DIR/busybox
 		rm -rf /tmp/busybox 
 	}
-	./applets/install.sh $BIN --symlinks
+	./applets/install.sh $BINDIR --symlinks
 }
 
 build_keymap() { 
@@ -111,20 +111,20 @@ build_keymap() {
 }
 
 if [[ ${BBB} = y ]] {
-	mkdir -p $BIN
+	mkdir -p $BINDIR
 	build_busybox
 	[[ $IBB = y ]] && install_busybox
-	cp -a busybox $BIN/ || die "failed to copy bb binary"
-	cp busybox.links $BIN/applets || die "failed to copy applets"
+	cp -a busybox $BINDIR/ || die "failed to copy bb binary"
+	cp busybox.links $BINDIR/applets || die "failed to copy applets"
 	unset CONFIG IBB 
 }
 
 if [[ $KBB = y ]] {
-	mkdir -p $BIN
-	[[ $BBB != y ]] && cd $BIN || die "eek!"
+	mkdir -p $BINDIR
+	[[ $BBB != y ]] && cd $BINDIR || die "eek!"
 	build_keymap
-	if [[ $BBB = y ]] { cp $KEYMAP_OUT $BIN/ || die "$KEYMAP_OUT copy failed" }
-	KEYMAPS+=",$KEYMAP_OUT"
+	if [[ $BBB = y ]] { cp $KEYMAP_OUT $BINDIR/ || die "$KEYMAP_OUT copy failed" }
+	KEYMAPS+=":$KEYMAP_OUT"
 	unset KEYMAP_IN KEYMAP_OUT UNICODE KBB 
 }
 

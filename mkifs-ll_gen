@@ -1,27 +1,27 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gen[.zsh],v 0.2.2 2011/10/25 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gen[.zsh],v 0.2.2 2011/10/28 -tclover Exp $
 
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS] [OPTIONS...]
-  -a, --aufs             adds aufs[2] support to the initramfs for sqfsd (aufs2+squashfs).
-      --bin-dir=bin      create, wen building busybox or gpg, or use binaries from bin directory.
-  -A, --build-all        build gnupg, busybox with unicode keymap with AUFS2/LVM2/TOI support.
-  -b, --build-bb         build a static busybox, copy binary/applets to \$BIN, then build initramfs.
-  -g, --build-gpg        build a static gnupg-1.4.x and copy the binary/options.skel to \$BIN, 
-  	                     -g|--gpg is not necessary to append on the cmdline as well.
-      --conf-dir=<dir>   use <dir> to copy gpg.conf for gpg configuration file.
-      --font=<font>	     comma seperated list of  font(s) to include to the initramfs.
-      --gpg              adds GPG support, require a static app-crypt/gnupg-1.4 and options.skel.
-      --kmap=map:kmap    generate kmap keymap using map as input keymap.
-  -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2 build.
-      --misc-dir=misc 	 use \`misc/{.gnupg/gpg.conf,share/gnupg/options.skel,initramfs-ll.conf}\',  
-                         one can add manpages and info files of gpg/lvm in misc/share as the whole
-                         directory will be copied over into the initramfs.
-      --splash=theme     comma sepatarated list of splash(s) theme to include in the initramfs.
-      --toi	             adds tuxonice support.
-  -u, --usage            print this help.
-  -v, --version          print version.
+  -a, --aufs             adds support for squashed directory-ies (sqfsd) (aufs2+squashfs)
+      --bindir=bin       copy binaries/applets/keymap to \$BINDIR after building them
+  -A, --build-all        build gnupg-1.4.x, busybox, unicode keymap and AUFS/LVM/TOI support
+  -b, --build-bb         build a static busybox, copy binary/applets to \$BINDIR
+  -g, --build-gpg        build gnupg-1.4.x, copy binary to $BINDIR, and add GnuPG support 
+      --confdir=<dir>    use <dir> to copy gpg.conf, gpg configuration file
+      --font=<font>	     comma seperated list of  font(s) to include to the initramfs
+      --gpg              adds GPG support, require a static gnupg-1.4 and options.skel
+      --keymap=map:kmap  generate kmap keymap using map as input keymap
+  -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2
+      --miscdir=misc     use '.gnupg/gpg.conf,share/gnupg/options.skel' from \$MISCDIR 
+                         one can add manpages gpg/lvm/cryptsetup in \$MISCDIR/share
+      --splash=theme     comma sepatarated list of splash(s) theme to include
+      --toi	             adds tuxonice support
+  -u, --usage            print this help
+  -v, --version          print version
+
+  usage: runned without arguments, build an initramfs for kernel \$(uname -r)
 
   # build an initramfs, after building gnupg and busybox, with AUFS2/LVM2/GPG support
   ${(%):-%1x} --build-all --aufs --lvm
@@ -31,21 +31,21 @@ EOF
 while [[ $# > 0 ]]; do
 	case $1 in
 		--aufs|-a) set iAUFS=y; shift;;
-		--bin-dir=*) [[ -n ${1#*=} ]] && BIN=${1#*=}; shift;;
+		--bindir=*) [[ -n ${1#*=} ]] && BINDIR=${1#*=}; shift;;
 		--build-all|-A) set iLVM=y; iGPG=y; set BBB=y; set CONFIG=y; 
 				set bGPG=y; set KBB=y; UNICODE=y; shift;;
 		--build-bb|-b) BBB=y; CONFIG=y; IBB=y; shift;;
 		--build-gpg|-g) bGPG=y; iGPG=y; shift;;
-		--conf-dir*) CONF="${1#*=}"; shift;;
-		--font=*) [[ -n ${1#*=} ]] && FONTS+=",${1#*=}"; shift;;
+		--confdir*) CONFDIR=${1#*=}; shift;;
+		--font=*) [[ -n ${1#*=} ]] && FONTS+=:${1#*=}; shift;;
 		--gpg|-g) iGPG=y; shift;;
 		--lvm|-l) iLVM=y; shift;; 
-		--kmap=*) KEYMAP_IN=${${${1#*=}/:/ }[(w)1]}; KBB=y 
-		         KEYMAP_OUT=${${${1#*=}/:/ }[(w)2]}; shift;;
+		--kmap=*) KEYMAP_IN=${${(pws,:,)${1#*=}}[(w)1]}; KBB=y 
+		         KEYMAP_OUT=${${(pws,:,)${1#*=}}[(w)2]}; shift;;
 		--lvm|-l) iLVM=y; shift;;
 		--minimal|-m) CONFIG=m; shift;;
-		--misc-dir*) [[ -n ${1#*=} ]] && MISC=${1#*=}; shift;;
-		--splash=*) [[ -n ${1#*=} ]] && SPLASHS+=",${1#*=}"; shift;;
+		--miscdir*) [[ -n ${1#*=} ]] && MISCDIR=${1#*=}; shift;;
+		--splash=*) [[ -n ${1#*=} ]] && SPLASHS+=:${1#*=}; shift;;
 		--toi) iTOI=y; shift;;
 		--version|-v)  echo "version $revision"; exit 0;;
 		--usage|-u|*) usage; exit 0;;
@@ -54,20 +54,20 @@ done
 
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
-alias die='die "%1x:%U${(%):-%I:%N}:%u" $@'
+alias die='die "%F{yellow}%1x:%U${(%):-%I:%N}:%u%f" $@'
 
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
+:	${MISCDIR:=$WORKDIR/misc}
 
-if [[ -n $BBB ]] { mkdir -p $BIN; ./mkifs-ll_bb }
+if [[ -n $BBB ]] { mkdir -p $BINDIR; ./mkifs-ll_bb }
 
 if [[ -n $bGPG ]] { 
-	mkdir -p $BIN
-	mkdir -p $MISC/{share/,.}gnupg
-	if [[ -n $CONF ]] {	cp $CONF/gpg.conf $MISC/.gnupg/ || die "eek!"; unset CONF }
+	mkdir -p $BINDIR
+	mkdir -p $MISCDIR/{share/,.}gnupg
+	if [[ -n $CONFDIR ]] {	cp $CONFDIR/gpg.conf $MISCDIR/.gnupg/ || die "eek!"; unset CONF }
 	./mkifs-ll_gpg
-	cp $BIN/options.skel $MISC/share/gnupg/ || die "eek!"
+	cp $BINDIR/options.skel $MISCDIR/share/gnupg/ || die "eek!"
 	unset bGPG 
 }
 

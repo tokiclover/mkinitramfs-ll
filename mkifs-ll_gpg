@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.1.2 2011/10/25 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.1.2 2011/10/28 -tclover Exp $
 
 usage() {
    cat <<-EOF
@@ -22,26 +22,26 @@ done
 
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
-alias die='die "%1x:%U${(%):-%I:%N}:%u" $@'
+alias die='die "%F{yellow}%1x:%U${(%):-%I:%N}:%u%f" $@'
 
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
-:	${MISC:=$WORKDIR/misc}
-:	${BIN:=$WORKDIR/bin}
+:	${MISCDIR:=$WORKDIR/misc}
+:	${BINDIR:=$WORKDIR/bin}
 
-mkdir -p $BIN
+mkdir -p $BINDIR
 
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 GPG=$(emerge -pvO =app-crypt/gnupg-${Version:-1.4*}|grep -o "gnupg-[-0-9.r]*")
 USE="nls static ${=EUSE}" ebuild $GPG.ebuild compile || die "eek!"
 cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/$GPG/work/$GPG || die "eek!"
-cp -a gpg $BIN/ || die "eek!"
-cp g10/options.skel $BIN/ || die "eek!"
+cp -a gpg $BINDIR/ || die "eek!"
+cp g10/options.skel $MISCDIR/ || die "eek!"
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 ebuild $GPG.ebuild clean || die "eek!"
 cd $WORKDIR || die "eek!"
 
 iGPG=y
-unset GPG EUSE BIN Version
+unset GPG EUSE BINDIR Version
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
