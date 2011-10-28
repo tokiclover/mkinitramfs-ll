@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/README,v 0.3.6 2011/10/24 -tclover Exp $
+# $Header: mkinitramfs-ll/README,v 0.3.6 2011/10/27 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
@@ -9,7 +9,7 @@
 #      * [imtopt=<ro,inode64,...>]          optional mount options for rootfs e.g. 
 #      * [imod=<i915,radeon,drm,ttm>]       optional (comma seperated list) modules to load (in the boot group).
 #      * ikmap=<kmap>[:<font>]              load key map and optional font.
-#      * ishrl=<n>|:<n>                     interrupts and drops to shell <n> level or pass <n> argument to real *init*.
+#      * ishrl=<n>|:<n>                     interrupts and drops to shell <n> level or pass <n> argument to real init.
 #      * rescue                             drops into a minimal shell.
 #      * ilvm=<map-PV>,<map-PV>,<map-PV>    LVM2 argument <mapping-PV>: collon `:' separated list of LVs in a VG and 
 #                                           comma `,' separated in a VG. 1st group for root, 2nd for swap and the 3rd 
@@ -30,7 +30,7 @@
 #      <LV|PV|VG>  - <Logical|Physical Volume|Volume Group>.
 #      <VG-LV>     - <Volume Group name-Logical Volume name>
 #      <map-PV>    - comma separated list <mapping-PV> e.g. <pv1-sda1,pv2-sdb1,...> for a Volume Group (VG), 
-#                    the 1st being for root, the 2nd for swap and the 3rd for resume. So if this `ilvm=,swp-sdc1,' 
+#                    the 1st being for root, the 2nd for swap and the 3rd for resume. So this `ilvm=,swp-sdc1,' 
 #                    asign a VG for only swap VG (one can boot directly from unencrypted PV for example).
 #
 # 	== About mount options ==
