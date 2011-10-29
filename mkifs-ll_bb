@@ -24,7 +24,6 @@ while [[ $# > 0 ]]; do
 		--ucl-arch=*) UCL_ARCH=${1#*=}-uClibc-; shift;;
 		--kmap=*) KEYMAP_IN=${${(pws,:,)${1#*=}}[(w)1]}; KBB=y 
 		         KEYMAP_OUT=${${(pws,:,)${1#*=}}[(w)2]}; shift;;
-		-v|--version)  echo "version $revision"; exit 0;;
 		-u|--usage|*) usage; exit 0;;
 	esac
 done

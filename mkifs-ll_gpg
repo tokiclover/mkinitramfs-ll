@@ -7,7 +7,6 @@ usage() {
       --use="USE flags"  extra USE flags to append to USE="nls static".
       --Version=<STR>	 build gpg-<STR> version instead of gpg-1.4*.
   -u, --usage            print this help.
-  -v, --version          print version.
 EOF
 }
 
