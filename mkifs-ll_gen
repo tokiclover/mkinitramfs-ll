@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gen[.zsh],v 0.2.2 2011/10/28 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gen[.zsh],v 0.2.2 2011/10/29 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -19,7 +19,6 @@ usage() {
       --splash=theme     comma sepatarated list of splash(s) theme to include
       --toi	             adds tuxonice support
   -u, --usage            print this help
-  -v, --version          print version
 
   usage: runned without arguments, build an initramfs for kernel \$(uname -r)
 

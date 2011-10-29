@@ -1,5 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll[.zsh],v 0.3.6 2011/10/28 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll[.zsh],v 0.3.6 2011/10/29 -tclover Exp $
+revision=0.3.6_p20111029
 
 usage() {
   cat <<-EOF

@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.3.3 2011/10/28 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.3.3 2011/10/29 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -10,7 +10,6 @@ usage() {
       --kmap=map:kmap   generate kmap keymap using map as input keymap.
       --uCl-arch=i386   ARCH string for uClibc build.		
   -u, --usage           display help and exit.
-  -v, --version         display version and exit.
 EOF
 }
 
