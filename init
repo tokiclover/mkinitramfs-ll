@@ -10,7 +10,6 @@ uv_root_map=root 		# self descriptive
 uv_check_env=0 			# test if busybox/applets and the other binaries exist 
 uv_sqfsdir=/sqfsd 		# squashed source dir related variable
 uv_sqfsd=usr:opt:bin:sbin:lib32	# squashed dirs variable
-uv_fscf=y 			# whether to die after a failure to fsck rootfs
 
 # default values (do not edit)
 gv_active_splashutil=1
@@ -246,6 +245,7 @@ do_root_work() {
 			else 	close_cryptsetup "${uv_root_map:-root}" "${uv_root_map:-root}"; fi
 			[ -n "${gv_fname}" ] && close_cryptsetup "${gv_fname}" "${gv_fname}"; fi
 		die "Failed to mount rootfs."; }
+	shell_runlevel 3s
 	[ -n "${sqfsd}" ] && do_sqfsd_work
 	lv_lvm=; lv_mtopt= 
 }
@@ -315,7 +315,7 @@ do_switch() {
 }
 
 print_msg() {
-#       clear
+#	clear
 	[ -e /etc/msg ] && info "$(cat /etc/msg)"
 }
 

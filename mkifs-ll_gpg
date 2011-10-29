@@ -22,7 +22,7 @@ done
 
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
-alias die='die "%F{yellow}%1x:%U${(%):-%I:%N}:%u%f" $@'
+alias die='die "%F{yellow}%1x:%U${(%):-%I}:%u%f" $@'
 
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${WORKDIR:=$(pwd)}
