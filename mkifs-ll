@@ -1,5 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/10/28 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/10/29 -tclover Exp $
+revision=0.3.6_p20111029
 
 usage() {
   cat <<-EOF
@@ -8,8 +9,8 @@ usage() {
   -e, --e-version=<str>  append <str> extra version after k-version to the initramfs
   -k, --k-version=<str>  build an initramfs for kernel '--k-version=\$(uname -r)'
       --font=<font>      collon seperated list of  font(s) to include to the initramfs
-  -f, --full             shor form of '--aufs --bin-dir --font --lvm --gpg --misci --toi'
-      --k-module=<mod>   collon seperated list of kernel modules to include.
+  -f, --full             short forme/hand of '--aufs --font --lvm --gpg --misci --toi'
+      --k-module=<mod>   collon seperated list of kernel modules to include
       --binary=<bins>    collon seperated list of binaries to include in the initramfs
       --bindir=bin       include binaries from \$BINDIR (actually busybox/gpg/applets)
       --comp-cmd=cmd     compression command to use to build initramfs, default is xz

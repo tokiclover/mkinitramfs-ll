@@ -1,17 +1,16 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.3 2011/10/28 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.3 2011/10/29 -tclover Exp $
 
 usage() {
   cat << EOF
   usage:
   ${0##*/} [-b|--build [-m|--minimal] [--uCl-arch=i386] ] [--kmap=map:kmap]
-  -b, --build           build a static busybox.
-  -m, --minimal         build busybox with minimal applets, default is to build all applets.
-  -i, --install	        install busybox with symliks to './bin', require -b|--build.
-      --keymap=map:kmap generate kmap keymap using map as input keymap.
-      --uCl-arch=i386   ARCH string for uClibc build.		
-  -u, --usage           display help and exit.
-  -v, --version         display version and exit.
+  -b, --build           build a static busybox
+  -m, --minimal         build busybox with minimal applets, default is to build all applets
+  -i, --install	        install busybox with symliks to './bin', require -b|--build
+      --keymap=map:kmap generate kmap keymap using map as input keymap
+      --uCl-arch=i386   ARCH string for uClibc build		
+  -u, --usage           display help and exit
 EOF
 }
 
@@ -26,7 +25,6 @@ while [[ $# > 0 ]]; do
 		--ucl-arch=*) UCL_ARCH=${1#*=}-uClibc-; shift;;
 		--keymap=*) KBB=y; KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
 			KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2); shift;;
-		-v|--version)  echo "version $revision"; exit 0;;
 		-u|--usage|*) usage; exit 0;;
 	esac
 done

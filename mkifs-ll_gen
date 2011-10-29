@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_bb[.bash],v 0.2.2 2011/10/28 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.bash],v 0.2.2 2011/10/29 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -19,7 +19,6 @@ usage() {
       --splash=theme     comma sepatarated list of splash(s) theme to include
       --toi	             adds tuxonice support
   -u, --usage            print this help
-  -v, --version          print version
 
   usage: runned without arguments, build an initramfs for kernel \$(uname -r)
 
@@ -48,7 +47,6 @@ while [[ $# > 0 ]]; do
 		--miscdir*) [[ -n "${1#*=}" ]] && MISCDIR="${1#*=}"; shift;;
 		--splash=*) [[ -n ${1#*=} ]] && SPLASHS+=":${1#*=}"; shift;;
 		--toi) iTOI=y; shift;;
-		--version|-v)  echo "version $revision"; exit 0;;
 		--usage|-u|*) usage; exit 0;;
 	esac
 done

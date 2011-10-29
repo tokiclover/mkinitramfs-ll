@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.3.6 2011/10/24 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.3.6 2011/10/29 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -10,7 +10,6 @@ uv_root_map=root 		# self descriptive
 uv_check_env=0 			# test if busybox/applets and the other binaries exist 
 uv_sqfsdir=/sqfsd 		# squashed source dir related variable
 uv_sqfsd=usr:opt:bin:sbin:lib32	# squashed dirs variable
-uv_fscf=y 			# whether to die after a failure to fsck rootfs
 
 # default values (do not edit)
 gv_active_splashutil=1
