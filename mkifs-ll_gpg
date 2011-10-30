@@ -3,16 +3,16 @@
 
 usage() {
    cat <<-EOF
-   usage: ${(%):-%1x} [--use="falgs"] [--Version=<str>]
-      --use="USE flags"  extra USE flags to append to USE="nls static".
-      --Version=<STR>	 build gpg-<STR> version instead of gpg-1.4*.
-  -u, --usage            print this help.
+   usage: ${(%):-%1x} [--useflags="falgs"] [--Version=<str>]
+      --useflags="flags" extra USE flags to append to USE="nls static"
+      --Version=<STR>	 build gpg-<STR> version instead of gpg-1.4.x
+  -u, --usage            print this help/uage and exit
 EOF
 }
 
 while [[ $# > 0 ]]; do
 	case $1 in 
-		--use=*) EUSE=${1#*=}; shift;;
+		--useflags=*) EUSE=${1#*=}; shift;;
 		--Version=*) Version=${1#*=}; shift;;
 		--usage|-u|*) usage; exit 0;;
 	esac

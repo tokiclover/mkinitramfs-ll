@@ -4,21 +4,22 @@
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS] [OPTIONS...]
-  -a, --aufs             adds support for squashed directory-ies (sqfsd) (aufs2+squashfs)
-      --bindir=bin       copy binaries/applets/keymap to \$BINDIR after building them
-  -A, --build-all        build gnupg-1.4.x, busybox, unicode keymap and AUFS/LVM/TOI support
-  -b, --build-bb         build a static busybox, copy binary/applets to \$BINDIR
-  -g, --build-gpg        build gnupg-1.4.x, copy binary to $BINDIR, and add GnuPG support 
-      --confdir=<dir>    use <dir> to copy gpg.conf, gpg configuration file
-      --font=<font>	     comma seperated list of  font(s) to include to the initramfs
-      --gpg              adds GPG support, require a static gnupg-1.4 and options.skel
-      --keymap=map:kmap  generate kmap keymap using map as input keymap
-  -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2
-      --miscdir=misc     use '.gnupg/gpg.conf,share/gnupg/options.skel' from \$MISCDIR 
-                         one can add manpages gpg/lvm/cryptsetup in \$MISCDIR/share
-      --splash=theme     comma sepatarated list of splash(s) theme to include
-      --toi	             adds tuxonice support
-  -u, --usage            print this help
+      --aufs             add aufs(+squashfs modules +{,u}mount.aufs binaries) support (sqfsd)
+      --bindir=bin       copy binaries/applets/keymap to \${BINDIR} after having built them
+  -A, --build-all        build gnupg-1.4.x, busybox, unicode keymap, add AUFS/LVM/TOI support
+  -b, --build-bb         build a static busybox, and then copy binary/applets to \${BINDIR}
+  -g, --build-gpg        build gnupg-1.4.x, copy gpg/option.skel to $BINDIR, add GnuPG support
+      --confdir=<dir>    use <dir> to copy gpg.conf, GnuPG configuration file
+      --font=<font>      collon ':' seperated list of fonts in include to the initramfs image
+  -g, --gpg              adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
+      --keymap=map:kmap  generate a [unicode] kmap keymap from  map as input keymap name
+  -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2[lvm.static] binary
+      --miscdir=misc     use '.gnupg/gpg.conf,share/gnupg/options.skel' from \$MISCDIR dir,
+                         one can add manpages gpg/lvm/cryptsetup in \$MISCDIR/share as well
+      --splash=<theme>   collon ':' separated list of splash themes to include in the image
+      --toi              adds tuxonice support for splash, require tuxoniceui_text binary
+  -u, --usage            print this help/usage and exit
+  -v, --version          print version string and exit
 
   usage: runned without arguments, build an initramfs for kernel \$(uname -r)
 
