@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.1.2 2011/10/29 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.1.2 2011/10/30 -tclover Exp $
 
 usage() {
    cat <<-EOF
