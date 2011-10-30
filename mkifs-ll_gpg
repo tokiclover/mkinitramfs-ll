@@ -12,7 +12,7 @@ EOF
 
 while [[ $# > 0 ]]; do
 	case $1 in 
-		--use=*) EUSE="${1#*=}"; shift;;
+		--useflags=*) EUSE="${1#*=}"; shift;;
 		--Version=*) Version=${1#*=}; shift;;
 		--usage|-u|*) usage; exit 0;;
 	esac

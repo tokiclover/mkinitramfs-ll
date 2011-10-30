@@ -40,8 +40,8 @@ while [[ $# > 0 ]]; do
 		--font=*) [[ -n ${1#*=} ]] && FONTS+=":${1#*=}"; shift;;
 		--gpg|-g) iGPG=y; shift;;
 		--lvm|-l) iLVM=y; shift;; 
-		--kmap=*) KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1)
-			  KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2)
+		--kmap=*) KEYMAP_IN=$(echo ${1#*=}|cut -d':' -f1) 
+		         KEYMAP_OUT=$(echo ${1#*=}|cut -d':' -f2)
 			  KBB=y; shift;;
 		--lvm|-l) iLVM=y; shift;;
 		--minimal|-m) CONFIG=m; shift;;
