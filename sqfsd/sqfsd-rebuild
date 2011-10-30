@@ -1,34 +1,36 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.bash],v 0.3.5 2011/10/25 -tclover Exp $
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.bash],v 0.3.5 2011/10/30 -tclover Exp $
+revision=0.3.5_p20111030
 
 usage() {
   cat <<-EOF
-  usage: ${0} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>
+  usage: ${0##*/} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>
 
-  -up,--update               update the underlying source directory e.g. bin:sbin:lib32:lib64.
-  -rm,--remove               remove the underlying source directory e.g. usr:opt:\$PORTDIR.
-      --sqfsdir=<dir>        override default value \`sqfsdir=/sqfsd'.
-  -d, --sqfsd=<dir>          colon ':' seperated directories list without the leading \`/'..
-      --arch=32              ARCH to use for lib\$ARCH rebuilding (for rc-svcdir, cachedir).
-      --fstab                whether to write the necessary mount lines to \`/etc/fstab'.
-  -f, --force                force rebuilding, equivalent to \`--offset=0'.
-      --bsize=131072         use [128k] 131072 bytes block size which is the default value.
-      --comp="xz -Xbjc x86"  use xz compressor optionaly, one can append extra arguments.
-      --excl=<dir>           exlude <dir> from being included into the .sfs squashed image.
-  -o, --offset=<int>         offset used for rebuilding squashed dirs, default is 10[%].
-  -u, --usage                print this help.
-  -v, --version              print the version string.
-  usages:
+  -up,--update              update the underlying source directory e.g. bin:sbin:lib32:lib64
+  -rm,--remove              remove the underlying source directory e.g. usr:opt:\${PORTDIR}
+      --sqfsdir=<dir>       override default value 'sqfsdir=/sqfsd', if not changed
+  -d, --sqfsd=<dir>         colon ':' seperated list directory-ies without the leading '/'
+      --arch=32             ARCH to use for lib\${ARCH} handling (rc-svcdir and cachedir)
+      --fstab               whether to write the necessary mount lines to '/etc/fstab'
+  -f, --force               force rebuilding, short hand/forme of '--offset=0'
+      --bsize=131072        use [128k] 131072 bytes block size, which is the default values
+      --comp="xz -Xbjc x86" use xz compressor, optionaly, one can append extra arguments...
+      --excl=<dir>          collon separated list of directories to exlude from *.sfs image
+  -o, --offset=<int>        offset used for rebuilding squashed directories, default is 10%
+  -u, --usage               print this help/usage and exit
+  -v, --version	            print version string and exit
+	
+  usages: [speed up your system with aufs+squahfs!]
   # squash directries which will speed up portage calculations--database,dependencies--and remove
   # the underlying files which take a much more spaces as there are numerous small files there.
-  ${0} -rm var/db:var/cache/edb
+  ${0##*/} -rm var/db:var/cache/edb
   # [re-]build system related squashed directories and update the sources/unsquashed directories
-  ${0} -up -d bin:sbin:lib32:lib64EOF
+  ${0##*/} -up -d bin:sbin:lib32:lib64
 EOF
 }
 
-info() 	{ echo -ne "\e[1;32m* \e[0m$@"; }
-error() { echo -ne "\e[1;31m* \e[0m$@"; }
+info() 	{ echo -ne "\e[1;32m* \e[0m$@\n"; }
+error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
 
 squashed() {

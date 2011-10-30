@@ -1,12 +1,12 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.1.2 2011/10/29 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.1.2 2011/10/30 -tclover Exp $
 
 usage() {
    cat << EOF
    usage: ${0##*/} [OPTINS]...
-      --use="USE flags"  extra USE flags to append to USE="nls static".
-      --Version=<STR>    build gpg-<STR> version instead of gpg-1.4*.
-  -u, --usage            print this help.
+      --useflags="flags" extra USE flags to append to USE="nls static"
+      --Version=<STR>	 build gpg-<STR> version instead of gpg-1.4.x
+  -u, --usage            print this help/uage and exit
 EOF
 }
 
@@ -23,7 +23,7 @@ done
 :	${MISCDIR:=$WORKDIR/misc}
 :	${BINDIR:=$WORKDIR/bin}
 
-error() { echo -ne "\e[1;31m* \e[0m$@"; }
+error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die() { error "$@"; exit 1; }
 
 mkdir -p "$BINDIR"

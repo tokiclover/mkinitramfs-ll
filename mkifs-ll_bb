@@ -5,12 +5,12 @@ usage() {
   cat << EOF
   usage:
   ${0##*/} [-b|--build [-m|--minimal] [--uCl-arch=i386] ] [--kmap=map:kmap]
-  -b, --build           build a static busybox
-  -m, --minimal         build busybox with minimal applets, default is to build all applets
-  -i, --install	        install busybox with symliks to './bin', require -b|--build
-      --keymap=map:kmap generate kmap keymap using map as input keymap
-      --uCl-arch=i386   ARCH string for uClibc build		
-  -u, --usage           display help and exit
+  -b, --build	          build a [minimal|full applets featured] static busybox binary 
+  -m, --minimal	          build busybox with minimal applets, default is full applets
+  -i, --install	          install busybox with symliks to \$BINDIR, require -b|--build
+      --keymap=map:kmap   generate kmap keymap using map as input keymap.
+      --uCl-arch=i386     ARCH string needed to build busybox linked uClibc instead of..		
+  -u, --usage             print the usage/help and exit
 EOF
 }
 
@@ -34,7 +34,7 @@ done
 :	${MISCDIR:=$WORKDIR/misc}
 :	${BINDIR:=$WORKDIR/bin}
 
-error() { echo -ne "\e[1;31m* \e[0m$@"; }
+error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
 
 build_busybox() {

@@ -1,36 +1,36 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/10/29 -tclover Exp $
-revision=0.3.6_p20111029
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/10/30 -tclover Exp $
+revision=0.3.6_p20111030
 
 usage() {
   cat <<-EOF
-  usage: ${0##*/} [OPTIONS...]
-      --aufs             adds aufs support to the initramfs for (aufs[2|3]+squashfs)
-  -e, --e-version=<str>  append <str> extra version after k-version to the initramfs
-  -k, --k-version=<str>  build an initramfs for kernel '--k-version=\$(uname -r)'
-      --font=<font>      collon seperated list of  font(s) to include to the initramfs
-  -f, --full             short forme/hand of '--aufs --font --lvm --gpg --misci --toi'
-      --k-module=<mod>   collon seperated list of kernel modules to include
-      --binary=<bins>    collon seperated list of binaries to include in the initramfs
-      --bindir=bin       include binaries from \$BINDIR (actually busybox/gpg/applets)
-      --comp-cmd=cmd     compression command to use to build initramfs, default is xz
-  -g, --gpg              adds GnuPG support, require a static gnupg-1.4.x/options.skel
-      --prefix=vmlinuz.  prefix scheme to name the initramfs default is 'initrd-'
-      --keymap=kmx86.bin collon seperated list of keymap(s) to include in the initramfs
-  -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2 build
-      --miscdir=misc     use '.gnupg/gpg.conf,share/gnupg/options.skel' from \$MISCDIR 
-                         one can add manpages gpg/lvm/cryptsetup in \$MISCDIR/share
-      --splash=theme     collon sepatarated list of splash(s) theme to include
-      --toi              adds tuxonice support
-  -u, --usage            print this help
-  -v, --version          print version
+  usage: ${(%):-%1x} [OPTIONS...]
+      --aufs             add aufs(+squashfs modules +{,u}mount.aufs binaries) support (sqfsd)
+  -e, --e-version=<str>  append an extra '<str>' version after \${K_VERSION} to the initramfs
+  -k, --k-version=<str>  build an initramfs for '<str>' kernel version, else for \$(uname -r)
+      --font=<font>      collon ':' seperated list of fonts in include to the initramfs image
+  -f, --full             short forme/hand of '--aufs --lvm --gpg --toi' +use default (values)
+      --k-module=<mod>   collon seperated list of kernel module-s to include in the initramfs
+      --binary=<bins>    collon seperated list of binary-ies to include in the initramfs
+      --bindir=bin       try to include binaries from \${BINDIR} (busybox/applets/gpg) first
+      --comp-cmd=cmd     compression command to use to build initramfs, default is 'xz -9..'
+  -g, --gpg              adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
+      --prefix=vmlinuz.  prefix scheme to name the initramfs image default is 'initrd-'
+      --keymap=kmx86.bin collon seperated list of keymaps to include in the initramfs image
+  -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2[lvm.static] binary
+      --miscdir=misc     use '.gnupg/gpg.conf,share/gnupg/options.skel' from \$MISCDIR dir,
+                         one can add manpages gpg/lvm/cryptsetup in \$MISCDIR/share as well
+      --splash=<theme>   collon ':' separated list of splash themes to include in the image
+      --toi              adds tuxonice support for splash, require tuxoniceui_text binary
+  -u, --usage            print this help/usage and exit
+  -v, --version          print version string and exit
 
   # usage: without an argument, build an initramfs for \$(uname -r) with only LUKS support
 
-  # build with LUKS/GPG/LVM2/AUFS2 support for 3.0.3-git kernel with d0 extra version
+  # build with LUKS/GPG/LVM2/AUFS2 support for 3.0.3-git kernel with an extra 'd0' version
   ${0##*/} --e-version=d0 --k-version=3.0.3-git --full
   
-  # <str>    string
+  # NOTE: <str>: string; <font>: fonts list; <theme>: theme list; <mod>: kernel modules...
 EOF
 }
 
