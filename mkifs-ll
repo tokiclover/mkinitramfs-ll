@@ -1,10 +1,10 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/10/30 -tclover Exp $
-revision=0.3.6_p20111030
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/10/31 -tclover Exp $
+revision=0.3.6_p20111031
 
 usage() {
   cat <<-EOF
-  usage: ${(%):-%1x} [OPTIONS...]
+  usage: ${1##*/} [OPTIONS...]
       --aufs             add aufs(+squashfs modules +{,u}mount.aufs binaries) support (sqfsd)
   -e, --e-version=<str>  append an extra '<str>' version after \${K_VERSION} to the initramfs
   -k, --k-version=<str>  build an initramfs for '<str>' kernel version, else for \$(uname -r)
@@ -179,8 +179,11 @@ unset MODULES
 
 [[ -e "$FONTS" ]] && {  
 	for font in ${FONTS//:/ }; do
-		if [[ -e "$font" ]]; then cp -a "$font" etc/
-		elif [[ -e "$BINDIR/$font" ]]; then cp -a "$BINDIR/$font" etc/ 
+		if [[ -e $font ]]; then cp -a $font etc/
+		elif [[ -e "$BINDIR"/$font ]]; then cp -a "$BINDIR"/$font etc/ 
+		elif [[ -e /usr/share/consolefonts/"$font.gz" ]]; then
+			cp /usr/share/consolefonts/$font.gz . && gzip -d $font.gz && rm $font.gz \
+				&& mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
 		else warn "failed to copy $font font"; fi
 	done
 	unset FONTS
@@ -188,10 +191,12 @@ unset MODULES
 
 [[ -n "$SPLASHS" ]] && { BINARIES+=:splash_util.static
 	[[ -n "$iTOI" ]] && BINARIES+=:tuxoniceui_text && unset iTOI
-	for splash in ${SPLASHS//:/ }; do 
-		if [[ -e "$splash" ]]; then cp -ar "$splash" etc/splash/ 
-		elif [[ -e "$MISCDIR/$splash" ]]; then cp -ar "$MISCDIR/$splash" etc/splash/	
-		else warn "failed to copy $splash theme"; fi
+	for theme in ${SPLASHS//:/ }; do 
+		if [[ -d $theme ]]; then cp -r $theme etc/splash/ 
+		elif [[ -d "$MISCDIR"/$theme ]]; then cp -r "$MISCDIR"/$theme etc/splash/	
+		elif [[ -d /etc/splash/$theme ]]; then cp -r {/,}etc/splash/$theme
+			info "copied the whole /etc/splash/$theme theme"
+		else warn "failed to copy $theme theme"; fi
 	done
 	unset SPLASHS
 }
