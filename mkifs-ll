@@ -175,17 +175,22 @@ if [[ -n $KEYMAPS ]] {
 
 if [[ -n $FONTS ]] { 
 	for font (${(pws,:,)FONTS})
-		if [[ -e $font ]] { cp -a $font etc/
-		} elif [[ -e $BINDIR/$font ]] { cp -a $BINDIR/$font etc/ 
+		if [[ -e $BINDIR/$font ]] { cp -a $BINDIR/$font etc/ 
+		} elif [[ -e $font ]] { cp -a $font etc/
+		} elif [[ -e /usr/share/consolefonts/$font.gz ]] {
+			cp /usr/share/consolefonts/$font.gz . && gzip -d $font.gz && rm $font.gz \
+				&& mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
 		} else { warn "failed to copy $font font" } 
 	unset FONTS 
 }
 
 if [[ -n $SPLASHS ]] { BINARIES+=:splash_util.static
 	[[ -n $iTOI ]] && BINARIES+=:tuxoniceui_text && unset iTOI
-	for splash (${(pws,:,)SPLASHS})
-		if [[ -e $splash ]] { cp -ar $splash etc/splash/ 
-		} elif [[ -e $MISCDIR/$splash ]] { cp -r $MISCDIR/$splash etc/splash/  
+	for theme (${(pws,:,)SPLASHS})
+		if [[ -d $theme ]] { cp -r $theme etc/splash/ 
+		} elif [[ -d $MISCDIR/$theme ]] { cp -r $MISCDIR/$theme etc/splash/  
+		} elif [[ -d /etc/$theme ]] { cp -r {/,}etc/splash/$theme
+			info "copied the whole /etc/splash/$theme theme"
 		} else { warn "splash themes does not exist" }
 	unset SPLASHS
 }
