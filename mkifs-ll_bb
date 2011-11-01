@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.3 2011/10/29 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.bash],v 0.3.3 2011/10/29 -tclover Exp $
 
 usage() {
   cat << EOF
