@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/10/31 -tclover Exp $
-revision=0.3.6_p20111031
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.3.6 2011/11/01 -tclover Exp $
+revision=0.3.6_p20111101
 
 usage() {
   cat <<-EOF
@@ -149,10 +149,9 @@ addmodule() {
 	local ret
 	for mod in $@; do
 		local module=$(find /lib/modules/$K_VERSION -name $mod.ko -or -name $mod.o)
-		if [ -z $module ]; then warn "$mod does not exist"
-		let ret+=1; break
+		if [ -z $module ]; then warn "$mod does not exist"; ((ret=$ret+1)); break
 		else mkdir -p .${module%/*}
-			cp -ar $module .${module%/*} || die "$module copy failed"; fi
+			cp -ar $module .$module || die "$module copy failed"; fi
 	done
 	return $ret
 }
@@ -181,7 +180,7 @@ unset MODULES
 	for font in ${FONTS//:/ }; do
 		if [[ -e $font ]]; then cp -a $font etc/
 		elif [[ -e "$BINDIR"/$font ]]; then cp -a "$BINDIR"/$font etc/ 
-		elif [[ -e /usr/share/consolefonts/"$font.gz" ]]; then
+		elif [[ -e /usr/share/consolefonts/$font.gz ]]; then
 			cp /usr/share/consolefonts/$font.gz . && gzip -d $font.gz && rm $font.gz \
 				&& mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
 		else warn "failed to copy $font font"; fi
