@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll[.zsh],v 0.3.6 2011/10/31 -tclover Exp $
-revision=0.3.6_p20111031
+# $Id: mkinitramfs-ll/mkifs-ll[.zsh],v 0.3.6 2011/11/01 -tclover Exp $
+revision=0.3.6_p20111101
 
 usage() {
   cat <<-EOF
@@ -152,8 +152,8 @@ setopt NULL_GLOB
 addmodule() {
 	local ret
 	for mod (/lib/modules/$K_VERSION/**/$@.(ko|o))
-		if [[ ! -e $mod ]] { warn "$mod does not exist"; let ret+=1; break 
-		} else { mkdir -p .$mod:h && cp -ar $mod .$mod:h/ || die "$mod copy failed" }
+		if [[ ! -e $mod ]] { warn "$mod does not exist"; (( ret = $ret +1 )); break 
+		} else { mkdir -p .$mod:h && cp -ar $mod .$mod || die "$mod copy failed" }
 	return $ret
 }
 
@@ -168,7 +168,7 @@ unset MODULES
 if [[ -n $KEYMAPS ]] {
 	for keymap (${(pws,:,)KEYMAPS}) 
 		if [[ -e $keymap ]] { cp -a $keymap etc/ 
-		} elif [[ -e $BINDIRDIR/$keymap ]] { cp -a $BINDIR/$keymap etc/
+		} elif [[ -e $BINDIR/$keymap ]] { cp -a $BINDIR/$keymap etc/
 		} else { warn "failed to copy $keymap keymap " }
 	unset KEYMAPS
 }
@@ -208,7 +208,7 @@ bincp() {
 
 for bin (${(pws,:,)BINARIES})
 	if [[ -x $BINDIR/${bin##*/} ]] { 
-		cp $BINDIR/${bin##*/} ./$bin:h || die "failed to copy $bin"
+		cp $BINDIR/${bin##*/} ./$bin || die "failed to copy $bin"
 	} elif [[ -x /$bin ]] { bincp /$bin
 	} else { bincp $(which $bin) }
 
