@@ -7,13 +7,13 @@
 #      * iroot=<PV|VG-LV>[:c:<fs>:n]        root device--required, recommanded optinal `:c:ext4' for an ext4 rootfs, 
 #                                           last argument is to disable a `die' after fsck failure,default is y. 
 #      * [imtopt=<ro,inode64,...>]          optional mount options for rootfs e.g. 
-#      * [imod=<i915,radeon,drm,ttm>]       optional (comma seperated list) modules to load (in the boot group).
+#      * [imod=<drm,ttm,...,nouveau>]       optional (comma seperated list) modules to load (in the boot group).
 #      * ikmap=<kmap>[:<font>]              load key map and optional font.
 #      * ishrl=<n>|:<n>                     interrupts and drops to shell <n> level or pass <n> argument to real init.
 #      * rescue                             drops into a minimal shell.
-#      * ilvm=<map-PV>,<map-PV>,<map-PV>    LVM2 argument <mapping-PV>: collon `:' separated list of LVs in a VG and 
-#                                           comma `,' separated in a VG. 1st group for root, 2nd for swap and the 3rd 
-#                                           for resume, hence one can append commas to asign a particular group.
+#      * ilvm=<map-PV>,<map-PV>,<map-PV>    LVM2 argument <mapping-PV>: collon `:' separated list of PVs of a VG and 
+#                                           comma `,' separated list of VGs. 1st group for root, 2nd for swap and the 
+#                                           3rd for resume, hence one can append commas to asign a particular group.
 #
 #      * iswap=<type>:<VG-LV>[:signature]              e.g. iswap=swap:sda2 for a swap device.
 #      * iresume=<type>:<VG-LV>[:signature]            e.g. iresume=file:<VG-LV>:0x4400 for a swapfile in a LV.
