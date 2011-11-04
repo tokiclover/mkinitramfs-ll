@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.3.5 2011/10/30 -tclover Exp $
-revision=0.3.5_p20111030
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.3.5 2011/11/04 -tclover Exp $
+revision=0.3.5_p20111104
 
 usage() {
   cat <<-EOF
@@ -29,74 +29,6 @@ usage() {
 EOF
 }
 
-info() 	{ print -P "%B%F{green}*%b%f $@"; }
-error() { print -P "%B%F{red}*%b%f $@"; }
-die()   { error $@; exit 1; }
-alias die='die "%F{yellow}%1x:%U${(%):-%I}:%u%f" $@'
-setopt NULL_GLOB
-
-squashed() {
-:	${sqfsdir:=${1}}
-:	${sqfsd:=${2}}
-	for dir (${(pws,:,)sqfsd}) {
-		mkdir -p $sqfsdir/$dir/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
-		if [[ -e /sqfsd/$dir.sfs ]] { 
-			if [[ $OFFSET != 0 ]] {
-				local ro_size=${$(du -sk $sqfsdir/$dir/ro)[1]}
-				local rw_size=${$(du -sk $sqfsdir/$dir/rw)[1]}
-				if (( ($rw_size*100/$ro_size) <= ${OFFSET:-10} )) { 
-					info "$dir: skiping... there's \`-o|-f' options."; break
-				} 
-			}
-			echo ">>> updating squashed $dir..."
-		} else { echo ">>> building squashed $dir..." }
-		mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp \
-		${=COMP:-gzip} ${=EXCL} >/dev/null || die "failed to build $dir.sfs img."
-		if [[ $dir = lib${ARCH:-64} ]] { # move rc-svcdir and cachedir.
-			mkdir -p /var/{lib/init.d,cache/splash}
-			mount --move /$dir/splash/cache /var/cache/splash &>/dev/null \
-			|| die "fled to move cachedir."
-			mount --move /$dir/rc/init.d /var/lib/init.d &>/dev/null \
-			|| die "failed to move rc-svcdir." 
-		}
-		if [[ -n $(mount -t aufs|grep -w $dir) ]] {
-			umount -l /$dir &>/dev/null || die "failed to umount $dir aufs branch." }
-		if [[ -n $(mount -t squashfs|grep $sqfsdir/$dir/ro) ]] {
-			umount -l $sqfsdir/$dir/ro &>/dev/null || die "failed to umount sfs img." }
-		rm -rf $sqfsdir/$dir/rw/* || die "failed to clean up $sqfdir/$dir/rw."
-		[[ -e $sqfsdir/$dir.sfs ]] && rm -f $sqfsdir/$dir.sfs 
-		mv $sqfsdir/$dir.tmp.sfs $sqfsdir/$dir.sfs || die "failed to move $dir.tmp.sfs img."
-		if [[ ${FSTAB:-n} = y ]] {
-			echo "$sqfsdir/$dir.sfs $sqfsdir/$dir/ro squashfs nodev,loop,ro 0 0" \
-			>> /etc/fstab || die "fstab write failure 1."
-			echo "$dir /$dir aufs nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
-			0 0" >> /etc/fstab || die "fstab write failure 2." 
-		}
-		mount -t squashfs $sqfsdir/$dir.sfs $sqfsdir/$dir/ro -o nodev,loop,ro &>/dev/null \
-		|| die "failed to mount $dir.sfs img."
-		if [[ -n $EXT ]] { # now you can up[date] or rm squashed dir.
-			case $EXT in
-				rm) rm -rf /$dir/* || die "failed to clean up $sqfsdir/$dir.";;
-				up) echo >|/tmp/sdr
-					cp -aru $sqfsdir/$dir/ro/* /$dir/ 2>>|/tmp/sdr || \
-					for file ($(sed -e "s|.*\`||g" -e "s|':.*||g" /tmp/sdr)) {
-						cp -a $sqfsdir/$dir/ro/${file#$dir} /tmp/ && \
-						mv /tmp/$file:t $file:h || info "failed to move $file." }
-					;;
-				*) info "nothing to do, usage is [-up|-rm].";;
-			esac 
-		}
-		mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
-		&>/dev/null || die "failed to mount $dir aufs branch."
-		if [[ $dir = lib${ARCH:-64} ]] { # move back rc-svcdir and cachedir.
-			mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul \
-			|| die "failed to move back cachedir."
-			mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null \
-			|| die "failed to move back rc-svcdir." }
-		echo ">>> ...squashed $dir sucessfully [re]build."
-	}
-}
-
 [[ $# = 0 ]] && usage 
 while [[ $# > 0 ]] {
 	case $1 in
@@ -115,11 +47,75 @@ while [[ $# > 0 ]] {
 		-rm|--remove) EXT=rm; shift;;
 		-u|--usage|*) usage; exit 0;;
 	esac
-:	${sqfsdir:=/sqfsd}
-	[[ -n $EXCL ]] && EXCL="-e ${(pws,:,)EXCL}"
-	squashed
 }
 
-unset sqfsdir sqfsd EXCL EXT COMP FSTAB SQFSDIR SQFSD_SYS
+info() 	{ print -P "%B%F{green}*%b%f $@"; }
+error() { print -P "%B%F{red}*%b%f $@"; }
+die()   { error $@; exit 1; }
+alias die='die "%F{yellow}%1x:%U${(%):-%I}:%u%f" $@'
+setopt NULL_GLOB
+
+:	${sqfsdir:=/sqfsd}
+[[ -n $EXCL ]] && EXCL="-e ${(pws,:,)EXCL}"
+
+for dir (${(pws,:,)sqfsd}) {
+	mkdir -p $sqfsdir/$dir/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
+	if [[ -e /sqfsd/$dir.sfs ]] { 
+		if [[ $OFFSET != 0 ]] {
+			local ro_size=${$(du -sk $sqfsdir/$dir/ro)[1]}
+			local rw_size=${$(du -sk $sqfsdir/$dir/rw)[1]}
+			if (( ($rw_size*100/$ro_size) <= ${OFFSET:-10} )) { 
+				info "$dir: skiping... there's \`-o|-f' options."; break
+			} 
+		}
+		echo ">>> updating squashed $dir..."
+	} else { echo ">>> building squashed $dir..." }
+	mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp \
+	${=COMP:-gzip} ${=EXCL} >/dev/null || die "failed to build $dir.sfs img."
+	if [[ $dir = lib${ARCH:-64} ]] { # move rc-svcdir and cachedir.
+		mkdir -p /var/{lib/init.d,cache/splash}
+		mount --move /$dir/splash/cache /var/cache/splash &>/dev/null \
+		|| die "fled to move cachedir."
+		mount --move /$dir/rc/init.d /var/lib/init.d &>/dev/null \
+		|| die "failed to move rc-svcdir." 
+	}
+	if [[ -n $(mount -t aufs|grep -w $dir) ]] {
+		umount -l /$dir &>/dev/null || die "failed to umount $dir aufs branch." }
+	if [[ -n $(mount -t squashfs|grep $sqfsdir/$dir/ro) ]] {
+		umount -l $sqfsdir/$dir/ro &>/dev/null || die "failed to umount sfs img." }
+	rm -rf $sqfsdir/$dir/rw/* || die "failed to clean up $sqfdir/$dir/rw."
+	[[ -e $sqfsdir/$dir.sfs ]] && rm -f $sqfsdir/$dir.sfs 
+	mv $sqfsdir/$dir.tmp.sfs $sqfsdir/$dir.sfs || die "failed to move $dir.tmp.sfs img."
+	if [[ ${FSTAB:-n} = y ]] {
+		echo "$sqfsdir/$dir.sfs $sqfsdir/$dir/ro squashfs nodev,loop,ro 0 0" \
+		>> /etc/fstab || die "fstab write failure 1."
+		echo "$dir /$dir aufs nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
+		0 0" >> /etc/fstab || die "fstab write failure 2." 
+	}
+	mount -t squashfs $sqfsdir/$dir.sfs $sqfsdir/$dir/ro -o nodev,loop,ro &>/dev/null \
+	|| die "failed to mount $dir.sfs img."
+	if [[ -n $EXT ]] { # now you can up[date] or rm squashed dir.
+		case $EXT in
+			rm) rm -rf /$dir/* || die "failed to clean up $sqfsdir/$dir.";;
+			up) echo >|/tmp/sdr
+				cp -aru $sqfsdir/$dir/ro/* /$dir/ 2>>|/tmp/sdr || \
+				for file ($(sed -e "s|.*\`||g" -e "s|':.*||g" /tmp/sdr)) {
+					cp -a $sqfsdir/$dir/ro/${file#$dir} /tmp/ && \
+					mv /tmp/${file##*/} $file:h || info "failed to move $file." }
+				;;
+			*) info "nothing to do, usage is [-up|-rm].";;
+		esac 
+	}
+	mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
+	&>/dev/null || die "failed to mount $dir aufs branch."
+	if [[ $dir = lib${ARCH:-64} ]] { # move back rc-svcdir and cachedir.
+		mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul \
+		|| die "failed to move back cachedir."
+		mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null \
+		|| die "failed to move back rc-svcdir." }
+	echo ">>> ...squashed $dir sucessfully [re]build."
+}
+
+unset sqfsdir sqfsd EXCL EXT COMP FSTAB
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
