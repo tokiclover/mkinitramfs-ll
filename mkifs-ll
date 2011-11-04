@@ -59,8 +59,8 @@ while [[ $# > 0 ]]; do
 		--binary*) BINARIES+=:${1#*=}; shift;;
 		--bindir=*) [[ -n ${1#*=} ]] && BINDIR="${1#*=}"; shift;;
 		--comp-cmd=*) [[ -n ${1#*=} ]] && COMPCMD="${1#*=}"; shift;;
-		-e) E_VERSION=$2; shift 2;;
-		--e-version=*) E_VERSION=${1#*=}; shift;;
+		-e) E_VERSION=-$2; shift 2;;
+		--e-version=*) E_VERSION=-${1#*=}; shift;;
 		--font=*) [[ -n ${1#*=} ]] && FONTS+=":${1#*=}"; shift;;
 		-f|--full) iAUFS=y; iGPG=y; iLVM=y, iTOI=y; shift;;
 		--k-module=*) MODDEP+=":${1#*=}"; shift;;
@@ -78,7 +78,6 @@ done
 
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 : 	${K_VERSION:=$(uname -r)}
-[[ -n "$E_VERSION" ]] && E_VERSION=-$E_VERSION
 :	${INITRAMFS:=/boot/${PREFIX:-initrd-}$K_VERSION$E_VERSION.cpio.xz}
 :	${WORKDIR:=$(pwd)}
 :	${MISCDIR:=$WORKDIR/misc}
