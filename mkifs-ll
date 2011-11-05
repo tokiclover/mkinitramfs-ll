@@ -59,7 +59,7 @@ while [[ $# > 0 ]]; do
 		--binary*) BINARIES+=:${1#*=}; shift;;
 		--bindir=*) [[ -n ${1#*=} ]] && BINDIR="${1#*=}"; shift;;
 		--comp-cmd=*) [[ -n ${1#*=} ]] && COMPCMD="${1#*=}"; shift;;
-		-e) [[ -n ${2#*=} ]] && E_VERSION=-$2; shift 2;;
+		-e) [[ -n $2 ]] && E_VERSION=-$2; shift 2;;
 		--e-version=*) [[ -n ${1#*=} ]] && E_VERSION=-${1#*=}; shift;;
 		--font=*) [[ -n ${1#*=} ]] && FONTS+=":${1#*=}"; shift;;
 		-f|--full) iAUFS=y; iGPG=y; iLVM=y, iTOI=y; shift;;
