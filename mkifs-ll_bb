@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.3.3 2011/10/30 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.3.3 2011/11/05 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -14,8 +14,7 @@ EOF
 }
 
 [[ $# = 0 ]] && usage && exit 0
-
-while [[ $# > 0 ]]; do
+while [[ $# > 0 ]] {
 	case $1 in
 		-b|--build) CONFIG=y; BBB=y; shift;;
 		-m|--minimal) CONFIG=m; shift;;
@@ -26,7 +25,7 @@ while [[ $# > 0 ]]; do
 		           KEYMAP_OUT=${${(pws,:,)${1#*=}}[(w)2]}; shift;;
 		-u|--usage|*) usage; exit 0;;
 	esac
-done
+}
 
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }

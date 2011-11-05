@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll[.zsh],v 0.3.6 2011/11/01 -tclover Exp $
-revision=0.3.6_p20111101
+# $Id: mkinitramfs-ll/mkifs-ll[.zsh],v 0.3.6 2011/11/05 -tclover Exp $
+revision=0.3.6_p20111105
 
 usage() {
   cat <<-EOF
@@ -52,8 +52,7 @@ addnodes() {
 }
 
 [[ $# = 0 ]] && info "initramfs will be build with only LUKS support."
-
-while [[ $# > 0 ]]; do
+while [[ $# > 0 ]] {
 	case $1 in
 		-v|--version) echo "version $revision"; exit 0;;
 		--aufs) iAUFS=y; shift;;
@@ -76,7 +75,7 @@ while [[ $# > 0 ]]; do
 		--toi) iTOI=y; shift;;
 		-u|--usage|*) usage; exit 0;;
 	esac
-done
+}
 
 typeset -A MODULES
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf

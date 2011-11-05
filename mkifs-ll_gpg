@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.1.2 2011/10/30 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.1.2 2011/11/05 -tclover Exp $
 
 usage() {
    cat <<-EOF
@@ -10,13 +10,13 @@ usage() {
 EOF
 }
 
-while [[ $# > 0 ]]; do
+while [[ $# > 0 ]] {
 	case $1 in 
 		--useflags=*) EUSE=${1#*=}; shift;;
 		--Version=*) Version=${1#*=}; shift;;
 		--usage|-u|*) usage; exit 0;;
 	esac
-done
+}
 
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }

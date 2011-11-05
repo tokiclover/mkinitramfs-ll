@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gen[.zsh],v 0.2.2 2011/10/29 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gen[.zsh],v 0.2.2 2011/11/05 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -28,7 +28,7 @@ usage() {
 EOF
 }
 
-while [[ $# > 0 ]]; do
+while [[ $# > 0 ]] {
 	case $1 in
 		--aufs|-a) set iAUFS=y; shift;;
 		--bindir=*) [[ -n ${1#*=} ]] && BINDIR=${1#*=}; shift;;
@@ -49,7 +49,7 @@ while [[ $# > 0 ]]; do
 		--toi) iTOI=y; shift;;
 		--usage|-u|*) usage; exit 0;;
 	esac
-done
+}
 
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
