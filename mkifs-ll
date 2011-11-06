@@ -208,7 +208,7 @@ for bin (${(pws,:,)BINARIES})
 	if [[ -x $BINDIR/${bin##*/} ]] { 
 		cp $BINDIR/${bin##*/} ./$bin || die "failed to copy $bin"
 	} elif [[ -x /$bin ]] { bincp /$bin
-	} else { bincp $(which $bin) }
+	} else { bincp $(which $bin:t) }
 
 find . -print0|cpio --null -ov --format=newc|${=COMPCMD} >$INITRAMFS || die "eek!"
 
