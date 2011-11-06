@@ -40,12 +40,6 @@ install_sqfsd:
 	install -pm 644 sqfsd/sqfsdmount.conf 	$(svc_confdir)/sqfsdmount
 	install -pm 755 sqfsd/sqfsd-rebuild 	$(bindir)/sdr
 
-install_extras:
-	install -pd $(datadir)/misc/share/gnupg
-	install -pd $(datadir)/bin
-	install -pm 644 bin/applets $(datadir)/bin
-	install -pm 644 misc/share/gnupg/options.skel $(datadir)/misc/share/gnupg
-
 postinstall:
 
 uall: unintsall uninstall_extras uninstall_sqfsd
