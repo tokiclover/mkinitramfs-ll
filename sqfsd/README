@@ -1,20 +1,22 @@
-# $Id: /etc/init.d/sqfsdmount,v 1.1 2011/10/24 -tclover Exp $
+# $Id: /etc/init.d/sqfsdmount,v 1.1 2011/11/07 -tclover Exp $
 
 Need dependancies is not mandatory, if and only if, lib$ARCH and usr are mounted in a initramfs, 
 otherwise you might run into big troubles for two reasons: 
 	* rc uses a tmpfs mounted on /lib$ARCH/rc/init.d to store states of running services and 
 	* many services need binaries/libraries from usr when booting up.
 
-Actually, without an initramfs you one get aufs+squashfs working without an issue if you ensure: 
-usr and lib64 get mounted as earlier as possible with/without localmount help. This initservice 
-will do the trick putting usr and lib64 first in the config file because a few (boot) services 
-are russ=hing on each other (especially with rc_parallel) to get userspace ready. 
-Additionaly, you could disable rc_parallel and add more services in the `before' line if need be.
+Actually, without an initramfs one can get aufs+squashfs working without an issue if you ensure: 
+usr and lib$ARCH get mounted as earlier as possible with/without localmount help. This initservice 
+will do the trick putting usr and lib$ARCH first in the config file because a few (boot) services 
+are rushing (especially with rc_parallel) to get userspace ready. 
+Additionaly, one could disable rc_parallel and add more services in the `before' line if need be.
 
-NOTE on `/etc/con.d/sqfsdmount' configuration variables:
+NOTE: `/etc/con.d/sqfsdmount' configuration variables:
 	* SYS|LOCAL is a sufix for system/local which speaks of itself, one should to put squashed 
 	  dirs related to system in SFQD_SYS, e.g. /usr:/sbin:/bin:/opt, and local ones in the other 
 	  as $SQFSD_LOCAL dirs will be unmounted right way when a the init service is stopped which.
 	* SQFSDIR is the root directory where .sfs images and mount points for aufs rw/ro branches. 
+
+NOTE: systemd, or even upstart, users have to make their own way/script for this!
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
