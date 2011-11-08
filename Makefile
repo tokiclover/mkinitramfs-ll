@@ -25,19 +25,19 @@ install:
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)
-	install -pm 644 ${bin_prefix}.conf 	$(sys_confdir)
-	install -pm 755 ${bin_prefix} 		$(bindir)
-	install -pm 755 ${bin_prefix}_bb 	$(bindir)
-	install -pm 755 ${bin_prefix}_gen 	$(bindir)
-	install -pm 755 ${bin_prefix}_gpg 	$(bindir)
-	install -pm 755 init 			$(datadir)
+	install -pm 644 ${bin_prefix}.conf $(sys_confdir)
+	install -pm 755 ${bin_prefix}       $(bindir)
+	install -pm 755 ${bin_prefix}_bb    $(bindir)
+	install -pm 755 ${bin_prefix}_gen   $(bindir)
+	install -pm 755 ${bin_prefix}_gpg   $(bindir)
+	install -pm 755 init                $(datadir)
 
 install_sqfsd:
 	install -pd $(svc_confdir)
 	install -pd $(svc_initdir)
-	install -pm 755 sqfsd/sqfsdmount 	$(svc_initdir)
-	install -pm 644 sqfsd/sqfsdmount.conf 	$(svc_confdir)/sqfsdmount
-	install -pm 755 sqfsd/sqfsd-rebuild 	$(bindir)/sdr
+	install -pm 755 sqfsd/sqfsdmount.initd $(svc_initdir)/sqfsdmount
+	install -pm 644 sqfsd/sqfsdmount.confd $(svc_confdir)/sqfsdmount
+	install -pm 755 sqfsd/sqfsd-rebuild    $(bindir)/sdr
 
 postinstall:
 
