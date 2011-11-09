@@ -55,9 +55,5 @@ uninstall_sqfsd:
 	rm -f $(svc_confdir)/sqfsdmount
 	rm -f $(svc_initdir)/sqfsdmount
 
-uninstall_extras:
-	rm -f $(datadir)/bin/applets
-	rm -f $(datadir)/misc/share/gnupg/options.skel
-
 postuninstall:
 
