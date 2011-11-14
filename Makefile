@@ -13,7 +13,7 @@ docdir		= ${DESTDIR}/${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
 DOCS=AUTHORS COPYING README ChangeLog KnownIssue
 
-all: install install_extras install_sqfsd
+all: install install_sqfsd
 
 install:
 	sed -e 's:\./${bin_prefix}\.conf:/etc/${bin_prefix}.conf:g' -i ${bin_prefix}
@@ -41,7 +41,7 @@ install_sqfsd:
 
 postinstall:
 
-uall: unintsall uninstall_extras uninstall_sqfsd
+uall: unintsall uninstall_sqfsd
 
 uninstall:
 	rm -f $(bindir)/${bin_prefix}
