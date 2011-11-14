@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/README,v 0.3.6 2011/10/27 -tclover Exp $
+# $Header: mkinitramfs-ll/README,v 0.3.6 2011/11/13 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
@@ -45,17 +45,15 @@
 #	is required, otherwise a passphrase is required for *each* PV as fall back.
 #	This information is then used to obtain each key file from the specified removable media if any. 
 #
-#      <mode>      - defines how the init script shall treat the supplied keyfile (see below). 
+#      <mode>          - defines how the init script shall treat the supplied keyfile (see below). 
 #      Supported modes:
 #        * gpg 	-> keyfile is GnuPG-protected
 #        * ldk 	-> keyfile is LUKS encrypted, via loop back device.
 #        * reg 	-> keyfile is regular file
-#        * pwd 	-> encrypted on a regular passphrase, if no argument is passed to ik* arg, fallback 
-#       	       will be pwd mode.
-#        * none -> root only mode--rootfs will be mounted on an unencrypted PV, this argument should be 
-#                  explicitely set.
+#        * pwd 	-> encrypted on a regular passphrase, if no argument is passed to ik* arg, fallback is pwd mode.
+#        * none -> root only mode--rootfs will be mounted on an unencrypted PV, this mode should be set if used.
 #
-#	   <device|dev>    - the device or PV that will be assigned to the removable media e.g. sda<int>, sdb<int>.
+#      <device|dev>    - the device or PV that will be assigned to the removable media e.g. sda<int>, sdb<int>.
 #      </path/to/file> - full path to file inside the removable media.
 #
 #	== About `/dev/' prefix ==
