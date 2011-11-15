@@ -1,7 +1,8 @@
-# $Header: /etc/conf.d/sqfsdmount, 2011/10/24 -tclover Exp $
+# $Header: /etc/conf.d/sqfsdmount, 2011/11/15 -tclover Exp $
 
 SQFSDIR=/sqfsd
 SQFSD_SYS=usr:lib32:lib64:bin:sbin:opt
 SQFSD_LOCAL=var/db:var/cache/edb:var/lib/layman
+SYS_UMOUNT=yes
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
