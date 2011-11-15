@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.3.5 2011/11/04 -tclover Exp $
-revision=0.3.5_p20111104
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.3.5 2011/11/15 -tclover Exp $
+revision=0.3.5_p20111115
 
 usage() {
   cat <<-EOF
@@ -100,7 +100,7 @@ for dir (${(pws,:,)sqfsd}) {
 			up) echo >|/tmp/sdr
 				cp -aru $sqfsdir/$dir/ro/* /$dir/ 2>>|/tmp/sdr || \
 				for file ($(sed -e "s|.*\`||g" -e "s|':.*||g" /tmp/sdr)) {
-					cp -a $sqfsdir/$dir/ro/${file#$dir} /tmp/ && \
+					cp -a $sqfsdir/$dir/ro/${file#*/} /tmp/ && \
 					mv /tmp/${file##*/} $file:h || info "failed to move $file." }
 				;;
 			*) info "nothing to do, usage is [-up|-rm].";;
