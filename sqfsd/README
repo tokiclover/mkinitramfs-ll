@@ -16,6 +16,7 @@ NOTE: `/etc/con.d/sqfsdmount' configuration variables:
 	  dirs related to system in SFQD_SYS, e.g. /usr:/sbin:/bin:/opt, and local ones in the other 
 	  as $SQFSD_LOCAL dirs will be unmounted right way when a the init service is stopped which.
 	* SQFSDIR is the root directory where .sfs images and mount points for aufs rw/ro branches. 
+	* SYS_UMOUNT: enable umounting system wide squashed directories.
 
 NOTE: systemd, or even upstart, users have to make their own way/script for this!
 

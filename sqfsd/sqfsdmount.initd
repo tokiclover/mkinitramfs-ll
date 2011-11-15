@@ -1,68 +1,80 @@
 #!/sbin/runscript
 # Copyright 1999-2011 Gentoo Foundation
-# Distributed under the terms of the GNU General Public License v3
-# $Header: /etc/init.d/sqfsdmount, v1.3 2011/10/24 -tclover Exp $
+# Distributed under the terms of the GNU General Public License v2
+# $Header: /etc/init.d/sqfsdmount, v1.3 2011/11/15 -tclover Exp $
 
-description="Manage squashed directories"
+conf_file="/etc/conf.d/${SVCNAME}"
+description="Manage/mount squashed directories"
 
-depend() {
-        need fsck localmount
-        use lvm modules mtab
-        after lvm modules
+depend() 
+{
+    need fsck localmount
+    use lvm modules mtab
+    after lvm modules
 	before consolefont bootmisc acpid keymaps
-        keyword -jail -openvz -prefix -vserver -lxc
+    keyword -jail -openvz -prefix -vserver -lxc
 }
 
-start() {
-	einfo "mounting system disk-squashed dirs."
-	for DIR in $(echo "$SQFSD_SYS"|tr ':' ' ')
-	do sqfsd_mount "$SQFSDIR" "$DIR"; done
-        einfo "mounting local disk-squashed dirs."
-        for DIR in $(echo "$SQFSD_LOCAL"|tr ':' ' ')
-	do sqfsd_mount "$SQFSDIR" "$DIR"; done
+start()
+{
+	local IFS="${IFS}:"
+	einfo "mounting system wide squashed dirs"
+	for dir in ${SQFSD_SYS}; do sqfsd_mount ${SQFSDIR} ${dir}; done
+	einfo "mounting local wide squashed dirs"
+	for dir in ${SQFSD_LOCAL}; do sqfsd_mount ${SQFSDIR} ${dir}; done
+	return 0
 }
 
-stop() {
-	einfo "umounting local disk-squashed dirs."
-	for DIR in $(echo "$SQFSD_LOCAL"|tr ':' ' ')
-	do sqfsd_umount "$SQFSDIR" "$DIR"; done
-        einfo "remounting in ro mode sys squashed dirs."
-        for DIR in $(echo "$SQFSD_SYS"|tr ':' ' '); do 
-		if   [ "$DIR" = "usr" ]; then sqfsd_remountro "$DIR"
-		elif [ "$DIR" != "lib"* ]; then sqfsd_umount "$SQFSDIR" "$DIR"
-		fi
-	done
+stop() 
+{
+	einfo "umounting local wide squashed dirs"
+	local IFS="${IFS}:"
+	sync; sync
+	for dir in ${SQFSD_LOCAL}; do sqfsd_umount ${SQFSDIR} ${dir}; done
+	einfo "remounting in ro mode system squashed dirs"
+	if [ ${SYS_UMOUNT} = yes ]; then
+		for dir in ${SQFSD_SYS}; do 
+			if [ ${dir} = usr ]; then sqfsd_remountro ${dir}
+			elif [ ${dir} != lib* ]; then sqfsd_umount ${SQFSDIR} ${dir}; fi
+		done; fi
+	return 0
 }
 
-sqfsd_mount() {
-	if [ -n "$(mount -t aufs|grep /${2})" ]; then 
-		einfo "${2} aufs branch already mounted"
+sqfsd_mount() 
+{
+	local dir=${2} sqfsdir=${1}
+	if [ -n "$(mount -t aufs | grep /${dir})" ]; then 
+		einfo "squashed ${dir} already mounted"
 	else	
-		if [ -n "$(mount -t squashfs|grep ${1}/${2}/ro)" ]; then 
-			einfo "${1}/${2}/ro already mounted."
-		else	ebegin "mounting squashed ${2}.sfs image"
-			mount -t squashfs ${1}/${2}.sfs ${1}/${2}/ro \
+		ebegin "mounting squashed ${dir}"
+		if [ -n "$(mount -t squashfs | grep ${sqfsdir}/${dir}/ro)" ]; then 
+			einfo "squashed ${dir}.sfs image already mounted"
+		else
+			mount -t squashfs ${sqfsdir}/${dir}.sfs ${sqfsdir}/${dir}/ro \
 			-o nodev,loop,ro &>/dev/null
-       			eend "$?" "mount squashed ${2}.sfs image failed."; fi
-		ebegin "mounting squashed ${2} aufs branch"
-		mount -t aufs ${2} /${2} \
-		-o nodev,udba=reval,br:${1}/${2}/rw:${1}/${2}/ro &>/dev/null
-		eend "$?" "mount ${2} aufs branch failed."; fi
+       		eend "$?" "failed to mount ${dir}.sfs image" || return; fi
+		mount -t aufs ${dir} /${dir} \
+		-o nodev,udba=reval,br:${sqfsdir}/${dir}/rw:${sqfsdir}/${dir}/ro &>/dev/null
+		eend "$?" "failed to mount ${dir} aufs branch"; fi
 }
 
-sqfsd_umount() {
-        ebegin "umounting squashed ${2} aufs branch"
-	umount -lt aufs /${2} -O no_netdev &>/dev/null
-	eend "$?" "umount squashed ${2} aufs branch failed."
-	ebegin "umounting squashed ${2}.sfs image"
-	umount -lt squashfs ${1}/${2}/ro -O no_netdev &>/dev/null
-	eend "$?" "umount squashed ${2}.sfs image failed."
+sqfsd_umount() 
+{
+	if [ ${RC_UNAME} = Linux ]; then no_netdev="-O no_netdev"; fi
+	local dir=${2} sqfsdir=${1}
+	ebegin "umounting squashed ${dir}"
+	umount -lt aufs /${dir} ${no_netdev} &>/dev/null
+	eend "$?" "failed to umount squashed ${dir}" || return
+	umount -lt squashfs ${sqfsdir}/${dir}/ro ${no_netdev} &>/dev/null
+	eend "$?" "failed to umount ${dir}.sfs image"
 }
 
-sqfsd_remountro() {
-	ebegin "mounting in ro imode ${2} aufs branch"
-	mount -o remount,ro /${2} &>/dev/null
-	eend "$?" "failed to mount ${2} aufs branch in ro mode."
+sqfsd_remountro() 
+{
+	local dir=${1} 
+	ebegin "ro mode remounting ${dir} aufs branch"
+	mount -o remount,ro /${dir} &>/dev/null
+	eend "$?" "failed to remount ${dir} aufs branch in ro mode"
 }
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
