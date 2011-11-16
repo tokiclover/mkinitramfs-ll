@@ -1,18 +1,18 @@
 #!/sbin/runscript
 # Copyright 1999-2011 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /etc/init.d/sqfsdmount, v1.1 2011/11/15 -tclover Exp $
+# $Header: /etc/init.d/sqfsdmount, v1.1 2011/11/16 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="Manage/mount squashed directories"
 
 depend() 
 {
-    need fsck localmount
-    use lvm modules mtab
-    after lvm modules
+	need fsck localmount
+	use lvm modules mtab
+	after lvm modules
 	before consolefont bootmisc acpid keymaps
-    keyword -jail -openvz -prefix -vserver -lxc
+	keyword -jail -openvz -prefix -vserver -lxc
 }
 
 start()
@@ -35,9 +35,18 @@ stop()
 	if [ ${SYS_UMOUNT} = yes ]; then
 		for dir in ${SQFSD_SYS}; do 
 			if [ ${dir} = usr ]; then sqfsd_remountro ${dir}
-			elif [ ${dir} != lib* ]; then sqfsd_umount ${SQFSDIR} ${dir}; fi
+			elif [ ${dir} != lib* ]; then sqfsd_umount ${dir}; fi
 		done; fi
 	return 0
+}
+
+restart()
+{
+	stop; start
+	for dir in $(mount -t aufs | gr ro | awk '{ print $3 }'); do
+		mount -o remount,rw
+		eend "$?" "failed to remount $dir in rw mode"
+	done
 }
 
 sqfsd_mount() 
