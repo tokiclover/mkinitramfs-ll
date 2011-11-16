@@ -47,6 +47,7 @@ restart()
 		mount -o remount,rw ${dir}
 		eend "$?" "failed to remount $dir in rw mode"
 	done
+	return 0
 }
 
 sqfsd_mount() 
