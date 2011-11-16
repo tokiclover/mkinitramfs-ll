@@ -44,7 +44,7 @@ restart()
 {
 	stop; start
 	for dir in $(mount -t aufs | gr ro | awk '{ print $3 }'); do
-		mount -o remount,rw
+		mount -o remount,rw ${dir}
 		eend "$?" "failed to remount $dir in rw mode"
 	done
 }
