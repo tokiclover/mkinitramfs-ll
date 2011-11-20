@@ -1,7 +1,7 @@
 #!/sbin/runscript
 # Copyright 1999-2011 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /etc/init.d/sqfsdmount, v1.1 2011/11/16 -tclover Exp $
+# $Header: /etc/init.d/sqfsdmount, v1.1 2011/11/20 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="Manage/mount squashed directories"
@@ -43,7 +43,7 @@ stop()
 restart()
 {
 	stop; start
-	for dir in $(mount -t aufs | gr ro | awk '{ print $3 }'); do
+	for dir in $(mount -t aufs | grep ro | awk '{ print $3 }'); do
 		mount -o remount,rw ${dir}
 		eend "$?" "failed to remount $dir in rw mode"
 	done
@@ -70,7 +70,7 @@ sqfsd_mount()
 
 sqfsd_umount() 
 {
-	if [ ${RC_UNAME} = Linux ]; then no_netdev="-O no_netdev"; fi
+	[ ${RC_UNAME} = Linux ] && no_netdev="-O no_netdev"
 	local dir=${2} sqfsdir=${1}
 	ebegin "umounting squashed ${dir}"
 	umount -lt aufs /${dir} ${no_netdev} &>/dev/null
