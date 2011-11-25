@@ -102,14 +102,14 @@ mkdir -p lib$ARCH/{splash/cache,modules/$K_VERSION} || die "eek!"
 ln -sf lib$ARCH lib || die "eek!" && unset ARCH
 
 cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || addnodes
-[[ $(echo ${K_VERSION} | cur -d'.' -f1 ) -eq 3 ]] && \
+[[ $(echo ${K_VERSION} | cut -d'.' -f1 ) -eq 3 ]] && \
 	[[ $(echo ${K_VERSION} | cut -d'.' -f2) -ge 1 ]] && { 
 	cp -a {/,}dev/loop-control &>/dev/null || mknod dev/loop-control c 10 237 || die "eek!"
 }
 cp -a "$WORKDIR"/init . && chmod 775 init || die "failed to copy init"
 cp -a {/,}lib/modules/$K_VERSION/modules.dep || die "failed to copy modules.dep"
 [[ -e $MISCDIR/msg ]] && cp $MISCDIR/msg etc/
-for scr in $(ls $MISCDIR/*.sh); do cp $scr etc/local.d/; done
+for scr in $(ls $MISCDIR/*.sh &>/dev/null); do cp $scr etc/local.d/; done
 
 if [[ -x "$BINDIR"/busybox ]]; then BINARIES+=:bin/busybox
 elif [[ "$(which bb)" != "bb not found" ]]; then 
