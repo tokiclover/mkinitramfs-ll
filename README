@@ -155,7 +155,7 @@
 #		Modules should exist on `/lib/modules/$KV/', like in your system.
 #		Your kernel has to support module unloading for rmmod to work.
 #
-#	== User scripts ==
+#	== User scripts execution ==
 #	Now one can add scripts to `/etc/local.d' of the initramfs, or `$gitdir/misc' if using mkifs-ll 
 #	building script. Each script should have a `.sh' postfix and a `$ishrl' prefix as the follwing:
 #	   * [runlevel] 1: after sysinit/kernel initialization, /{proc,dev,sys} mount, module, keymap, font;
