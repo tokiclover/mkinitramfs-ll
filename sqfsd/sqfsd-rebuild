@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.3.5 2011/11/15 -tclover Exp $
-revision=0.3.5_p20111115
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.4.0 2011/11/21 -tclover Exp $
+revision=0.4.0
 
 usage() {
   cat <<-EOF
