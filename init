@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.3.6 2011/10/29 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.4.0 2011/11/24 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -70,13 +70,17 @@ splash_setup() {
 	gv_active_splashutil=0
 }
 
-splash_daemon_stop() { [ $gv_active_splashutil ] && gv_active_splashutil=1 splash_command "exit"; }
+splash_daemon_stop() { 
+	[ $gv_active_splashutil ] && gv_active_splashutil=1 splash_command "exit"
+}
 
 shell_runlevel() {
 	if [ ${gv_shell_runlevel} = ${1} ]; then 
 		splash_verbose
 		info "Shell runlevel: ${1}"
-	exec /bin/sh; fi
+		local lv_scr="$(ls /etc/local.d/${1}*.sh)"
+		[ -n "${lv_scr}" ] && info "sourcing ${lv_scr}... files." && cat ${lv_scr}
+		exec /bin/sh; fi
 }
 
 exec_losetup() {
@@ -85,65 +89,93 @@ exec_losetup() {
 	echo ${lv_ldk_dev}
 }
 
+find_blkd() {
+	[ -z "${gv_blkid}" ] && gv_blkid="$(blkid)"
+	echo $(echo "${gv_blkid}" | grep "${1#*=}" | cut -d':' -f1)
+}
+
 get_ldk_key() {
-	local lv_ldk_dev=$(exec_losetup ${1})
-	gv_ldk_dev="${gv_ldk_dev} ${lv_ldk_dev}"
-	gv_ldk_key="${gv_ldk_key} ${2}"
+	[ $gv_crypt_loop ] && local lv_ldk_dev="${1}" || {
+		local lv_ldk_dev=$(exec_losetup ${1})
+		gv_ldk_dev="${gv_ldk_dev}:${lv_ldk_dev}"
+	}
+	gv_ldk_key="${gv_ldk_key}:${2}"
 	exec_cryptsetup "${lv_ldk_dev}" "${2}" && gv_kfile=/dev/mapper/${2} 
 }
 
 get_key() {
-	local lv_mode=${1} 
-	local lv_dev=${2} 
+	local lv_mode=${1} lv_dev=$(find_blkd "${2}") 
 	gv_fpath=${3}
 	gv_fname=${gv_fpath##*/}
-	modprobe_group remdev
-	[ -n "$(mount|grep /mnt/tok)" ] || { 
-		[ -b "/dev/${lv_dev}" ] || { 
-			info "Insert removable device and press Enter."
-			read local lv_d
-			info "Please wait a few seconds...."
-			sleep 3
-			[ -b "/dev/${lv_dev}" ] || {
-				info "${lv_dev} does not exist, input a valid dev name e.g. sdb1"
+	[ -n "$(mount | grep /mnt/tok)" ] || { 
+		[ -b "${lv_dev}" ] || { 
+			sleep 3; gv_blkid="$(blkid)"; lv_dev=$(find_blkd "${2}")
+			if [ ! -b "${lv_dev}" ]; then
+				info "Insert removable device and press Enter."; read
+				sleep 3; gv_blkid="$(blkid)"; lv_dev=$(find_blkd "${2}"); fi
+			while [ ! -b "${lv_dev}" ]; do
+				info "${lv_dev} does not exist, input a valid dev name"
+				info "e.g. '[/dev/]sdb1', 'LABEL=<label>' 'UUID=<uuid>'"
 				read lv_dev
-				info "Please wait a few seconds...."
-				sleep 3; }
-		[ -b "/dev/${lv_dev}" ] || die "${lv_dev} remdev does not exist."; }
-	mount -n -r "/dev/${lv_dev}" /mnt/tok &>/dev/null || die "Failed to mount ${lv_dev} remdev."
-		info "Removable device mounted."; }
-	[ -f "/mnt/tok/${gv_fpath}" ] || die "${gv_fpath} keyfile does not exist in ${lv_dev} remdev."
+				sleep 3; gv_blkid="$(blkid)"; lv_dev=$(find_blkd "${lv_dev}")
+			done
+		}
+		mount -n -r "${lv_dev}" /mnt/tok &>/dev/null || \
+			die "Failed to mount ${lv_dev} remdev."
+		info "Removable device mounted."
+	}
+	[ -f "/mnt/tok/${gv_fpath}" ] || \
+		die "${gv_fpath} keyfile does not exist in ${lv_dev} remdev."
 	case ${lv_mode} in
-		gpg)	[ ${uv_check_env} ] || bin_exist "gpg" "--"
-			gv_kfile="/mnt/tok/${gv_fpath}"; gv_kgpg=0;;
-		reg) 	gv_kfile="/mnt/tok/${gv_fpath}";;
-		ldk)	[ -e "/dev/mapper/${gv_fname}" ] && gv_kfile=/dev/mapper/${gv_fname} || \
-				get_ldk_key "/mnt/tok/${gv_fpath}" "${gv_fname}"; gv_kldk=0;;
-		*) 	die "${lv_mode}:mode is not valid.";; 
+		gpg) [ ${uv_check_env} ] || bin_exist "gpg" "--"
+			 gv_kfile="/mnt/tok/${gv_fpath}"; gv_kgpg=0;;
+		reg) gv_kfile="/mnt/tok/${gv_fpath}";;
+		ldk) [ -e "/dev/mapper/${gv_fname}" ] && gv_kfile=/dev/mapper/${gv_fname} || \
+			 get_ldk_key "/mnt/tok/${gv_fpath}" "${gv_fname}"; gv_kldk=0;;
+		*) 	 die "${lv_mode}:mode is not valid.";; 
 	esac
 }
 
 check_key() {
-	if [ "${1}" = "ldk" ] || [ "${1}" = "gpg" ] || [ "${1}" = "reg" ]; then
+	[ -n "${gv_crypt_loop}" ] || {
+		local lv_crypt_version=$(cryptsetup --version | awk '{ print $2 }')
+		[ $(echo "$lv_crypt_version" | cut -d'.' -f2) -ge 3 ] && gv_crypt_loop=0 \
+			gv_crypt_loop=1
+		[ $(echo "$lv_crypt_version" | cut -d'.' -f2) -ge 4 ] && gv_crypt_header=0
+	}
 	[ -n "${2}" ] || die "ik${4}=${1}:${2}:${3} device field empty."
 	[ -n "${3}" ] || die "ik${4}=${1}:${2}:${3} filepath field empty."
-	get_key "${1}" "${2}" "${3}"; fi
+	get_key "${1}" "${2}" "${3}"
 }
 
-close_cryptsetup() { cryptsetup luksClose ${1} || cryptsetup remove ${1} || die "${2}"; }
+close_cryptsetup() { 
+	cryptsetup luksClose ${1%%-*} || cryptsetup remove ${1%%-*} || die "${1%/*}: ${2}"
+}
 
 exec_cryptsetup() { 
-	local lv_arg=luksFormat 
-	local lv_dev=${1}
-	local lv_map=${2}
-	[ "${lv_dev%/*}" = "/dev" ] || lv_dev=/dev/${lv_dev}
+	local lv_arg=luksFormat
+	local lv_map=$(echo "${1}" | cut -d'-' -f1)
+	local lv_dev=$(echo "${1#*-}" | cut -d'/' -f1); lv_dev=$(find_blkd "${lv_dev}")
+	local lv_header=$(echo "${1}" | cut -d'/' -f2)
+	[ -n "${lv_header}" ] && {
+		if [ -n "$(echo "${lv_header}" | grep -E '(UUID|LABEL|sd[a-z][0-9])')" ]; then 
+			lv_header=$(find_blkd "${lv_header}")
+			[ -b "${lv_header}" ] && lv_header="--header ${lv_header}" || \
+			die "$lv_header block device doesn't exist."
+		elif [ -e "/mnt/tok/${lv_header}" ]; then 
+			lv_header="--header /mnt/tok/${lv_header}"
+		else die "${lv_header} detached header doesn't exist."; fi
+	}
 	cryptsetup isLuks "${lv_dev}" || {
  	info "Do you want to cre[ate] ${lv_dev} or dec[rypt] another LUKS PV? [cre|DEC]"
 	read local lv_asw 
 	if [ "${lv_asw:-dec}" = "dec" ]; then 
 		for i in 1 2 3; do
-			info "Type another (valid LUKS) PV e.g. sda5"; read lv_dev 
-			lv_dev=/dev/${lv_dev}; cryptsetup isLuks "${lv_dev}" && break; 	done
+			info "Type another (valid LUKS) PV"
+			info 'e.g. [/dev/]sda5, UUID="<uuid>" or LABEL="<label>"'
+			read lv_dev; lv_dev=$(find_blkd "${lv_dev}")
+			cryptsetup isLuks "${lv_dev}" && break
+		done
 	elif [ "${lv_asw}" = "cre" ]; then 
 		info "Type a valid LUKS cipher:hash, default is 'aes-xts-plain:sha256'"
 		info "you can take something safer like 'aes-cbc-essiv:sha256'"
@@ -153,57 +185,75 @@ exec_cryptsetup() {
 		if [ -e "${gv_kfile}" ]; then 
 			info "Do you want to use the existing ${gv_kfile} key-file? [NO|yes]"
 			read local lv_ukf
-			[ "${lv_ukf:-no}" = "yes" ] && lv_ukf="-d ${lv_ukf}"; fi
+			[ "${lv_ukf:-no}" = "yes" ] && lv_ukf="-d ${lv_ukf}" || lv_ukf=; fi
+		if [ -n "${lv_header}" ]; then info "Do you want to use ${lv_header} [NO|yes]?"
+			lv_asw=; read lv_asw
+			if [ "${lv_asw:-no}" = "yes" ]; then info "Enter a valid aligh-payload offset,"
+				info "option is taken as absolute sector alignment on ciphertext and can be zero"
+				read local lv_alp
+				[ -n "${lv_alp}" ] && lv_alp="--align-payload ${lv_alp}"
+			else lv_header=; lv_alp=; fi
+		fi
 		for i in 1 2 3; do
 			cryptsetup ${lv_arg} ${lv_dev} -c${lv_cph:-aes-xts-plain:sha256} \
-				-s${lv_ksz:-256} ${lv_ukf} && break; done; fi; }
+				-s${lv_ksz:-256} ${lv_ukf} ${lv_header} ${lv_alp} && break
+		done
+	fi; }
+	[ -b "${lv_dev}" ] || die "${lv_dev} block device doesn't exist."
 	cryptsetup isLuks "${lv_dev}" &>/dev/null || die "No valid LUKS PV found."
 	lv_arg=luksOpen
-	if [ ${gv_kgpg} ]; then mv /dev/tty /dev/tty.bak && cp -a /dev/console /dev/tty
+	if [ ${gv_kgpg} ]; then mv /dev/tty /dev/tty.bak; cp -a /dev/console /dev/tty
 		for i in 1 2 3; do
-			gpg -qd "${gv_kfile}"|cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}" \
-				&& break
+			gpg -qd "${gv_kfile}" | cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}" \
+				${lv_header} && break
 			[ ${i} -eq 3 ] && warn "...there's still a fallback..."; done
 		rm /dev/tty && mv /dev/tty.bak /dev/tty; gv_kgpg=
 	elif [ ${gv_kldk} ]; then 
-		cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}" -d "${gv_kfile}"
-		[ "$?" ] || warn "...there's still a fallback..."; gv_kldk=; fi
-	if [ ! -b "/dev/mapper/${lv_map}" ]; then cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}"
-		[ "$?" ] || die "Failed to decrypt ${lv_dev}."; fi
+		cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}" -d "${gv_kfile}" ${lv_header} || \
+			warn "...there's still a fallback..."; gv_kldk=; fi
+	if [ ! -b "/dev/mapper/${lv_map}" ]; then 
+		cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}" ${lv_header} || \
+			die "Failed to decrypt ${lv_dev}."; fi
+}
+
+exec_alvm() {
+	if [ -b "/dev/mapper/${1}" ]; then local lv_mapping=/dev/mapper/${1}
+	elif [ -b "/dev/${1/-//}" ]; then local lv_mapping=/dev/${1/-//}
+	else die "${1} VG/LV do not exist."; fi
+	echo "$lv_mapping"
 }
 
 exec_lvm() {
 	[ ${uv_check_env} ] || bin_exist "lvm" "--"
-	local lv_vg=${2/-//}
-	local lv_pv=$(echo "${1}"|tr ':' ' ')
-	lvchange -ay ${lv_vg} &>/dev/null || for pv in ${lv_pv}
-		do exec_cryptsetup "${pv#*-}" "${pv%-*}"; done
-	lvchange -ay ${lv_vg} &>/dev/null || { 
-		vgchange -an ${lv_vg%/*} &>/dev/null
-		warn "Disabling ${lv_vg} VG/LV..."
-		for pv in ${lv_pv}; do close_cryptsetup "${pv%-*}" "${pv}"; done
-		[ -n "${gv_fname}" ] && close_cryptsetup "${gv_fname}" "${gv_fname}"
-		die "Encrypted PV [and key-file] closed."; }
-	if   [ -b "/dev/mapper/${2}" ]; then local lv_dev=/dev/mapper/${2}
-	elif [ -b "/dev/${lv_vg}" ]; 	then local lv_dev=/dev/${lv_vg}
-	else die "${lv_vg} VG/LV do not exist."; fi
-	echo ${lv_dev}
+	lvchange -ay ${2/-//} &>/dev/null || {
+		local lv_pv="${1}" IFS="${IFS}:"
+		[ -e "/mnt/tok/${lv_pv}" ] && lv_pv="$(cat "/mnt/tok/${lv_pv}")"
+		for pv in ${lv_pv}; do exec_cryptsetup "${pv}"; done
+		vgchange -ay ${2} &>/dev/null || { 
+			vgchange -an ${2%%-*} &>/dev/null
+			warn "Disabling ${2} VG/LV..."
+			for pv in ${lv_pv}; do close_cryptsetup "${pv%/*}"; done
+			[ -b "/dev/mapper/${gv_fname}" ] && close_cryptsetup "${gv_fname}"
+			die "Encrypted PV [and key-file] closed."
+		}
+	}
 }
 
 do_sqfsd_work() {
 	[ -n "$sqfsdir" ] || die "uv_sqfsdir wasn't set and sqfsdir is empty."
 	[ -n "$sqfsd" ]   || die "uv_sqfsd wasn't set and sqfsd is empty."
 	[ -d /newroot/"$sqfsdir" ] || die "sqfsdir=$sqfsdir dir doesn't exist."
-	sqfsd="$(echo "$sqfsd"|tr ':' ' ')"
 	modprobe_group sqfsd
 	cd /newroot
+	local IFS="${IFS}:"
 	for dir in $sqfsd; do
 		[ -e ."$sqfsdir/$dir".sfs ] || die "$dir.sfs image doesn't exist."
 		mkdir -p ."$sqfsdir/$dir"/rw && mkdir -p ."$sqfsdir/$dir"/ro
-		mount -t squashfs .$sqfsdir/$dir.sfs .$sqfsdir/$dir/ro -o nodev,loop,ro &>/dev/null
-		[ "$?" ] || die "Failed to mount squashed $dir image."
-	mount -t aufs $dir $dir -o nodev,udba=reval,br:.$sqfsdir/$dir/rw:.$sqfsdir/$dir/ro &>/dev/null
-		[ "$?" ] || die "Failed to mount squashed $dir aufs branch."
+		mount -t squashfs .${sqfsdir}/${dir}.sfs .${sqfsdir}/${dir}/ro \
+			-o nodev,loop,ro &>/dev/null || die "Failed to mount squashed ${dir} image."
+		mount -t aufs ${dir} ${dir} \
+			-o nodev,udba=reval,br:.${sqfsdir}/${dir}/rw:.${sqfsdir}/${dir}/ro \
+			&>/dev/null || die "Failed to mount squashed ${dir} aufs branch."
 	done
 }
 do_root_work() {
@@ -213,38 +263,43 @@ do_root_work() {
 	local lv_root=${gv_root%%:*}
 	local lv_fsck="$(echo "$gv_root"|cut -d':' -f2)"
 	local lv_rofs="$(echo "$gv_root"|cut -d':' -f3)"
-	local lv_fscf=${gv_root##*:}
-:	local ${lv_mtopt:=$gv_mtopt} 
 :	local ${lv_lvm:=${gv_lvm%%,*}}
-	[ -n "${lv_mtopt}" ] && lv_mtopt="-o ${lv_mtopt}"
+:	${lv_lvm:=${gv_lvm_root}}
+	local lv_fscf=${gv_root##*:}
+	[ -n "${gbov_mtopt}" ] && local lv_mtopt="-o ${gv_mtopt}"
 	[ -n "${lv_rofs}" ]  && lv_rofs="-t ${lv_rofs}"
 	[ -n "${gv_root}" ] || die "iroot=* arg [PV|VG-LV][:fsck:<fs>] are missing."
 	[ "${lv_kmod}" != "none" ]  && local lv_crypt=0 && \
 		check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
 	shell_runlevel 3d
 	info "ROOT LV..."
-	if [ "${lv_crypt}" ]; then info "...encrypted rootfs."
-		if [ -n "${lv_lvm}" ]; then 
-			local lv_rdev=$(exec_lvm "${lv_lvm}" "${lv_root}")
-		else	exec_cryptsetup "${gv_root}" "${uv_root_map:-root}" 
-			local lv_rdev=/dev/mapper/${uv_root_map:-root}; fi
-	else 	info "...unencrypted rootfs." && local lv_rdev=/dev/${gv_root}; fi
+	if [ -n "${lv_lvm}" ]; then 
+		if [ "${lv_crypt}" ]; then info "...encrypted rootfs."
+			exec_lvm "${lv_lvm}" "${lv_root}"
+		else info "...unencrypted rootfs."; vgchange -ay ${lv_root%%-*}; fi
+		local lv_dev=$(exec_alvm "${lv_root}")
+	elif [ "${lv_crypt}" ]; then info "...encrypted rootfs."
+		exec_cryptsetup "${uv_root_map:-root}-${gv_root}" 
+		local lv_dev=/dev/mapper/${uv_root_map:-root}
+	else local lv_dev=$(find_blkd "${lv_root}"); fi
 	shell_runlevel 3f
-	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_rdev} 2>/dev/null 
-	[ "$?" ] || {
-		[ "${lv_fscf:-${uv_fscf:-y}}" = "y" ] && die "Failed to fsck rootfs, exit-code: $?"; }
+	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_dev} 2>/dev/null 
+	[ "$?" ] || { [ "${lv_fscf:-${uv_fscf:-y}}" = "y" ] && \
+		die "Failed to fsck rootfs, exit-code: $?"; }
 	shell_runlevel 3m
-	mount ${lv_mtopt} ${lv_rofs} ${lv_rdev} /newroot &>/dev/null
+	mount ${lv_mtopt} ${lv_rofs} ${lv_dev} /newroot &>/dev/null
 	[ "$?" ] || {
-		if [ "${lv_crypt}" ]; then
+		[ "${lv_crypt}" ] && {
 			if [ -n "${lv_lvm}" ]; then
 				warn "Disabling ${lv_root} VG-LV..."
 				vgchange -an ${lv_root%-*} &>/dev/null
-				for lv_pv in $(echo "${lv_lvm}"|tr ':' ' '); do
-					close_cryptsetup "${lv_pv%-*}" "${lv_pv}"; done
-			else 	close_cryptsetup "${uv_root_map:-root}" "${uv_root_map:-root}"; fi
-			[ -n "${gv_fname}" ] && close_cryptsetup "${gv_fname}" "${gv_fname}"; fi
-		die "Failed to mount rootfs."; }
+				local IFS="${IFS}:" 
+				for pv in ${lv_lvm}; do close_cryptsetup "${pv%/*}"; done
+			else close_cryptsetup "${uv_root_map:-root}"; fi
+			[ -b "/dev/mapper/${gv_fname}" ] && close_cryptsetup "${gv_fname}"
+		}
+		die "Failed to mount rootfs."
+	}
 	shell_runlevel 3s
 	[ -n "${sqfsd}" ] && do_sqfsd_work
 	lv_lvm=; lv_mtopt= 
@@ -262,11 +317,18 @@ do_swap_work() {
 	[ -n "$lv_type" ] || die "${lv_mapp} type file|swap is missing."
 	[ -n "$lv_sign" ] && lv_sign=:$lv_sign
 	info "SWAP LV..."
-	check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_mapp}"
-	if [ -n "${lv_lvm}" ]; then
-		gv_dev=${lv_type}:$(exec_lvm "${lv_lvm}" "${lv_hdev}")${lv_sign}
-	else 	exec_cryptsetup "${lv_hdev}" "${lv_mapp}" 
-		gv_dev=${lv_type}:/dev/mapper/${lv_mapp}${lv_sign}; fi
+	[ "${lv_kmod}" != "none" ]  && local lv_crypt=0 && \
+		check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_mapp}"
+	if [ -n "${lv_lvm}" ]; then 
+		if [ "${lv_crypt}" ]; then info "...encrypted PVs."
+			exec_lvm "${lv_lvm}" "${lv_hdev}"
+		else info "...unencrypted PVs."; vgchange -ay ${lv_hdev%%-*}; fi
+		gv_dev=${lv_type}:$(exec_alvm "${lv_hdev}")${lv_sign}
+	elif [ "${lv_crypt}" ]; then info "...encrypted ${lv_mapp}."
+		exec_cryptsetup "${lv_mapp}-${lv_hdev}"
+		gv_dev=${lv_type}:/dev/mapper/${lv_mapp}${lv_sign}
+	else info "...unencrypted ${lv_mapp}."
+		gv_dev=${lv_type}:$(find_blkd "${lv_hdev}")${lv_sign}; fi
 	lv_lvm=
 }
 
@@ -274,7 +336,8 @@ do_resume() {
 	[ "${gv_splash_silent}" = "silent" ] || splash_message "Resuming..."
 	splash_daemon_stop
 	[ -n "$(echo "${gv_toi}"|cut -d':' -s -f2)" ] && {
-:      	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -s -f3)}
+:		local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -f3)}
+:		${lv_lvm:=${gv_lvm_resume}}
 		do_swap_work "resume"  "${gv_toi}" "${gv_kresume}"; }
 	modprobe_group tuxonice
 	echo ${gv_dev} > /sys/power/tuxonice/resume
@@ -286,7 +349,8 @@ do_resume() {
 		[ "${lv_asw:-no}" != "yes" ] && die "Resume aborted by user"
 	elif [ ${lv_img} = 0 ]; then 
 		die "No image exist at location pointed by iresume|iswap"; fi
-	[ -n "${gv_splash_theme}" ] && ln -sf "/etc/splash/${gv_splash_theme}" /etc/splash/tuxonice
+	[ -n "${gv_splash_theme}" ] && ln -sf "/etc/splash/${gv_splash_theme}" \
+		/etc/splash/tuxonice
 	[ -n "$(which tuxoniceui_text)" ] && echo $(which tuxoniceui_text) > \
 		/sys/power/tuxonice/user_interface/program
 	[ -z "$(cat /sys/power/tuxonice/user_interface/program)" ] && \
@@ -302,7 +366,8 @@ do_resume() {
 
 do_switch() {
 	echo > /proc/sys/kernel/hotplug
-	[ "${gv_splash_silent}" = "silent" ] && splash_silent && splash_message "Switching / ..."
+	[ "${gv_splash_silent}" = "silent" ] && splash_silent && \
+		splash_message "Switching / ..."
 	info "SWITCHING root '/'..."
 	splash_daemon_stop
 	sleep 1
@@ -314,10 +379,7 @@ do_switch() {
 	exec switch_root /newroot ${uv_init:-/sbin/init} ${gv_init_runlevel}
 }
 
-print_msg() {
-#	clear
-	[ -e /etc/msg ] && info "$(cat /etc/msg)"
-}
+print_msg() { [ -e /etc/msg ] && info "$(cat /etc/msg)"; }
 
 do_work() {
 	[ "${gv_splash_silent}" = "verbose" ] && splash_verbose
@@ -329,13 +391,16 @@ do_work() {
 	shell_runlevel 1
 	modprobe_group gpg
 	modprobe_group remdev
-	if [ -n "${gv_swap}" ]; then
-:      	local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -s -f2)}
+	[ -n "${gv_swap}" ] && {
+:		local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -f2)}
+:		${lv_lvm:=${gv_lvm_swap}}
 		shell_runlevel 2s
-		do_swap_work "swap" "${gv_swap}" "${gv_kswap}"; fi
+		do_swap_work "swap" "${gv_swap}" "${gv_kswap}"
+	}
 	[ -n "${gv_toi}" ] && shell_runlevel 2r && do_resume
 	do_root_work
 	shell_runlevel 4c
+	local IFS="${IFS}:"
 	for lk in ${gv_ldk_key}; do close_cryptsetup ${lk} ${lk}; done
 	for ld in ${gv_ldk_dev}; do losetup -d ${ld}; done
 	rmmod_group gpg
@@ -389,18 +454,14 @@ main() {
 	[ ${uv_check_env} ] || bin_exist "cryptsetup" "--"
 	/bin/mount -t sysfs sysfs /sys
 	parse_cmdline_args
-	[ -n "${gv_mod}" ] && {
-		for module in $(echo "${gv_mod}"|tr ',' ' ')
-		do echo ${module} >> /etc/modules/boot; done; }
+	[ -n "${gv_mod}" ] && { local IFS="${IFS},"
+		for module in ${gv_mod}; do echo ${module} >> /etc/modules/boot; done
+	}
 	modprobe_group boot
 	/bin/mount -t tmpfs tmpfs /dev
 	/sbin/mdev -s
 	echo /sbin/mdev > /proc/sys/kernel/hotplug
 	[ -n "$gv_splash_theme" ] && splash_setup
-	# fix /dev/device-mapper should be /dev/mapper/control on amd64?
-	[ -e "/dev/mapper/control" ] || { # see /sys/class/misc/device-mapper/dev 
-		mkdir -p /dev/mapper && mv /dev/device-mapper /dev/mapper/control
-		echo "device-mapper mapper/control issue fixed.." >> /.initlog;	}
 	do_work
 }
 main
