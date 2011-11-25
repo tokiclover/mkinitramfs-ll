@@ -106,10 +106,10 @@
 #                                  `/.gnupg/gpg.conf' in the initramfs root to avoid its creattion on each 
 #                                  reboot--no idea if the config options are taken into account. 
 #      * ldk encrypted key-file -> passed to cryptsetup as `-d /dev/mapper/$(basename /path/to/keyfile)' 
-#	                               after being decrypted. Now, there's a warning: 
-#	                               `Warning: exhausting read requested, but key file is not a regular file, 
-#	                               function might never return.' that I can't figure out after googling. 
-#	                               However, decryption goes as expected, it seems. No issue at the moment.
+#                                  after being decrypted. Now, there's a warning: 
+#                                  `Warning: exhausting read requested, but key file is not a regular file, 
+#                                  function might never return.' that I can't figure out after googling. 
+#                                  However, decryption goes as expected, it seems. No issue at the moment.
 #      * regular key-file       -> will be passed to cryptsetup as `-d /path/to/keyfile'.
 #      * pwd                    -> it's not mandatory to append any `ikroot=pwd' in the cmdline for this mode. 
 #                                  argument to be prompted for a password as a fallback.
@@ -163,4 +163,3 @@
 #	   * [runlevel] 4: before... 4c -> clean up / 4u -> umount / 4s -> switch root.
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
-
