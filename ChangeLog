@@ -9,7 +9,7 @@
 	* added UUID|LABEL for any PV encrypted or not, remdev or `/boot' PV;
 	* now ilvm argument can simply be a comma separated list of files in 
 	  remdev or `/boot' device which can be a line seperated list of PVs;
-	* added a sort of "sourcing" user scripts for each shell runlevel;
+	* added a sort of "executing" user scripts for each shell runlevel;
 	* added LVM2 support for unencrypted PVs, meaning that swap and/or resume 
 	  [file(s)] can be on unencrypted PVs and root of course;
 	  in this case a single word or character is enough in ilvm argument to
