@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_bb[.bash],v 0.3.3 2011/10/29 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.bash],v 0.4.0 2011/11/21 -tclover Exp $
 
 usage() {
   cat << EOF
@@ -52,12 +52,21 @@ build_busybox() {
 		-e "s|# CONFIG_FEATURE_SH_IS_ASH is not set|CONFIG_FEATURE_SH_IS_ASH=y|" \
 		-e "s|# CONFIG_ASH is not set|CONFIG_ASH=y|" \
 		-e "s|# CONFIG_ASH_BUILTIN_ECHO is not set|CONFIG_ASH_BUILTIN_ECHO=y|" \
+		-e "s|# CONFIG_BASENAME is not set|CONFIG_BASENAME=y|" \
+		-e "s|# CONFIG_BLKID is not set|CONFIG_BLKID=y|" \
+		-e "s|# CONFIG_BLKID_TYPE is not set|CONFIG_BLKID_TYPE=y|" \
 		-e "s|# CONFIG_CAT is not set|CONFIG_CAT=y|" \
 		-e "s|# CONFIG_CP is not set|CONFIG_CP=y|" \
 		-e "s|# CONFIG_CUT is not set|CONFIG_CUT=y|" \
+		-e "s|# CONFIG_FDISK is not set|CONFIG_FDISK=y|" \
+		-e "s|# CONFIG_FINDFS is not set|CONFIG_FINDFS=y|" \
+		-e "s|# CONFIG_FSCK is not set|CONFIG_FSCK=y|" \
 		-e "s|# CONFIG_HEAD is not set|CONFIG_HEAD=y|" \
 		-e "s|# CONFIG_GREP is not set|CONFIG_GREP=y|" \
+		-e "s|# CONFIG_KBD_MODE is not set|CONFIG_KBD_MODE=y|" \
 		-e "s|# CONFIG_INIT is not set|CONFIG_INIT=y|" \
+		-e "s|# CONFIG_LOADFONT is not set|CONFIG_LOADFONT=y|" \
+		-e "s|# CONFIG_LOADKMAP is not set|CONFIG_LOADKMAP=y|" \
 		-e "s|# CONFIG_LN is not set|CONFIG_LN=y|" \
 		-e "s|# CONFIG_MKDIR is not set|CONFIG_MKDIR=y|" \
 		-e "s|# CONFIG_MKNOD is not set|CONFIG_MKNOD=y|" \
@@ -69,10 +78,13 @@ build_busybox() {
 		-e "s|# CONFIG_RM is not set|CONFIG_RM=y|" \
 		-e "s|# CONFIG_RMMOD is not set|CONFIG_RMMOD=y|" \
 		-e "s|# CONFIG_SED is not set|CONFIG_SED=y|" \
+		-e "s|# CONFIG_SETFONT is not set|CONFIG_SETFONT=y|" \
 		-e "s|# CONFIG_SLEEP is not set|CONFIG_SLEEP=y|" \
 		-e "s|# CONFIG_SWITCH_ROOT is not set|CONFIG_SWITCH_ROOT=y|" \
+		-e "s|# CONFIG_HEAD is not set|CONFIG_HEAD=y|" \
 		-e "s|# CONFIG_TEST is not set|CONFIG_TEST=y|" \
 		-e "s|# CONFIG_TR is not set|CONFIG_TR=y|" \
+		-e "s|# CONFIG_TTY is not set|CONFIG_TTY=y|" \
 		-e "s|# CONFIG_WHICH is not set|CONFIG_WHICH=y|" \
 		-i .config || die "minimal cfg failed"
 	else 
