@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/README,v 0.3.6 2011/11/13 -tclover Exp $
+# $Header: mkinitramfs-ll/README,v 0.4.0 2011/11/25 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
@@ -23,15 +23,42 @@
 #
 #      * isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]           squashed directories, see below for more info.    
 #
+#	== About device, `/dev/' prefix and detached [LUKS] header ==
+#	There's no need to provide any `/dev/' prefix for block devices, find_blkd() will take care of that if necessary.
+#
+#	Now one can use `UUID="<uuid>"' or `LABEL="<label>"' instead of `[/dev/]sd<CHAR>' device scheme for any device or PV. 
+#
+#	However, a leading slash `/' is used as a separator for detached header device|file from cypthertext device when using 
+#	LUKS [and a hyphen `-' for mapping name]: `<map-UUID="<uid>"[|LABEL="<label>"][/[dev/]sd<CHAR>[|</path/to/header>]]'
+#	
+#	Each encrypted PV, with a detached header is given like [again `dev/' prefix is optionnal but not the leading `/']:
+#	   * <sda6/[dev/]sdc> for a detached header to `/dev/sdc' device: will be passed to cryptsetup as `--header /dev/sdc'
+#	   * <sdb/path/to/header/file> for a detached header file: will be passed as `--header /mnt/tok/path/to/header/file', 
+#	     so in this case, the header file must be in the same removable device or `/boot' PV used for keyfiles [because 
+#	     it'll be too troublesome to manage another device for header files]. Of course, a detached header to device can 
+#	     be given with `/UUID="<uuid>' or `/LABEL="<label>"' instead of `/sd<CHAR>' which is recommanded!
+#
 #	== About LVM2 argument ==
 #	Actually a PV in a group, respectively root, swap, resume is given by <mapping>-<device>, 
 #	mapping being a mapping name for cryptsetup and a block device|partition without the `/dev/' prefix.
 #
-#      <LV|PV|VG>  - <Logical|Physical Volume|Volume Group>.
-#      <VG-LV>     - <Volume Group name-Logical Volume name>
-#      <map-PV>    - comma separated list <mapping-PV> e.g. <pv1-sda1,pv2-sdb1,...> for a Volume Group (VG), 
-#                    the 1st being for root, the 2nd for swap and the 3rd for resume. So if this `ilvm=,swp-sdc1,' 
-#                    asign a VG for only swap VG (one can boot directly from unencrypted PV for example).
+#	   <LV|PV|VG>  - <Logical|Physical Volume|Volume Group>.
+#	   <VG-LV>     - <Volume Group name-Logical Volume name>
+#	   <map-PV>    - comma separated list <mapping-PV> e.g. <pv1-sda1,pv2-sdb1,...> for a Volume Group (VG),
+#	                 the 1st being for root, the 2nd for swap and the 3rd for resume. So this `ilvm=,swp-sdc1,'
+#	                 asign a VG for only swap VG (one can boot directly from unencrypted PV for example).
+#	   NEW!
+#	   NOTE, for unencrypted PVs, there's no need to provide a list of PVs in ilvm argument. A single character or word
+#	   is enough, like `ilvm=y' if root is on LV and on top of unencrypted PV, to activate LVM.
+#
+#	   PV list     - now <map-PV> [list] can be replaced with </path/to/list> file, this require the use of keyfile to 
+#	                 decrypt PV, which means that a removable or `/boot' device is mounted.
+#                    List can be a line separated list insted of a collon `:' list of the forme 
+#                    <mapping-UUID="<uid>"[/UUID="<uuid>"] for an UUID list. One can mix UUID, LABEL and [h|s]d[a-z][0-9]
+#                    in a list. However, it's best to use UUID only for detached header from cypthertext device which
+#                    will prevent any header mismatch when the devices get remapped.
+#
+#                    One can use multiple lists up to three, one for each group, else use the regular cmdline list.
 #
 # 	== About mount options ==
 #	imtopt=<rootfs mount options>
@@ -55,11 +82,6 @@
 #
 #      <device|dev>    - the device or PV that will be assigned to the removable media e.g. sda<int>, sdb<int>.
 #      </path/to/file> - full path to file inside the removable media.
-#
-#	== About `/dev/' prefix ==
-#	And there's no need to provide the `/dev/' prefix for device. In fact, if one do provide a `/dev/' 
-#	prefix for any of those init args, processing those args may fail. cryptsetup_exec() check for that, 
-#	and if there's not `/dev/' prefix, append one. This was done to limit the length of the init arguments.
 #
 #	== About squashed directories ==
 #	One can use squashfs+aufs2 to 'squash' partitions or preferably directories like $PORTDIR:var/lib/layamn, 
@@ -131,6 +153,14 @@
 #
 #		Modules should exist on `/lib/modules/$KV/', like in your system.
 # 		Your kernel has to support module unloading for rmmod to work.
+#
+#	== User scripts ==
+#	Now one can add scripts to `/etc/local.d' of the initramfs, or `$gitdir/misc' if using mkifs-ll building script.
+#	Each script should have a `$ishrl' [minimal shell runlevel] prefix and a `.sh' postfix. Runlevels are:
+#	   * [runlevel] 1: after sysinit/kernel initialization, /{proc,dev,sys} mount, boot group module, keymap and font;
+#	   * [runlevel] 2: before... 2s -> swap / 2r -> resume;
+#	   * [runlevel] 3: before... 3d -> decrypt / 3f -> fsck / 3m -> mount root;
+#	   * [runlevel] 4: before... 4c -> clean up / 4u -> umount / 4s -> switch root.
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
 

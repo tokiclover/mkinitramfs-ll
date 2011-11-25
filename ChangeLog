@@ -5,6 +5,17 @@
 # of course. And now I added LVM2... done I'm saying...                     #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
 #
+*2011-11-24:
+	* added UUID|LABEL for any PV encrypted or not, remdev or `/boot' PV;
+	* now ilvm argument can simply be a comma separated list of files in 
+	  remdev or `/boot' device which can be a line seperated list of PVs;
+	* added a sort of "sourcing" user scripts for each shell runlevel;
+	* added LVM2 support for unencrypted PVs, meaning that swap and/or resume 
+	  [file(s)] can be on unencrypted PVs and root of course;
+	  in this case a single word or character is enough in ilvm argument to
+	  activate LVM, no need for PV list in this case;
+	* added cryptsetup-1.4.1 support (loop files, detached header); and fixes.
+
 *2011-10-28:
 	* updated a few things and mkifs-ll, now only busybox is required to run
 	  that script (what's the point?) if one remove cryptsetup/v86d/fsck.*
