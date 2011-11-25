@@ -79,8 +79,8 @@ shell_runlevel() {
 		splash_verbose
 		info "Shell runlevel: ${1}"
 		local lv_scr="$(ls /etc/local.d/${1}*.sh)"
-		[ -n "${lv_scr}" ] && info "sourcing ${lv_scr}... files." && \
-		${lv_scr} &>/dev/null
+		[ -n "${lv_scr}" ] && for scr in ${lv_scr}
+		do info "executing ${scr}..."; ${scr} &>/dev/null || warn "${scr} failed"; done
 		exec /bin/sh; fi
 }
 
