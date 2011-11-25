@@ -263,38 +263,44 @@ do_root_work() {
 	local lv_root=${gv_root%%:*}
 	local lv_fsck="$(echo "$gv_root"|cut -d':' -f2)"
 	local lv_rofs="$(echo "$gv_root"|cut -d':' -f3)"
-	local lv_fscf=${gv_root##*:}
-:	local ${lv_mtopt:=$gv_mtopt} 
 :	local ${lv_lvm:=${gv_lvm%%,*}}
-	[ -n "${lv_mtopt}" ] && lv_mtopt="-o ${lv_mtopt}"
+:	${lv_lvm:=${gv_lvm_root}}
+	local lv_fscf=${gv_root##*:}
+	[ -n "${gbov_mtopt}" ] && local lv_mtopt="-o ${gv_mtopt}"
 	[ -n "${lv_rofs}" ]  && lv_rofs="-t ${lv_rofs}"
 	[ -n "${gv_root}" ] || die "iroot=* arg [PV|VG-LV][:fsck:<fs>] are missing."
 	[ "${lv_kmod}" != "none" ]  && local lv_crypt=0 && \
 		check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
 	shell_runlevel 3d
 	info "ROOT LV..."
-	if [ "${lv_crypt}" ]; then info "...encrypted rootfs."
-		if [ -n "${lv_lvm}" ]; then 
-			local lv_rdev=$(exec_lvm "${lv_lvm}" "${lv_root}")
-		else	exec_cryptsetup "${gv_root}" "${uv_root_map:-root}" 
-			local lv_rdev=/dev/mapper/${uv_root_map:-root}; fi
-	else 	info "...unencrypted rootfs." && local lv_rdev=/dev/${gv_root}; fi
+	if [ -n "${lv_lvm}" ]; then 
+		if [ "${lv_crypt}" ]; then info "...encrypted rootfs."
+			exec_lvm "${lv_lvm}" "${lv_root}"
+		else info "...unencrypted rootfs."; vgchange -ay ${lv_root%%-*}; fi
+		local lv_dev=$(exec_alvm "${lv_root}")
+	elif [ "${lv_crypt}" ]; then info "...encrypted rootfs."
+		exec_cryptsetup "${uv_root_map:-root}-${gv_root}" 
+		local lv_dev=/dev/mapper/${uv_root_map:-root}
+	else local lv_dev=$(find_blkd "${lv_root}"); fi
 	shell_runlevel 3f
-	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_rdev} 2>/dev/null 
-	[ "$?" ] || {
-		[ "${lv_fscf:-${uv_fscf:-y}}" = "y" ] && die "Failed to fsck rootfs, exit-code: $?"; }
+	[ -n "${lv_fsck}" ] && fsck ${lv_rofs} ${lv_dev} 2>/dev/null 
+	[ "$?" ] || { [ "${lv_fscf:-${uv_fscf:-y}}" = "y" ] && \
+		die "Failed to fsck rootfs, exit-code: $?"; }
 	shell_runlevel 3m
-	mount ${lv_mtopt} ${lv_rofs} ${lv_rdev} /newroot &>/dev/null
+	mount ${lv_mtopt} ${lv_rofs} ${lv_dev} /newroot &>/dev/null
 	[ "$?" ] || {
-		if [ "${lv_crypt}" ]; then
+		[ "${lv_crypt}" ] && {
 			if [ -n "${lv_lvm}" ]; then
 				warn "Disabling ${lv_root} VG-LV..."
 				vgchange -an ${lv_root%-*} &>/dev/null
-				for lv_pv in $(echo "${lv_lvm}"|tr ':' ' '); do
-					close_cryptsetup "${lv_pv%-*}" "${lv_pv}"; done
-			else 	close_cryptsetup "${uv_root_map:-root}" "${uv_root_map:-root}"; fi
-			[ -n "${gv_fname}" ] && close_cryptsetup "${gv_fname}" "${gv_fname}"; fi
-		die "Failed to mount rootfs."; }
+				local IFS="${IFS}:" 
+				for pv in ${lv_lvm}; do close_cryptsetup "${pv%/*}"; done
+			else close_cryptsetup "${uv_root_map:-root}"; fi
+			[ -b "/dev/mapper/${gv_fname}" ] && close_cryptsetup "${gv_fname}"
+		}
+		die "Failed to mount rootfs."
+	}
+	shell_runlevel 3s
 	[ -n "${sqfsd}" ] && do_sqfsd_work
 	lv_lvm=; lv_mtopt= 
 }
@@ -373,10 +379,7 @@ do_switch() {
 	exec switch_root /newroot ${uv_init:-/sbin/init} ${gv_init_runlevel}
 }
 
-print_msg() {
-#       clear
-	[ -e /etc/msg ] && info "$(cat /etc/msg)"
-}
+print_msg() { [ -e /etc/msg ] && info "$(cat /etc/msg)"; }
 
 do_work() {
 	[ "${gv_splash_silent}" = "verbose" ] && splash_verbose
