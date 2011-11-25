@@ -455,7 +455,7 @@ main() {
 	/bin/mount -t sysfs sysfs /sys
 	parse_cmdline_args
 	[ -n "${gv_mod}" ] && { local IFS="${IFS},"
-		for module in ${gv_mod}; do echo ${module} >> /etc/modules/boot; done
+		for module in ${gv_mod}; do modprobe ${module} &>/dev/null; done
 	}
 	modprobe_group boot
 	/bin/mount -t tmpfs tmpfs /dev
