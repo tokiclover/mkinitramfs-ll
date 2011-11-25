@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll[.zsh],v 0.3.6 2011/11/05 -tclover Exp $
-revision=0.3.6_p20111105
+# $Id: mkinitramfs-ll/mkifs-ll[.zsh],v 0.4.0 2011/11/25 -tclover Exp $
+revision=0.4.0
 
 usage() {
   cat <<-EOF
@@ -77,6 +77,8 @@ while [[ $# > 0 ]] {
 	esac
 }
 
+setopt EXTENDED_GLOB
+setopt NULL_GLOB
 typeset -A MODULES
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 : 	${K_VERSION:=$(uname -r)}
@@ -99,16 +101,22 @@ rm -rf $INITDIR || die "eek!"
 mkdir -p $INITDIR && cd $INITDIR || die "eek!"
 mkdir -p {,s}bin dev proc root sys usr/{bin,sbin} newroot || die "eek!"
 [[ -n ${$(uname -a)[(r)x86_64]} ]] && ARCH=64 || ARCH=32
-mkdir -p lib$ARCH/splash/cache etc/{modules,splash} mnt/tok || die "eek!"
+mkdir -p lib$ARCH/splash/cache etc/{modules,splash,local.d} mnt/tok || die "eek!"
 ln -sf lib$ARCH lib || die "eek!" && unset ARCH
 
 cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || addnodes
+[[ ${${(pws:.:)K_VERSION}[1]} = 3 ]] && [[ ${${(pws:.:)K_VERSION}[2]} >= 1 ]] && {
+	cp -a {/,}dev/loop-control || mknod dev/loop-control c 10 237 || die "eek!"
+}
 cp -a $WORKDIR/init . && chmod 775 init || die "failed to copy init"
+cp -a {/,}lib/modules/$K_VERSION/modules.dep || die "failed to copy modules.dep"
+[[ -e $MISCDIR/msg ]] && cp $MISCDIR/msg etc/
+for scr ($MISCDIR/*(.).sh) cp $scr etc/local.d/
 
 if [[ -x $BINDIR/busybox ]] { BINARIES+=:bin/busybox
 } elif [[ $(which bb) != "bb not found" ]] { 
 	cp $(which bb) bin/busybox
-	warn "unexpected results may happen using $(which bb)" 
+	warn "unexpected results may happen using $(which bb) because of missing applets" 
 } else { die "no busybox/bb binary found" }
 if [[ -e $BINDIR/applets ]] { cp -a $BINDIR/applets etc/
 	for app ($(< etc/applets)) 
@@ -117,7 +125,10 @@ if [[ -e $BINDIR/applets ]] { cp -a $BINDIR/applets etc/
 		/bin) cd bin && ln -s busybox $app:t && cd .. || die "eek!";;
 		/) ln -s bin/busybox $app:t || die "eek!";;
 	esac
-} else { sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!" }
+} else { sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!" 
+	ln -sf bin/busybox linuxrc || die "eek!"
+	cd bin && ln -sf busybox sh && cd .. || die "eek!"
+}
 
 if [[ -n $iGPG ]] { 
 	if [[ -x $BINDIR/gpg ]] { BINARIES+=:usr/bin/gpg
@@ -143,9 +154,6 @@ if [[ -n $iAUFS ]] { BINARIES+=:mount.aufs:umount.aufs
 		[[ -n ${${(pws,:,)MODULES[sqfsd]}[(rw)$fs]} ]] || MODULES[sqfsd]+=:$fs
 	unset iAUFS
 }
-
-setopt EXTENDED_GLOB
-setopt NULL_GLOB
 
 addmodule() {
 	local ret
