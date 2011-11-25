@@ -107,7 +107,7 @@ ln -sf lib$ARCH lib || die "eek!" && unset ARCH
 
 cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || addnodes
 [[ ${${(pws:.:)K_VERSION}[1]} -eq 3 ]] && [[ ${${(pws:.:)K_VERSION}[2]} -ge 1 ]] && {
-	cp -a {/,}dev/loop-control || mknod dev/loop-control c 10 237 || die "eek!"
+	cp -a {/,}dev/loop-control &>/dev/null || mknod dev/loop-control c 10 237 || die "eek!"
 }
 cp -a $WORKDIR/init . && chmod 775 init || die "failed to copy init"
 cp -a {/,}lib/modules/$K_VERSION/modules.dep || die "failed to copy modules.dep"
