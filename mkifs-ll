@@ -185,8 +185,8 @@ if [[ -n $FONTS ]] {
 		if [[ -e $BINDIR/$font ]] { cp -a $BINDIR/$font etc/ 
 		} elif [[ -e $font ]] { cp -a $font etc/
 		} elif [[ -e /usr/share/consolefonts/$font.gz ]] {
-			cp /usr/share/consolefonts/$font.gz . && gzip -d $font.gz && rm $font.gz \
-				&& mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
+			cp /usr/share/consolefonts/$font.gz . && gzip -d $font.gz && \
+				mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
 		} else { warn "failed to copy $font font" } 
 	unset FONTS 
 }
