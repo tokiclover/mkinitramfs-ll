@@ -78,7 +78,7 @@ shell_runlevel() {
 	if [ ${gv_shell_runlevel} = ${1} ]; then 
 		splash_verbose
 		info "Shell runlevel: ${1}"
-		local lv_scr="$(ls /etc/local.d/${1}*.sh)"
+		local lv_scr="$(ls /etc/local.d/${1}*.sh &>/dev/null)"
 		[ -n "${lv_scr}" ] && for scr in ${lv_scr}
 		do info "executing ${scr}..."; ${scr} &>/dev/null || warn "${scr} failed"; done
 		exec /bin/sh; fi
