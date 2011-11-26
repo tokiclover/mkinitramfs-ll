@@ -140,8 +140,7 @@ get_key() {
 check_key() {
 	[ -n "${gv_crypt_loop}" ] || {
 		local lv_crypt_version=$(cryptsetup --version | awk '{ print $2 }')
-		[ $(echo "$lv_crypt_version" | cut -d'.' -f2) -ge 3 ] && gv_crypt_loop=0 \
-			gv_crypt_loop=1
+		[ $(echo "$lv_crypt_version" | cut -d'.' -f2) -ge 3 ] && gv_crypt_loop=0
 		[ $(echo "$lv_crypt_version" | cut -d'.' -f2) -ge 4 ] && gv_crypt_header=0
 	}
 	[ -n "${2}" ] || die "ik${4}=${1}:${2}:${3} device field empty."
