@@ -6,7 +6,7 @@
 #	and	of course when using this script, one does not need root=<arg> nor resume=<arg>.
 #	init script supports the following specific arguments: 
 #		* iroot=<PV|VG-LV>[:c:<fs>:n]    required root device, recommanded optinal `:c:ext4' for an 
-#                                    ext4 rootfs, last `:n' disable a `die' after fsck failure. 
+#                                        ext4 rootfs, last `:n' disable a `die' after fsck failure. 
 #		* [imtopt=<ro,inode64,...>]      optional mount options for rootfs.
 #		* [imod=<drm,ttm,...,nouveau>]   optional modules [list] to load (in the boot group).
 #		* ikmap=<kmap>[:<font>]          optional keymap and font to load, may be handy for passwords.
@@ -58,9 +58,8 @@
 #	                 device is mounted. List can be a line separated list insted of a collon `:' list 
 #	                 of the forme <mapping-UUID="<uid>"[/UUID="<uuid>"] for an UUID list. One can mix 
 #	                 UUID, LABEL and [h|s]d[a-z][0-9] in a list. However, it's best to use UUID only 
-#	                 for detached header from cypthertext device which prevent header mismatch when.
-#
-#                  One can use multiple lists up to three, one for each group.
+#	                 for detached header from cypthertext device which prevent header mismatch. 
+#	                 One can use multiple lists up to three, one for each group.
 #
 #	== About mount options ==
 #	imtopt=<rootfs mount options>
@@ -80,7 +79,7 @@
 #			* ldk 	-> keyfile is LUKS encrypted, via loop back device.
 #			* reg 	-> keyfile is regular file
 #			* pwd 	-> encrypted on a regular passphrase, if no argument is passed, fallback is pwd mode.
-#			* none -> handy for unencrypted PVs, with or without LVM2 support.
+#			* none  -> handy for unencrypted PVs, with or without LVM2 support.
 #
 #		<device|dev>    - device or PV that will be assigned to the removable media e.g. sd[a-z][0-9]
 #		</path/to/file> - full path to file inside the removable media.
@@ -113,9 +112,9 @@
 #		* [reg] regular key-file: 
 #				will be passed to cryptsetup as `-d /path/to/keyfile'.
 #		* [pwd] regular passphrase: 
-#				it's not mandatory to append any `ikroot=pwd' in the cmdline for this mode is the fallback.
+#				it's not mandatory to append any `ik*=pwd' in the cmdline for this mode is the fallback.
 #		* [none] unencrypted Physical Volume or device: 
-#				it should be explicitely appended to mount an unencrypted rootfs. I added this mode for 
+#				it should be explicitely appended ikroot,ikswap or ikresume. I added this mode first for 
 #				testing purpose for those, like me, who have a working system before encrypting rootfs.
 #	
 #	WARNING: Back up your data! else... you may lose a few of... them by carelessness.
@@ -157,10 +156,10 @@
 #
 #	== User scripts execution ==
 #	Now one can add scripts to `/etc/local.d' of the initramfs, or `$gitdir/misc' if using mkifs-ll 
-#	building script. Each script should have a `.sh' postfix and a `$ishrl' prefix as the follwing:
-#	   * [runlevel] 1: after sysinit/kernel initialization, /{proc,dev,sys} mount, module, keymap, font;
-#	   * [runlevel] 2: before... 2s -> swap / 2r -> resume;
-#	   * [runlevel] 3: before... 3d -> decrypt / 3f -> fsck / 3m -> mount root;
-#	   * [runlevel] 4: before... 4c -> clean up / 4u -> umount / 4s -> switch root.
+#	building script. Each script should have a `.sh' sufix and a `$ishrl' prefix as the follwing[in []]:
+#	   * [runlevel] 1: boot and cmdline modules, keymap, font -> [1] -> print msg;
+#	   * [runlevel] 2: before... [2s] -> swap / [2r] -> resume;
+#	   * [runlevel] 3: before... [3d] -> decrypt / [3f] -> fsck / [3m] -> mount root;
+#	   * [runlevel] 4: before... [4c] -> clean up / [4u] -> umount / [4s] -> switch root.
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=3:ts=3:
