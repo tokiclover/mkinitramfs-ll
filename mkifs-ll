@@ -190,8 +190,8 @@ unset MODULES
 		if [[ -e $font ]]; then cp -a $font etc/
 		elif [[ -e "$BINDIR"/$font ]]; then cp -a "$BINDIR"/$font etc/ 
 		elif [[ -e /usr/share/consolefonts/$font.gz ]]; then
-			cp /usr/share/consolefonts/$font.gz . && gzip -d $font.gz && rm $font.gz \
-				&& mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
+			cp /usr/share/consolefonts/$font.gz . && gzip -d $font.gz && \
+			mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
 		else warn "failed to copy $font font"; fi
 	done
 	unset FONTS
