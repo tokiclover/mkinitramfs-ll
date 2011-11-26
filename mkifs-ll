@@ -225,4 +225,4 @@ echo ">>> $INITRAMFS initramfs built"
 
 unset K_VERSION E_VERSION INITDIR BINDIR COMPCMD INITRAMFS MISCDIR
 
-# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
+# vim:fenc=utf-8:ci:pi:sts=0:sw=3:ts=3:
