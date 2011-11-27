@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.4.0 2011/11/24 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.4.0 2011/11/23 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -90,10 +90,7 @@ exec_losetup() {
 	echo ${lv_ldk_dev}
 }
 
-find_blkd() {
-	[ -z "${gv_blkid}" ] && gv_blkid="$(blkid)"
-	echo $(echo "${gv_blkid}" | grep "${1#*=}" | cut -d':' -f1)
-}
+find_blkd() { echo $(blkid | grep "${1#*=}" | cut -d':' -f1); }
 
 get_ldk_key() {
 	[ $gv_crypt_loop ] && local lv_ldk_dev="${1}" || {
@@ -110,15 +107,15 @@ get_key() {
 	gv_fname=${gv_fpath##*/}
 	[ -n "$(mount | grep /mnt/tok)" ] || { 
 		[ -b "${lv_dev}" ] || { 
-			sleep 3; gv_blkid="$(blkid)"; lv_dev=$(find_blkd "${2}")
+			sleep 2; lv_dev=$(find_blkd "${2}")
 			if [ ! -b "${lv_dev}" ]; then
 				info "Insert removable device and press Enter."; read
-				sleep 3; gv_blkid="$(blkid)"; lv_dev=$(find_blkd "${2}"); fi
+				sleep 2; lv_dev=$(find_blkd "${2}"); fi
 			while [ ! -b "${lv_dev}" ]; do
 				info "${lv_dev} does not exist, input a valid dev name"
 				info "e.g. '[/dev/]sdb1', 'LABEL=<label>' 'UUID=<uuid>'"
 				read lv_dev
-				sleep 3; gv_blkid="$(blkid)"; lv_dev=$(find_blkd "${lv_dev}")
+				sleep 2; lv_dev=$(find_blkd "${lv_dev}")
 			done
 		}
 		mount -n -r "${lv_dev}" /mnt/tok &>/dev/null || \
@@ -156,7 +153,7 @@ exec_cryptsetup() {
 	local lv_arg=luksFormat
 	local lv_map=$(echo "${1}" | cut -d'-' -f1)
 	local lv_dev=$(echo "${1#*-}" | cut -d'/' -f1); lv_dev=$(find_blkd "${lv_dev}")
-	local lv_header=$(echo "${1}" | cut -d'/' -f2)
+	local lv_header=$(echo "${1}" | cut -d'/' -s -f2)
 	[ -n "${lv_header}" ] && {
 		if [ -n "$(echo "${lv_header}" | grep -E '(UUID|LABEL|sd[a-z][0-9])')" ]; then 
 			lv_header=$(find_blkd "${lv_header}")
@@ -229,8 +226,8 @@ exec_lvm() {
 		local lv_pv="${1}" IFS="${IFS}:"
 		[ -e "/mnt/tok/${lv_pv}" ] && lv_pv="$(cat "/mnt/tok/${lv_pv}")"
 		for pv in ${lv_pv}; do exec_cryptsetup "${pv}"; done
-		vgchange -ay ${2} &>/dev/null || { 
-			vgchange -an ${2%%-*} &>/dev/null
+		vgchange -ay ${2%-*} &>/dev/null || { 
+			vgchange -an ${2%-*} &>/dev/null
 			warn "Disabling ${2} VG/LV..."
 			for pv in ${lv_pv}; do close_cryptsetup "${pv%/*}"; done
 			[ -b "/dev/mapper/${gv_fname}" ] && close_cryptsetup "${gv_fname}"
