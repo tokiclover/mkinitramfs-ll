@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.4.0 2011/11/23 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.4.1 2011/11/28 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -98,7 +98,7 @@ get_ldk_key() {
 		gv_ldk_dev="${gv_ldk_dev}:${lv_ldk_dev}"
 	}
 	gv_ldk_key="${gv_ldk_key}:${2}"
-	exec_cryptsetup "${lv_ldk_dev}" "${2}" && gv_kfile=/dev/mapper/${2} 
+	cryptsetup_decrypt "${lv_ldk_dev}" "${2}" && gv_kfile=/dev/mapper/${2} 
 }
 
 get_key() {
@@ -145,11 +145,41 @@ check_key() {
 	get_key "${1}" "${2}" "${3}"
 }
 
-close_cryptsetup() { 
-	cryptsetup luksClose ${1%%-*} || cryptsetup remove ${1%%-*} || die "${1%/*}: ${2}"
+cryptsetup_close() { 
+	[ -n "${2}" ] && vgchange -an ${2%-*} &>/dev/null
+	local IFS="${IFS}:" 
+	for pv in ${1}; do 
+		warn "disabling ${pv%/*}..."
+		cryptsetup luksClose ${1%%-*} || cryptsetup remove ${1%%-*} || \
+		warn "${1%/*}: failed to close mapping."
+	done
+	[ -b "/dev/mapper/${gv_fname}" ] && cryptsetup luksClose "${gv_fname}"
 }
 
-exec_cryptsetup() { 
+cryptsetup_create() {
+	info "Type a valid LUKS cipher:hash, default is 'aes-xts-plain:sha256'"
+	info "you can take something safer like 'aes-cbc-essiv:sha256'"
+	read local lv_cph
+	info "Type a valide key-size [256|512], default is 256 bits:"
+	read local lv_ksz
+	if [ -e "${gv_kfile}" ]; then 
+		info "Do you want to use the existing ${gv_kfile} key-file? [NO|yes]"
+		read local lv_ukf
+		[ "${lv_ukf:-no}" = "yes" ] && lv_ukf="-d ${lv_ukf}" || lv_ukf=; fi
+	if [ -n "${lv_header}" ]; then info "Do you want to use ${lv_header} [NO|yes]?"
+		lv_asw=; read lv_asw
+		if [ "${lv_asw:-no}" = "yes" ]; then info "Enter a valid aligh-payload offset,"
+			info "option is taken as absolute sector alignment and can be zero"
+			read local lv_alp
+			[ -n "${lv_alp}" ] && lv_alp="--align-payload ${lv_alp}"
+		else lv_header=; lv_alp=; fi
+	fi
+	cryptsetup ${lv_arg} ${lv_dev} -c${lv_cph:-aes-xts-plain:sha256} \
+		-s${lv_ksz:-256} ${lv_ukf} ${lv_header} ${lv_alp} || \
+		die "failed to create ${lv_dev} cyphertext volume."
+}
+
+cryptsetup_decrypt() { 
 	local lv_arg=luksFormat
 	local lv_map=$(echo "${1}" | cut -d'-' -f1)
 	local lv_dev=$(echo "${1#*-}" | cut -d'/' -f1); lv_dev=$(find_blkd "${lv_dev}")
@@ -167,35 +197,13 @@ exec_cryptsetup() {
  	info "Do you want to cre[ate] ${lv_dev} or dec[rypt] another LUKS PV? [cre|DEC]"
 	read local lv_asw 
 	if [ "${lv_asw:-dec}" = "dec" ]; then 
-		for i in 1 2 3; do
-			info "Type another (valid LUKS) PV"
-			info 'e.g. [/dev/]sda5, UUID="<uuid>" or LABEL="<label>"'
+		while true; do
+			info 'Type another valid LUKS PV e.g. sda5|UUID="<uuid>"|LABEL="<label>"'
 			read lv_dev; lv_dev=$(find_blkd "${lv_dev}")
 			cryptsetup isLuks "${lv_dev}" && break
 		done
-	elif [ "${lv_asw}" = "cre" ]; then 
-		info "Type a valid LUKS cipher:hash, default is 'aes-xts-plain:sha256'"
-		info "you can take something safer like 'aes-cbc-essiv:sha256'"
-		read local lv_cph
-		info "Type a valide key-size [256|512], default is 256 bits:"
-		read local lv_ksz
-		if [ -e "${gv_kfile}" ]; then 
-			info "Do you want to use the existing ${gv_kfile} key-file? [NO|yes]"
-			read local lv_ukf
-			[ "${lv_ukf:-no}" = "yes" ] && lv_ukf="-d ${lv_ukf}" || lv_ukf=; fi
-		if [ -n "${lv_header}" ]; then info "Do you want to use ${lv_header} [NO|yes]?"
-			lv_asw=; read lv_asw
-			if [ "${lv_asw:-no}" = "yes" ]; then info "Enter a valid aligh-payload offset,"
-				info "option is taken as absolute sector alignment on ciphertext and can be zero"
-				read local lv_alp
-				[ -n "${lv_alp}" ] && lv_alp="--align-payload ${lv_alp}"
-			else lv_header=; lv_alp=; fi
-		fi
-		for i in 1 2 3; do
-			cryptsetup ${lv_arg} ${lv_dev} -c${lv_cph:-aes-xts-plain:sha256} \
-				-s${lv_ksz:-256} ${lv_ukf} ${lv_header} ${lv_alp} && break
-		done
-	fi; }
+	elif [ "${lv_asw}" = "cre" ]; then cryptsetup_create; fi
+	}
 	[ -b "${lv_dev}" ] || die "${lv_dev} block device doesn't exist."
 	cryptsetup isLuks "${lv_dev}" &>/dev/null || die "No valid LUKS PV found."
 	lv_arg=luksOpen
@@ -213,27 +221,18 @@ exec_cryptsetup() {
 			die "Failed to decrypt ${lv_dev}."; fi
 }
 
-exec_alvm() {
+lvm_available() {
+	[ ${uv_check_env} ] || bin_exist "lvm" "--"
+	lvchange -ay ${1/-//} &>/dev/null || [ -n "${2}" ] && {
+		local lv_pv="${2}" IFS="${IFS}:"
+		[ -e "/mnt/tok/${lv_pv}" ] && lv_pv="$(cat "/mnt/tok/${lv_pv}")"
+		for pv in ${lv_pv}; do cryptsetup_decrypt "${pv}"; done
+		vgchange -ay ${1%-*} &>/dev/null || close_mapping "${lv_pv}" "${1}"
+	}
 	if [ -b "/dev/mapper/${1}" ]; then local lv_mapping=/dev/mapper/${1}
 	elif [ -b "/dev/${1/-//}" ]; then local lv_mapping=/dev/${1/-//}
 	else die "${1} VG/LV do not exist."; fi
 	echo "$lv_mapping"
-}
-
-exec_lvm() {
-	[ ${uv_check_env} ] || bin_exist "lvm" "--"
-	lvchange -ay ${2/-//} &>/dev/null || {
-		local lv_pv="${1}" IFS="${IFS}:"
-		[ -e "/mnt/tok/${lv_pv}" ] && lv_pv="$(cat "/mnt/tok/${lv_pv}")"
-		for pv in ${lv_pv}; do exec_cryptsetup "${pv}"; done
-		vgchange -ay ${2%-*} &>/dev/null || { 
-			vgchange -an ${2%-*} &>/dev/null
-			warn "Disabling ${2} VG/LV..."
-			for pv in ${lv_pv}; do close_cryptsetup "${pv%/*}"; done
-			[ -b "/dev/mapper/${gv_fname}" ] && close_cryptsetup "${gv_fname}"
-			die "Encrypted PV [and key-file] closed."
-		}
-	}
 }
 
 do_sqfsd_work() {
@@ -271,12 +270,9 @@ do_root_work() {
 	shell_runlevel 3d
 	info "ROOT LV..."
 	if [ -n "${lv_lvm}" ]; then 
-		if [ "${lv_crypt}" ]; then info "...encrypted rootfs."
-			exec_lvm "${lv_lvm}" "${lv_root}"
-		else info "...unencrypted rootfs."; vgchange -ay ${lv_root%%-*}; fi
-		local lv_dev=$(exec_alvm "${lv_root}")
+		local lv_dev=$(lvm_available "${lv_root}" "${lv_lvm}")
 	elif [ "${lv_crypt}" ]; then info "...encrypted rootfs."
-		exec_cryptsetup "${uv_root_map:-root}-${gv_root}" 
+		cryptsetup_decrypt "${uv_root_map:-root}-${gv_root}" 
 		local lv_dev=/dev/mapper/${uv_root_map:-root}
 	else local lv_dev=$(find_blkd "${lv_root}"); fi
 	shell_runlevel 3f
@@ -284,17 +280,9 @@ do_root_work() {
 	[ "$?" ] || { [ "${lv_fscf:-${uv_fscf:-y}}" = "y" ] && \
 		die "Failed to fsck rootfs, exit-code: $?"; }
 	shell_runlevel 3m
-	mount ${lv_mtopt} ${lv_rofs} ${lv_dev} /newroot &>/dev/null
-	[ "$?" ] || {
-		[ "${lv_crypt}" ] && {
-			if [ -n "${lv_lvm}" ]; then
-				warn "Disabling ${lv_root} VG-LV..."
-				vgchange -an ${lv_root%-*} &>/dev/null
-				local IFS="${IFS}:" 
-				for pv in ${lv_lvm}; do close_cryptsetup "${pv%/*}"; done
-			else close_cryptsetup "${uv_root_map:-root}"; fi
-			[ -b "/dev/mapper/${gv_fname}" ] && close_cryptsetup "${gv_fname}"
-		}
+	mount ${lv_mtopt} ${lv_rofs} ${lv_dev} /newroot &>/dev/null || {
+		[ "${lv_crypt}" ] && \
+		cryptsetup_close "${lv_lvm:-${uv_root_map:-root}}" "${lv_lvm:+${lv_root}}"
 		die "Failed to mount rootfs."
 	}
 	shell_runlevel 3s
@@ -317,12 +305,9 @@ do_swap_work() {
 	[ "${lv_kmod}" != "none" ]  && local lv_crypt=0 && \
 		check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_mapp}"
 	if [ -n "${lv_lvm}" ]; then 
-		if [ "${lv_crypt}" ]; then info "...encrypted PVs."
-			exec_lvm "${lv_lvm}" "${lv_hdev}"
-		else info "...unencrypted PVs."; vgchange -ay ${lv_hdev%%-*}; fi
-		gv_dev=${lv_type}:$(exec_alvm "${lv_hdev}")${lv_sign}
+		gv_dev=${lv_type}:$(lvm_available "${lv_hdev}" "${lv_lvm}")${lv_sign}
 	elif [ "${lv_crypt}" ]; then info "...encrypted ${lv_mapp}."
-		exec_cryptsetup "${lv_mapp}-${lv_hdev}"
+		cryptsetup_decrypt "${lv_mapp}-${lv_hdev}"
 		gv_dev=${lv_type}:/dev/mapper/${lv_mapp}${lv_sign}
 	else info "...unencrypted ${lv_mapp}."
 		gv_dev=${lv_type}:$(find_blkd "${lv_hdev}")${lv_sign}; fi
@@ -398,7 +383,7 @@ do_work() {
 	do_root_work
 	shell_runlevel 4c
 	local IFS="${IFS}:"
-	for lk in ${gv_ldk_key}; do close_cryptsetup ${lk} ${lk}; done
+	for lk in ${gv_ldk_key}; do cryptsetup_close "${lk}"; done
 	for ld in ${gv_ldk_dev}; do losetup -d ${ld}; done
 	rmmod_group gpg
 	umount -n -l /mnt/tok
