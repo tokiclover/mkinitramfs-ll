@@ -84,7 +84,7 @@ shell_runlevel() {
 		exec /bin/sh; fi
 }
 
-exec_losetup() {
+losetup_associate() {
 	lv_ldk_dev="$(losetup -f)" || die "Create or append max_loop=<int> to the cmdline."
 	losetup ${lv_ldk_dev} ${1} || die "Failed to setup losetup."
 	echo ${lv_ldk_dev}
@@ -93,12 +93,12 @@ exec_losetup() {
 find_blkd() { echo $(blkid | grep "${1#*=}" | cut -d':' -f1); }
 
 get_ldk_key() {
-	[ $gv_crypt_loop ] && local lv_ldk_dev="${1}" || {
-		local lv_ldk_dev=$(exec_losetup ${1})
+	[ $gv_crypt_loop ] || {
+		local lv_ldk_dev=$(losetup_associate "${1}")
 		gv_ldk_dev="${gv_ldk_dev}:${lv_ldk_dev}"
 	}
 	gv_ldk_key="${gv_ldk_key}:${2}"
-	cryptsetup_decrypt "${lv_ldk_dev}" "${2}" && gv_kfile=/dev/mapper/${2} 
+	cryptsetup_decrypt "${2}-${lv_ldk_dev}" && gv_kfile=/dev/mapper/${2} 
 }
 
 get_key() {
