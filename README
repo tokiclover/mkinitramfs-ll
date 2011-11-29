@@ -6,7 +6,7 @@
 #	and	of course when using this script, one does not need root=<arg> nor resume=<arg>.
 #	init script supports the following specific arguments: 
 #		* iroot=<PV|VG-LV>[:c:<fs>:n]    required root device, recommanded optinal `:c:ext4' for an 
-#                                        ext4 rootfs, last `:n' disable a `die' after fsck failure. 
+# 		                                 ext4 rootfs, last `:n' disable a `die' after fsck failure. 
 #		* [imtopt=<ro,inode64,...>]      optional mount options for rootfs.
 #		* [imod=<drm,ttm,...,nouveau>]   optional modules [list] to load (in the boot group).
 #		* ikmap=<kmap>[:<font>]          optional keymap and font to load, may be handy for passwords.
@@ -98,7 +98,7 @@
 #		* isqfsd=y,a:<dir 1>[:<dir n>]		
 #				- same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
 #
-#	 NOTE: leading `/' slash is only required for [uv_|]sqfsdir, else mounting squashed dirs will fail. 
+#	NOTE: leading `/' slash is only required for [uv_|]sqfsdir, else mounting squashed dirs will fail. 
 #
 #	== Notes on key modes ==
 #		* [gpg] encrypted key-file:
@@ -119,7 +119,7 @@
 #	
 #	WARNING: Back up your data! else... you may lose a few of... them by carelessness.
 # 
-# == Kernel parameters example ==
+# 	== Kernel parameters example ==
 #		* Root--no key--unencrypted PV: iroot=sda3 ikroot=none ikmap=es-cp850_i686.bin    
 #		* Root--key regular passphrase--plus fbsplash: iroot=sda3 ikroot=pwd \
 #			video=uvesafb:ywrap,1280x800-24@60 splash=verbose,theme:livecd-20007.0 console=tty1
@@ -127,7 +127,7 @@
 #		* Root--gpg encrypted key on usb stick: iroot=sda3 ikroot=gpg:sdb1:/path/to/file
 #		* Swap and root--ldk encrypted keyfiles: iroot=sda3 iswap=swap[|file]:sda2[:signature] \
 #			ikroot=ldk:sdb1:/path/to/rootkey ikswap=ldk:sdb1:/path/to/swapkey
-#   * Regular swap--AND TuxOnIce resume on a different PV--regular passphrase: 
+#   	* Regular swap--AND TuxOnIce resume on a different PV--regular passphrase: 
 #			iswap=swap:sda2 iresume=swap:sda3:0x4400 ikswap=pwd ikresume=pwd
 #		* Swap file--resuming from hibernation--ldk protected keyfile on usb stick:
 #			iswap=file:sda3:0x4400 iresume=toi[|CHAR|WORD] ikswap=ldk:sdb1:/path/to/swapkey
@@ -142,8 +142,8 @@
 #			imtopt=logdev=/dev/vg1/lv1,inode64,barrier
 #
 #	== Modules == 	
-# If one need to load modules, create the groups you need in /etc/modules/ (inside initramfs),each file 
-# should be a list of the modules, and each file name denotes the step in the init where they're loaded.
+# 	If one need to load modules, create the groups you need in /etc/modules/ (inside initramfs),each file 
+# 	should be a list of the modules, and each file name denotes the step in the init where they're loaded.
 #		Supported groups:
 #			* boot         - boot time modules loaded but not removed.
 #			* tuxonice     - tuxonice module, wich aren't removed if you don't comment in a line.

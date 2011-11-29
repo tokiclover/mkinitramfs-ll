@@ -5,6 +5,11 @@
 # of course. And now I added LVM2... done I'm saying...                     #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
 #
+*2011-11-28:
+	* init v0.4.1 version bump from previous v0.4.0... major init clean up;
+	* fixed to either use console=[/dev/]ttyN N=[1-6];
+	* ChangeLog/KnownIssue/README minor update/edit.
+
 *2011-11-24:
 	* added UUID|LABEL for any PV encrypted or not, remdev or `/boot' PV;
 	* now ilvm argument can simply be a comma separated list of files in 
