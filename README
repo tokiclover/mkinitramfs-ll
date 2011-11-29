@@ -135,7 +135,7 @@
 #	this will take some time. Now LVM2...
 #
 #		* Crypted LVs [root,swap] using LVM2--ldk crypted keyfile and--plus mount options for rootfs:
-#			iroot=vgr-lvr iswap=file:vgs-lvs:0x4400 imtopt=logdev=/dev/vgs/lvl,inode64,barrier \
+#			iroot=vgr-lvr iswap=file:vgs-lvs:0x4400 imtopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier \
 #			ilvm=pva1-UUID=<uuid>:pvb2-UUID=<uuid>,pvc1-UID=<uuid> \
 #			ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile
 #
