@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.4.0 2011/11/25 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.4.1 2011/11/28 -tclover Exp $
 revision=0.4.0
 
 usage() {
@@ -46,7 +46,8 @@ addnodes() {
 	[ -c dev/mem ] || mknod dev/mem c 1 1 || die "eek!"
 	[ -c dev/null ] || mknod dev/null c 1 3 || die "eek!"
 	[ -c dev/tty ] || mknod dev/tty c 5 0 	|| die "eek!"
-	[ -c dev/tty1 ] || mknod dev/tty1 c 4 1 || die "eek!"
+	for i in $(seq 1 6)
+	do [[ -c dev/tty$i ]] || mknod dev/tty$i c 4 $i || die "eek!"; done
 	[ -c dev/zero ] || mknod dev/zero c 1 5 || die "eek!"
 }
 
@@ -101,7 +102,7 @@ mkdir -p etc/{modules,splash,local.d} || die "eek!"
 mkdir -p lib$ARCH/{splash/cache,modules/$K_VERSION} || die "eek!"
 ln -sf lib$ARCH lib || die "eek!" && unset ARCH
 
-cp -a /dev/{console,random,urandom,mem,null,tty,tty1,zero} dev/ || addnodes
+cp -a /dev/{console,random,urandom,mem,null,tty,tty[1-6],zero} dev/ || addnodes
 [[ $(echo ${K_VERSION} | cut -d'.' -f1 ) -eq 3 ]] && \
 	[[ $(echo ${K_VERSION} | cut -d'.' -f2) -ge 1 ]] && { 
 	cp -a {/,}dev/loop-control &>/dev/null || mknod dev/loop-control c 10 237 || die "eek!"
