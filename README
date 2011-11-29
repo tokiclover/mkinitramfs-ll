@@ -107,8 +107,6 @@
 #				can add a `/.gnupg/gpg.conf' in the initramfs root to avoid its creattion on each reboot. 
 #		* [ldk] encrypted key-file: 
 #				passed to cryptsetup as `-d /dev/mapper/$(basename /path/to/keyfile)' after being decrypted. 
-#				Now, there's a warning: `Warning: exhausting read requested, but key file is not a regular 
-#				file, function might never return.' that I can't figure out after googling. 
 #		* [reg] regular key-file: 
 #				will be passed to cryptsetup as `-d /path/to/keyfile'.
 #		* [pwd] regular passphrase: 
@@ -137,9 +135,9 @@
 #	this will take some time. Now LVM2...
 #
 #		* Crypted LVs [root,swap] using LVM2--ldk crypted keyfile and--plus mount options for rootfs:
-#			iroot=vg0-lv1 iswap=file:vg1-lv0:0x4400 ilvm=vg0a1-sda1:vg0b2-sdb2,vg1c1-sdc1 \
-#			ikroot=ldk:sdg1:/path/to/keyfile ikswap=ldk:sdg1:/path/to/keyfile \
-#			imtopt=logdev=/dev/vg1/lv1,inode64,barrier
+#			iroot=vgr-lvr iswap=file:vgs-lvs:0x4400 imtopt=logdev=/dev/vgs/lvl,inode64,barrier \
+#			ilvm=pva1-UUID=<uuid>:pvb2-UUID=<uuid>,pvc1-UID=<uuid> \
+#			ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile
 #
 #	== Modules == 	
 # 	If one need to load modules, create the groups you need in /etc/modules/ (inside initramfs),each file 
