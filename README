@@ -140,8 +140,8 @@
 #			ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile
 #
 #	== Modules == 	
-# 	If one need to load modules, create the groups you need in /etc/modules/ (inside initramfs),each file 
-# 	should be a list of the modules, and each file name denotes the step in the init where they're loaded.
+# 	To load modules, one could either create needed groups in `/etc/modules/' in the initramfs. Each file 
+# 	is a line seperated list of modules. Either append a comma seperated list on cmdline using `imod=' arg.
 #		Supported groups:
 #			* boot         - boot time modules loaded but not removed.
 #			* tuxonice     - tuxonice module, wich aren't removed if you don't comment in a line.
@@ -149,8 +149,9 @@
 #			* gpg          - modules required to access gpg protected file.
 #			* sqfsd        - modules required for squashfs+aufs2, you can still build them into the kernel.
 #
-#		Modules should exist on `/lib/modules/$KV/', like in your system.
-#		Your kernel has to support module unloading for rmmod to work.
+#	Modules should exist in `/lib/modules/$KERNEL_VERSION/', the kernel should support modules [un]loading.
+#	Just make sure to append the necessary modules to right group in mkifs-ll.conf for autoloading, or else
+#	use `MODDEP' variable to be able to append mdoules to imod cmdline arg when using the building script.
 #
 #	== User scripts execution ==
 #	Now one can add scripts to `/etc/local.d' of the initramfs, or `$gitdir/misc' if using mkifs-ll 
