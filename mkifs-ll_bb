@@ -1,40 +1,37 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.4.0 2011/11/21 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.4.1 2011/12/03 -tclover Exp $
 
 usage() {
   cat <<-EOF
-  usage: ${(%):-%1x} [-b|--build [-m|--minimal] [--uCl-arch=i386] ] [--keymap=map:kmap]
-  -b, --build	          build a [minimal|full applets featured] static busybox binary 
-  -m, --minimal	          build busybox with minimal applets, default is full applets
-  -i, --install	          install busybox with symliks to \$BINDIR, require -b|--build
-      --keymap=map:kmap   generate kmap keymap using map as input keymap.
-      --uCl-arch=i386     ARCH string needed to build busybox linked uClibc instead of..		
-  -u, --usage             print the usage/help and exit
+  usage: ${(%):-%1x} [-b|-build] [-m|-minimal] [-ua|-ucl-archi386] ] [-y|-keymap<map:kmap>]
+  -b|-build	              build a [minimal|full applets featured] static busybox binary 
+  -i|-install	          install busybox with symliks to \$opts[-bindir], require -b
+  -mi|-minimal	          build busybox with minimal applets, default is full applets
+  -km|-key-map <map:kmap> generate kmap keymap using map as input keymap
+  -ua|-ucl-arch i386      ARCH string needed to build busybox linked uClibc		
+  -bi|-bin :<bin>         append collon seperated list of binar-y-ies to include
+  -bd|-bindir bin         try to include binaries from bin dir (busybox/applets/gpg) first
+  -u|-usage               print the usage/help and exit
 EOF
-}
-
-[[ $# = 0 ]] && usage && exit 0
-while [[ $# > 0 ]] {
-	case $1 in
-		-b|--build) CONFIG=y; BBB=y; shift;;
-		-m|--minimal) CONFIG=m; shift;;
-		-i|--install) IBB=y; shift;;
-		--tmp=*) TMP_DIR=${1#*=}; shift;;
-		--ucl-arch=*) UCL_ARCH=${1#*=}-uClibc-; shift;;
-		--keymap=*) KEYMAP_IN=${${(pws,:,)${1#*=}}[(w)1]}; KBB=y 
-		           KEYMAP_OUT=${${(pws,:,)${1#*=}}[(w)2]}; shift;;
-		-u|--usage|*) usage; exit 0;;
-	esac
 }
 
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}:%u%f" $@'
 
-[[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
-:	${WORKDIR:=$(pwd)}
-:	${MISCDIR:=$WORKDIR/misc}
-:	${BINDIR:=$WORKDIR/bin}
+if [[ $# = 0 ]] { usage; exit 0
+} else {
+	zmodload zsh/zutil
+	zparseopts -E -D -K -A opts b build mi minimal i install km: key-map: \
+		bi: bin bd: bindir: md: miscdir: ua: ucl-arch: u usage
+	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] {
+		usage; exit 0 }
+}
+:	${opts[-workdir]:=${opts[-wd]:-$(pwd)}}
+:	${opts[-bindir]:=${opts[-bd]:-$opts[-workdir]/bin}}
+:	${opts[-ua]:-$opts[-ucl-arch]}
+:	${opts[-km]:-$opts[-key-map]}
+mkdir -p $opts[-bindir]
 
 build_busybox() {
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
@@ -42,8 +39,7 @@ build_busybox() {
 	ebuild $BBT.ebuild clean || die "clean failed"
 	ebuild $BBT.ebuild unpack || die "unpack failed"
 	cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/$BBT || die "eek!"
-
-	if [[ $CONFIG = m ]] {
+	if [[ -n ${(k)opts[-mi]} ]] || [[ -n ${(k)opts[-minimal]} ]] {
 		make allnoconfig || die "eek!"
 		sed -e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
 		-e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
@@ -92,56 +88,42 @@ build_busybox() {
 		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
 		-i .config || die "cfg failed" 
 	}
-
-	# For uClibc users, you need to adjust the cross compiler prefix properly (i386-uclibc-)
-	if [[ -n $UCL_ARCH ]] {
-	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"$UCL_ARCH\"|" \
-	-i .config || die "setting uClib ARCH failed" 
-	}
+	if [[ -n ${opts[-ua]} ]] || [[ -n ${opts[-ucl-arch]} ]] {
+	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[-ua]}\"|" \
+		-i .config || die "setting uClib ARCH failed" }
 	make && make busybox.links || die "bb build failed"
 }
 
 install_busybox() {
-	if [[ -e $TMP_DIR ]] { 
-		make install CONFIG_PREFIX=$TMP_DIR/busybox
-		rm -rf /tmp/busybox 
-	}
-	./applets/install.sh $BINDIR --symlinks
+	if [[ -e ${opts[-tmpdir]} ]] { make install CONFIG_PREFIX=${opts[-tmpdir]}/busybox
+		rm -rf ${opts[-tmpdir]} }
+	./applets/install.sh ${opts[-bindir]} --symlinks
 }
 
 build_keymap() { 
-	# save the current keymap
 	dumpkeys > default_keymap || die "dumping keymap failed"
-	loadkeys $KEYMAP_IN || die "loading $KEMAP_IN failed"
-	if [[ $UNICODE = y ]] { dumpkeys|loadkeys -u || die "unicode conversion failed" }
-	./busybox dumpkmap > $KEYMAP_OUT || die "keymap build failed"
-	# load back your keymap
+	loadkeys -u ${(pws,:,)opts[(w)1,-km]} || die "loading ${opts[-km]} failed"
+	./busybox dumpkmap > ${opts[-bindir]}/${(pws,:,)opts[(w)2,-km]} || die "keymap build failed"
 	loadkeys default_keymap && rm default_keymap || die "re-loading default keymap failed"
 }
 
-if [[ ${BBB} = y ]] {
-	mkdir -p $BINDIR
+if [[ -n ${(k)opts[-build]} ]] || [[ -n ${(k)opts[-b]} ]] {
 	build_busybox
-	[[ $IBB = y ]] && install_busybox
-	cp -a busybox $BINDIR/ || die "failed to copy bb binary"
-	cp busybox.links $BINDIR/applets || die "failed to copy applets"
-	unset CONFIG IBB 
+	if [[ -n ${(k)opts[-i]} ]] || [[ -n ${(k)opts[-install]} ]] { install_busybox }
+	cp -a busybox ${opts[-bindir]}/ || die "failed to copy bb binary"
+	cp busybox.links ${opts[-bindir]}/applets || die "failed to copy applets"
 }
 
-if [[ $KBB = y ]] {
-	mkdir -p $BINDIR
-	[[ $BBB != y ]] && cd $BINDIR || die "eek!"
+if [[ -n ${opts[-km]} ]] {
+	mkdir -p $opts[-bindir]
 	build_keymap
-	if [[ $BBB = y ]] { cp $KEYMAP_OUT $BINDIR/ || die "$KEYMAP_OUT copy failed" }
-	KEYMAPS+=":$KEYMAP_OUT"
-	unset KEYMAP_IN KEYMAP_OUT UNICODE KBB 
+	opts[-bindir]+=:${(pws,:,)opts[(w)2,-km]}
 }
 
-if [[ $BBB = y ]] {
+if [[ -n ${(k)opts[-build]} ]] || [[ -n ${(k)opts[-b]} ]] {
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 	ebuild $BBT.ebuild clean || die "eek"
-	cd $WORKDIR || die "eek!"
-	unset BBB BBT 
+	cd $opts[-worddir] || die "eek!"
 }
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
