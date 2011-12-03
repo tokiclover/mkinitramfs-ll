@@ -20,7 +20,7 @@ usage() {
                        one can add manpages gpg/lvm/cryptsetup and user scripts as well
   -wd|-wokdir dir      working directory where to create initramfs dir, default is PWD
   -sp|-splash :<theme> collon ':' separated list of splash themes to include
-  -m|-modep :<mod>     collon seperated list of kernel module-s to include
+  -m|-mdep :<mod>      collon seperated list of kernel module-s to include
   -mgpg :<mod>         collon seperated list of kernel modules to add to gpg group
   -mboot :<mod>        collon seperated list of kernel modules to add to boot group
   -msqfsd :<mod>       collon seperated list of kernel modules to add to sqfsd group
@@ -57,12 +57,12 @@ addnodes() {
 	[ -c dev/zero ] || mknod dev/zero c 1 5 || die "eek!"
 }
 
-if [[ $# = 0 ]] { typeset -A opts
+if [[ $# = 0 ]] { if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 	info "initramfs will be build with only LUKS support."
 } else {
 	zmodload zsh/zutil
 	zparseopts -E -D -K -A opts a all sq sqfsd g gpg l lvm t toi c:: comp:: \
-		e:: ev:: k:: kv:: m+:: modep+:: f+:: font+:: md:: miscdir \
+		e:: ev:: k:: kv:: m+:: mdep+:: f+:: font+:: md:: miscdir \
 		sp:: splash:: u usage v version wd:: workdir::  bi:: bin:: p:: prefix:: \
 		y:: keymap:: bd:: bindir:: mboot+:: mgpg+:: msqfsd+:: mtuxonice+::
 	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] {
