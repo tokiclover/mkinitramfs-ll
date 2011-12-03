@@ -55,7 +55,7 @@ for dir (${(pws,:,)opts[-sqfsd]}) {
 			local ro_size=${$(du -sk $opts[-sqfsdir]/$dir/ro)[1]}
 			local rw_size=${$(du -sk $opts[-sqfsdir]/$dir/rw)[1]}
 			if (( ($rw_size*100/$ro_size) <= ${opts[-offset]:-10} )) { 
-				info "$dir: skiping... there's \`-o|-f' options."; break
+				info "$dir: skiping... there's \`-o' options."; break
 			} 
 		}
 		echo ">>> updating squashed $dir..."
