@@ -8,8 +8,7 @@ usage() {
   -i|-install	          install busybox with symliks to \$opts[-bindir], require -b
   -mi|-minimal	          build busybox with minimal applets, default is full applets
   -km|-key-map <map:kmap> generate kmap keymap using map as input keymap
-  -ua|-ucl-arch i386      ARCH string needed to build busybox linked uClibc		
-  -bi|-bin :<bin>         append collon seperated list of binar-y-ies to include
+  -ua|-ucl-arch i386      ARCH string needed to build busybox linked uClibc	
   -bd|-bindir bin         try to include binaries from bin dir (busybox/applets/gpg) first
   -u|-usage               print the usage/help and exit
 EOF
@@ -17,13 +16,13 @@ EOF
 
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
-alias die='die "%F{yellow}%1x:%U${(%):-%I}:%u%f" $@'
+alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
 if [[ $# = 0 ]] { usage; exit 0
 } else {
 	zmodload zsh/zutil
 	zparseopts -E -D -K -A opts b build mi minimal i install km: key-map: \
-		bi: bin bd: bindir: md: miscdir: ua: ucl-arch: u usage
+		bd: bindir: md: miscdir: ua: ucl-arch: u usage
 	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] {
 		usage; exit 0 }
 }
