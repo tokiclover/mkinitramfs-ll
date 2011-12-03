@@ -6,38 +6,38 @@ usage() {
   usage: ${(%):-%1x} [OPTIONS] [OPTIONS...]
   -a|-all              short forme/hand of '-sqfsd -lvm -gpg -toi'
   -b|-build	           build a static busybox and GnuPG-1.x binaries
+  -f|-font :<font>     append collon seperated list of fonts to in include
   -e|-ev d             append an extra 'd' version after \$kv to the initramfs image
   -k|-kv 3.1.4-git     build an initramfs for '3.1.4-git' kernel, else for \$(uname -r)
-  -f|-font :<font>     append collon seperated list of fonts to in include
   -c|-comp             compression command to use to build initramfs, default is 'xz -9..'
   -g|-gpg              adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p|-prefix vmlinuz.  prefix scheme to name the initramfs image default is 'initrd-'
   -y|-keymap kmx86.bin append collon seperated list of keymaps to include in the initramfs
   -l|-lvm              adds LVM2 support, require a static sys-fs/lvm2[lvm.static] binary
-  -bi|-bin :<bin>      append collon seperated list of binar-y-ies to include
   -bd|-bindir bin      try to include binaries from bin dir (busybox/applets/gpg) first
   -md|-miscdir misc    use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
                        one can add manpages gpg/lvm/cryptsetup and user scripts as well
   -wd|-wokdir dir      working directory where to create initramfs dir, default is PWD
+  -bi|-bin :<bin>      append collon seperated list of binar-y-ies to include
   -cd|-confdir dir     copy gpg.conf, GnuPG configuration file, from dir
-  -sp|-splash :<theme> collon ':' separated list of splash themes to include
   -m|-modep :<mod>     collon seperated list of kernel module-s to include
+  -sp|-splash :<theme> collon ':' separated list of splash themes to include
   -mgpg :<mod>         collon seperated list of kernel modules to add to gpg group
   -mboot :<mod>        collon seperated list of kernel modules to add to boot group
   -msqfsd :<mod>       collon seperated list of kernel modules to add to sqfsd group
   -mremdev :<mod>      collon seperated list of kernel modules to add to remdev group
   -mtuxonice :<mod>    collon seperated list of kernel modules to add to tuxonice group
-  -sq|-sqfsd           add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -t|-toi              adds tuxonice support for splash, require tuxoniceui_text binary
+  -sq|-sqfsd           add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -i|-install	       install busybox with symliks to \$opts[-bindir], require -b
   -mi|-minimal	       build busybox with minimal applets, default is full applets
+  -ua|-ucl-arch i386   ARCH string needed to build busybox linked uClibc
   -km|-key-map <k:m>   generate <m> keymap using <k> as input keymap
-  -ua|-ucl-arch i386   ARCH string needed to build busybox linked uClibc		
   -u|-usage            print this help/usage and exit
   -v|-version          print version string and exit
 
   usage: runned without arguments, build an initramfs for kernel \$(uname -r)
-  # build an initramfs, after building gnupg and busybox, with AUFS2/LVM2/GPG support
+  # build an initramfs after building gnupg/busybox (AUFS2/LVM2/GPG support)
   ${(%):-%1x} -build -sqfsd -lvm
 EOF
 }
