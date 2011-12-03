@@ -1,45 +1,48 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.1.2 2011/11/05 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.4.1 2011/12/03 -tclover Exp $
 
 usage() {
    cat <<-EOF
-   usage: ${(%):-%1x} [--useflags="falgs"] [--Version=<str>]
-      --useflags="flags" extra USE flags to append to USE="nls static"
-      --Version=<STR>	 build gpg-<STR> version instead of gpg-1.4.x
-  -u, --usage            print this help/uage and exit
+   usage: ${(%):-%1x} [-uf|-useflag'falgs'] [-V|-Version'<str>']
+   -bd|-bindir bin      try to include binaries from bin dir (busybox/applets/gpg) first
+   -md|-miscdir misc    use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
+                        one can add manpages gpg/lvm/cryptsetup and user scripts as well
+   -uf|-useflag'flags'  extra USE flags to append to USE="nls static"
+   -V|-Version'<str>'   build gpg-<str> version instead of gpg-1.4.x
+   -u|-usage            print this help/uage and exit
 EOF
-}
-
-while [[ $# > 0 ]] {
-	case $1 in 
-		--useflags=*) EUSE=${1#*=}; shift;;
-		--Version=*) Version=${1#*=}; shift;;
-		--usage|-u|*) usage; exit 0;;
-	esac
 }
 
 error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
-alias die='die "%F{yellow}%1x:%U${(%):-%I}:%u%f" $@'
+alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
-[[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
-:	${WORKDIR:=$(pwd)}
-:	${MISCDIR:=$WORKDIR/misc}
-:	${BINDIR:=$WORKDIR/bin}
-
-mkdir -p $BINDIR
+if [[ $# = 0 ]] { typeset -A opts; info "building GnuPG..."
+} else {
+	zmodload zsh/zutil
+	zparseopts -E -D -K -A opts uf: useflag: V: Version: \
+		bi: bin bd: bindir: md: miscdir: ua: ucl-arch: u usage
+	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] {
+		usage; exit 0 }
+}
+:	${opts[-workdir]:=${opts[-wd]:-$(pwd)}}
+:	${opts[-bindir]:=${opts[-bd]:-$opts[-workdir]/bin}}
+:	${opts[-bindir]:=${opts[-md]:-$opts[-workdir]/misc}}
+:	${opts[-ua]:-$opts[-ucl-arch]}
+:	${opts[-km]:-$opts[-key-map]}
+mkdir -p $opts[-bindir]
+mkdir -p $opts[-miscdir]
 
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 GPG=$(emerge -pvO =app-crypt/gnupg-${Version:-1.4*}|grep -o "gnupg-[-0-9.r]*")
-USE="nls static ${=EUSE}" ebuild $GPG.ebuild compile || die "eek!"
+USE="nls static ${=opts[-useflag]:-$opts[-uf]}" ebuild $GPG.ebuild compile || die "eek!"
 cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/$GPG/work/$GPG || die "eek!"
-cp -a gpg $BINDIR/ || die "eek!"
-cp g10/options.skel $MISCDIR/ || die "eek!"
+cp -a gpg ${opts[-bindir]}/ || die "eek!"
+cp g10/options.skel ${opts[-miscdir]}/ || die "eek!"
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 ebuild $GPG.ebuild clean || die "eek!"
-cd $WORKDIR || die "eek!"
+cd $opts[-worddir] || die "eek!"
 
-iGPG=y
-unset GPG EUSE BINDIR Version
+opts[-gpg]=
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
