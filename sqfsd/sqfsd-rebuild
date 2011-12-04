@@ -1,82 +1,80 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.bash],v 0.4.0 2011/11/21 -tclover Exp $
-revision=0.4.0
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.bash],v 0.4.1 2011/12/04 -tclover Exp $
+revision=0.4.1
 
 usage() {
   cat <<-EOF
-  usage: ${0##*/} [-up[|--update]|-rm[|--remove]] [--sqfsdir=<dir>] -d [|--sqfsd=]<dir>:<dir>
-
-  -up,--update              update the underlying source directory e.g. bin:sbin:lib32:lib64
-  -rm,--remove              remove the underlying source directory e.g. usr:opt:\${PORTDIR}
-      --sqfsdir=<dir>       override default value 'sqfsdir=/sqfsd', if not changed
-  -d, --sqfsd=<dir>         colon ':' seperated list directory-ies without the leading '/'
-      --arch=32             ARCH to use for lib\${ARCH} handling (rc-svcdir and cachedir)
-      --fstab               whether to write the necessary mount lines to '/etc/fstab'
-  -f, --force               force rebuilding, short hand/forme of '--offset=0'
-      --bsize=131072        use [128k] 131072 bytes block size, which is the default values
-      --comp="xz -Xbjc x86" use xz compressor, optionaly, one can append extra arguments...
-      --excl=<dir>          collon separated list of directories to exlude from *.sfs image
-  -o, --offset=<int>        offset used for rebuilding squashed directories, default is 10%
-  -u, --usage               print this help/usage and exit
-  -v, --version	            print version string and exit
+  usage: ${0##*/} [-up[|--update]|-rm[|--remove]] [-r|--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>
+  -r|--sqfsdir <dir>       override default value 'sqfsdir=/sqfsd', if not changed
+  -d|--sqfsd <dir>         colon seperated list of directory-ies without the leading '/'
+  -a|--arch 32             arch to use for lib\${ach} handling (rc-svcdir and cachedir)
+  -f|--fstab               whether to write the necessary mount lines to '/etc/fstab'
+  -b|--bsize 131072        use [128k] 131072 bytes block size, which is the default values
+  -c|--comp 'xz -Xbjc x86' use xz compressor, optionaly, one can append extra arguments...
+  -e|--excl <dir>          collon separated list of directories to exlude from .sfs image
+  -o|--offset <int>        offset used for rebuilding squashed directories, default is 10%
+  -U|--update              update the underlying source directory e.g. bin:sbin:lib32:lib64
+  -R|--remove              remove the underlying source directory e.g. usr:opt:\${PORTDIR}
+  -u|--usage               print this help/usage and exit
+  -v|--version             print version string and exit
 	
+  # squash directries which will speed up system and portage, and the underlying files 
+  # system will take much less space especially if there are numerous small files.
   usages: [speed up your system with aufs+squahfs!]
-  # squash directries which will speed up portage calculations--database,dependencies--and remove
-  # the underlying files which take a much more spaces as there are numerous small files there.
-  ${0##*/} -rm var/db:var/cache/edb
-  # [re-]build system related squashed directories and update the sources/unsquashed directories
+  ${0##*/} -rm -d var/db:var/cache/edb
+  # [re-]build system related squashed directories and update the sources directories
   ${0##*/} -up -d bin:sbin:lib32:lib64
 EOF
 }
 
-[[ $# = 0 ]] && usage
+[[ $# = 0 ]] && usage && exit 0
+opts=$(getopt -o a:b:c:d:e:fo:r:uvUR --long arch:,bsize:,comp:,excl:,fstab,offset: \
+	  --long sqfsdir:,sqfsd:,remove,update,usage,version -- "$@" -n sdr \
+	  2>/dev/null || usage && exit 0)
+eval set -- "$opts"
 while [[ $# > 0 ]]; do
 	case $1 in
-		-v|--version) echo "version $revision"; exit 0;;
-		-d) sqfsd=${2}; shift 2;;
-		--sqfsd=*) sqfsd=${1#*=}; shift;;
-		--sqfsdir=*) sqfsdir=${1#*=}; shift;;
-		--excl=*) EXCL=${1#*=}; shift;;
-		--arch=*) ARCH=${1#*=}; shift;;
-		-f|--force) OFFSET=0; shift;;
-		--fstab) FSTAB=y; shift;;
-		--comp=*) COMP=${1#*=}; shift;;
-		-o) OFFSET=${2}; shift 2;;
-		--offset=*) OFFSET=${1#*=}; shift;;
-		-up|--update) EXT=up; shift;;
-		-rm|--remove) EXT=rm; shift;;
-		-u|--usage|*) usage; exit 0;;
+		-u|--usage) usage; exit 0;;
+		-v|--version) echo "sdr-$revision"; exit 0;;
+		-d|--sqfsd) sqfsd=${2}; shift 2;;
+		-r|--sqfsdir) sqfsdir=${2}; shift 2;;
+		-e|--excl) o_excl="-e ${2//:/ }"; shift 2;;
+		-a|--arch) o_arch=${2}; shift 2;;
+		-f|--fstab) o_fstab=y; shift 2;;
+		-c|--comp) o_comp=${2}; shift 2;;
+		-o|--offset) o_offset=${2}; shift 2;;
+		-U|--update) o_ext=up; shift 2;;
+		-R|--remove) o_ext=rm; shift 2;;
+		--) shift; break;;
 	esac
 done
 
 info() 	{ echo -ne "\e[1;32m* \e[0m$@\n"; }
 error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
-
 :	${sqfsdir:=/sqfsd}
-[[ -n "$EXCL" ]] && EXCL="-e ${EXCL//:/ }"
 
 for dir in ${sqfsd//:/ }; do
 	mkdir -p "$sqfsdir/$dir"/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
 	if [[ -e /sqfsd/$dir.sfs ]]; then
-		if [[ $OFFSET != 0 ]]; then
-			local ro_size=$(du -sk $sqfsdir/$dir/ro|awk '{print $1}')
-			local rw_size=$(du -sk $sqfsdir/$dir/rw|awk '{print $1}')
+		if [[ $o_offset != 0 ]]; then
+			local ro_size=$(du -sk $sqfsdir/$dir/ro | awk '{print $1}')
+			local rw_size=$(du -sk $sqfsdir/$dir/rw | awk '{print $1}')
 			info $ro_size:$rw_size
-			if (( ( ${rw_size}*100/${ro_size} ) < ${OFFSET:-10} )); then
+			if (( ( ${rw_size}*100/${ro_size} ) < ${o_offset:-10} )); then
 				info "$dir: skiping... there's an '-o' offset option."; break
 			fi
 		fi
 		echo ">>> updating squashed $dir..."
 	else echo ">>> building squashed $dir..."; fi			
-	mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${BSIZE:-131072} -comp ${COMP:-gzip} $EXCL \
+	mksquashfs /$dir $sqfsdir/$dir.tmp.sfs -b ${o_bsize:-131072} -comp ${o_comp:-gzip} $o_excl \
 		>/dev/null || die "failed to build $dir.sfs img."
-	if [[ "$dir" = lib${ARCH:-64} ]]; then # move rc-svcdir and cachedir.
+	if [[ "$dir" = lib${o_arch:-64} ]]; then # move rc-svcdir and cachedir.
 		mkdir -p /var/{lib/init.d,cache/splash}
 		mount --move "/$dir/splash/cache" /var/cache/splash &>/dev/null \
 			|| die "fled to move cachedir."
 		mount --move "/$dir/rc/init.d" /var/lib/init.d &>/dev/null \
-		|| die "failed to move rc-svcdir."
+			|| die "failed to move rc-svcdir."
 	fi
 	if [[ -n "$(mount -t aufs|grep -w $dir)" ]]; then 
 		umount -l /$dir &>/dev/null || die "failed to umount $dir aufs branch."
@@ -87,7 +85,7 @@ for dir in ${sqfsd//:/ }; do
 	rm -rf "$sqfsdir/$dir"/rw/* || die "failed to clean up $sqfdir/$dir/rw."
 	[[ -e $sqfsdir/$dir.sfs ]] && rm -f $sqfsdir/$dir.sfs 
 	mv $sqfsdir/$dir.tmp.sfs $sqfsdir/$dir.sfs || die "failed to move $dir.tmp.sfs img."
-	if [[ "${FSTAB:-n}" = "y" ]]; then
+	if [[ "${o_fstab:-n}" = "y" ]]; then
 		echo "$sqfsdir/$dir.sfs $sqfsdir/$dir/ro squashfs nodev,loop,ro 0 0" \
 		>> /etc/fstab || die "fstab write failure 1."
 		echo "$dir /$dir aufs nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro 0 0" \
@@ -95,21 +93,18 @@ for dir in ${sqfsd//:/ }; do
 	fi
 	mount -t squashfs $sqfsdir/$dir.sfs $sqfsdir/$dir/ro -o nodev,loop,ro &>/dev/null \
 	|| die "failed to mount $dir.sfs img."
-	if [[ -n "$EXT" ]]; then # now you can up[date] or rm the source dir.
-		case $EXT in
-			rm) rm -rf /$dir/* || die "failed to clean up $sqfsdir/$dir.";;
-			up) echo >/tmp/sdr
-				cp -aru $sqfsdir/$dir/ro/* /$dir/ 2>>/tmp/sdr
-				[[ $? ]] || for file in $(sed -e "s|.*\`||g" -e "s|':.*||g" /tmp/sdr)
-					do cp -a $sqfsdir/$dir/ro/${file#$dir} /tmp/ && \
-					mv /tmp/${file##*/} ${file%/*}/ || info "failed to move $file."; done
-				;;
-			*) info "nothing to do, usage is [up|rm].";;
-		esac
+	if [[ $o_ext == rm ]]; then # now you can up[date] or rm the source dir.
+		rm -rf /$dir/* || die "failed to clean up $sqfsdir/$dir."
+	elif [[ $o_ext == up ]]; then echo >/tmp/sdr
+		cp -aru $sqfsdir/$dir/ro/* /$dir/ 2>>/tmp/sdr || {
+			for file in $(sed -e "s|.*\`||g" -e "s|':.*||g" /tmp/sdr)
+			do cp -a $sqfsdir/$dir/ro/${file#$dir} /tmp/ && \
+			mv /tmp/${file##*/} ${file%/*}/ || info "failed to move $file."; done
+		}
 	fi
 	mount -t aufs $dir /$dir -o nodev,udba=reval,br:$sqfsdir/$dir/rw:$sqfsdir/$dir/ro \
 		&>/dev/null || die "failed to mount $dir aufs branch."
-	if [[ "$dir" = lib${ARCH:-64} ]]; then # move back rc-svcdir and cachedir.
+	if [[ "$dir" = lib${o_arch:-64} ]]; then # move back rc-svcdir and cachedir.
 		mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul \
 		|| die "failed to move back cachedir."
 		mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null \
@@ -118,6 +113,6 @@ for dir in ${sqfsd//:/ }; do
 	echo ">>> ...sucessfully build squashed $dir."
 done
 
-unset BSIZE COMP EXCL EXT sqfsd sqfsdir FSTAB
+unset o_bsize o_comp o_excl o_ext sqfsd sqfsdir o_fstab
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
