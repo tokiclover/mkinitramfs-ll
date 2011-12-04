@@ -1,34 +1,40 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.4.1 2011/11/28 -tclover Exp $
-revision=0.4.0
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.4.1 2011/12/04 -tclover Exp $
+revision=0.4.1
 
 usage() {
   cat <<-EOF
   usage: ${1##*/} [OPTIONS...]
-      --aufs             add aufs(+squashfs modules +{,u}mount.aufs binaries) support (sqfsd)
-  -e, --e-version=<str>  append an extra '<str>' version after \${K_VERSION} to the initramfs
-  -k, --k-version=<str>  build an initramfs for '<str>' kernel version, else for \$(uname -r)
-      --font=<font>      collon ':' seperated list of fonts in include to the initramfs image
-  -f, --full             short forme/hand of '--aufs --lvm --gpg --toi' +use default (values)
-      --k-module=<mod>   collon seperated list of kernel module-s to include in the initramfs
-      --binary=<bins>    collon seperated list of binary-ies to include in the initramfs
-      --bindir=bin       try to include binaries from \${BINDIR} (busybox/applets/gpg) first
-      --comp-cmd=cmd     compression command to use to build initramfs, default is 'xz -9..'
-  -g, --gpg              adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
-      --prefix=vmlinuz.  prefix scheme to name the initramfs image default is 'initrd-'
-      --keymap=kmx86.bin collon seperated list of keymaps to include in the initramfs image
-  -l, --lvm              adds LVM2 support, require a static sys-fs/lvm2[lvm.static] binary
-      --miscdir=misc     use '.gnupg/gpg.conf,share/gnupg/options.skel' from \$MISCDIR dir,
-                         one can add manpages gpg/lvm/cryptsetup in \$MISCDIR/share as well
-      --splash=<theme>   collon ':' separated list of splash themes to include in the image
-      --toi              adds tuxonice support for splash, require tuxoniceui_text binary
-  -u, --usage            print this help/usage and exit
-  -v, --version          print version string and exit
+  -a|--all              short forme/hand of '-sqfsd -lvm -gpg -toi'
+  -f|--font :<font>     append collon seperated list of fonts to in include
+  -e|--ev d             append an extra 'd' version after \$kv to the initramfs image
+  -k|--kv 3.1.4-git     build an initramfs for '3.1.4-git' kernel, else for \$(uname -r)
+  -c|--comp             compression command to use to build initramfs, default is 'xz -9..'
+  -g|--gpg              adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
+  -p|--prefix vmlinuz.  prefix scheme to name the initramfs image default is 'initrd-'
+  -y|--keymap kmx86.bin append collon seperated list of keymaps to include in the initramfs
+  -l|--lvm              adds LVM2 support, require a static sys-fs/lvm2[lvm.static] binary
+  -B|--bindir bin       try to include binaries from bin dir (busybox/applets/gpg) first
+  -M|--miscdir misc     use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
+                        one can add manpages gpg/lvm/cryptsetup and user scripts as well
+  -W|--wokdir dir       working directory where to create initramfs dir, default is PWD
+  -b|--bin :<bin>       append collon seperated list of binar-y-ies to include
+  -m|--mdep :<mod>      collon seperated list of kernel module-s to include
+  -S|--splash :<theme>  collon ':' separated list of splash themes to include
+     --mgpg :<mod>      collon seperated list of kernel modules to add to gpg group
+     --mboot :<mod>     collon seperated list of kernel modules to add to boot group
+     --msqfsd :<mod>    collon seperated list of kernel modules to add to sqfsd group
+     --mremdev :<mod>   collon seperated list of kernel modules to add to remdev group
+     --mtuxonice :<mod> collon seperated list of kernel modules to add to tuxonice group
+  -t|--toi              adds tuxonice support for splash, require tuxoniceui_text binary
+  -s|--sqfsd            add aufs(+squashfs modules +{,u}mount.aufs binaries) support
+  -u|--usage            print this help/usage and exit
+  -v|--version          print version string and exit
 
   # usage: without an argument, build an initramfs for \$(uname -r) with only LUKS support
 
-  # build with LUKS/GPG/LVM2/AUFS2 support for 3.0.3-git kernel with an extra 'd0' version
-  ${0##*/} --e-version=d0 --k-version=3.0.3-git --full
+  # build with LUKS/GPG/LVM2/AUFS2 support for 3.0.3-git kernel with an extra '-d' version
+  ${0##*/} -a -e-d -k3.0.3-git
   
   # NOTE: <str>: string; <font>: fonts list; <theme>: theme list; <mod>: kernel modules...
 EOF
@@ -46,47 +52,54 @@ addnodes() {
 	[ -c dev/mem ] || mknod dev/mem c 1 1 || die "eek!"
 	[ -c dev/null ] || mknod dev/null c 1 3 || die "eek!"
 	[ -c dev/tty ] || mknod dev/tty c 5 0 	|| die "eek!"
-	for i in $(seq 1 6)
-	do [[ -c dev/tty$i ]] || mknod dev/tty$i c 4 $i || die "eek!"; done
+	for i in $(seq 1 6); do [[ -c dev/tty$i ]] || mknod dev/tty$i c 4 $i || die "eek!"; done
 	[ -c dev/zero ] || mknod dev/zero c 1 5 || die "eek!"
 }
 
 [[ $# = 0 ]] && info "initramfs will be build with only LUKS support."
-
+opt=$(getopt -o ab:c:e:fgk:lm:stuvy:B:M:S:W: --long all,bin:,bindir:comp:,ev:,font:,keymap: \
+	  --long gpg:,mboot:,mdep:,mgpg:msqfsd:,mremdev:,mtuxonice,sqfsd,toi,usage,version \
+	  --long lvm,miscdir:,workdir:,kv: -n ${0##*/} -- "$@" || usage && exit 0)
+eval set -- "$opt"
+[[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
-		-v|--version) echo "version $revision"; exit 0;;
-		--aufs) iAUFS=y; shift;;
-		--binary*) BINARIES+=:${1#*=}; shift;;
-		--bindir=*) [[ -n ${1#*=} ]] && BINDIR="${1#*=}"; shift;;
-		--comp-cmd=*) [[ -n ${1#*=} ]] && COMPCMD="${1#*=}"; shift;;
-		-e) [[ -n $2 ]] && E_VERSION=-$2; shift 2;;
-		--e-version=*) [[ -n ${1#*=} ]] && E_VERSION=-${1#*=}; shift;;
-		--font=*) [[ -n ${1#*=} ]] && FONTS+=":${1#*=}"; shift;;
-		-f|--full) iAUFS=y; iGPG=y; iLVM=y, iTOI=y; shift;;
-		--k-module=*) MODDEP+=":${1#*=}"; shift;;
-		-g|--gpg) iGPG=y; shift;;
-		--prefix=*) PREFIX=${1#*=}; shift;;
-		-k) K_VERSION=$2; shift 2;;
-		--k-version=*) K_VERSION=${1#*=}; shift;;
-		--keymap=*) [[ -n ${1#*=} ]] && KEYMAPS+=":${1#*=}"; shift;;
-		--lvm|-l) iLVM=y; shift;;
-		--miscdir=*) [[ -n ${1#*=} ]] && MISCDIR="${1#*=}"; shift;;
-		--splash=*) [[ -n ${1#*=} ]] && SPLASHS+=":${1#*=}"; shift;;
-		-u|--usage|*) usage; exit 0;;
+		-u|--usage) usage; exit 0;;
+		-v|--version) echo "${0##*/}-$revision"; exit 0;;
+		-a|--all) opts[sqfsd]=y; opts[gpg]=y; opts[lvm]=y; opts[toi]=y; shift;;
+		-s|--sqfsd) opts[sqfsd]=y; shift;;
+		-b|--bin) opts[bin]+=:${2}; shift 2;;
+		-c|--comp) opts[comp]="${2}"; shift 2;;
+		-B|--bindir) opts[bindir]=${2}; shift 2;;
+		-e|--ev) opts[ev]=${2}; shift 2;;
+		-k|--kv) opts[kv]=${2}; shift 2;;
+		-f|--font) opts[font]+=":${2}"; shift 2;;
+		-m|--mdep) opts[mdep]+=":${2}"; shift 2;;
+		-g|--gpg) opts[gpg]=y; shift;;
+		-p|--prefix) opts[prefix]=${2}; shift 2;;
+		-l|--lvm) opts[lvm]=y; shift;;
+		--mboot) opts[mboot]+=:${2}; shift 2;;
+		--mgpg) opts[mgpg]+=:${2}; shift 2;;
+		--msqfsd) opts[msqfsd]+=:${2}; shift 2;;
+		--mremdev) opts[mremdev]+=:${2}; shift 2;;
+		--mtuxonice) opts[tuxonice]+=:${2}; shift 2;;
+		-M|--miscdir) opts[miscdir]="${2}"; shift 2;;
+		-S|--splash) opts[splash]+=":${2}"; shift 2;;
+		-W|--workdir) opts[workdir]="${2}"; shift 2;;
+		--) shift; break;;
 	esac
 done
 
+[[ -n ${opts[kv]} ]] || opts[kv]="$(uname -r)"
+[[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
+[[ -n "${opts[miscdir]}" ]] || opts[miscdir]="${opts[workdir]}"/misc
+[[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
+[[ -n "${opts[comp]}" ]] || opts[comp]="xz -9 --check=crc32"
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
-: 	${K_VERSION:=$(uname -r)}
-:	${INITRAMFS:=/boot/${PREFIX:-initrd-}$K_VERSION$E_VERSION.cpio.xz}
-:	${WORKDIR:=$(pwd)}
-:	${MISCDIR:=$WORKDIR/misc}
-:	${INITDIR:=${WORKDIR}/${PREFIX:-initrd-ll-}$K_VERSION$E_VERSION}
-:	${BINDIR:=$WORKDIR/bin}
-:	${COMPCMD:=xz -9 --check=crc32}
+:	${INITRAMFS:=/boot/${opts[prefix]:-initrd-}${opts[kv]}${opts[ev]}.cpio.xz}
+:	${INITDIR:=${opts[workdir]}/${opts[prefix]:-initrd-ll-}${opts[kv]}${opts[ev]}}
 
-case ${CMD%%\ *} in
+case ${opts[comp]%%\ *} in
 	bzip2)	INITRAMFS=${INITRAMFS/.xz/.bz2};;
 	gzip) 	INITRAMFS=${INITRAMFS/.xz/.gz};;
 	lzma)	INITRAMFS=${INITRAMFS/.xz/.lzma};;
@@ -98,26 +111,26 @@ rm -rf "$INITDIR" || die "eek!"
 mkdir -p "$INITDIR" && cd "$INITDIR" || die "eek!"
 mkdir -p {,usr/}{,s}bin dev proc root sys mnt/tok newroot || die "eek!"
 mkdir -p etc/{modules,splash,local.d} || die "eek!"
-[[ -n "$(uname -a|grep x86_64)" ]] && ARCH=64 || ARCH=32
-mkdir -p lib$ARCH/{splash/cache,modules/$K_VERSION} || die "eek!"
-ln -sf lib$ARCH lib || die "eek!" && unset ARCH
+[[ -n "$(uname -a | grep x86_64)" ]] && opts[arch]=64 || opts[arch]=32
+mkdir -p lib${opts[arch]}/{splash/cache,modules/${opts[kv]}} || die "eek!"
+ln -sf lib${opts[arch]} lib || die "eek!"
 
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[1-6],zero} dev/ || addnodes
-[[ $(echo ${K_VERSION} | cut -d'.' -f1 ) -eq 3 ]] && \
-	[[ $(echo ${K_VERSION} | cut -d'.' -f2) -ge 1 ]] && { 
+[[ $(echo ${opts[kv]} | cut -d'.' -f1 ) -eq 3 ]] && \
+	[[ $(echo ${opts[kv]} | cut -d'.' -f2) -ge 1 ]] && { 
 	cp -a {/,}dev/loop-control &>/dev/null || mknod dev/loop-control c 10 237 || die "eek!"
 }
-cp -a "$WORKDIR"/init . && chmod 775 init || die "failed to copy init"
-cp -a {/,}lib/modules/$K_VERSION/modules.dep || die "failed to copy modules.dep"
-[[ -e $MISCDIR/msg ]] && cp $MISCDIR/msg etc/
-for scr in $(ls $MISCDIR/*.sh &>/dev/null); do cp $scr etc/local.d/; done
+cp -a "${opts[workdir]}"/init . && chmod 775 init || die "failed to copy init"
+cp -a {/,}lib/modules/${opts[kv]}/modules.dep || die "failed to copy modules.dep"
+[[ -e ${opts[miscdir]}/msg ]] && cp ${opts[miscdir]}/msg etc/
+for scr in $(ls ${opts[miscdir]}/*.sh &>/dev/null); do cp $scr etc/local.d/; done
 
-if [[ -x "$BINDIR"/busybox ]]; then BINARIES+=:bin/busybox
-elif [[ "$(which bb)" != "bb not found" ]]; then 
+if [[ -x "${opts[bindir]}"/busybox ]]; then opts[bin]+=:bin/busybox
+elif which bb &>/dev/null; then 
 	cp $(which bb) bin/busybox
 else die "there's no busybox/bb binary"; fi
-if [[ -e "$BINDIR"/applets ]]; then
-	cp -a "$BINDIR"/applets etc/
+if [[ -e "${opts[bindir]}"/applets ]]; then
+	cp -a "${opts[bindir]}"/applets etc/
 	for app in $(< etc/applets); do	
 		case ${app%/*} in
 			/sbin) cd sbin && ln -s ../bin/busybox ${app##*/} && cd .. || die "eek!";;
@@ -129,36 +142,34 @@ else sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"
 	ln -sf bin/busybox linuxrc || die "eek!"
 	cd bin && ln -sf busybox sh && cd .. || die "eek!"; fi
 
-[[ -n "$iAUFS" ]] && { BINARIES+=:umount.aufs:mount.aufs
+[[ -n "${opts[sqfsd]}" ]] && { opts[bin]+=:umount.aufs:mount.aufs
 	for fs in {au,squash}fs
-	do [ -n "$(echo ${MODULES[2]}|grep $fs)" ] || MODULES[2]+=",$fs"; done
-	unset iAUFS
+	do [[ -n "$(echo ${opts[sqfsd]} | grep $fs)" ]] || opts[sqfsd]+=:$fs; done
 }
 
-[[ -n "$iGPG" ]] && {
-	if [[ -x "$BINDIR"/gpg ]]; then BINARIES+=:usr/bin/gpg
-	elif [[ $($(which gpg) --version|grep 'gpg (GnuPG)'|cut -c13) = 1 ]]; then
-		BINARIES+=":$(which gpg)"
+[[ -n "${opts[gpg]}" ]] && {
+	if [[ -x "${opts[bindir]}"/gpg ]]; then opts[bin]+=:usr/bin/gpg
+	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
+		opts[bin]+=":$(which gpg)"
 	else die "there's no usable gpg/gnupg-1.4.x binary"; fi
-	cp -r "$MISCDIR"/share usr/ || die "failed to copy $MISCDIR/share"
-	cp -r "$MISCDIR"/.gnupg . || die "failed to copy $MISCDIR/.gnupg"
-	chmod 700 .gnupg; chmod 600 .gnupg/gpg.conf; unset iGPG
+	cp -r "${opts[miscdir]}"/share usr/ || die "failed to copy ${opts[miscdir]}/share"
+	cp -r "${opts[miscdir]}"/.gnupg . || die "failed to copy ${opts[miscdir]}/.gnupg"
+	chmod 700 .gnupg; chmod 600 .gnupg/gpg.conf
 }
 
-[[ -n "$iLVM" ]] && { BINARIES+=:lvm.static
+[[ -n "${opts[lvm]}" ]] && { opts[bin]+=:lvm.static
 	cd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
-	{lv,vg}reduce lvresize vgmerge
+		{lv,vg}reduce lvresize vgmerge
 		do ln -sf lvm $lpv || die "eek!"
 	done
 	cd ..
-	unset iLVM
 }
 
 addmodule() {
 	local ret
 	for mod in $@; do
-		local module=$(find /lib/modules/$K_VERSION -name $mod.ko -or -name $mod.o)
+		local module=$(find /lib/modules/${opts[kv]} -name $mod.ko -or -name $mod.o)
 		if [ -z $module ]; then warn "$mod does not exist"; ((ret=$ret+1)); break
 		else mkdir -p .${module%/*}
 			cp -ar $module .$module || die "$module copy failed"; fi
@@ -166,71 +177,61 @@ addmodule() {
 	return $ret
 }
 
-addmodule ${MODDEP//:/ }
-unset MODULED
-for key in ${!MODULES[@]}; do
-	for grp in ${MODULES[$key]}; do
-		[ -n "${grp#*=}" ] && {
-			for mod in $(echo ${grp#*=}|tr ':' ' ')
-			do addmodule $mod && echo $mod >> etc/modules/${grp%=*}; done; }
-	done
+addmodule ${opts[mdep]//:/ }
+for grp in boot gpg sqfsd remdev tuxonice; do
+	[[ -n "${opts[m$grp]}" ]] && {
+		for mod in $(echo "${opts[m$grp]}" | tr ':' ' ')
+		do addmodule $mod && echo $mod >> etc/modules/$grp; done
+	}
 done
-unset MODULES
 
-[[ -n "$KEYMAPS" ]] && { 
-	for keymap in ${KEYMAPS//:/ }; do 
-		if [[ -e "$keymap" ]]; then cp -a "$keymap" etc/
-		elif [[ -e "$BINDIR/$keymap" ]]; then cp -a "$BINDIR/$keymap" etc/ 
-		else warn "failed to copy $keymap keymap"; fi
-	done
-	unset KEYMAPS
-}
+for keymap in ${opts[keymap]//:/ }; do 
+	if [[ -e "$keymap" ]]; then cp -a "$keymap" etc/
+	elif [[ -e "${opts[bindir]}/$keymap" ]]; then cp -a "${opts[bindir]}/$keymap" etc/ 
+	else warn "failed to copy $keymap keymap"; fi
+done
 
-[[ -e "$FONTS" ]] && {  
-	for font in ${FONTS//:/ }; do
-		if [[ -e $font ]]; then cp -a $font etc/
-		elif [[ -e "$BINDIR"/$font ]]; then cp -a "$BINDIR"/$font etc/ 
-		elif [[ -e /usr/share/consolefonts/$font.gz ]]; then
-			cp /usr/share/consolefonts/$font.gz . && gzip -d $font.gz && \
-			mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
-		else warn "failed to copy $font font"; fi
-	done
-	unset FONTS
-}
+for font in ${opts[font]//:/ }; do
+	if [[ -e $font ]]; then cp -a $font etc/
+	elif [[ -e "${opts[bindir]}"/$font ]]; then cp -a "${opts[bindir]}"/$font etc/ 
+	elif [[ -e /usr/share/consolefonts/$font.gz ]]; then
+		cp /usr/share/consolefonts/$font.gz . && gzip -d $font.gz && \
+		mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
+	else warn "failed to copy $font font"; fi
+done
 
-[[ -n "$SPLASHS" ]] && { BINARIES+=:splash_util.static
-	[[ -n "$iTOI" ]] && BINARIES+=:tuxoniceui_text && unset iTOI
-	for theme in ${SPLASHS//:/ }; do 
+[[ -n "${opts[splash]}" ]] && { opts[bin]+=:splash_util.static
+	[[ -n "${opts[toi]}" ]] && opts[bin]+=:tuxoniceui_text
+	for theme in ${opts[splash]//:/ }; do 
 		if [[ -d $theme ]]; then cp -r $theme etc/splash/ 
-		elif [[ -d "$MISCDIR"/$theme ]]; then cp -r "$MISCDIR"/$theme etc/splash/	
+		elif [[ -d "${opts[miscdir]}"/$theme ]]; then cp -r "${opts[miscdir]}"/$theme etc/splash/	
 		elif [[ -d /etc/splash/$theme ]]; then cp -r {/,}etc/splash/$theme
 			info "copied the whole /etc/splash/$theme theme"
 		else warn "failed to copy $theme theme"; fi
 	done
-	unset SPLASHS
 }
 
 bincp() {
 	for bin in $@; do
 		if [[ -x $bin ]]; then cp -aH $bin .${bin/\.static}
 			if [[ "$(ldd $bin)" != *"not a dynamic executable"* ]]; then
-				for lib in $(ldd $bin|sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
+				for lib in $(ldd $bin | sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
 				do cp -adH $lib lib/ || die "failed to copy $lib library"; done
 			else  info "$bin is a static binary."; fi
 		else warn "$bin binary doesn't exist"; fi
 	done
 }
 
-for bin in ${BINARIES//:/ }; do
-	if [[ -x "$BINDIR"/${bin##*/} ]]; then cp "$BINDIR"/${bin##*/} ${bin%/*}
+for bin in ${opts[bin]//:/ }; do
+	if [[ -x "${opts[bindir]}"/${bin##*/} ]]; then cp "${opts[bindir]}"/${bin##*/} ${bin%/*}
 	elif [[ -x /$bin ]]; then bincp /$bin
 	else bincp $(which ${bin##*/}); fi
 done
 
-find . -print0|cpio --null -ov --format=newc|$COMPCMD >"$INITRAMFS" || die "eek!"
+find . -print0 | cpio --null -ov --format=newc | ${opts[comp]} > "$INITRAMFS" || die "eek!"
 
 echo ">>> $INITRAMFS initramfs built"
 
-unset K_VERSION E_VERSION INITDIR BINDIR COMPCMD INITRAMFS MISCDIR
+unset opt opts INITDIR INITRAMFS
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=3:ts=3:
