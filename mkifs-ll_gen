@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gen[.zsh],v 0.4.1 2011/12/03 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gen[.zsh],v 0.4.1 2011/12/04 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -71,14 +71,13 @@ if [[ $# = 0 ]] { if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] {
 	opts[-g]=; opts[-l]=; opts[-sq]= }
 mkdir -p $opts[-bindir]
-mkdir -p $opts[-miscdir]
 
 if [[ -n ${(k}opts[-build]} ]] || [[ -n ${(k)opts[-b]} ]] { ./mkifs-ll_bb
 	if [[ -n ${(k}opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { ./mkifs-ll_gpg
 		if [[ -d $opts[-confdir] ]] || [[ -d ${opts[-cd]} ]] { 
+			mkdir -p $opts[-miscdir]/.gnupg/
 			cp $opts[-confdir]/gpg.conf $opts[-miscdir]/.gnupg/ || die "eek!"
 		}
-	cp $opts[-bindir]/options.skel $opts[-miscdir]/share/gnupg/ || die "eek!"
 }
 
 ./mkifs-ll
