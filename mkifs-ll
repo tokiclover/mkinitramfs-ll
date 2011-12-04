@@ -83,7 +83,7 @@ setopt NULL_GLOB
 :	${INITDIR:=${opts[-workdir]}/${opts[-prefix]}${opts[-kv]}${opts[-ev]}}
 :	${INITRAMFS:=/boot/${opts[-prefix]}${opts[-kv]}${opts[-ev]}.cpio.xz}
 if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] {
-	opts[-g]=; opts[-l]=; opts[-sq]= }
+	opts[-g]=; opts[-l]=; opts[-s]=; opts[-t]= }
 
 case ${=opts[(w)1,-comp]} in
 	bzip2) INITRAMFS=${INITRAMFS/.xz/.bz2};;
