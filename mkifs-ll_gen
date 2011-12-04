@@ -58,18 +58,10 @@ if [[ $# = 0 ]] { if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] {
 		usage; exit 0 }
 }
-:	${opts[-kv]:=${opts[-k]:-$(uname -r)}}
-:	${opts[-ev]:=$opts[-e]}
-:	${opts[-prefix]:=${opts[-p]:-initrd-}}
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-miscdir]:=${opts[-M]:-$opts[-workdir]/misc}}
 :	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
-:	${opts[-comp]:=${opts[-c]:-xz -9 --check=crc32}}
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
-:	${INITDIR:=${opts[-workdir]}/${opts[-prefix]}${opts[-kv]}${opts[-ev]}}
-:	${INITRAMFS:=/boot/${opts[-prefix]}${opts[-kv]}${opts[-ev]}.cpio.xz}
-if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] {
-	opts[-g]=; opts[-l]=; opts[-sq]= }
 mkdir -p $opts[-workdir]
 mkdir -p $opts[-bindir]
 
