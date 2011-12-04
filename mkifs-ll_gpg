@@ -4,7 +4,7 @@
 usage() {
    cat <<-EOF
    usage: ${(%):-%1x} [-uf|-useflag'falgs'] [-V|-Version'<str>']
-   -bd|-bindir bin      try to include binaries from bin dir (busybox/applets/gpg) first
+   -bd|-bindir bin      copy builded binary to <bin> directory
    -md|-miscdir misc    use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
                         one can add manpages gpg/lvm/cryptsetup and user scripts as well
    -uf|-useflag'flags'  extra USE flags to append to USE="nls static"

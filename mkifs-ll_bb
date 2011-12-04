@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.4.1 2011/12/03 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.4.1 2011/12/04 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -9,7 +9,7 @@ usage() {
   -mi|-minimal	          build busybox with minimal applets, default is full applets
   -km|-key-map <map:kmap> generate kmap keymap using map as input keymap
   -ua|-ucl-arch i386      ARCH string needed to build busybox linked uClibc	
-  -bd|-bindir bin         try to include binaries from bin dir (busybox/applets/gpg) first
+  -bd|-bindir bin         copy builded binary to <bin> directory
   -u|-usage               print the usage/help and exit
 EOF
 }
