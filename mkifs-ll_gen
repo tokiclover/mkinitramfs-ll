@@ -5,7 +5,7 @@ usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS] [OPTIONS...]
   -a|-all              short forme/hand of '-sqfsd -lvm -gpg -toi'
-  -b|-build	           build a static busybox and GnuPG-1.x binaries
+  -D|-build	           build a static busybox and GnuPG-1.x binaries
   -f|-font :<font>     append collon seperated list of fonts to in include
   -e|-ev d             append an extra 'd' version after \$kv to the initramfs image
   -k|-kv 3.1.4-git     build an initramfs for '3.1.4-git' kernel, else for \$(uname -r)
@@ -14,25 +14,25 @@ usage() {
   -p|-prefix vmlinuz.  prefix scheme to name the initramfs image default is 'initrd-'
   -y|-keymap kmx86.bin append collon seperated list of keymaps to include in the initramfs
   -l|-lvm              adds LVM2 support, require a static sys-fs/lvm2[lvm.static] binary
-  -bd|-bindir bin      try to include binaries from bin dir (busybox/applets/gpg) first
-  -md|-miscdir misc    use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
+  -B|-bindir bin       try to include binaries from bin dir (busybox/applets/gpg) first
+  -M|-miscdir misc     use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
                        one can add manpages gpg/lvm/cryptsetup and user scripts as well
-  -wd|-wokdir dir      working directory where to create initramfs dir, default is PWD
-  -bi|-bin :<bin>      append collon seperated list of binar-y-ies to include
-  -cd|-confdir dir     copy gpg.conf, GnuPG configuration file, from dir
+  -W|-wokdir dir       working directory where to create initramfs dir, default is PWD
+  -b|-bin :<bin>       append collon seperated list of binar-y-ies to include
+  -C|-confdir dir      copy gpg.conf, GnuPG configuration file, from dir
   -m|-modep :<mod>     collon seperated list of kernel module-s to include
-  -sp|-splash :<theme> collon ':' separated list of splash themes to include
-  -mgpg :<mod>         collon seperated list of kernel modules to add to gpg group
-  -mboot :<mod>        collon seperated list of kernel modules to add to boot group
-  -msqfsd :<mod>       collon seperated list of kernel modules to add to sqfsd group
-  -mremdev :<mod>      collon seperated list of kernel modules to add to remdev group
-  -mtuxonice :<mod>    collon seperated list of kernel modules to add to tuxonice group
+  -S|-splash :<theme>  collon ':' separated list of splash themes to include
+     -mgpg :<mod>      collon seperated list of kernel modules to add to gpg group
+     -mboot :<mod>     collon seperated list of kernel modules to add to boot group
+     -msqfsd :<mod>    collon seperated list of kernel modules to add to sqfsd group
+     -mremdev :<mod>   collon seperated list of kernel modules to add to remdev group
+     -mtuxonice :<mod> collon seperated list of kernel modules to add to tuxonice group
   -t|-toi              adds tuxonice support for splash, require tuxoniceui_text binary
-  -sq|-sqfsd           add aufs(+squashfs modules +{,u}mount.aufs binaries) support
+  -s|-sqfsd            add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -i|-install	       install busybox with symliks to \$opts[-bindir], require -b
-  -mi|-minimal	       build busybox with minimal applets, default is full applets
-  -ua|-ucl-arch i386   ARCH string needed to build busybox linked uClibc
-  -km|-key-map <k:m>   generate <m> keymap using <k> as input keymap
+  -n|-minimal	       build busybox with minimal applets, default is full applets
+  -U|-ucl-arch i386    ARCH string needed to build busybox linked uClibc
+  -Y|-key-map <k:m>    generate <m> keymap using <k> as input keymap
   -u|-usage            print this help/usage and exit
   -v|-version          print version string and exit
 
@@ -50,31 +50,32 @@ if [[ $# = 0 ]] { if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 	info "initramfs will be build with only LUKS support."
 } else {
 	zmodload zsh/zutil
-	zparseopts -E -D -K -A opts a all sq sqfsd g gpg l lvm t toi c:: comp:: \
-		e:: ev:: k:: kv:: m+:: modep+:: f+:: font+:: md:: miscdir \
-		sp:: splash:: u usage v version wd:: workdir::  bi:: bin:: p:: prefix:: \
-		y:: keymap:: bd:: bindir:: mboot+:: mgpg+:: msqfsd+:: mtuxonice+:: \
-		b build i install mi minimal km: key-map: ua: ucl-arch:
+	zparseopts -E -D -K -A opts a all s sqfsd g gpg l lvm t toi c:: comp:: \
+		e:: ev:: k:: kv:: m+:: modep+:: f+:: font+:: M:: miscdir \
+		S:: splash:: u usage v version W:: workdir::  b:: bin:: p:: prefix:: \
+		y:: keymap:: B:: bindir:: mboot+:: mgpg+:: msqfsd+:: mtuxonice+:: \
+		D build i install n minimal Y: key-map: U: ucl-arch:
 	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] {
 		usage; exit 0 }
 }
 :	${opts[-kv]:=${opts[-k]:-$(uname -r)}}
 :	${opts[-ev]:=$opts[-e]}
 :	${opts[-prefix]:=${opts[-p]:-initrd-}}
-:	${opts[-workdir]:=${opts[-wd]:-$(pwd)}}
-:	${opts[-miscdir]:=${opts[-md]:-$opts[-workdir]/misc}}
-:	${opts[-bindir]:=${opts[-bd]:-$opts[-workdir]/bin}}
+:	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
+:	${opts[-miscdir]:=${opts[-M]:-$opts[-workdir]/misc}}
+:	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
 :	${opts[-comp]:=${opts[-c]:-xz -9 --check=crc32}}
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${INITDIR:=${opts[-workdir]}/${opts[-prefix]}${opts[-kv]}${opts[-ev]}}
 :	${INITRAMFS:=/boot/${opts[-prefix]}${opts[-kv]}${opts[-ev]}.cpio.xz}
 if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] {
 	opts[-g]=; opts[-l]=; opts[-sq]= }
+mkdir -p $opts[-workdir]
 mkdir -p $opts[-bindir]
 
-if [[ -n ${(k}opts[-build]} ]] || [[ -n ${(k)opts[-b]} ]] { ./mkifs-ll_bb
+if [[ -n ${(k}opts[-build]} ]] || [[ -n ${(k)opts[-D]} ]] { ./mkifs-ll_bb
 	if [[ -n ${(k}opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { ./mkifs-ll_gpg
-		if [[ -d $opts[-confdir] ]] || [[ -d ${opts[-cd]} ]] { 
+		if [[ -d $opts[-confdir] ]] || [[ -d ${opts[-C]} ]] { 
 			mkdir -p $opts[-miscdir]/.gnupg/
 			cp $opts[-confdir]/gpg.conf $opts[-miscdir]/.gnupg/ || die "eek!"
 		}

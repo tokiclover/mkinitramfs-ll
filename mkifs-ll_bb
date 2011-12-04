@@ -4,12 +4,12 @@
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-b|-build] [-m|-minimal] [-ua|-ucl-archi386] ] [-y|-keymap<map:kmap>]
-  -b|-build	              build a [minimal|full applets featured] static busybox binary 
+  -D|-build	              build a [minimal|full applets featured] static busybox binary 
   -i|-install	          install busybox with symliks to \$opts[-bindir], require -b
-  -mi|-minimal	          build busybox with minimal applets, default is full applets
-  -ua|-ucl-arch i386      ARCH string needed to build busybox linked uClibc	
-  -km|-key-map <map:kmap> generate kmap keymap using map as input keymap
-  -bd|-bindir bin         copy builded binary to <bin> directory
+  -n|-minimal	           build busybox with minimal applets, default is full applets
+  -U|-ucl-arch i386       ARCH string needed to build busybox linked uClibc	
+  -Y|-key-map <map:kmap>  generate kmap keymap using map as input keymap
+  -B|-bindir bin          copy builded binary to <bin> directory
   -u|-usage               print the usage/help and exit
 EOF
 }
@@ -21,16 +21,17 @@ alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 if [[ $# = 0 ]] { usage; exit 0
 } else {
 	zmodload zsh/zutil
-	zparseopts -E -D -K -A opts b build mi minimal i install km: key-map: \
-		bd: bindir: md: miscdir: ua: ucl-arch: u usage
+	zparseopts -E -D -K -A opts D build n minimal i install Y: key-map: \
+		B: bindir: M: miscdir: U: ucl-arch: u usage
 	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] {
 		usage; exit 0 }
 }
-:	${opts[-workdir]:=${opts[-wd]:-$(pwd)}}
-:	${opts[-bindir]:=${opts[-bd]:-$opts[-workdir]/bin}}
-:	${opts[-ua]:-$opts[-ucl-arch]}
-:	${opts[-km]:-$opts[-key-map]}
+:	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
+:	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
+:	${opts[-U]:-$opts[-ucl-arch]}
+:	${opts[-Y]:-$opts[-key-map]}
 mkdir -p $opts[-bindir]
+mkdir -p $opts[-workdir]
 
 build_busybox() {
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
@@ -38,7 +39,7 @@ build_busybox() {
 	ebuild $BBT.ebuild clean || die "clean failed"
 	ebuild $BBT.ebuild unpack || die "unpack failed"
 	cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/$BBT/work/$BBT || die "eek!"
-	if [[ -n ${(k)opts[-mi]} ]] || [[ -n ${(k)opts[-minimal]} ]] {
+	if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-minimal]} ]] {
 		make allnoconfig || die "eek!"
 		sed -e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
 		-e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
@@ -87,8 +88,8 @@ build_busybox() {
 		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
 		-i .config || die "cfg failed" 
 	}
-	if [[ -n ${opts[-ua]} ]] || [[ -n ${opts[-ucl-arch]} ]] {
-	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[-ua]}\"|" \
+	if [[ -n ${opts[-U]} ]] || [[ -n ${opts[-ucl-arch]} ]] {
+	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[-U]}\"|" \
 		-i .config || die "setting uClib ARCH failed" }
 	make && make busybox.links || die "bb build failed"
 }
@@ -101,22 +102,22 @@ install_busybox() {
 
 build_keymap() { 
 	dumpkeys > default_keymap || die "dumping keymap failed"
-	loadkeys -u ${(pws,:,)opts[(w)1,-km]} || die "loading ${opts[-km]} failed"
-	./busybox dumpkmap > ${opts[-bindir]}/${(pws,:,)opts[(w)2,-km]} || die "keymap build failed"
+	loadkeys -u ${(pws,:,)opts[(w)1,-Y]} || die "loading ${opts[-Y]} failed"
+	./busybox dumpkmap > ${opts[-bindir]}/${(pws,:,)opts[(w)2,-Y]} || die "keymap build failed"
 	loadkeys default_keymap && rm default_keymap || die "re-loading default keymap failed"
 }
 
-if [[ -n ${(k)opts[-build]} ]] || [[ -n ${(k)opts[-b]} ]] {
+if [[ -n ${(k)opts[-build]} ]] || [[ -n ${(k)opts[-D]} ]] {
 	build_busybox
 	if [[ -n ${(k)opts[-i]} ]] || [[ -n ${(k)opts[-install]} ]] { install_busybox }
 	cp -a busybox ${opts[-bindir]}/ || die "failed to copy bb binary"
 	cp busybox.links ${opts[-bindir]}/applets || die "failed to copy applets"
 }
 
-if [[ -n ${opts[-km]} ]] {
+if [[ -n ${opts[-Y]} ]] {
 	mkdir -p $opts[-bindir]
 	build_keymap
-	opts[-bindir]+=:${(pws,:,)opts[(w)2,-km]}
+	opts[-bindir]+=:${(pws,:,)opts[(w)2,-Y]}
 }
 
 if [[ -n ${(k)opts[-build]} ]] || [[ -n ${(k)opts[-b]} ]] {

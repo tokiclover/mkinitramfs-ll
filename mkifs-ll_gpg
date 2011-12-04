@@ -3,11 +3,12 @@
 
 usage() {
    cat <<-EOF
-   usage: ${(%):-%1x} [-uf|-useflag'falgs'] [-V|-Version'<str>']
-   -bd|-bindir bin      copy builded binary to <bin> directory
-   -md|-miscdir misc    use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
+   usage: ${(%):-%1x} [-U|-useflag'falgs'] [-V|-Version'<str>'] [OPTIONS]
+   -B|-bindir bin       copy builded binary to <bin> directory
+   -M|-miscdir misc     use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
                         one can add manpages gpg/lvm/cryptsetup and user scripts as well
-   -uf|-useflag'flags'  extra USE flags to append to USE="nls static"
+   -W|-wokdir dir       working directory where to create initramfs dir, default is PWD
+   -U|-useflag'flags'   extra USE flags to append to USE="nls static"
    -V|-Version'<str>'   build gpg-<str> version instead of gpg-1.4.x
    -u|-usage            print this help/uage and exit
 EOF
@@ -20,22 +21,22 @@ alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 if [[ $# = 0 ]] { typeset -A opts; info "building GnuPG..."
 } else {
 	zmodload zsh/zutil
-	zparseopts -E -D -K -A opts uf: useflag: V: Version: \
-		bi: bin bd: bindir: md: miscdir: ua: ucl-arch: u usage
+	zparseopts -E -D -K -A opts U:: useflag:: V:: Version:: \
+		B:: bindir:: M:: miscdir:: u usage W:: workdir::
 	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] {
 		usage; exit 0 }
 }
-:	${opts[-workdir]:=${opts[-wd]:-$(pwd)}}
-:	${opts[-bindir]:=${opts[-bd]:-$opts[-workdir]/bin}}
-:	${opts[-bindir]:=${opts[-md]:-$opts[-workdir]/misc}}
-:	${opts[-ua]:-$opts[-ucl-arch]}
-:	${opts[-km]:-$opts[-key-map]}
+:	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
+:	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
+:	${opts[-bindir]:=${opts[-M]:-$opts[-workdir]/misc}}
+mkdir -p $opts[-workdir]
 mkdir -p $opts[-bindir]
 mkdir -p $opts[-miscdir]/share/gnupg
 
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
-GPG=$(emerge -pvO =app-crypt/gnupg-${Version:-1.4*}|grep -o "gnupg-[-0-9.r]*")
-USE="nls static ${=opts[-useflag]:-$opts[-uf]}" ebuild $GPG.ebuild compile || die "eek!"
+GPG=$(emerge -pvO =app-crypt/gnupg-${opts[-Version]:-${opts[-V]:-1.4*}} | \
+	  grep -o "gnupg-[-0-9.r]*")
+USE="nls static ${=opts[-useflag]:-$opts[-U]}" ebuild $GPG.ebuild compile || die "eek!"
 cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/$GPG/work/$GPG || die "eek!"
 cp -a gpg ${opts[-bindir]}/ || die "eek!"
 cp g10/options.skel ${opts[-miscdir]}/share/gnupg/ || die "eek!"

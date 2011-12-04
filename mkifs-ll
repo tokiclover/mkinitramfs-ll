@@ -14,20 +14,20 @@ usage() {
   -p|-prefix vmlinuz.  prefix scheme to name the initramfs image default is 'initrd-'
   -y|-keymap kmx86.bin append collon seperated list of keymaps to include in the initramfs
   -l|-lvm              adds LVM2 support, require a static sys-fs/lvm2[lvm.static] binary
-  -bd|-bindir bin      try to include binaries from bin dir (busybox/applets/gpg) first
-  -md|-miscdir misc    use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
+  -B|-bindir bin       try to include binaries from bin dir (busybox/applets/gpg) first
+  -M|-miscdir misc     use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
                        one can add manpages gpg/lvm/cryptsetup and user scripts as well
-  -wd|-wokdir dir      working directory where to create initramfs dir, default is PWD
-  -bi|-bin :<bin>      append collon seperated list of binar-y-ies to include
+  -W|-wokdir dir       working directory where to create initramfs dir, default is PWD
+  -b|-bin :<bin>       append collon seperated list of binar-y-ies to include
   -m|-mdep :<mod>      collon seperated list of kernel module-s to include
-  -sp|-splash :<theme> collon ':' separated list of splash themes to include
-  -mgpg :<mod>         collon seperated list of kernel modules to add to gpg group
-  -mboot :<mod>        collon seperated list of kernel modules to add to boot group
-  -msqfsd :<mod>       collon seperated list of kernel modules to add to sqfsd group
-  -mremdev :<mod>      collon seperated list of kernel modules to add to remdev group
-  -mtuxonice :<mod>    collon seperated list of kernel modules to add to tuxonice group
+  -S|-splash :<theme>  collon ':' separated list of splash themes to include
+    -mgpg :<mod>       collon seperated list of kernel modules to add to gpg group
+    -mboot :<mod>      collon seperated list of kernel modules to add to boot group
+    -msqfsd :<mod>     collon seperated list of kernel modules to add to sqfsd group
+    -mremdev :<mod>    collon seperated list of kernel modules to add to remdev group
+    -mtuxonice :<mod>  collon seperated list of kernel modules to add to tuxonice group
   -t|-toi              adds tuxonice support for splash, require tuxoniceui_text binary
-  -sq|-sqfsd           add aufs(+squashfs modules +{,u}mount.aufs binaries) support
+  -s|-sqfsd            adds aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -u|-usage            print this help/usage and exit
   -v|-version          print version string and exit
 
@@ -61,10 +61,10 @@ if [[ $# = 0 ]] { if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 	info "initramfs will be build with only LUKS support."
 } else {
 	zmodload zsh/zutil
-	zparseopts -E -D -K -A opts a all sq sqfsd g gpg l lvm t toi c:: comp:: \
-		e:: ev:: k:: kv:: m+:: mdep+:: f+:: font+:: md:: miscdir \
-		sp:: splash:: u usage v version wd:: workdir::  bi:: bin:: p:: prefix:: \
-		y:: keymap:: bd:: bindir:: mboot+:: mgpg+:: msqfsd+:: mtuxonice+::
+	zparseopts -E -D -K -A opts a all s sqfsd g gpg l lvm t toi c:: comp:: \
+		e:: ev:: k:: kv:: m+:: mdep+:: f+:: font+:: M:: miscdir \
+		S:: splash:: u usage v version W:: workdir::  b:: bin:: p:: prefix:: \
+		y:: keymap:: B:: bindir:: mboot+:: mgpg+:: msqfsd+:: mtuxonice+::
 	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] {
 		usage; exit 0 }
 	if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
@@ -75,9 +75,9 @@ setopt NULL_GLOB
 :	${opts[-kv]:=${opts[-k]:-$(uname -r)}}
 :	${opts[-ev]:=$opts[-e]}
 :	${opts[-prefix]:=${opts[-p]:-initrd-}}
-:	${opts[-workdir]:=${opts[-wd]:-$(pwd)}}
-:	${opts[-miscdir]:=${opts[-md]:-$opts[-workdir]/misc}}
-:	${opts[-bindir]:=${opts[-bd]:-$opts[-workdir]/bin}}
+:	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
+:	${opts[-miscdir]:=${opts[-M]:-$opts[-workdir]/misc}}
+:	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
 :	${opts[-comp]:=${opts[-c]:-xz -9 --check=crc32}}
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 :	${INITDIR:=${opts[-workdir]}/${opts[-prefix]}${opts[-kv]}${opts[-ev]}}
@@ -146,7 +146,7 @@ if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] { opts[-bin]+=:lvm.stati
 	cd ..
 }
 
-if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-sq]} ]] { 
+if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-s]} ]] { 
 	opts[-bin]+=:mount.aufs:umount.aufs
 	for fs ({au,squash}fs) 
 		[[ -n ${(pws,:,)opts[(rw)$fs,-msqfsd]} ]] || opts[-msqfsd]+=:$fs
@@ -178,10 +178,10 @@ for font (${(pws,:,)opts[-font]} ${(pws,:,)opts[-f]})
 			mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
 	} else { warn "failed to copy $font font" } 
 
-if [[ -n $opts[-splash] ]] || [[ -n $opts[-sp] ]] { opts[-bin]+=:splash_util.static
+if [[ -n $opts[-splash] ]] || [[ -n $opts[-S] ]] { opts[-bin]+=:splash_util.static
 	if [[ -n ${(k)opts[-tuxonice]} ]] || [[ -n ${(k)opts[-t]} ]] {
 		opts[-bin]+=:tuxoniceui_text }
-	for theme (${(pws,:,)opts[-splash]} ${(pws,:,)opts[-sp]})
+	for theme (${(pws,:,)opts[-splash]} ${(pws,:,)opts[-S]})
 		if [[ -d $theme ]] { cp -r $theme etc/splash/ 
 		} elif [[ -d $opts[-miscdir]/$theme ]] { cp -r $opts[-miscdir]/$theme etc/splash/  
 		} elif [[ -d /etc/$theme ]] { cp -r {/,}etc/splash/$theme
@@ -200,7 +200,7 @@ bincp() {
 		} else {  warn "$bin binary doesn't exist" }
 }
 
-for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-bi]})
+for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 	if [[ -x $opts[-bindir]/${bin##*/} ]] { 
 		cp $opts[-bindir]/${bin##*/} ./$bin || die "failed to copy $bin"
 	} elif [[ -x /$bin ]] { bincp /$bin
