@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.4.1 2011/12/03 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.4.1 2011/12/04 -tclover Exp $
 
 usage() {
    cat <<-EOF
@@ -31,14 +31,14 @@ if [[ $# = 0 ]] { typeset -A opts; info "building GnuPG..."
 :	${opts[-ua]:-$opts[-ucl-arch]}
 :	${opts[-km]:-$opts[-key-map]}
 mkdir -p $opts[-bindir]
-mkdir -p $opts[-miscdir]
+mkdir -p $opts[-miscdir]/share/gnupg
 
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 GPG=$(emerge -pvO =app-crypt/gnupg-${Version:-1.4*}|grep -o "gnupg-[-0-9.r]*")
 USE="nls static ${=opts[-useflag]:-$opts[-uf]}" ebuild $GPG.ebuild compile || die "eek!"
 cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/$GPG/work/$GPG || die "eek!"
 cp -a gpg ${opts[-bindir]}/ || die "eek!"
-cp g10/options.skel ${opts[-miscdir]}/ || die "eek!"
+cp g10/options.skel ${opts[-miscdir]}/share/gnupg/ || die "eek!"
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 ebuild $GPG.ebuild clean || die "eek!"
 cd $opts[-worddir] || die "eek!"
