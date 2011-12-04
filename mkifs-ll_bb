@@ -95,7 +95,7 @@ build_busybox() {
 
 install_busybox() {
 	if [[ -e ${opts[-tmpdir]} ]] { make install CONFIG_PREFIX=${opts[-tmpdir]}/busybox
-		rm -rf ${opts[-tmpdir]} }
+		rm -rf ${opts[-tmpdir]}/busybox }
 	./applets/install.sh ${opts[-bindir]} --symlinks
 }
 
