@@ -29,6 +29,7 @@ if [[ $# = 0 ]] { typeset -A opts; info "building GnuPG..."
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
 :	${opts[-bindir]:=${opts[-M]:-$opts[-workdir]/misc}}
+[[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 mkdir -p $opts[-workdir]
 mkdir -p $opts[-bindir]
 mkdir -p $opts[-miscdir]/share/gnupg

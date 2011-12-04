@@ -30,6 +30,7 @@ if [[ $# = 0 ]] { usage; exit 0
 :	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
 :	${opts[-U]:-$opts[-ucl-arch]}
 :	${opts[-Y]:-$opts[-key-map]}
+[[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 mkdir -p $opts[-bindir]
 mkdir -p $opts[-workdir]
 
