@@ -7,8 +7,8 @@ usage() {
   -b|-build	              build a [minimal|full applets featured] static busybox binary 
   -i|-install	          install busybox with symliks to \$opts[-bindir], require -b
   -mi|-minimal	          build busybox with minimal applets, default is full applets
-  -km|-key-map <map:kmap> generate kmap keymap using map as input keymap
   -ua|-ucl-arch i386      ARCH string needed to build busybox linked uClibc	
+  -km|-key-map <map:kmap> generate kmap keymap using map as input keymap
   -bd|-bindir bin         copy builded binary to <bin> directory
   -u|-usage               print the usage/help and exit
 EOF
