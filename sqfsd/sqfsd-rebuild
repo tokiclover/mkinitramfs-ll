@@ -114,6 +114,6 @@ for dir in ${opts[sqfsd]//:/ }; do
 	echo ">>> ...sucessfully build squashed $dir."
 done
 
-unset opts ro_size rw_size
+unset opt opts ro_size rw_size
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
