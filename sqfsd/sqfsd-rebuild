@@ -52,8 +52,8 @@ for dir (${(pws,:,)opts[-sqfsd]}) {
 	mkdir -p $opts[-sqfsdir]/$dir/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
 	if [[ -e /sqfsd/$dir.sfs ]] { 
 		if [[ ${opts[-offset]:-10} != 0 ]] {
-			local ro_size=${$(du -sk $opts[-sqfsdir]/$dir/ro)[1]}
-			local rw_size=${$(du -sk $opts[-sqfsdir]/$dir/rw)[1]}
+			ro_size=${$(du -sk $opts[-sqfsdir]/$dir/ro)[1]}
+			rw_size=${$(du -sk $opts[-sqfsdir]/$dir/rw)[1]}
 			if (( ($rw_size*100/$ro_size) <= ${opts[-offset]:-10} )) { 
 				info "$dir: skiping... there's \`-o' options."; break
 			} 
@@ -107,6 +107,6 @@ for dir (${(pws,:,)opts[-sqfsd]}) {
 	echo ">>> ...squashed $dir sucessfully [re]build."
 }
 
-unset opts
+unset opts ro_size rw_size
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
