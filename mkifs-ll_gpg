@@ -1,44 +1,55 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_gpg[.bash],v 0.1.2 2011/10/30 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gpg[.bash],v 0.4.1 2011/12/05 -tclover Exp $
 
 usage() {
    cat << EOF
    usage: ${0##*/} [OPTINS]...
-      --useflags="flags" extra USE flags to append to USE="nls static"
-      --Version=<STR>	 build gpg-<STR> version instead of gpg-1.4.x
-  -u, --usage            print this help/uage and exit
+   -B|--bindir bin        copy builded binary to <bin> directory
+   -M|--miscdir misc      copy {.gnupg/gpg.conf,share/gnupg/options.skel} to <misc> dir
+   -W|--wokdir dir        working directory where to create initramfs dir, default is PWD
+   -U|--useflag 'flags'   extra USE flags to append to USE="nls static"
+   -V|--Version '<str>'   build gpg-<str> version instead of gpg-1.4.x
+   -u|--usage             print this help/uage and exit
 EOF
 }
 
+opt=$(getopt --long usage,useflag::,bindir::,miscidr::,workdir::,Version:: \
+	  -o uB::M::U::V::W:: -n ${0##*/} -- "$@" || usage && exit 0)
+eval set -- "$opt"
+[[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in 
-		--useflags=*) EUSE="${1#*=}"; shift;;
-		--Version=*) Version=${1#*=}; shift;;
-		--usage|-u|*) usage; exit 0;;
+		-u|--usage) usage; exit 0;;
+		-B|--bindir) opts[bindir]=${2}; shift 2;;
+		-U|--useflag) opts[useflag]=${2}; shift 2;;
+		-V|--Version) opts[Version]=${2}; shift 2;;
+		-M|--miscdir) opts[miscdir]="${2}"; shift 2;;
+		-W|--workdir) opts[workdir]="${2}"; shift 2;;
 	esac
 done
 
+[[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
+[[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
+[[ -n "${opts[miscdir]}" ]] || opts[miscdir]="${opts[workdir]}"/misc
+[[ -n "${opts[Version]}" ]] || opts[Version]='1.4*'
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
-:	${WORKDIR:=$(pwd)}
-:	${MISCDIR:=$WORKDIR/misc}
-:	${BINDIR:=$WORKDIR/bin}
+mkdir -p "${opts[misdir]}"/share/gnupg/
+mkdir -p "${opts[bindir]}"
 
 error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die() { error "$@"; exit 1; }
 
-mkdir -p "$BINDIR"
-
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
-GPG=$(emerge -pvO =app-crypt/gnupg-${Version:-1.4*}|grep -o "gnupg-[-0-9.r]*")
-USE="nls static $EUSE" ebuild $GPG.ebuild compile || die "eek!"
+GPG=$(emerge -pvO =app-crypt/gnupg-${opts[Version]} | grep -o "gnupg-[-0-9.r]*")
+USE="nls static ${opts[useflag]}" ebuild $GPG.ebuild compile || die "eek!"
 cd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/app-crypt/$GPG/work/$GPG || die "eek!"
-cp -a gpg "$BINDIR"/ || die "eek!"
-cp g10/options.skel "$BINDIR"/ || die "eek!"
+cp -a gpg "${opts[bindir]}"/ || die "eek!"
+cp g10/options.skel "${opts[miscdir]}"/share/gnupg/ || die "eek!"
 cd "${PORTDIR:-/usr/portage}"/app-crypt/gnupg || die "eek"
 ebuild $GPG.ebuild clean || die "eek!"
-cd "$WORKDIR" || die "eek!"
+cd "${opts[workdir]}" || die "eek!"
 
-set iGPG=y
-unset GPG EUSE Version
+opts[gpg]=y
+unset GPG
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
