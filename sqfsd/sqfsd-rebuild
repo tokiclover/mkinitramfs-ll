@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.4.1 2011/12/02 -tclover Exp $
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.zsh],v 0.4.1 2011/12/05 -tclover Exp $
 revision=0.4.1
 
 usage() {
@@ -14,8 +14,8 @@ usage() {
   -c|-comp'xz -Xbjc x86' use xz compressor, optionaly, one can append extra arguments...
   -e|-excl<dir>          collon separated list of directories to exlude from .sfs image
   -o|-offset<int>        offset used for rebuilding squashed directories, default is 10%
-  -up|-update            update the underlying source directory e.g. bin:sbin:lib32:lib64
-  -rm|-remove            remove the underlying source directory e.g. usr:opt:\${PORTDIR}
+  -U|-update             update the underlying source directory e.g. bin:sbin:lib32:lib64
+  -R|-remove             remove the underlying source directory e.g. usr:opt:\${PORTDIR}
   -u|-usage              print this help/usage and exit
   -v|-version	         print version string and exit
 	
@@ -31,7 +31,7 @@ EOF
 if [[ $# = 0 ]] { usage; exit 0
 } else { zmodload zsh/zutil
 	zparseopts -E -D -K -A opts r: sqfsdir: d: sqfsd: a: arch: f fstab b: bsize: \
-		c: comp: e: excl: o: offset: up update rm remove u usage v version
+		c: comp: e: excl: o: offset: U update R remove u usage v version
 	[[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] && usage && exit 0
 	[[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] && \
 		print "${(%):-%1x}-$revision" && exit 0
@@ -87,9 +87,9 @@ for dir (${(pws,:,)opts[-sqfsd]}) {
 	}
 	mount -t squashfs $opts[-sqfsdir]/$dir.sfs $opts[-sqfsdir]/$dir/ro -o nodev,loop,ro \
 		&>/dev/null || die "failed to mount $dir.sfs img."
-	if [[ -n ${(k)opts[-rm]} || -n ${(k)opts[-remove]} ]] { 
+	if [[ -n ${(k)opts[-R]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
 		rm -rf /$dir/* || die "failed to clean up $opts[-sqfsdir]/$dir."
-	} elif [[ -n ${(k)opts[-up]} || -n ${(k)opts[-update]} ]] { 
+	} elif [[ -n ${(k)opts[-U]} ]] || [[ -n ${(k)opts[-update]} ]] { 
 		echo >|/tmp/sdr
 		cp -aru $opts[-sqfsdir]/$dir/ro/* /$dir/ 2>>|/tmp/sdr || \
 		for file ($(sed -e "s|.*\`||g" -e "s|':.*||g" /tmp/sdr)) {
