@@ -1,13 +1,13 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.4.1 2011/12/04 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb[.zsh],v 0.4.1 2011/12/05 -tclover Exp $
 
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-b|-build] [-m|-minimal] [-ua|-ucl-archi386] ] [-y|-keymap<map:kmap>]
-  -D|-build	              build a [minimal|full applets featured] static busybox binary 
-  -i|-install	          install busybox with symliks to \$opts[-bindir], require -b
-  -n|-minimal	           build busybox with minimal applets, default is full applets
-  -U|-ucl-arch i386       ARCH string needed to build busybox linked uClibc	
+  -D|-build               build a [minimal|full applets featured] static busybox binary 
+  -i|-instal              install busybox with symliks to \$opts[-bindir], require -b
+  -n|-minimal             build busybox with minimal applets, default is full applets
+  -U|-ucl-arch i386       ARCH string needed to build busybox against uClibc	
   -Y|-key-map <map:kmap>  generate kmap keymap using map as input keymap
   -B|-bindir bin          copy builded binary to <bin> directory
   -u|-usage               print the usage/help and exit
@@ -32,7 +32,6 @@ if [[ $# = 0 ]] { usage; exit 0
 :	${opts[-Y]:-$opts[-key-map]}
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 mkdir -p $opts[-bindir]
-mkdir -p $opts[-workdir]
 
 build_busybox() {
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
@@ -113,18 +112,13 @@ if [[ -n ${(k)opts[-build]} ]] || [[ -n ${(k)opts[-D]} ]] {
 	if [[ -n ${(k)opts[-i]} ]] || [[ -n ${(k)opts[-install]} ]] { install_busybox }
 	cp -a busybox ${opts[-bindir]}/ || die "failed to copy bb binary"
 	cp busybox.links ${opts[-bindir]}/applets || die "failed to copy applets"
-}
-
-if [[ -n ${opts[-Y]} ]] {
-	mkdir -p $opts[-bindir]
-	build_keymap
-	opts[-bindir]+=:${(pws,:,)opts[(w)2,-Y]}
-}
-
-if [[ -n ${(k)opts[-build]} ]] || [[ -n ${(k)opts[-b]} ]] {
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 	ebuild $BBT.ebuild clean || die "eek"
 	cd $opts[-worddir] || die "eek!"
+}
+
+if [[ -n ${opts[-Y]} ]] {
+	build_keymap && opts[-bindir]+=:${(pws,:,)opts[(w)2,-Y]}
 }
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

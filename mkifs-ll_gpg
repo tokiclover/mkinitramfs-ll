@@ -1,11 +1,11 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.4.1 2011/12/04 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gpg[.zsh],v 0.4.1 2011/12/05 -tclover Exp $
 
 usage() {
    cat <<-EOF
    usage: ${(%):-%1x} [-U|-useflag'falgs'] [-V|-Version'<str>'] [OPTIONS]
    -B|-bindir bin       copy builded binary to <bin> directory
-   -M|-miscdir misc     use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
+   -M|-miscdir misc     copy {.gnupg/gpg.conf,share/gnupg/options.skel} to misc dir,
                         one can add manpages gpg/lvm/cryptsetup and user scripts as well
    -W|-wokdir dir       working directory where to create initramfs dir, default is PWD
    -U|-useflag'flags'   extra USE flags to append to USE="nls static"
@@ -30,7 +30,6 @@ if [[ $# = 0 ]] { typeset -A opts; info "building GnuPG..."
 :	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
 :	${opts[-bindir]:=${opts[-M]:-$opts[-workdir]/misc}}
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
-mkdir -p $opts[-workdir]
 mkdir -p $opts[-bindir]
 mkdir -p $opts[-miscdir]/share/gnupg
 
