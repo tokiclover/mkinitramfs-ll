@@ -6,26 +6,26 @@ usage() {
   cat <<-EOF
   usage: ${1##*/} [OPTIONS...]
   -a|--all              short forme/hand of '-sqfsd -lvm -gpg -toi'
-  -f|--font :<font>     append collon seperated list of fonts to in include
+  -f|--font :<font>     append colon separated list of fonts to in include
   -e|--ev d             append an extra 'd' version after \$kv to the initramfs image
   -k|--kv 3.1.4-git     build an initramfs for '3.1.4-git' kernel, else for \$(uname -r)
   -c|--comp             compression command to use to build initramfs, default is 'xz -9..'
   -g|--gpg              adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p|--prefix vmlinuz.  prefix scheme to name the initramfs image default is 'initrd-'
-  -y|--keymap kmx86.bin append collon seperated list of keymaps to include in the initramfs
+  -y|--keymap kmx86.bin append colon separated list of keymaps to include in the initramfs
   -l|--lvm              adds LVM2 support, require a static sys-fs/lvm2[lvm.static] binary
   -B|--bindir bin       try to include binaries from bin dir (busybox/applets/gpg) first
   -M|--miscdir misc     use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
                         one can add manpages gpg/lvm/cryptsetup and user scripts as well
   -W|--wokdir dir       working directory where to create initramfs dir, default is PWD
-  -b|--bin :<bin>       append collon seperated list of binar-y-ies to include
-  -m|--mdep :<mod>      collon seperated list of kernel module-s to include
-  -S|--splash :<theme>  collon ':' separated list of splash themes to include
-     --mgpg :<mod>      collon seperated list of kernel modules to add to gpg group
-     --mboot :<mod>     collon seperated list of kernel modules to add to boot group
-     --msqfsd :<mod>    collon seperated list of kernel modules to add to sqfsd group
-     --mremdev :<mod>   collon seperated list of kernel modules to add to remdev group
-     --mtuxonice :<mod> collon seperated list of kernel modules to add to tuxonice group
+  -b|--bin :<bin>       append colon separated list of binar-y-ies to include
+  -m|--mdep :<mod>      colon separated list of kernel module-s to include
+  -S|--splash :<theme>  colon ':' separated list of splash themes to include
+     --mgpg :<mod>      colon separated list of kernel modules to add to gpg group
+     --mboot :<mod>     colon separated list of kernel modules to add to boot group
+     --msqfsd :<mod>    colon separated list of kernel modules to add to sqfsd group
+     --mremdev :<mod>   colon separated list of kernel modules to add to remdev group
+     --mtuxonice :<mod> colon separated list of kernel modules to add to tuxonice group
   -t|--toi              adds tuxonice support for splash, require tuxoniceui_text binary
   -s|--sqfsd            add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -u|--usage            print this help/usage and exit
@@ -204,7 +204,8 @@ done
 	[[ -n "${opts[toi]}" ]] && opts[bin]+=:tuxoniceui_text
 	for theme in ${opts[splash]//:/ }; do 
 		if [[ -d $theme ]]; then cp -r $theme etc/splash/ 
-		elif [[ -d "${opts[miscdir]}"/$theme ]]; then cp -r "${opts[miscdir]}"/$theme etc/splash/	
+		elif [[ -d "${opts[miscdir]}"/$theme ]]; then 
+			cp -r "${opts[miscdir]}"/$theme etc/splash/
 		elif [[ -d /etc/splash/$theme ]]; then cp -r {/,}etc/splash/$theme
 			info "copied the whole /etc/splash/$theme theme"
 		else warn "failed to copy $theme theme"; fi
@@ -234,4 +235,4 @@ echo ">>> $INITRAMFS initramfs built"
 
 unset opt opts INITDIR INITRAMFS
 
-# vim:fenc=utf-8:ci:pi:sts=0:sw=3:ts=3:
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

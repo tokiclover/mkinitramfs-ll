@@ -5,8 +5,8 @@ usage() {
   cat << EOF
   usage:
   ${0##*/} [-b|--build [-m|--minimal] [-Y[|--kmap=]map:kmap] [OPTIONS]
-  -D|--build               build a [minimal|full applets featured] static busybox binary 
-  -i|--install             install busybox with symliks to \$opts[-bindir], require -b
+  -D|--build               build a [minimal|full] applets featured] static busybox binary 
+  -i|--install             install busybox with symliks to \${opts[-bindir]}, require -b
   -n|--minimal             build busybox with minimal applets, default is full applets
   -U|--ucl-arch i386       ARCH string needed to build busybox against uClibc	
   -Y|--key-map <map:kmap>  generate kmap keymap using map as input keymap
