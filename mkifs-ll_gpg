@@ -4,10 +4,9 @@
 usage() {
    cat <<-EOF
    usage: ${(%):-%1x} [-U|-useflag'falgs'] [-V|-Version'<str>'] [OPTIONS]
-   -B|-bindir bin       copy builded binary to <bin> directory
-   -M|-miscdir misc     copy {.gnupg/gpg.conf,share/gnupg/options.skel} to misc dir,
-                        one can add manpages gpg/lvm/cryptsetup and user scripts as well
-   -W|-wokdir dir       working directory where to create initramfs dir, default is PWD
+   -B|-bindir bin       where to copy builded binary, default is \${PWD}/bin
+   -M|-miscdir misc     where to copy {.gnupg/gpg.conf,share/gnupg/options.skel}
+   -W|-wokdir dir       working directory where to create initramfs directory
    -U|-useflag'flags'   extra USE flags to append to USE="nls static"
    -V|-Version'<str>'   build gpg-<str> version instead of gpg-1.4.x
    -u|-usage            print this help/uage and exit
@@ -45,5 +44,6 @@ ebuild $GPG.ebuild clean || die "eek!"
 cd $opts[-worddir] || die "eek!"
 
 opts[-gpg]=
+unset GPG
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
