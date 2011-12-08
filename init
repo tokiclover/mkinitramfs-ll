@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.4.1 2011/11/28 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.4.1 2011/12/08 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -140,9 +140,14 @@ check_key() {
 		[ $(echo "$lv_crypt_version" | cut -d'.' -f2) -ge 3 ] && gv_crypt_loop=0
 		[ $(echo "$lv_crypt_version" | cut -d'.' -f2) -ge 4 ] && gv_crypt_header=0
 	}
-	[ -n "${2}" ] || die "ik${4}=${1}:${2}:${3} device field empty."
-	[ -n "${3}" ] || die "ik${4}=${1}:${2}:${3} filepath field empty."
-	get_key "${1}" "${2}" "${3}"
+	if [ -n "${1}" ]; then [ "${1}" != "none" ] && local lv_crypt=0 || return
+	else return; fi
+	[ "${1}" != "pwd" ] && {
+		[ -n "${2}" ] || die "ik${4}=${1}:${2}:${3} device field empty."
+		[ -n "${3}" ] || die "ik${4}=${1}:${2}:${3} filepath field empty."
+		get_key "${1}" "${2}" "${3}"
+	}
+	echo "${lv_crypt}"
 }
 
 cryptsetup_close() { 
@@ -227,7 +232,7 @@ lvm_available() {
 		local lv_pv="${2}" IFS="${IFS}:"
 		[ -e "/mnt/tok/${lv_pv}" ] && lv_pv="$(cat "/mnt/tok/${lv_pv}")"
 		for pv in ${lv_pv}; do cryptsetup_decrypt "${pv}"; done
-		vgchange -ay ${1%-*} &>/dev/null || close_mapping "${lv_pv}" "${1}"
+		vgchange -ay ${1%-*} &>/dev/null || cryptsetup_close "${lv_pv}" "${1}"
 	}
 	if [ -b "/dev/mapper/${1}" ]; then local lv_mapping=/dev/mapper/${1}
 	elif [ -b "/dev/${1/-//}" ]; then local lv_mapping=/dev/${1/-//}
@@ -265,8 +270,7 @@ do_root_work() {
 	[ -n "${gbov_mtopt}" ] && local lv_mtopt="-o ${gv_mtopt}"
 	[ -n "${lv_rofs}" ]  && lv_rofs="-t ${lv_rofs}"
 	[ -n "${gv_root}" ] || die "iroot=* arg [PV|VG-LV][:fsck:<fs>] are missing."
-	[ "${lv_kmod}" != "none" ]  && local lv_crypt=0 && \
-		check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
+	local lv_crypt=$(check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root")
 	shell_runlevel 3d
 	info "ROOT LV..."
 	if [ -n "${lv_lvm}" ]; then 
@@ -302,8 +306,7 @@ do_swap_work() {
 	[ -n "$lv_type" ] || die "${lv_mapp} type file|swap is missing."
 	[ -n "$lv_sign" ] && lv_sign=:$lv_sign
 	info "SWAP LV..."
-	[ "${lv_kmod}" != "none" ]  && local lv_crypt=0 && \
-		check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${lv_mapp}"
+	local lv_crypt=$(check_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root")
 	if [ -n "${lv_lvm}" ]; then 
 		gv_dev=${lv_type}:$(lvm_available "${lv_hdev}" "${lv_lvm}")${lv_sign}
 	elif [ "${lv_crypt}" ]; then info "...encrypted ${lv_mapp}."
