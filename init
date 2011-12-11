@@ -145,7 +145,8 @@ cryptsetup_close() {
 		cryptsetup luksClose ${1%%-*} || cryptsetup remove ${1%%-*} || \
 		warn "${1%/*}: failed to close mapping."
 	done
-	[ -b "/dev/mapper/${gv_fname}" ] && cryptsetup luksClose "${gv_fname}"
+	for lk in ${gv_lkey}; do cryptsetup_close "${lk}"; done
+	for ld in ${gv_ldev}; do losetup -d ${ld}; done
 }
 
 cryptsetup_create() {
