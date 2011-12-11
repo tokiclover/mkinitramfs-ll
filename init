@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.4.2 2011/12/09 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.4.2 2011/12/11 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -80,14 +80,15 @@ shell_runlevel() {
 find_blkd() { echo $(blkid | grep "${1#*=}" | cut -d':' -f1); }
 
 ldkey() {
-	[ $gv_crypt_loop ] && local lv_ldk_dev="${1}" || {
-		local lv_ldk_dev
-		lv_ldk_dev="$(losetup -f)" || die "Create or append max_loop=<int> to the cmdline."
-		losetup ${lv_ldk_dev} ${1} || die "Failed to setup losetup."
-		gv_ldk_dev="${gv_ldk_dev}:${lv_ldk_dev}"
+	local lv_fname="${1##*/}"
+	[ $gv_crypt_loop ] && local lv_ldev="${1}" || {
+		local lv_ldev="$(losetup -f)" || \
+			die "Create loop devices or append max_loop=<int> to the cmdline."
+		losetup ${lv_ldev} ${1} || die "Failed to setup losetup."
+		gv_ldev="${lv_ldev}:${gv_ldev}"
 	}
-	cryptsetup luksOpen "${lv_ldk_dev}" "${2}" && gv_kfile=/dev/mapper/"${2}" \
-		&& gv_ldk_key="${gv_ldk_key}:${2}"
+	cryptsetup luksOpen "${lv_ldev}" "${lv_fname}" 
+	[ "$?" ] && gv_kfile=/dev/mapper/"${lv_fname}" && gv_lkey="${lv_fname}:${gv_lkey}"
 }
 
 main_key() {
@@ -104,7 +105,7 @@ main_key() {
 	[ "${lv_kmode}" != "pwd" ] && {
 		[ -n "${2}" ] || die "ik${4}=${1}:${2}:${3} device field empty."
 		[ -n "${3}" ] || die "ik${4}=${1}:${2}:${3} filepath field empty."
-		local lv_dev=$(find_blkd "${2}"); gv_fpath="${3}"; gv_fname="${gv_fpath##*/}"
+		local lv_dev=$(find_blkd "${2}"); gv_fpath="${3}"
 			[ -n "$(mount | grep /mnt/tok)" ] || { 
 			[ -b "${lv_dev}" ] || { 
 			sleep 2; lv_dev=$(find_blkd "${2}")
@@ -130,7 +131,7 @@ main_key() {
 			 gv_kfile="/mnt/tok/${gv_fpath}"; gv_cmode=gpg;;
 		reg) gv_kfile="/mnt/tok/${gv_fpath}"; gv_cmode=reg;;
 		ldk) [ -e "/dev/mapper/${gv_fname}" ] || \
-			 ldkey "/mnt/tok/${gv_fpath}" "${gv_fname}" && gv_kmode=ldk;;
+			 	ldkey "/mnt/tok/${gv_fpath}"; gv_cmode=ldk;;
 		pwd) gv_cmode=pwd;;
 		*)   die "${lv_kmode}:mode is not valid.";; 
 	esac
@@ -374,8 +375,8 @@ main() {
 	main_root
 	shell_runlevel 4c
 	local IFS="${IFS}:"
-	for lk in ${gv_ldk_key}; do cryptsetup_close "${lk}"; done
-	for ld in ${gv_ldk_dev}; do losetup -d ${ld}; done
+	for lk in ${gv_lkey}; do cryptsetup_close "${lk}"; done
+	for ld in ${gv_ldev}; do losetup -d ${ld}; done
 	grmmod gpg
 	umount -n -l /mnt/tok
 	grmmod remdev
