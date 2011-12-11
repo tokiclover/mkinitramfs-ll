@@ -87,4 +87,4 @@ sqfsd_remountro()
 	eend "$?" "failed to remount ${dir} aufs branch in ro mode"
 }
 
-# vim:fenc=utf-8:ft=init.d:ci:pi:sts=0:sw=4:ts=4:
+# vim:fenc=utf-8:ft=gentoo-init-d:ci:pi:sts=0:sw=4:ts=4:
