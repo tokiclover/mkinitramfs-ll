@@ -1,7 +1,7 @@
 #!/sbin/runscript
 # Copyright 1999-2011 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /etc/init.d/sqfsdmount, v1.1 2011/11/20 -tclover Exp $
+# $Header: /etc/init.d/sqfsdmount, v1.1 2011/12/11 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="Manage/mount squashed directories"
@@ -87,4 +87,4 @@ sqfsd_remountro()
 	eend "$?" "failed to remount ${dir} aufs branch in ro mode"
 }
 
-# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
+# vim:fenc=utf-8:ft=init.d:ci:pi:sts=0:sw=4:ts=4:
