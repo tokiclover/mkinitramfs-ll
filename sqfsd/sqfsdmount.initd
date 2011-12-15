@@ -30,7 +30,7 @@ stop()
 	einfo "umounting local wide squashed dirs"
 	local IFS="${IFS}:"
 	sync; sync
-	for dir in ${SQFSD_LOCAL}; do sqfsd_umount ${SQFSDIR} ${dir}; done
+	for dir in ${SQFSD_LOCAL}; do sqfsd_umount ${dir}; done
 	einfo "remounting in ro mode system squashed dirs"
 	if [ ${SYS_UMOUNT} = yes ]; then
 		for dir in ${SQFSD_SYS}; do 
