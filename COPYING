@@ -1,10 +1,13 @@
 initramfs script with building scripts 
 with LUKS+LVM2+AUFS2+SQUASHFS+crypted keyfiles (LUKS/GnuPG) support
-by tokiclover -tclover at gmail dot com
+mkinitramfs-ll for short
+by tokiclover -tclover <tokiclover{@}gmail{dot}com>
 @COPYLEFT
 ALL WRONGS RESERVED
 
 License: 
-	GPL-3 http://www.gnu.org/licenses/gpl-3.0.html
+	GNU General Public Licence, version 2 or 3 at your choice, as published 
+	by the Free Software Foundation <http://www.gnu.org/licenses/>.
 	or 
-	CC BY-SA-3.0 https://creativecommons.org/licenses/by-sa/3.0/legalcode
+	Creative Commons by ShareAlike, version 2.5 or 3.0 at your choice, 
+	<https://creativecommons.org/licenses/by-sa/>.
