@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.4.2 2011/12/11 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.4.2 2011/12/15 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -341,8 +341,7 @@ main_resume() {
 
 main_switch() {
 	echo > /proc/sys/kernel/hotplug
-	[ "${gv_splash}" = "silent" ] && splash_silent && \
-		splash_msg "Switching / ..."
+	[ "${gv_splash}" = "silent" ] && splash_silent && splash_msg "Switching / ..."
 	info "SWITCHING root '/'..."
 	splashd_stop
 	sleep 1
@@ -422,7 +421,7 @@ preinit() {
 	export PATH=/sbin:/bin:/usr/bin:/usr/sbin
 #	dmesg -n 1
 	umask 0077
-	for dir in proc sys newroot mnt/tok; do mkdir -p /$dir; done
+	for dir in dev proc sys newroot mnt/tok; do mkdir -p /$dir; done
 	/bin/mount -t proc proc /proc
 #	/bin/busybox --install -s
 	[ ${uv_check_env} ] || capp
