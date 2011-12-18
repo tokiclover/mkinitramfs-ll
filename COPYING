@@ -1,7 +1,7 @@
-initramfs script with building scripts 
+mkinitramfs-ll -
+an initramfs init script with building scripts 
 with LUKS+LVM2+AUFS2+SQUASHFS+crypted keyfiles (LUKS/GnuPG) support
-mkinitramfs-ll for short
-by tokiclover -tclover <tokiclover{@}gmail{dot}com>
+- by tokiclover -tclover <tokiclover{at}gmail{dot}com>
 @COPYLEFT
 ALL WRONGS RESERVED
 
