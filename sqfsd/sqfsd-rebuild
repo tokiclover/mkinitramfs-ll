@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.bash],v 0.4.1 2011/12/04 -tclover Exp $
-revision=0.4.1
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.bash],v 0.4.2 2011/12/20 -tclover Exp $
+revision=0.4.2
 
 usage() {
   cat <<-EOF
@@ -55,18 +55,9 @@ error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
 [[ -n "${opts[sqfsdir]}" ]] || opts[sqfsdir]=/sqfsd
 
-for dir in ${opts[sqfsd]//:/ }; do
+sqfsd() 
+{
 	mkdir -p "${opts[sqfsdir]}/$dir"/{ro,rw} || die "failed to create $dir/{ro,rw} dirs."
-	if [[ -e /sqfsd/$dir.sfs ]]; then
-		if [[ ${opts[offset]:-10} != 0 ]]; then
-			ro_size=$(du -sk ${opts[sqfsdir]}/$dir/ro | awk '{print $1}')
-			rw_size=$(du -sk ${opts[sqfsdir]}/$dir/rw | awk '{print $1}')
-			if (( ( ${rw_size}*100/${ro_size} ) < ${opts[offset]:-10} )); then
-				info "$dir: skiping... there's an '-o' offset option."; break
-			fi
-		fi
-		echo ">>> updating squashed $dir..."
-	else echo ">>> building squashed $dir..."; fi			
 	mksquashfs /$dir ${opts[sqfsdir]}/$dir.tmp.sfs -b ${opts[bsize]:-131072} -comp ${opts[comp]:-gzip} \
 		${opts[excl]} >/dev/null || die "failed to build $dir.sfs img."
 	if [[ "$dir" = lib${opts[arch]:-64} ]]; then # move rc-svcdir and cachedir.
@@ -112,6 +103,18 @@ for dir in ${opts[sqfsd]//:/ }; do
 			|| die "failed to move back rc-svcdir."
 	fi
 	echo ">>> ...sucessfully build squashed $dir."
+}
+
+for dir in ${opts[sqfsd]//:/ }; do
+	if [[ -e /sqfsd/$dir.sfs ]]; then
+		if [[ ${opts[offset]:-10} != 0 ]]; then
+			ro_size=$(du -sk ${opts[sqfsdir]}/$dir/ro | awk '{print $1}')
+			rw_size=$(du -sk ${opts[sqfsdir]}/$dir/rw | awk '{print $1}')
+			if (( ( ${rw_size}*100/${ro_size} ) < ${opts[offset]:-10} )); then
+				info "$dir: skiping... there's an '-o' offset option to change the offset."
+			else echo ">>> updating squashed $dir..."; sqfsd; fi
+		else echo ">>> updating squashed $dir..."; sqfsd; fi
+	else echo ">>> building squashed $dir..."; sqfsd; fi			
 done
 
 unset opt opts ro_size rw_size
