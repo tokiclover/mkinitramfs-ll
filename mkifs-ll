@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.4.1 2011/12/04 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.4.1 2011/12/20 -tclover Exp $
 revision=0.4.1
 
 usage() {
@@ -170,7 +170,7 @@ addmodule() {
 	local ret
 	for mod in $@; do
 		local module=$(find /lib/modules/${opts[kv]} -name $mod.ko -or -name $mod.o)
-		if [ -z $module ]; then warn "$mod does not exist"; ((ret=$ret+1)); break
+		if [ -z $module ]; then warn "$mod does not exist"; ((ret=$ret+1))
 		else mkdir -p .${module%/*}
 			cp -ar $module .$module || die "$module copy failed"; fi
 	done
