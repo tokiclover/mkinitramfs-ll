@@ -1,9 +1,9 @@
-# $Header: mkinitramfs-ll/README,v 0.4.0 2011/11/30 -tclover Exp $
+# $Header: mkinitramfs-ll/README,v 0.4.0 2011/12/20 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
 #	OPTIONAL ARGUMENTS [ONLY iroot IS REQUIRED else nothing will happen but maybe a kernel panic] 
-#	and	of course when using this script, one does not need root=<arg> nor resume=<arg>.
+#	and of course when using this script, one does not need root=<arg> nor resume=<arg>.
 #	init script supports the following specific arguments: 
 #		* iroot=<PV|VG-LV>[:c:<fs>:n]    required root device, recommanded optinal `:c:ext4' for an 
 # 		                                 ext4 rootfs, last `:n' disable a `die' after fsck failure. 
@@ -46,7 +46,7 @@
 #
 #	   <LV|PV|VG>  - <Logical|Physical Volume|Volume Group>.
 #	   <VG-LV>     - <Volume Group name-Logical Volume name>
-#	   <map-PV>    - comma separated list <mapping-PV> e.g. <pv1-sda1,pv2-sdb1,...> for a Volume Group,
+#	   <map-PV>    - colon separated list <mapping-PV> e.g. <pv1-sda1:pv2-sdb1:...> for a Volume Group,
 #	                 the 1st being for root, the 2nd for swap and the 3rd for resume. 
 #	                 So this `ilvm=,swp-sdc1,' asign a VG for swap VG only.
 #	   NEW!
@@ -151,7 +151,7 @@
 #
 #	Modules should exist in `/lib/modules/$KERNEL_VERSION/', the kernel should support modules [un]loading.
 #	Just make sure to append the necessary modules to right group in mkifs-ll.conf for autoloading, or else
-#	use `MODDEP' variable to be able to append mdoules to imod cmdline arg when using the building script.
+#	use `opts[-mdep]' variable to be able to append mdoules to imod cmdline arg when using the building script.
 #
 #	== User scripts execution ==
 #	Now one can add scripts to `/etc/local.d' of the initramfs, or `$gitdir/misc' if using mkifs-ll 
