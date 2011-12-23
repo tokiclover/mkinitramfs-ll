@@ -5,6 +5,13 @@
 # of course. And now I added LVM2... done I'm saying...                     #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
 #
+*2011-12-23:
+	* added RAID support (LUKS and/or LVM can be used on top of RAID array
+	  and not the opposite, may implement it if need be). I was thinking of 
+	  enabling a possibility to append a sort `/etc/mdadm.conf' file to iraid
+	  arugment like ilvm... worth the trouble?
+	* init/README v0.5.0 version bump.
+
 *2011-11-28:
 	* init v0.4.1 version bump from previous v0.4.0... major init clean up;
 	* fixed to either use console=[/dev/]ttyN N=[1-6];

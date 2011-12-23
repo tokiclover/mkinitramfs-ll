@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.4.2 2011/12/15 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.5.0 2011/12/23 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -231,6 +231,20 @@ lvm_enable() {
 	echo "$lv_mapping"
 }
 
+raid_enable() {
+	local lv_dev=${1%%-*} lv_part=$(echo ${1} | cut -d'-' -f3)
+	[ -n "$(echo ${lv_dev} | grep /dev)" ] || lv_dev=/dev/${lv_dev}
+	[ -b ${lv_dev} ] && return
+	[ -n "$(echo ${1} | grep UUID)" ] && {
+		if [ -n "${lv_part}" ]; then
+			echo DEVICE $(ls /dev/sd*${lv_part}) >> /etc/mdadm.conf
+		else echo 'DEVICE /dev/sd??*' >> /etc/mdadm.conf; fi
+		echo ARRAY ${lv_dev} $(echo ${1} | cut -d'-' -f2) >> /etc/mdadm.conf
+	}
+	mdadm --assemble --scan ${lv_dev} &>/dev/null || raidautorun
+	[ -b ${lv_dev} ] || die "failed to activate ${lv_dev} RAID array."
+}
+
 main_sqfsd() {
 	[ -n "$sqfsdir" ] || die "uv_sqfsdir wasn't set and sqfsdir is empty."
 	[ -n "$sqfsd" ]   || die "uv_sqfsd wasn't set and sqfsd is empty."
@@ -257,6 +271,7 @@ main_root() {
 	local lv_rofs="$(echo "$gv_root"|cut -d':' -f3)"
 :	local ${lv_lvm:=${gv_lvm%%,*}}
 :	${lv_lvm:=${gv_lvm_root}}
+:	local ${lv_raid:=${gv_raid%%,*}}
 	local lv_fscf=${gv_root##*:}
 	[ -n "${gbov_mtopt}" ] && local lv_mtopt="-o ${gv_mtopt}"
 	[ -n "${lv_rofs}" ]  && lv_rofs="-t ${lv_rofs}"
@@ -264,6 +279,7 @@ main_root() {
 	main_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
 	shell_runlevel 3d
 	info "ROOT LV..."
+	[ -n "${lv_raid}" ] && raid_enable "${lv_raid}"
 	if [ -n "${lv_lvm}" ]; then 
 		local lv_dev=$(lvm_enable "${lv_root}" "${lv_lvm}")
 	elif [ -n "${gv_cmode}" ]; then info "...encrypted rootfs."
@@ -297,6 +313,7 @@ main_swap() {
 	[ -n "$lv_sign" ] && lv_sign=:$lv_sign
 	info "SWAP LV..."
 	main_key "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
+	[ -n "${lv_raid}" ] && raid_enable "${lv_raid}"
 	if [ -n "${lv_lvm}" ]; then 
 		gv_dev=${lv_type}:$(lvm_enable "${lv_hdev}" "${lv_lvm}")${lv_sign}
 	elif [ -n "${gv_cmode}" ]; then info "...encrypted ${lv_mapp}."
@@ -304,14 +321,15 @@ main_swap() {
 		gv_dev=${lv_type}:/dev/mapper/${lv_mapp}${lv_sign}
 	else info "...unencrypted ${lv_mapp}."
 		gv_dev=${lv_type}:$(find_blkd "${lv_hdev}")${lv_sign}
-	fi; lv_lvm=
+	fi; lv_lvm=; lv_raid=
 }
 
 main_resume() {
 	[ "${gv_splash}" = "silent" ] || splash_msg "Resuming..."
 	splashd_stop
 	[ -n "$(echo "${gv_toi}"|cut -d':' -s -f2)" ] && {
-:		local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -f3)}
+:		local ${lv_raid:=$(echo "${gv_raid}" | cut -d',' -f3)}
+:		local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f3)}
 :		${lv_lvm:=${gv_lvm_resume}}
 		main_swap "resume"  "${gv_toi}" "${gv_kresume}"; }
 	gmodprobe tuxonice
@@ -366,7 +384,8 @@ main() {
 	gmodprobe gpg
 	gmodprobe remdev
 	[ -n "${gv_swap}" ] && {
-:		local ${lv_lvm:=$(echo "${gv_lvm}"|cut -d',' -f2)}
+:		local ${lv_raid:=$(echo "${gv_raid}" | cut -d',' -f2)}
+:		local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f2)}
 :		${lv_lvm:=${gv_lvm_swap}}
 		shell_runlevel 2s
 		main_swap "swap" "${gv_swap}" "${gv_kswap}"
@@ -396,6 +415,7 @@ parse_cmdline_opts() {
 					sqfsd=${uv_sqfsd:-usr:opt:bin:sbin}:$(echo ${dir#*,}|cut -b3-)
 				else 	sqfsd=$(echo ${dir#*,}|cut -b3-); fi;;
 			iroot=*)    gv_root=${arg#*=};;
+			iraid=*)    gv_raid=${arg#*=};;
 			*init=*)    uv_init=${arg#*=};;
 			ilvm=*)     gv_lvm=${arg#*=};;
 			imod=*)     gv_mod=${arg#*=};;
