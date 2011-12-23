@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_gen[.bash],v 0.4.1 2011/12/05 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gen[.bash],v 0.5.0 2011/12/23 -tclover Exp $
 
 usage() {
   cat <<-EOF
@@ -31,6 +31,7 @@ usage() {
   -s|--sqfsd            add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -i|--install	        install busybox with symliks to \$opts[-bindir], require -b
   -n|--minimal	        build busybox with minimal applets, default is full applets
+  -r|--raid             add RAID support, copy /etc/mdadm.conf and mdadm binary
   -U|--ucl-arch i386    ARCH string needed to build busybox linked uClibc
   -Y|--key-map <k:m>    generate <m> keymap using <k> as input keymap
   -u|-usage            print this help/usage and exit
@@ -41,16 +42,17 @@ usage() {
 EOF
 }
 
-opt=$(getopt -o ab:c:e:fgk:lm:stuvy:B:M:S:W: --long all,bin:,bindir:comp:,ev:,font: \
+opt=$(getopt -o ab:c:e:fgk:lm:rstuvy:B:M:S:W: --long all,bin:,bindir:comp:,ev:,font: \
 	  --long gpg:,mboot:,mdep:,mgpg:msqfsd:,mremdev:,mtuxonice,sqfsd,toi,usage,version \
 	  --long lvm,miscdir:,workdir:,kv:,build,confdir:,minimal,key-map:,ucl-arch,keymap: \
-	  -o nDC:U:Y: -n ${0##*/} -- "$@" || usage && exit 0)
+	  -o nDC:U:Y: --long raid -n ${0##*/} -- "$@" || usage && exit 0)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
 		-u|--usage) usage; exit 0;;
 		-g|--gpg) opts[gpg]=y; shift;;
+		-r|--raid) opts[raid]=y; shift;;
 		-a|--all) opts[sqfsd]=y; opts[gpg]=y; 
 		 opts[lvm]=y; opts[toi]=y; shift;;
 		-s|--sqfsd) opts[sqfsd]=y; shift;;
