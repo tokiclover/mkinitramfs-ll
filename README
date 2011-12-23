@@ -16,7 +16,7 @@
 #		                                 of a VG; and comma `,' separated list of VG: 1st for root, 2nd 
 #		                                 for swap and the 3rd for resume, hence one can append enough 
 #		                                 commas to asign a particular group and nothing for the others.
-#		* iraid=mdN-UUID=<uuid>-<N>|f:<dev>:/path/file  comma separated list of arrays for root, swap...
+#		* iraid=mdN[-UUID=<uuid>-<N>]    comma separated list of arrays for root, swap and resume.
 #		* iswap=<type>:<VG-LV>[:signature]              e.g. iswap=swap:sda2 for a swap device.
 #		* iresume=<type>:<VG-LV>[:signature]            e.g. iresume=file:<VG-LV>:0x4400 for a swapfile.
 #		* ikroot=<mode>:<device>:</path/to/file>        ikroot for [i]root keyfile or [no-]password.
