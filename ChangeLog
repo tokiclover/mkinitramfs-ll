@@ -5,6 +5,9 @@
 # of course. And now I added LVM2... done I'm saying...                     #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
 #
+*2012-02-07:
+	* changes slash `/' to plus `+' as a detached header separator.
+
 *2011-12-23:
 	* added RAID support (LUKS and/or LVM can be used on top of RAID array
 	  and not the opposite, may implement it if need be). I was thinking of 

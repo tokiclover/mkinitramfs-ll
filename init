@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.5.0 2011/12/23 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.5.0 2012/02/07 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -175,8 +175,8 @@ cryptsetup_create() {
 cryptsetup_decrypt() { 
 	local lv_arg=luksFormat
 	local lv_map=$(echo "${1}" | cut -d'-' -f1)
-	local lv_dev=$(echo "${1#*-}" | cut -d'/' -f1); lv_dev=$(find_blkd "${lv_dev}")
-	local lv_header=$(echo "${1}" | cut -d'/' -s -f2)
+	local lv_dev=$(echo "${1#*-}" | cut -d'+' -f1); lv_dev=$(find_blkd "${lv_dev}")
+	local lv_header=$(echo "${1}" | cut -d'+' -s -f2)
 	[ -n "${lv_header}" ] && {
 		if [ -n "$(echo "${lv_header}" | grep -E '(UUID|LABEL|sd[a-z][0-9])')" ]; then 
 			lv_header=$(find_blkd "${lv_header}")
