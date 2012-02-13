@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/README,v 0.5.0 2011/12/23 -tclover Exp $
+# $Header: mkinitramfs-ll/README,v 0.5.0 2012/02/07 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 #
@@ -30,15 +30,15 @@
 #
 #	Now one can use UUID="<uuid>" or LABEL="<label>" instead of [/dev/]sd<CHAR> for any device or PV. 
 #
-#	However, a leading slash `/' is used as a separator for detached header device|file when using 
-#	LUKS: `<map-UUID="<uid>"[|LABEL="<label>"][/[dev/]sd<CHAR>[|</path/to/header>]]'
+#	However, a leading plus `+' is used as a separator for detached header device|file when using 
+#	LUKS: `<map-UUID="<uid>"[|LABEL="<label>"][+[/dev/]sd<CHAR>|</path/to/header>]'
 #	
 #	Each encrypted PV, with a detached header is given like:
-#	   * <sda6/[dev/]sdc> for a detached header to `/dev/sdc' device [passed as `--header /dev/sdc']
-#	   * <sdb/path/to/header/file> for a detached header file [`--header /mnt/tok/path/to/header/file'] 
+#	   * <[/dev/]sda6+[/dev/]sdc> for a detached header to `/dev/sdc' device [passed as `--header /dev/sdc']
+#	   * </path/to/header/file> for a detached header file [`--header /mnt/tok/path/to/header/file'] 
 #	     so in this case, the header file must be in the same removable device or `/boot' PV used for 
 #	     keyfiles [because it'll be too troublesome otherwise]. Of course, a detached header to a device 
-#	     can use UUID or LABEL instead of `/sd<CHAR>[0-9]' which is recommanded to avoid header mismatch!
+#	     can use UUID or LABEL instead of `[/dev/]sd<CHAR>[0-9]' which is recommanded to avoid header mismatch!
 #
 #	== About RAID array ==
 #	iraid argument can take up to 3 comma separated list of RAID arrays: the 1st for root, 2nd for swap
