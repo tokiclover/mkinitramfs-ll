@@ -1,10 +1,10 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.bash],v 0.4.2 2011/12/20 -tclover Exp $
+# $Id: mkinitramfs-ll/sqfsd/sdr[|sqfsd-rebuild][.bash],v 0.4.2 2012/03/07 -tclover Exp $
 revision=0.4.2
 
 usage() {
   cat <<-EOF
-  usage: ${0##*/} [-up[|--update]|-rm[|--remove]] [-r|--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>
+  usage: ${0##*/} [-U[|--update]|-R[|--remove]] [-r|--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>
   -r|--sqfsdir <dir>       override default value 'sqfsdir=/sqfsd', if not changed
   -d|--sqfsd <dir>         colon seperated list of directory-ies without the leading '/'
   -a|--arch 32             arch to use for lib\${arch} handling (rc-svcdir and cachedir)
@@ -89,7 +89,7 @@ sqfsd()
 	elif [[ "${opts[ext]}" == "up" ]]; then echo >/tmp/sdr
 		cp -aru ${opts[sqfsdir]}/$dir/ro/* /$dir/ 2>>/tmp/sdr || {
 			for file in $(sed -e "s|.*\`||g" -e "s|':.*||g" /tmp/sdr)
-			do cp -a ${opts[sqfsdir]}/$dir/ro/${file#$dir} /tmp/ && \
+			do cp -a ${opts[sqfsdir]}/$dir/ro/${file#/$dir/} /tmp/ && \
 			mv /tmp/${file##*/} ${file} || info "failed to move $file."; done
 		}
 	fi
