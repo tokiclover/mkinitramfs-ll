@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.5.0 2012/03/15 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll[.bash],v 0.5.0 2012/04/05 -tclover Exp $
 revision=0.5.0
 
 usage() {
@@ -98,14 +98,15 @@ done
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
 [[ -n "${opts[comp]}" ]] || opts[comp]="xz -9 --check=crc32"
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
-:	${INITRAMFS:=/boot/${opts[prefix]:-initrd-}${opts[kv]}${opts[ev]}.ixz}
+:	${INITRAMFS:=/boot/${opts[prefix]:-initrd-}${opts[kv]}${opts[ev]}}
 :	${INITDIR:=${opts[workdir]}/${opts[prefix]:-initrd-ll-}${opts[kv]}${opts[ev]}}
 
 case ${opts[comp]%%\ *} in
-	bzip2)	INITRAMFS=${INITRAMFS/%xz/bz2};;
-	gzip) 	INITRAMFS=${INITRAMFS/%xz/gz};;
-	lzma)	INITRAMFS=${INITRAMFS/%xz/lzma};;
-	lzop)	INITRAMFS=${INITRAMFS/%xz/lzo};;
+	bzip2)	INITRAMFS+=.ibz2;;
+	gzip) 	INITRAMFS+=.igz;;
+	xz) 	INITRAMFS+=.ixz;;
+	lzma)	INITRAMFS+=.ilzma;;
+	lzop)	INITRAMFS+=.ilzo;;
 esac
 
 echo ">>> building $INITRAMFS..."
