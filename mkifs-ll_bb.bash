@@ -1,6 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_bb[.bash],v 0.4.1 2011/12/05 -tclover Exp $
-
+# $Id: mkinitramfs-ll/mkifs-ll_bb.bash,v 0.5.0.5 2012/04/09 -tclover Exp $
 usage() {
   cat << EOF
   usage:
@@ -14,7 +13,6 @@ usage() {
   -u|--usage               print the usage/help and exit
 EOF
 }
-
 [[ $# = 0 ]] && usage && exit 0
 opt=$(getopt --long build,install,key-map:,minimal,ucl-arch,usage,bindir: \
 	  -o inuDU:B:Y: -n ${0##*/} -- "$@" || usage && exit 0)
@@ -32,22 +30,18 @@ while [[ $# > 0 ]]; do
 		--) shift; break;;
 	esac
 done
-
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 mkdir -p "${opts[bindir]}"
-
-error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
+error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
-
 build_busybox() {
 	cd "${PORTDIR:-/usr/portage}"/sys-apps/busybox || die "eek"
-	BBT=$(emerge -pvO busybox | grep -o "busybox-[-0-9.r]*")
-	ebuild $BBT.ebuild clean || die "clean failed"
-	ebuild $BBT.ebuild unpack || die "unpack failed"
-	cd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/$BBT/work/$BBT || die "eek!"
-
+	opts[bbt]=$(emerge -pvO busybox | grep -o "busybox-[-0-9.r]*")
+	ebuild ${opts[bbt]}.ebuild clean || die "clean failed"
+	ebuild ${opts[bbt]}.ebuild unpack || die "unpack failed"
+	cd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/${opts[bbt]}/work/${opts[bbt]} || die "eek!"
 	if [[ -n "${opts[minimal]}" ]]; then
 		make allnoconfig || die "eek!"
 		sed -e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
@@ -96,7 +90,6 @@ build_busybox() {
 		sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
 		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
 		-i .config || die "cfg failed"; fi
-
 	# For uClibc users, you need to adjust the cross compiler prefix properly (i386-uclibc-)
 	if [[ -n "${opts[ucl-arch]}" ]]; then
 	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[ucl-arch]}\"|" \
@@ -114,14 +107,14 @@ install_busybox() {
 }
 
 build_keymap() { 
-	local KEYMAP_IN=$(echo "${opts[key-map]}" | cut -d':' -f1)
-	local KEYMAP_OUT=$(echo "${opts[key-map]}" | cut -d':' -f2)
+	local keymap_in=$(echo "${opts[key-map]}" | cut -d':' -f1)
+	local keymap_out=$(echo "${opts[key-map]}" | cut -d':' -f2)
 	dumpkeys > default_keymap || die "dumping keymap failed"
-	loadkeys $KEYMAP_IN || die "loading $KEMAP_IN failed"
+	loadkeys $keymap_in || die "loading $kemap_in failed"
 	dumpkeys|loadkeys -u || die "unicode conversion failed"
-	./busybox dumpkmap > $KEYMAP_OUT || die "keymap build failed"
+	./busybox dumpkmap > $keymap_out || die "keymap build failed"
 	loadkeys default_keymap && rm default_keymap || die "re-loading default keymap failed"
-	echo "${KEYMAP_OUT}"
+	echo "${keymap_out}"
 }
 
 [[ -n "${opts[build]}" ]] && {
@@ -130,7 +123,7 @@ build_keymap() {
 	cp -a busybox "${opts[bindir]}"/ || die "failed to copy bb binary"
 	cp busybox.links "${opts[bindir]}"/applets || die "failed to copy applets"
 	cd "${PORTDIR:-/usr/portage}"/sys-apps/busybox || die "eek"
-	ebuild $BBT.ebuild clean || die "eek"
+	ebuild ${opts[bbt]}.ebuild clean || die "eek"
 	cd "${opts[workdir]}" || die "eek!"
 }
 
@@ -138,6 +131,6 @@ build_keymap() {
 	opts[keymap]+=:$(build_keymap)
 }
 
-unset BBT
+unset opts[bbt]
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

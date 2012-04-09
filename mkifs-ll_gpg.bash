@@ -1,6 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_gpg[.bash],v 0.4.1 2011/12/05 -tclover Exp $
-
+# $Id: mkinitramfs-ll/mkifs-ll_gpg.bash,v 0.5.0.5 2012/04/09 -tclover Exp $
 usage() {
    cat << EOF
    usage: ${0##*/} [OPTINS]...
@@ -12,7 +11,6 @@ usage() {
    -u|--usage             print this help/uage and exit
 EOF
 }
-
 opt=$(getopt --long usage,useflag::,bindir::,miscidr::,workdir::,Version:: \
 	  -o uB::M::U::V::W:: -n ${0##*/} -- "$@" || usage && exit 0)
 eval set -- "$opt"
@@ -27,7 +25,6 @@ while [[ $# > 0 ]]; do
 		-W|--workdir) opts[workdir]="${2}"; shift 2;;
 	esac
 done
-
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
 [[ -n "${opts[miscdir]}" ]] || opts[miscdir]="${opts[workdir]}"/misc
@@ -35,21 +32,17 @@ done
 [[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
 mkdir -p "${opts[misdir]}"/share/gnupg/
 mkdir -p "${opts[bindir]}"
-
-error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
+error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 die() { error "$@"; exit 1; }
-
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
-GPG=$(emerge -pvO =app-crypt/gnupg-${opts[Version]} | grep -o "gnupg-[-0-9.r]*")
+opts[gpg]=$(emerge -pvO =app-crypt/gnupg-${opts[Version]} | grep -o "gnupg-[-0-9.r]*")
+ebuild ${opts[gpg]}.ebuild clean || die "eek!"
 USE="nls static ${opts[useflag]}" ebuild $GPG.ebuild compile || die "eek!"
 cd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/app-crypt/$GPG/work/$GPG || die "eek!"
 cp -a gpg "${opts[bindir]}"/ || die "eek!"
 cp g10/options.skel "${opts[miscdir]}"/share/gnupg/ || die "eek!"
 cd "${PORTDIR:-/usr/portage}"/app-crypt/gnupg || die "eek"
-ebuild $GPG.ebuild clean || die "eek!"
+ebuild ${opts[gpg]}.ebuild clean || die "eek!"
 cd "${opts[workdir]}" || die "eek!"
-
 opts[gpg]=y
-unset GPG USE
-
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

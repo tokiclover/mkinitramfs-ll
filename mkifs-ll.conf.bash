@@ -1,4 +1,4 @@
-# $Id: mkinitramfs-ll/mkifs-ll.conf, 2011/12/04 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.conf.bash, 2011/12/04 -tclover Exp $
 #
 # This is needed for building binaries!
 [[ -f /etc/make.conf ]] && source /etc/make.conf
