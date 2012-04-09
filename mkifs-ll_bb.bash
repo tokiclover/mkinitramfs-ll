@@ -32,7 +32,8 @@ while [[ $# > 0 ]]; do
 done
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
-[[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
+if [[ -f mkifs-ll.conf.bash ]]; then source mkifs-ll.conf.bash
+if [[ -f /etc/mkifs-ll.conf.bash ]]; then sourse /etc/mkifs-ll.conf.bash; fi
 mkdir -p "${opts[bindir]}"
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
@@ -97,7 +98,6 @@ build_busybox() {
 	fi
 	make && make busybox.links || die "bb build failed"
 }
-
 install_busybox() {
 	[[ -e "${opts[tmpdir]}" ]] && {
 		make install CONFIG_PREFIX="${opts[tmpdir]}"/busybox
@@ -105,18 +105,16 @@ install_busybox() {
 	}
 	./applets/install.sh "${opts[bindir]}" --symlinks
 }
-
 build_keymap() { 
 	local keymap_in=$(echo "${opts[key-map]}" | cut -d':' -f1)
 	local keymap_out=$(echo "${opts[key-map]}" | cut -d':' -f2)
 	dumpkeys > default_keymap || die "dumping keymap failed"
 	loadkeys $keymap_in || die "loading $kemap_in failed"
-	dumpkeys|loadkeys -u || die "unicode conversion failed"
+	dumpkeys | loadkeys -u || die "unicode conversion failed"
 	./busybox dumpkmap > $keymap_out || die "keymap build failed"
 	loadkeys default_keymap && rm default_keymap || die "re-loading default keymap failed"
 	echo "${keymap_out}"
 }
-
 [[ -n "${opts[build]}" ]] && {
 	build_busybox
 	[[ -n "${opts[install]}" ]] && install_busybox
@@ -126,11 +124,8 @@ build_keymap() {
 	ebuild ${opts[bbt]}.ebuild clean || die "eek"
 	cd "${opts[workdir]}" || die "eek!"
 }
-
 [[ -n "${opts[key-map]}" ]] && { cd "${opts[bindir]}" || die "eek!"
 	opts[keymap]+=:$(build_keymap)
 }
-
 unset opts[bbt]
-
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

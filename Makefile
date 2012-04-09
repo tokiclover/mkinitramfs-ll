@@ -16,44 +16,37 @@ DOCS=AUTHORS COPYING README ChangeLog KnownIssue
 all: install install_sqfsd
 
 install:
-	sed -e 's:\./${bin_prefix}\.conf:/etc/${bin_prefix}.conf:g' -i ${bin_prefix}
-	sed -e 's:\./${bin_prefix}\.conf:/etc/${bin_prefix}.conf:g' -i ${bin_prefix}_bb
-	sed -e 's:\./${bin_prefix}\.conf:/etc/${bin_prefix}.conf:g' \
-		-e 's:\.\/mk:mk:g' -i ${bin_prefix}_gen
-	sed -e 's:\./${bin_prefix}\.conf:/etc/${bin_prefix}.conf:g' -i ${bin_prefix}_gpg
-	sed -e 's:\$${opts[bindir]}/fr_l1-amd64.bin::' -i ${bin_prefix}.conf
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)
-	install -pm 644 ${bin_prefix}.conf $(sys_confdir)
-	install -pm 755 ${bin_prefix}       $(bindir)
-	install -pm 755 ${bin_prefix}_bb    $(bindir)
-	install -pm 755 ${bin_prefix}_gen   $(bindir)
-	install -pm 755 ${bin_prefix}_gpg   $(bindir)
-	install -pm 755 init                $(datadir)
+	install -pm 644 ${bin_prefix}.conf.bash $(sys_confdir)
+	install -pm 755 ${bin_prefix}.bash      $(bindir)
+	install -pm 755 ${bin_prefix}_bb.bash   $(bindir)
+	install -pm 755 ${bin_prefix}_gen.bash  $(bindir)
+	install -pm 755 ${bin_prefix}_gpg.bash  $(bindir)
+	install -pm 755 init                    $(datadir)
 
 install_sqfsd:
 	install -pd $(svc_confdir)
 	install -pd $(svc_initdir)
-	install -pm 755 sqfsd/sqfsdmount.initd $(svc_initdir)/sqfsdmount
-	install -pm 644 sqfsd/sqfsdmount.confd $(svc_confdir)/sqfsdmount
-	install -pm 755 sqfsd/sqfsd-rebuild    $(bindir)/sdr
+	install -pm 755 sqfsd/sqfsdmount.initd   $(svc_initdir)/sqfsdmount
+	install -pm 644 sqfsd/sqfsdmount.confd   $(svc_confdir)/sqfsdmount
+	install -pm 755 sqfsd/sqfsd-rebuild.bash $(bindir)/sdr.bash
 
 postinstall:
 
 uall: unintsall uninstall_sqfsd
 
 uninstall:
-	rm -f $(bindir)/${bin_prefix}
-	rm -f $(bindir)/${bin_prefix}_bb
-	rm -f $(bindir)/${bin_prefix}_gen
-	rm -f $(bindir)/${bin_prefix}_gpg
+	rm -f $(bindir)/${bin_prefix}.bash
+	rm -f $(bindir)/${bin_prefix}_bb.bash
+	rm -f $(bindir)/${bin_prefix}_gen.bash
+	rm -f $(bindir)/${bin_prefix}_gpg.bash
 	rm -f $(datadir)/init
-	rm -f $(sys_confdir)/${bin_prefix}.conf
+	rm -f $(sys_confdir)/${bin_prefix}.conf.bash
 
 uninstall_sqfsd:
 	rm -f $(svc_confdir)/sqfsdmount
 	rm -f $(svc_initdir)/sqfsdmount
 
 postuninstall:
-

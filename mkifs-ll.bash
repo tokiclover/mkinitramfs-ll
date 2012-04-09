@@ -86,16 +86,15 @@ while [[ $# > 0 ]]; do
 		--) shift; break;;
 	esac
 done
-
 [[ -n ${opts[kversion]} ]] || opts[kversion]="$(uname -r)"
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
 [[ -n "${opts[miscdir]}" ]] || opts[miscdir]="${opts[workdir]}"/misc
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
 [[ -n "${opts[comp]}" ]] || opts[comp]="xz -9 --check=crc32"
-[[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
+if [[ -f mkifs-ll.conf.bash ]]; then source mkifs-ll.conf.bash
+if [[ -f /etc/mkifs-ll.conf.bash ]]; then sourse /etc/mkifs-ll.conf.bash; fi
 :	${opts[initrd]:=/boot/${opts[prefix]:-initrd-}${opts[kversion]}${opts[eversion]}}
 :	${opts[initdir]:=${opts[workdir]}/${opts[prefix]:-initrd-ll-}${opts[kversion]}${opts[eversion]}}
-
 case ${opts[comp]%%\ *} in
 	bzip2)	opts[initrd]+=.ibz2;;
 	gzip) 	opts[initrd]+=.igz;;
@@ -103,7 +102,6 @@ case ${opts[comp]%%\ *} in
 	lzma)	opts[initrd]+=.ilzma;;
 	lzop)	opts[initrd]+=.ilzo;;
 esac
-
 echo ">>> building $opts[initrd]..."
 rm -rf "$opts[initdir]" || die "eek!"
 mkdir -p "$opts[initdir]" && cd "$opts[initdir]" || die "eek!"
@@ -112,7 +110,6 @@ mkdir -p etc/{modules,splash,local.d} || die "eek!"
 [[ -n "$(uname -a | grep x86_64)" ]] && opts[arch]=64 || opts[arch]=32
 mkdir -p lib${opts[arch]}/{splash/cache,modules/${opts[kversion]}} || die "eek!"
 ln -sf lib${opts[arch]} lib || die "eek!"
-
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[1-6],zero} dev/ || addnodes
 [[ $(echo ${opts[kversion]} | cut -d'.' -f1 ) -eq 3 ]] && \
 	[[ $(echo ${opts[kversion]} | cut -d'.' -f2) -ge 1 ]] && { 
@@ -122,7 +119,6 @@ cp -a "${opts[workdir]}"/init . && chmod 775 init || die "failed to copy init"
 cp -a {/,}lib/modules/${opts[kversion]}/modules.dep || die "failed to copy modules.dep"
 [[ -e ${opts[miscdir]}/msg ]] && cp ${opts[miscdir]}/msg etc/
 for scr in $(ls ${opts[miscdir]}/*.sh &>/dev/null); do cp $scr etc/local.d/; done
-
 if [[ -x "${opts[bindir]}"/busybox ]]; then opts[bin]+=:bin/busybox
 elif which bb &>/dev/null; then 
 	cp $(which bb) bin/busybox
@@ -144,7 +140,6 @@ else sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"
 	for fs in {au,squash}fs
 	do [[ -n "$(echo ${opts[sqfsd]} | grep $fs)" ]] || opts[sqfsd]+=:$fs; done
 }
-
 [[ -n "${opts[gpg]}" ]] && {
 	if [[ -x "${opts[bindir]}"/gpg ]]; then opts[bin]+=:usr/bin/gpg
 	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
@@ -154,7 +149,6 @@ else sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"
 	cp -r "${opts[miscdir]}"/.gnupg . || die "failed to copy ${opts[miscdir]}/.gnupg"
 	chmod 700 .gnupg; chmod 600 .gnupg/gpg.conf
 }
-
 [[ -n "${opts[lvm]}" ]] && { opts[bin]+=:lvm.static
 	cd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
@@ -163,11 +157,9 @@ else sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"
 	done
 	cd ..
 }
-
 [[ -n "${opts[raid]}" ]] && { opts[bin]+=:mdadm.static:mdadm
 	cp /etc/mdadm.conf etc/ &>/dev/null || warn "failed to copy /etc/mdadm.conf"
 }
-
 addmodule() {
 	local ret
 	for mod in $@; do
@@ -178,7 +170,6 @@ addmodule() {
 	done
 	return $ret
 }
-
 addmodule ${opts[mdep]//:/ }
 for grp in boot gpg sqfsd remdev tuxonice; do
 	[[ -n "${opts[m$grp]}" ]] && {
@@ -186,13 +177,11 @@ for grp in boot gpg sqfsd remdev tuxonice; do
 		do addmodule $mod && echo $mod >> etc/modules/$grp; done
 	}
 done
-
 for keymap in ${opts[keymap]//:/ }; do 
 	if [[ -e "$keymap" ]]; then cp -a "$keymap" etc/
 	elif [[ -e "${opts[bindir]}/$keymap" ]]; then cp -a "${opts[bindir]}/$keymap" etc/ 
 	else warn "failed to copy $keymap keymap"; fi
 done
-
 for font in ${opts[font]//:/ }; do
 	if [[ -e $font ]]; then cp -a $font etc/
 	elif [[ -e "${opts[bindir]}"/$font ]]; then cp -a "${opts[bindir]}"/$font etc/ 
@@ -201,7 +190,6 @@ for font in ${opts[font]//:/ }; do
 		mv $font etc/ || warn "failed to copy /usr/share/consolefonts/$font.gz"
 	else warn "failed to copy $font font"; fi
 done
-
 [[ -n "${opts[splash]}" ]] && { opts[bin]+=:splash_util.static
 	[[ -n "${opts[toi]}" ]] && opts[bin]+=:tuxoniceui_text
 	for theme in ${opts[splash]//:/ }; do 
@@ -213,7 +201,6 @@ done
 		else warn "failed to copy $theme theme"; fi
 	done
 }
-
 bincp() {
 	for bin in $@; do
 		if [[ -x $bin ]]; then cp -aH $bin .${bin/\.static}
@@ -224,17 +211,12 @@ bincp() {
 		else warn "$bin binary doesn't exist"; fi
 	done
 }
-
 for bin in ${opts[bin]//:/ }; do
 	if [[ -x "${opts[bindir]}"/${bin##*/} ]]; then cp "${opts[bindir]}"/${bin##*/} ${bin%/*}
 	elif [[ -x /$bin ]]; then bincp /$bin
 	else bincp $(which ${bin##*/}); fi
 done
-
 find . -print0 | cpio --null -ov --format=newc | ${opts[comp]} > "$opts[initrd]" || die "eek!"
-
 echo ">>> $opts[initrd] initramfs built"
-
-unset opt opts opts[initdir] opts[initrd]
-
+unset opt opts
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

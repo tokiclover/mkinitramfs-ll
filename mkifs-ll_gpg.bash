@@ -29,7 +29,8 @@ done
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
 [[ -n "${opts[miscdir]}" ]] || opts[miscdir]="${opts[workdir]}"/misc
 [[ -n "${opts[Version]}" ]] || opts[Version]='1.4*'
-[[ -f ./mkifs-ll.conf ]] && source ./mkifs-ll.conf
+if [[ -f mkifs-ll.conf.bash ]]; then source mkifs-ll.conf.bash
+if [[ -f /etc/mkifs-ll.conf.bash ]]; then sourse /etc/mkifs-ll.conf.bash; fi
 mkdir -p "${opts[misdir]}"/share/gnupg/
 mkdir -p "${opts[bindir]}"
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
@@ -37,8 +38,8 @@ die() { error "$@"; exit 1; }
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die "eek"
 opts[gpg]=$(emerge -pvO =app-crypt/gnupg-${opts[Version]} | grep -o "gnupg-[-0-9.r]*")
 ebuild ${opts[gpg]}.ebuild clean || die "eek!"
-USE="nls static ${opts[useflag]}" ebuild $GPG.ebuild compile || die "eek!"
-cd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/app-crypt/$GPG/work/$GPG || die "eek!"
+USE="nls static ${opts[useflag]}" ebuild ${opts[gpg]}.ebuild compile || die "eek!"
+cd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/app-crypt/${opts[gpg]}/work/${opts[gpg]} || die "eek!"
 cp -a gpg "${opts[bindir]}"/ || die "eek!"
 cp g10/options.skel "${opts[miscdir]}"/share/gnupg/ || die "eek!"
 cd "${PORTDIR:-/usr/portage}"/app-crypt/gnupg || die "eek"
