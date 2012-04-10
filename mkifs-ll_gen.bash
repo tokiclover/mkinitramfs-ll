@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_gen.bash,v 0.5.0.5 2012/04/09 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gen.bash,v 0.5.0.5 2012/04/10 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} OPTIONS [OPTIONS...]
@@ -32,7 +32,7 @@ usage() {
   -n|--minimal	           build busybox with minimal applets, default is full applets
   -r|--raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
   -U|--ucl-arch i386       ARCH string needed to build busybox linked uClibc
-  -Y|--key-map <k:m>       generate <m> keymap using <k> as input keymap
+  -Y|--keymap <k:m>        generate <m> keymap using <k> as input keymap
   -u|-usage                print this help/usage and exit
 
   usage: runned without arguments, build an initramfs for kernel \$(uname -r)
@@ -40,9 +40,9 @@ usage() {
   ${0##*/} --build-all --aufs --lvm
 EOF
 }
-opt=$(getopt -o ab:c:e:fgk:lm:rstuvy:B:M:S:W: --long all,bin:,bindir:comp:,ev:,font: \
+opt=$(getopt -o ab:c:e:fgk:lm:rstuvy:B:M:S:W: --long all,bin:,bindir:comp:,eversion:,font: \
 	  --long gpg:,mboot:,mdep:,mgpg:msqfsd:,mremdev:,mtuxonice,sqfsd,toi,usage,version \
-	  --long lvm,miscdir:,workdir:,kv:,build,confdir:,minimal,key-map:,ucl-arch,keymap: \
+	  --long lvm,miscdir:,workdir:,kversion:,build,confdir:,minimal,ucl-arch,keymap: \
 	  -o nDC:U:Y: --long raid -n ${0##*/} -- "$@" || usage && exit 0)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
@@ -62,9 +62,8 @@ while [[ $# > 0 ]]; do
 		-m|--mdep) opts[mdep]+=":${2}"; shift 2;;
 		-i|--intsall) opts[install]=y; shift 2;;
 		-n|--minimal) opts[minimal]=y; shift 2;;
-		-e|--ev) opts[eversion]=${2}; shift 2;;
-		-l|--lvm) opts[lvm]=y; shift;;
-		-k|--kv) opts[kversion]=${2}; shift 2;;
+		-e|--eversion) opts[eversion]=${2}; shift 2;;
+		-k|--kversion) opts[kversion]=${2}; shift 2;;
 		--mgpg) opts[mgpg]+=:${2}; shift 2;;
 		--mboot) opts[mboot]+=:${2}; shift 2;;
 		--msqfsd) opts[msqfsd]+=:${2}; shift 2;;
@@ -77,6 +76,7 @@ while [[ $# > 0 ]]; do
 		-U|--ucl-arch) opts[ucl-arch]=${2}; shift 2;;
 		-Y|--key-map) opts[key-map]="${2}"; shift 2;;
 		-p|--prefix) opts[prefix]=${2}; shift 2;;
+		-l|--lvm) opts[lvm]=y; shift;;
 		--) shift; break;;
 	esac
 done
@@ -88,8 +88,8 @@ mkdir -p "${opts[workdir]}"
 mkdir -p "${opts[bindir]}"
 error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
-[[ -n "${opts[build]}" ]] && { ./mkifs-ll_bb
-	[[ -n "${opts[gpg]}" ]] && { ./mkifs-ll_gpg
+[[ -n "${opts[build]}" ]] && { ./mkifs-ll_bb.bash
+	[[ -n "${opts[gpg]}" ]] && { ./mkifs-ll_gpg.bash
 		[[ -d "${opts[confdir]}" ]] && { mkdir -p "${opts[miscdir]}"/.gnupg/
 			cp "${opts[confdir]}"/gpg.conf "${opts[miscdir]}"/.gnupg/ || die "eek!"
 		}

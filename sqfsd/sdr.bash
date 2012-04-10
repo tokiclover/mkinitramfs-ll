@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/09 -tclover Exp $
+# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/10 -tclover Exp $
 revision=0.5.0.5
 usage() {
   cat <<-EOF

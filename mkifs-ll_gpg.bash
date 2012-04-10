@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_gpg.bash,v 0.5.0.5 2012/04/09 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gpg.bash,v 0.5.0.5 2012/04/10 -tclover Exp $
 usage() {
    cat << EOF
    usage: ${0##*/} [OPTINS]...
@@ -46,4 +46,5 @@ cd "${PORTDIR:-/usr/portage}"/app-crypt/gnupg || die "eek"
 ebuild ${opts[gpg]}.ebuild clean || die "eek!"
 cd "${opts[workdir]}" || die "eek!"
 opts[gpg]=y
+unset -v opts[useflag] opts[Version]
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

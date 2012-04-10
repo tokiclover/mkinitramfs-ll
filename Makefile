@@ -31,7 +31,7 @@ install_sqfsd:
 	install -pd $(svc_initdir)
 	install -pm 755 sqfsd/sqfsdmount.initd   $(svc_initdir)/sqfsdmount
 	install -pm 644 sqfsd/sqfsdmount.confd   $(svc_confdir)/sqfsdmount
-	install -pm 755 sqfsd/sqfsd-rebuild.bash $(bindir)/sdr.bash
+	install -pm 755 sqfsd/sdr.bash           $(bindir)
 
 postinstall:
 
