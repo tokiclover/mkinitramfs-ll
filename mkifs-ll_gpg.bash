@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_gpg.bash,v 0.5.0.5 2012/04/10 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gpg.bash,v 0.5.0.5 2012/04/11 -tclover Exp $
 usage() {
    cat << EOF
    usage: ${0##*/} [OPTINS]...
@@ -10,14 +10,15 @@ usage() {
    -V|--Version '<str>'   build gpg-<str> version instead of gpg-1.4.x
    -u|--usage             print this help/uage and exit
 EOF
+exit 0
 }
 opt=$(getopt --long usage,useflag::,bindir::,miscidr::,workdir::,Version:: \
-	  -o uB::M::U::V::W:: -n ${0##*/} -- "$@" || usage && exit 0)
+	  -o uB::M::U::V::W:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in 
-		-u|--usage) usage; exit 0;;
+		-u|--usage) usage;;
 		-B|--bindir) opts[bindir]=${2}; shift 2;;
 		-U|--useflag) opts[useflag]=${2}; shift 2;;
 		-V|--Version) opts[Version]=${2}; shift 2;;
@@ -30,7 +31,7 @@ done
 [[ -n "${opts[miscdir]}" ]] || opts[miscdir]="${opts[workdir]}"/misc
 [[ -n "${opts[Version]}" ]] || opts[Version]='1.4*'
 if [[ -f mkifs-ll.conf.bash ]]; then source mkifs-ll.conf.bash
-if [[ -f /etc/mkifs-ll.conf.bash ]]; then sourse /etc/mkifs-ll.conf.bash; fi
+elif [[ -f /etc/mkifs-ll.conf.bash ]]; then sourse /etc/mkifs-ll.conf.bash; fi
 mkdir -p "${opts[misdir]}"/share/gnupg/
 mkdir -p "${opts[bindir]}"
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }

@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_gen.bash,v 0.5.0.5 2012/04/10 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gen.bash,v 0.5.0.5 2012/04/11 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} OPTIONS [OPTIONS...]
@@ -39,16 +39,17 @@ usage() {
   # build an initramfs after building gnupg/busybox (AUFS2/LVM2/GPG support)
   ${0##*/} --build-all --aufs --lvm
 EOF
+exit 0
 }
 opt=$(getopt -o ab:c:e:fgk:lm:rstuvy:B:M:S:W: --long all,bin:,bindir:comp:,eversion:,font: \
 	  --long gpg:,mboot:,mdep:,mgpg:msqfsd:,mremdev:,mtuxonice,sqfsd,toi,usage,version \
 	  --long lvm,miscdir:,workdir:,kversion:,build,confdir:,minimal,ucl-arch,keymap: \
-	  -o nDC:U:Y: --long raid -n ${0##*/} -- "$@" || usage && exit 0)
+	  -o nDC:U:Y: --long raid -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
-		-u|--usage) usage; exit 0;;
+		-u|--usage) usage;;
 		-g|--gpg) opts[gpg]=y; shift;;
 		-r|--raid) opts[raid]=y; shift;;
 		-a|--all) opts[sqfsd]=y; opts[gpg]=y; 
@@ -83,7 +84,8 @@ done
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
 [[ -n "${opts[miscdir]}" ]] || opts[miscdir]="${opts[workdir]}"/misc
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
-[[ -f mkifs-ll.conf.bash ]] && source mkifs-ll.conf.bash
+if [[ -f mkifs-ll.conf.bash ]]; then source mkifs-ll.conf.bash
+elif [[ -f /etc/mkifs-ll.conf.bash ]]; then sourse /etc/mkifs-ll.conf.bash; fi
 mkdir -p "${opts[workdir]}"
 mkdir -p "${opts[bindir]}"
 error() { echo -ne "\e[1;31m* \e[0m$@\n"; }

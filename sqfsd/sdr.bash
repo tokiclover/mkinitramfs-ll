@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/10 -tclover Exp $
+# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/11 -tclover Exp $
 revision=0.5.0.5
 usage() {
   cat <<-EOF
@@ -24,15 +24,16 @@ usage() {
   # [re-]build system related squashed directories and update the sources directories
   ${0##*/} -up -d bin:sbin:lib32:lib64
 EOF
+exit 0
 }
-[[ $# = 0 ]] && usage && exit 0
+[[ $# = 0 ]] && usage
 opt=$(getopt -o a:b:c:d:e:fo:r:uvUR --long arch:,bsize:,comp:,exclude:,fstab,offset: \
-	  --long sqfsdir:,sqfsd:,remove,update,usage,version -n sdr -- "$@" || usage && exit 0)
+	  --long sqfsdir:,sqfsd:,remove,update,usage,version -n sdr -- "$@" || usage)
 eval set -- "$opt"
 declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
-		-u|--usage) usage; exit 0;;
+		-u|--usage) usage;;
 		-v|--version) echo "sdr-${revision}"; exit 0;;
 		-e|--exclude) opts[e]="-e ${2//:/ }"; shift 2;;
 		-r|--sqfsdir) opts[-r]="${2}"; shift 2;;

@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.5.0.5 2012/04/10 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.5.0.5 2012/04/11 -tclover Exp $
 revision=0.5.0.5
 usage() {
   cat <<-EOF
@@ -36,6 +36,7 @@ usage() {
   ${0##*/} -a -e-d -k3.0.3-git
   # NOTE: <str>: string; <font>: fonts list; <theme>: theme list; <mod>: kernel modules...
 EOF
+exit 0
 }
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 info() 	{ echo -ne " \e[1;32m* \e[0m$@\n"; }
@@ -54,12 +55,12 @@ addnodes() {
 [[ $# = 0 ]] && info "initramfs will be build with only LUKS support."
 opt=$(getopt -o ab:c:e:fgk:lm:rstuvy:B:M:S:W: --long all,bin:,bindir:comp:,eversion:,keymap: \
 	  --long font:,gpg:,mboot:,mdep:,mgpg:msqfsd:,mremdev:,mtuxonice,sqfsd,toi,usage,version \
-	  --long lvm,miscdir:,workdir:,kversion:,raid -n ${0##*/} -- "$@" || usage && exit 0)
+	  --long lvm,miscdir:,workdir:,kversion:,raid -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
-		-u|--usage) usage; exit 0;;
+		-u|--usage) usage;;
 		-v|--version) echo "${0##*/}-$revision"; exit 0;;
 		-a|--all) opts[sqfsd]=y; opts[gpg]=y; 
 			opts[lvm]=y; opts[toi]=y; shift;;

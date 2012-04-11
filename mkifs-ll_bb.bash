@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_bb.bash,v 0.5.0.5 2012/04/10 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb.bash,v 0.5.0.5 2012/04/11 -tclover Exp $
 usage() {
   cat << EOF
   usage:
@@ -12,10 +12,11 @@ usage() {
   -B|--bindir bin          copy builded binary to <bin> directory
   -u|--usage               print the usage/help and exit
 EOF
+exit 0
 }
-[[ $# = 0 ]] && usage && exit 0
+[[ $# = 0 ]] && usage
 opt=$(getopt --long build,install,keymap:,minimal,ucl-arch,usage,bindir: \
-	  -o inuDU:B:Y: -n ${0##*/} -- "$@" || usage && exit 0)
+	  -o inuDU:B:Y: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
@@ -33,7 +34,7 @@ done
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
 if [[ -f mkifs-ll.conf.bash ]]; then source mkifs-ll.conf.bash
-if [[ -f /etc/mkifs-ll.conf.bash ]]; then sourse /etc/mkifs-ll.conf.bash; fi
+elif [[ -f /etc/mkifs-ll.conf.bash ]]; then sourse /etc/mkifs-ll.conf.bash; fi
 mkdir -p "${opts[bindir]}"
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
