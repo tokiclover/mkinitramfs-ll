@@ -8,7 +8,7 @@ usage() {
   -i|--install             install busybox with symliks to \${opts[-bindir]}, require -b
   -n|--minimal             build busybox with minimal applets, default is full applets
   -U|--ucl-arch i386       ARCH string needed to build busybox against uClibc	
-  -Y|--keymap <map:kmap>   generate kmap keymap using map as input keymap
+  -y|--keymap <map:kmap>   generate kmap keymap using map as input keymap
   -B|--bindir bin          copy builded binary to <bin> directory
   -u|--usage               print the usage/help and exit
 EOF
@@ -27,7 +27,7 @@ while [[ $# > 0 ]]; do
 		-n|--minimal) opts[minimal]=y; shift 2;;
 		-B|--bindir) opts[bindir]="${2}"; shift 2;;
 		-U|--ucl-arch) opts[U]=${2}; shift 2;;
-		-Y|--keymap) opts[keymap]="${2}"; shift 2;;
+		-y|--keymap) opts[keymap]="${2}"; shift 2;;
 		--) shift; break;;
 	esac
 done

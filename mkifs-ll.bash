@@ -71,10 +71,12 @@ while [[ $# > 0 ]]; do
 		-B|--bindir) opts[bindir]=${2}; shift 2;;
 		-e|--eversion) opts[eversion]=${2}; shift 2;;
 		-k|--kversion) opts[kversion]=${2}; shift 2;;
+		-y|--keymap) opts[keymap]="${2}"; shift 2;;
 		-p|--prefix) opts[prefix]=${2}; shift 2;;
 		-f|--font) opts[font]+=":${2}"; shift 2;;
 		-m|--mdep) opts[mdep]+=":${2}"; shift 2;;
 		-g|--gpg) opts[gpg]=y; shift;;
+		-t|--toi) opts[toi]=y; shift;;
 		-l|--lvm) opts[lvm]=y; shift;;
 		--mgpg) opts[mgpg]+=:${2}; shift 2;;
 		--mboot) opts[mboot]+=:${2}; shift 2;;

@@ -13,13 +13,13 @@ usage() {
   -p|--prefix vmlinuz.     prefix scheme to name the initramfs image default is 'initrd-'
   -y|--keymap kmx86.bin    append colon separated list of keymaps to include in the initramfs
   -l|--lvm                 adds LVM2 support, require a static sys-fs/lvm2[lvm.static] binary
-  -B|--bindir bin          try to include binaries from bin dir (busybox/applets/gpg) first
-  -M|--miscdir misc        use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
+  -B|--bindir <bin>        try to include binaries from bin dir (busybox/applets/gpg) first
+  -M|--miscdir <misc>      use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
                            one can add manpages gpg/lvm/cryptsetup and user scripts as well
-  -W|--wokdir dir          working directory where to create initramfs dir, default is PWD
+  -W|--workdir <dir>       working directory where to create initramfs dir, default is PWD
   -b|--bin :<bin>          append colon separated list of binar-y-ies to include
-  -C|--confdir dir         copy gpg.conf, GnuPG configuration file, from dir
-  -m|--modep :<mod>        colon separated list of kernel module-s to include
+  -C|--confdir >dir>       copy gpg.conf, GnuPG configuration file, from dir
+  -m|--mdep :<mod>         colon separated list of kernel module-s to include
   -s|--splash :<theme>     colon ':' separated list of splash themes to include
      --mgpg :<mod>         colon separated list of kernel modules to add to gpg group
      --mboot :<mod>        colon separated list of kernel modules to add to boot group
@@ -32,8 +32,8 @@ usage() {
   -n|--minimal	           build busybox with minimal applets, default is full applets
   -r|--raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
   -U|--ucl-arch i386       ARCH string needed to build busybox linked uClibc
-  -Y|--keymap <k:m>        generate <m> keymap using <k> as input keymap
-  -u|-usage                print this help/usage and exit
+  -y|--keymap <k:m>        generate <m> keymap using <k> as input keymap
+  -u|--usage               print this help/usage and exit
 
   usage: runned without arguments, build an initramfs for kernel \$(uname -r)
   # build an initramfs after building gnupg/busybox (AUFS2/LVM2/GPG support)
@@ -41,15 +41,16 @@ usage() {
 EOF
 exit 0
 }
-opt=$(getopt -o ab:c:e:fgk:lm:rstuvy:B:M:S:W: --long all,bin:,bindir:comp:,eversion:,font: \
-	  --long gpg:,mboot:,mdep:,mgpg:msqfsd:,mremdev:,mtuxonice,sqfsd,toi,usage,version \
-	  --long lvm,miscdir:,workdir:,kversion:,build,confdir:,minimal,ucl-arch,keymap: \
-	  -o nDC:U:Y: --long raid -n ${0##*/} -- "$@" || usage)
+opt=$(getopt -o ab:c:e:fgik:lm:p:rs:tuvy:B:M:W:nDC:U:y: -l all,bin:,bindir:,eversion: \
+	  -l gpg,mboot:,mdep:,mgpg:,msqfsd:,mremdev:,mtuxonice:,sqfsd,toi,usage,raid,font: \
+	  -l lvm,miscdir:,workdir:,kversion:,build,confdir:,minimal,ucl-arch:,keymap:,comp: \
+	  -l install,prefix:,splash: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
 		-u|--usage) usage;;
+		-t|--toi) opts[toi]=y; shift;;
 		-g|--gpg) opts[gpg]=y; shift;;
 		-r|--raid) opts[raid]=y; shift;;
 		-a|--all) opts[sqfsd]=y; opts[gpg]=y; 
@@ -61,7 +62,7 @@ while [[ $# > 0 ]]; do
 		-B|--bindir) opts[bindir]=${2}; shift 2;;
 		-f|--font) opts[font]+=":${2}"; shift 2;;
 		-m|--mdep) opts[mdep]+=":${2}"; shift 2;;
-		-i|--intsall) opts[install]=y; shift 2;;
+		-i|--install) opts[install]=y; shift 2;;
 		-n|--minimal) opts[minimal]=y; shift 2;;
 		-e|--eversion) opts[eversion]=${2}; shift 2;;
 		-k|--kversion) opts[kversion]=${2}; shift 2;;
@@ -75,7 +76,7 @@ while [[ $# > 0 ]]; do
 		-S|--splash) opts[splash]+=":${2}"; shift 2;;
 		-W|--workdir) opts[workdir]="${2}"; shift 2;;
 		-U|--ucl-arch) opts[ucl-arch]=${2}; shift 2;;
-		-Y|--key-map) opts[key-map]="${2}"; shift 2;;
+		-y|--keymap) opts[keymap]="${2}"; shift 2;;
 		-p|--prefix) opts[prefix]=${2}; shift 2;;
 		-l|--lvm) opts[lvm]=y; shift;;
 		--) shift; break;;
