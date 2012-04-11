@@ -204,7 +204,7 @@ done
 }
 bincp() {
 	for bin in $@; do
-		if [[ -x ${bin} ]]; then cp -aH ${bin} .${bin/\.static}
+		if [[ -x ${bin} ]]; then cp -aH ${bin} .${bin/%.static}
 			if [[ "$(ldd ${bin})" != *"not a dynamic executable"* ]]; then
 				for lib in $(ldd ${bin} | sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
 				do cp -adH ${lib} lib/ || die "failed to copy ${lib} library"; done
