@@ -85,7 +85,7 @@ done
 [[ -n "${opts[miscdir]}" ]] || opts[miscdir]="${opts[workdir]}"/misc
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
 if [[ -f mkifs-ll.conf.bash ]]; then source mkifs-ll.conf.bash
-elif [[ -f /etc/mkifs-ll.conf.bash ]]; then sourse /etc/mkifs-ll.conf.bash; fi
+elif [[ -f /etc/mkifs-ll.conf.bash ]]; then source /etc/mkifs-ll.conf.bash; fi
 mkdir -p "${opts[workdir]}"
 mkdir -p "${opts[bindir]}"
 error() { echo -ne "\e[1;31m* \e[0m$@\n"; }

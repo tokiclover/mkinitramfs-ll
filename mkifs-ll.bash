@@ -96,7 +96,7 @@ opts[initdir]="${opts[workdir]}"/${opts[prefix]}${opts[kversion]}${opts[eversion
 opts[initrd]=/boot/${opts[prefix]}${opts[kversion]}${opts[eversion]}
 [[ -n "${opts[comp]}" ]] || opts[comp]="xz -9 --check=crc32"
 if [[ -f mkifs-ll.conf.bash ]]; then source mkifs-ll.conf.bash
-elif [[ -f /etc/mkifs-ll.conf.bash ]]; then sourse /etc/mkifs-ll.conf.bash; fi
+elif [[ -f /etc/mkifs-ll.conf.bash ]]; then source /etc/mkifs-ll.conf.bash; fi
 case ${opts[comp]%% *} in
 	bzip2)	opts[initrd]+=.ibz2;;
 	gzip) 	opts[initrd]+=.igz;;
