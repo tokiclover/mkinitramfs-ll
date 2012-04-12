@@ -23,9 +23,9 @@ install:
 	install -pd $(datadir)
 	install -pm 644 ${bin_prefix}.conf.bash $(sys_confdir)
 	install -pm 755 ${bin_prefix}.bash      $(bindir)
-	install -pm 755 ${bin_prefix}_bb.bash   $(bindir)
-	install -pm 755 ${bin_prefix}_gen.bash  $(bindir)
-	install -pm 755 ${bin_prefix}_gpg.bash  $(bindir)
+	install -pm 755 ${bin_prefix}.bb.bash   $(bindir)
+	install -pm 755 ${bin_prefix}rgen.bash  $(bindir)
+	install -pm 755 ${bin_prefix}.gpg.bash  $(bindir)
 	install -pm 755 init                    $(datadir)
 
 install_sqfsd:
@@ -41,9 +41,9 @@ uall: unintsall uninstall_sqfsd
 
 uninstall:
 	rm -f $(bindir)/${bin_prefix}.bash
-	rm -f $(bindir)/${bin_prefix}_bb.bash
-	rm -f $(bindir)/${bin_prefix}_gen.bash
-	rm -f $(bindir)/${bin_prefix}_gpg.bash
+	rm -f $(bindir)/${bin_prefix}.bb.bash
+	rm -f $(bindir)/${bin_prefix}.gen.bash
+	rm -f $(bindir)/${bin_prefix}.gpg.bash
 	rm -f $(datadir)/init
 	rm -f $(sys_confdir)/${bin_prefix}.conf.bash
 
