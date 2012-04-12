@@ -24,7 +24,7 @@ install:
 	install -pm 644 ${bin_prefix}.conf.bash $(sys_confdir)
 	install -pm 755 ${bin_prefix}.bash      $(bindir)
 	install -pm 755 ${bin_prefix}.bb.bash   $(bindir)
-	install -pm 755 ${bin_prefix}rgen.bash  $(bindir)
+	install -pm 755 ${bin_prefix}.gen.bash  $(bindir)
 	install -pm 755 ${bin_prefix}.gpg.bash  $(bindir)
 	install -pm 755 init                    $(datadir)
 
