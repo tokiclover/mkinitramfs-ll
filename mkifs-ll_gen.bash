@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_gen.bash,v 0.5.0.5 2012/04/11 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_gen.bash,v 0.5.0.5 2012/04/12 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} OPTIONS [OPTIONS...]
@@ -53,6 +53,7 @@ while [[ $# > 0 ]]; do
 		-t|--toi) opts[toi]=y; shift;;
 		-g|--gpg) opts[gpg]=y; shift;;
 		-r|--raid) opts[raid]=y; shift;;
+		-q|--sqfsd) opts[sqfsd]=y; shift;;
 		-a|--all) opts[sqfsd]=y; opts[gpg]=y; 
 		 opts[lvm]=y; opts[toi]=y; shift;;
 		-s|--sqfsd) opts[sqfsd]=y; shift;;
@@ -64,8 +65,6 @@ while [[ $# > 0 ]]; do
 		-m|--mdep) opts[mdep]+=":${2}"; shift 2;;
 		-i|--install) opts[install]=y; shift 2;;
 		-n|--minimal) opts[minimal]=y; shift 2;;
-		-e|--eversion) opts[eversion]=${2}; shift 2;;
-		-k|--kversion) opts[kversion]=${2}; shift 2;;
 		--mgpg) opts[mgpg]+=:${2}; shift 2;;
 		--mboot) opts[mboot]+=:${2}; shift 2;;
 		--msqfsd) opts[msqfsd]+=:${2}; shift 2;;
@@ -73,9 +72,11 @@ while [[ $# > 0 ]]; do
 		--mtuxonice) opts[tuxonice]+=:${2}; shift 2;;
 		-C|--confdir) opts[confdir]="${2}"; shift 2;;
 		-M|--miscdir) opts[miscdir]="${2}"; shift 2;;
-		-S|--splash) opts[splash]+=":${2}"; shift 2;;
+		-s|--splash) opts[splash]+=":${2}"; shift 2;;
 		-W|--workdir) opts[workdir]="${2}"; shift 2;;
 		-U|--ucl-arch) opts[ucl-arch]=${2}; shift 2;;
+		-e|--eversion) opts[eversion]=${2}; shift 2;;
+		-k|--kversion) opts[kversion]=${2}; shift 2;;
 		-y|--keymap) opts[keymap]="${2}"; shift 2;;
 		-p|--prefix) opts[prefix]=${2}; shift 2;;
 		-l|--lvm) opts[lvm]=y; shift;;
@@ -85,8 +86,7 @@ done
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
 [[ -n "${opts[miscdir]}" ]] || opts[miscdir]="${opts[workdir]}"/misc
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
-if [[ -f mkifs-ll.conf.bash ]]; then source mkifs-ll.conf.bash
-elif [[ -f /etc/mkifs-ll.conf.bash ]]; then source /etc/mkifs-ll.conf.bash; fi
+[[ -f mkifs-ll.conf.bash ]] && source mkifs-ll.conf.bash
 mkdir -p "${opts[workdir]}"
 mkdir -p "${opts[bindir]}"
 error() { echo -ne "\e[1;31m* \e[0m$@\n"; }

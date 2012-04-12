@@ -1,15 +1,14 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_bb.bash,v 0.5.0.5 2012/04/11 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll_bb.bash,v 0.5.0.5 2012/04/12 -tclover Exp $
 usage() {
-  cat << EOF
-  usage:
-  ${0##*/} [-b|--build [-m|--minimal] [-Y[|--kmap=]map:kmap] [OPTIONS]
+  cat <<-EOF
+  usage: ${0##*/} [-b|--build [-m|--minimal] [-Y[|--kmap=]map:kmap] [OPTIONS]
   -D|--build               build a [minimal|full] applets featured] static busybox binary 
   -i|--install             install busybox with symliks to \${opts[-bindir]}, require -b
   -n|--minimal             build busybox with minimal applets, default is full applets
   -U|--ucl-arch i386       ARCH string needed to build busybox against uClibc	
   -y|--keymap <map:kmap>   generate kmap keymap using map as input keymap
-  -B|--bindir bin          copy builded binary to <bin> directory
+  -B|--bindir <bin>        copy builded binary to <bin> directory
   -u|--usage               print the usage/help and exit
 EOF
 exit 0
@@ -33,8 +32,7 @@ while [[ $# > 0 ]]; do
 done
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
-if [[ -f mkifs-ll.conf.bash ]]; then source mkifs-ll.conf.bash
-elif [[ -f /etc/mkifs-ll.conf.bash ]]; then source /etc/mkifs-ll.conf.bash; fi
+[[ -f mkifs-ll.conf.bash ]] && source mkifs-ll.conf.bash
 mkdir -p "${opts[bindir]}"
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }

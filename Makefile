@@ -1,5 +1,5 @@
 PACKAGE = mkinitramfs-ll
-VERSION = $(shell grep revision= ${bin_prefix}|sed -e 's:revision=::')
+VERSION = $(grep revision= ${bin_prefix}.bash | sed -e 's:revision=::')
 
 
 prefix		= usr/local
@@ -16,6 +16,7 @@ DOCS=AUTHORS COPYING README ChangeLog KnownIssue
 all: install install_sqfsd
 
 install:
+	sed -e 's:\./::g' -e 's:${bin_prefix}.conf:/etc/${bin_prefix}.conf:g' -i ${bin_prefix}*.bash
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)
