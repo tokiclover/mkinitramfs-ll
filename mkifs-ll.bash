@@ -4,18 +4,18 @@ revision=0.5.0.5
 usage() {
   cat <<-EOF
   usage: ${1##*/} [OPTIONS...]
-  -a|--all                 short forme/hand of '-sqfsd -lvm -gpg -toi'
+  -a|--all                 short forme/hand of '--sqfsd --lvm --gpg --toi'
   -f|--font :<font>        append colon separated list of fonts to in include
   -e|--eversion d          append an extra 'd' version after \$kv to the initramfs image
-  -k|--kversion 3.1.4-git  build an initramfs for '3.1.4-git' kernel, else for \$(uname -r)
+  -k|--kversion 3.3.2-git  build an initramfs for '3.1.4-git' kernel, else for \$(uname -r)
   -c|--comp                compression command to use to build initramfs, default is 'xz -9..'
   -g|--gpg                 adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p|--prefix vmlinuz.     prefix scheme to name the initramfs image default is 'initrd-'
   -y|--keymap kmx86.bin    append colon separated list of keymaps to include in the initramfs
-  -l|--lvm                 adds LVM2 support, require a static sys-fs/lvm2[lvm.static] binary
-  -B|--bindir bin          try to include binaries from bin dir (busybox/applets/gpg) first
+  -l|--lvm                 adds LVM2 support, require a static sys-fs/lvm2[static] binary
+  -B|--bindir bin          try to include binaries from bin dir {busybox,applets,gpg} first
   -M|--miscdir misc        use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
-                           one can add manpages gpg/lvm/cryptsetup and user scripts as well
+                           one can add manpages {gpg,lvm,cryptsetup} and user scripts as well
   -W|--wokdir dir          working directory where to create initramfs dir, default is PWD
   -b|--bin :<bin>          append colon separated list of binar-y-ies to include
   -m|--mdep :<mod>         colon separated list of kernel module-s to include

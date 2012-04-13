@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll_bb.bash,v 0.5.0.5 2012/04/12 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.bb.bash,v 0.5.0.5 2012/04/13 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} [-b|--build [-m|--minimal] [-Y[|--kmap=]map:kmap] [OPTIONS]

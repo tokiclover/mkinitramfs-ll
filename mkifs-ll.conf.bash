@@ -1,14 +1,14 @@
-# $Id: mkinitramfs-ll/mkifs-ll.conf.bash, 2011/12/04 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.conf.bash, 2012/04/13 -tclover Exp $
 #
 # This is needed for building binaries!
 [[ -f /etc/make.conf ]] && source /etc/make.conf
 #
 # opts is an associative array which hold pretty much every single option, so one
-# could assign default values for pretty much everything: it's usually opts[-arg]
+# could assign default values for pretty much everything: it's usually opts[--arg]
 # <arg> being an options or a [long-]command line switch. opts[-arg] is a colon ':' 
 # separated list for each option/arg that is a list.
 #
-# opts[-m<grp>] is a list of autoloaded modules, nls_cp437:vfat should be putted 
+# opts[--m<grp>] is a list of autoloaded modules, nls_cp437:vfat should be putted 
 # to remdev group for vfat remdev users. if built as modules the script will 
 # include them and nothing if not so one can leave as is. one could add a list
 # of modules to opts[-mdep] modules dependencies or simply kernel modules which
