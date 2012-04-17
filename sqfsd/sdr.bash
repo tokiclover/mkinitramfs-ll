@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/15 -tclover Exp $
-revision=0.5.0.5
+# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/17 -tclover Exp $
+revision=0.5.0.6
 usage() {
   cat <<-EOF
   usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>
@@ -87,11 +87,8 @@ sqfsd()
 	if [[ -n "${opts[remove]}" ]]; then # now you can update or remove the source dir
 		rm -rf /${dir}/* || die "failed to clean up ${opts[sqfsdir]}/${dir}"
 	elif [[ -n "${opts[update]}" ]]; then echo >/tmp/sdr
-		cp -aru ${opts[sqfsdir]}/${dir}/ro/* /${dir}/ 2>>/tmp/sdr || {
-			for file in $(sed -e "s|.*\`||g" -e "s|':.*||g" /tmp/sdr); do
-				cp -a ${opts[sqfsdir]}/${dir}/ro/${file#/${dir}/} /tmp/ && \
-				mv /tmp/${file##*/} ${file} || info "failed to move ${file}"
-			done; }
+		cp -aru ${opts[sqfsdir]}/${dir}/ro /${dir}ro
+		rm -fr ${dir} && mv /${dir}{ro,} || info "failed to update ${dir}"
 	fi
 	mount -t aufs ${dir} /${dir} \
 		-o nodev,udba=reval,br:${opts[sqfsdir]}/${dir}/rw:${opts[sqfsdir]}/${dir}/ro \
