@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.5.0.5 2012/04/11 -tclover Exp $
-revision=0.5.0.5
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.5.0.6 2012/04/19 -tclover Exp $
+revision=0.5.0.6
 usage() {
   cat <<-EOF
   usage: ${1##*/} [OPTIONS...]
@@ -97,6 +97,7 @@ done
 opts[initdir]="${opts[workdir]}"/${opts[prefix]}${opts[kversion]}${opts[eversion]}
 opts[initrd]=/boot/${opts[prefix]}${opts[kversion]}${opts[eversion]}
 [[ -n "${opts[comp]}" ]] || opts[comp]="xz -9 --check=crc32"
+[[ -n "$(uname -m | grep 64)" ]] && opts[arch]=64 || opts[arch]=32
 [[ -f mkifs-ll.conf.bash ]] && source mkifs-ll.conf.bash
 case ${opts[comp]%% *} in
 	bzip2)	opts[initrd]+=.ibz2;;
@@ -110,7 +111,6 @@ rm -rf "${opts[initdir]}" || die "eek!"
 mkdir -p "${opts[initdir]}" && cd "${opts[initdir]}" || die "eek!"
 mkdir -p {,usr/}{,s}bin dev proc root sys mnt/tok newroot || die "eek!"
 mkdir -p etc/{modules,splash,local.d} || die "eek!"
-[[ -n "$(uname -a | grep x86_64)" ]] && opts[arch]=64 || opts[arch]=32
 mkdir -p lib${opts[arch]}/{splash/cache,modules/${opts[kversion]}} || die "eek!"
 ln -sf lib${opts[arch]} lib || die "eek!"
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[1-6],zero} dev/ || addnodes

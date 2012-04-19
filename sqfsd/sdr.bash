@@ -1,12 +1,11 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/17 -tclover Exp $
+# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/19 -tclover Exp $
 revision=0.5.0.6
 usage() {
   cat <<-EOF
   usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>
   -r|--sqfsdir <dir>       override default value 'sqfsdir=/sqfsd', if not changed
   -d|--sqfsd <dir>         colon seperated list of directory-ies without the leading '/'
-  -a|--arch 32             arch to use for lib\${arch} handling (rc-svcdir and cachedir)
   -f|--fstab               whether to write the necessary mount lines to '/etc/fstab'
   -b|--bsize 131072        use [128k] 131072 bytes block size, which is the default values
   -c|--comp 'xz -Xbjc x86' use xz compressor, optionaly, one can append extra arguments...
@@ -27,7 +26,7 @@ EOF
 exit 0
 }
 [[ $# = 0 ]] && usage
-opt=$(getopt -o a:b:c:d:e:fo:r:uvUR --long arch:,bsize:,comp:,exclude:,fstab,offset: \
+opt=$(getopt -o b:c:d:e:fo:r:uvUR --long bsize:,comp:,exclude:,fstab,offset: \
 	  --long sqfsdir:,sqfsd:,remove,update,usage,version -n sdr -- "$@" || usage)
 eval set -- "$opt"
 declare -A opts
@@ -50,8 +49,8 @@ done
 info() 	{ echo -ne " \e[1;32m* \e[0m$@\n"; }
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
+[[ -n "$(uname -m | grep 64)" ]] && opts[arch]=64 || opts[arch]=32
 [[ -n "${opts[sqfsdir]}" ]] || opts[sqfsdir]=/sqfsd
-[[ -n "${opts[arch]}" ]] || opts[arch]=64
 [[ -n "${opts[bsize]}" ]] || opts[bsize]=131072
 [[ -n "${opts[comp]}" ]] || opts[comp]=gzip
 [[ -n "${opts[--exclude]}" ]] && opts[exclude]="-wildcards -regex -e ${opts[exclude]//:/ }"
