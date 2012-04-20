@@ -1,7 +1,7 @@
 #!/sbin/runscript
 # Copyright 1999-2012 Gentoo Foundation
-# Distributed under the terms of the GNU General Public License v2
-# $Header: /etc/init.d/sqfsdmount, v1.1 2012/03/02 -tclover Exp $
+# Distributed under the terms of the 2-clause BSD license
+# $Header: /etc/init.d/sqfsdmount, v1.1 2012/04/20 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="Manage/mount squashed directories"
@@ -12,7 +12,7 @@ depend()
 	use lvm modules mtab
 	after lvm modules
 	before consolefont bootmisc acpid keymaps
-	keyword -jail -openvz -prefix -vserver -lxc
+	keyword -jail -openvz -vserver -lxc
 }
 
 start()
@@ -29,13 +29,15 @@ stop()
 {
 	einfo "umounting local wide squashed dirs"
 	local IFS="${IFS}:"
+	if [ -n "$(uname -m | grep 64)" ]; then local arch=64
+	else local arch=32; fi
 	sync; sync
 	for dir in ${sqfsd_local}; do sqfsd_umount ${dir}; done
 	einfo "remounting in ro mode system squashed dirs"
 	if [ "${umount_sys}" == "yes" ]; then
 		for dir in ${sqfsd_sys}; do 
 			if [ "${dir}" == "usr" ]; then sqfsd_remountro ${dir}
-			elif [ "${dir}" != "lib32" ] || [ "${dir}" != "lib64" ]; then 
+			elif [ "${dir}" != "lib${arch}" ]; then 
 				sqfsd_umount ${dir}; fi; done; fi
 	return 0
 }
