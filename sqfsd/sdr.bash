@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/19 -tclover Exp $
+# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/22 -tclover Exp $
 revision=0.5.0.6
 usage() {
   cat <<-EOF
@@ -87,7 +87,7 @@ sqfsd()
 		rm -rf /${dir}/* || die "failed to clean up ${opts[sqfsdir]}/${dir}"
 	elif [[ -n "${opts[update]}" ]]; then echo >/tmp/sdr
 		cp -aru ${opts[sqfsdir]}/${dir}/ro /${dir}ro
-		rm -fr ${dir} && mv /${dir}{ro,} || info "failed to update ${dir}"
+		mv /${dir}{,rm} && mv /${dir}{ro,} && rm -fr /${dir}rm || info "failed to update ${dir}"
 	fi
 	mount -t aufs ${dir} /${dir} \
 		-o nodev,udba=reval,br:${opts[sqfsdir]}/${dir}/rw:${opts[sqfsdir]}/${dir}/ro \
