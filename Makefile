@@ -14,7 +14,7 @@ DOCS=AUTHORS COPYING README ChangeLog KnownIssue
 
 all: install_init install_svcsquash install_scripts_bash install_scripts_zsh
 
-install_init
+install_init:
 	install -pd $(datadir)
 	install -pm 755 init                   $(datadir)
 
