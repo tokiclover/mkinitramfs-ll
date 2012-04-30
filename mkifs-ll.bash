@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.5.0.6 2012/04/19 -tclover Exp $
-revision=0.5.0.6
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.5.0.7 2012/04/30 -tclover Exp $
+revision=0.5.0.7
 usage() {
   cat <<-EOF
   usage: ${1##*/} [OPTIONS...]
@@ -208,7 +208,7 @@ bincp() {
 	for bin in $@; do
 		if [[ -x ${bin} ]]; then cp -aH ${bin} .${bin/%.static}
 			if [[ "$(ldd ${bin})" != *"not a dynamic executable"* ]]; then
-				for lib in $(ldd ${bin} | sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g")
+				for lib in $(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g')
 				do cp -adH ${lib} lib/ || die "failed to copy ${lib} library"; done
 			else  info "${bin} is a static binary."; fi
 		else warn "${bin} binary doesn't exist"; fi

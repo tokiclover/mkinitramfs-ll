@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.5.0.6 2012/04/20 -tclover Exp $
-revision=0.5.0.6
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.5.0.7 2012/04/30 -tclover Exp $
+revision=0.5.0.7
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS...]
@@ -181,7 +181,7 @@ bincp() {
 	if [[ -x ${bin}  ]] { 
 		cp -aL ${bin} .${bin/%.static}
 		if [[ "$(ldd ${bin})" != *"not a dynamic executable" ]] {
-			for lib ($(ldd ${bin} | sed -e "s:li.*=>\ ::g" -e "s:\ (.*)::g"))
+			for lib ($(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g'))
 			cp -adH ${lib} lib/ || die "failed to copy $lib library" 
 		} else { info "${bin} is a static binary." }
 		} else {  warn "${bin} binary doesn't exist" }
