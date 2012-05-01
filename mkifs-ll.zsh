@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.5.0.7 2012/04/30 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.5.0.7 2012/05/01 -tclover Exp $
 revision=0.5.0.7
 usage() {
   cat <<-EOF
@@ -78,7 +78,7 @@ if [[ -f mkifs-ll.conf.zsh ]] { source mkifs-ll.conf.zsh }
 :	${opts[-initdir]:=${opts[-workdir]}/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}}
 :	${opts[-initrd]:=/boot/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}}
 if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] { 
-	opts[-g]=; opts[-l]=; opts[-s]=; opts[-t]= }
+	opts[-g]=; opts[-l]=; opts[-s]=; opts[-t]=; opts[-q]= }
 if [[ -n $(uname -m | grep 64) ]] { opts[-arch]=64 } else { opts[-arch]=32 }
 case ${opts[-comp][(w)1]} in
 	bzip2)	opts[-initrd]+=.ibz2;;
