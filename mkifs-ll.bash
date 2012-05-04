@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.5.0.7 2012/04/30 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.5.0.7 2012/05/04 -tclover Exp $
 revision=0.5.0.7
 usage() {
   cat <<-EOF
@@ -36,7 +36,7 @@ usage() {
   ${0##*/} -a -e-d -k3.0.3-git
   # NOTE: <str>: string; <font>: fonts list; <theme>: theme list; <mod>: kernel modules...
 EOF
-exit 0
+exit $?
 }
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 info() 	{ echo -ne " \e[1;32m* \e[0m$@\n"; }
@@ -60,7 +60,6 @@ eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
-		-u|--usage) usage;;
 		-v|--version) echo "${0##*/}-$revision"; exit 0;;
 		-a|--all) opts[sqfsd]=y; opts[gpg]=y; 
 			opts[lvm]=y; opts[toi]=y; shift;;
@@ -87,6 +86,7 @@ while [[ $# > 0 ]]; do
 		-s|--splash) opts[splash]+=":${2}"; shift 2;;
 		-W|--workdir) opts[workdir]="${2}"; shift 2;;
 		--) shift; break;;
+		-u|--usage|*) usage;;
 	esac
 done
 [[ -n "${opts[kversion]}" ]] || opts[kversion]="$(uname -r)"

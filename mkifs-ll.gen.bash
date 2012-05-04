@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.gen.bash,v 0.5.0.5 2012/04/13 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.gen.bash,v 0.5.0.7 2012/05/04 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} OPTIONS [OPTIONS...]
@@ -39,7 +39,7 @@ usage() {
   # build an initramfs after building gnupg/busybox (AUFS2/LVM2/GPG support)
   ${0##*/} --build-all --aufs --lvm
 EOF
-exit 0
+exit $?
 }
 opt=$(getopt -o ab:c:e:fgik:lm:p:rs:tuvy:B:M:W:nDC:U:y: -l all,bin:,bindir:,eversion: \
 	  -l gpg,mboot:,mdep:,mgpg:,msqfsd:,mremdev:,mtuxonice:,sqfsd,toi,usage,raid,font: \
@@ -49,7 +49,6 @@ eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
-		-u|--usage) usage;;
 		-t|--toi) opts[toi]=y; shift;;
 		-g|--gpg) opts[gpg]=y; shift;;
 		-r|--raid) opts[raid]=y; shift;;
@@ -81,6 +80,7 @@ while [[ $# > 0 ]]; do
 		-p|--prefix) opts[prefix]=${2}; shift 2;;
 		-l|--lvm) opts[lvm]=y; shift;;
 		--) shift; break;;
+		-u|--usage|*) usage;;
 	esac
 done
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"

@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.5 2012/04/22 -tclover Exp $
-revision=0.5.0.6
+# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.7 2012/05/04 -tclover Exp $
+revision=0.5.0.7
 usage() {
   cat <<-EOF
   usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>
@@ -23,7 +23,7 @@ usage() {
   # [re-]build system related squashed directories and update the sources directories
   ${0##*/} -up -d bin:sbin:lib32:lib64
 EOF
-exit 0
+exit $?
 }
 [[ $# = 0 ]] && usage
 opt=$(getopt -o b:c:d:e:fo:r:uvUR --long bsize:,comp:,exclude:,fstab,offset: \
@@ -32,7 +32,6 @@ eval set -- "$opt"
 declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
-		-u|--usage) usage;;
 		-f|--fstab) opts[fstab]=y; shift;;
 		-v|--version) echo "${0##*/}-${revision}";;
 		-o|--offset) opts[offset]="${2}"; shift 2;;
@@ -44,6 +43,7 @@ while [[ $# > 0 ]]; do
 		-U|--update) opts[update]=y; shift;;
 		-R|--remove) opts[remove]=y; shift;;
 		--) shift; break;;
+		-u|--usage|*) usage;;
 	esac
 done
 info() 	{ echo -ne " \e[1;32m* \e[0m$@\n"; }

@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bb.bash,v 0.5.0.5 2012/04/13 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.bb.bash,v 0.5.0.7 2012/05/04 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} [-b|--build [-m|--minimal] [-Y[|--kmap=]map:kmap] [OPTIONS]
@@ -11,7 +11,7 @@ usage() {
   -B|--bindir <bin>        copy builded binary to <bin> directory
   -u|--usage               print the usage/help and exit
 EOF
-exit 0
+exit $?
 }
 [[ $# = 0 ]] && usage
 opt=$(getopt --long build,install,keymap:,minimal,ucl-arch,usage,bindir: \
@@ -20,7 +20,6 @@ eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
-		-u|--usage) usage; exit 0;;
 		-D|--build) opts[build]=y; shift 2;;
 		-i|--intsall) opts[install]=y; shift 2;;
 		-n|--minimal) opts[minimal]=y; shift 2;;
@@ -28,6 +27,7 @@ while [[ $# > 0 ]]; do
 		-U|--ucl-arch) opts[U]=${2}; shift 2;;
 		-y|--keymap) opts[keymap]="${2}"; shift 2;;
 		--) shift; break;;
+		-u|--usage|*) usage;;
 	esac
 done
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"

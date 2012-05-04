@@ -10,7 +10,7 @@ usage() {
    -v|--version  <str>    build gpg-<str> version instead of gpg-1.4.x
    -u|--usage             print this help/uage and exit
 EOF
-exit 0
+exit $?
 }
 opt=$(getopt -l usage,useflag::,bindir::,miscidr::,workdir::,version:: \
 	  -o uB::M::U::v::W:: -n ${0##*/} -- "$@" || usage)
@@ -18,12 +18,12 @@ eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in 
-		-u|--usage) usage;;
 		-B|--bindir) opts[bindir]=${2}; shift 2;;
 		-U|--useflag) opts[useflag]=${2}; shift 2;;
 		-v|--version) opts[version]=${2}; shift 2;;
 		-M|--miscdir) opts[miscdir]="${2}"; shift 2;;
 		-W|--workdir) opts[workdir]="${2}"; shift 2;;
+		-u|--usage|*) usage;;
 	esac
 done
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
