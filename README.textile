@@ -6,32 +6,28 @@ OPTIONAL ARGUMENTS [ONLY iroot IS REQUIRED else nothing will happen but maybe a 
 and of course when using this script, one does not need @root=<arg>@ nor @resume=<arg>@.
 init script supports the following specific arguments: 
 
-* @iroot=<PV|VG-LV>[:c:<fs>:n]@    required root device, recommanded optinal @:c:ext4@ for an 
-                                   ext4 rootfs, last @:n@ disable a @die@ after fsck failure. 
-* @[imtopt=<ro,inode64,...>]@      optional mount options for rootfs.
-* @[imod=<drm,ttm,...,nouveau>]@   optional modules [list] to load (in the boot group).
-* @ikmap=<kmap>[:<font>]@          optional keymap and font to load, may be handy for passwords.
-* @ishrl=<n>|:<n>@                 interrupts init and drops to n level or pass n to real init.
-* @rescue@                         drops directly into a minimal shell.
-* @ilvm=<map-PV>,...,<map-PV>@     LVM2 argument @<mapping-PV>@ is collon @:@ separated list of PVs
-                                   of a VG; and comma @,@ separated list of VG: 1st for root, 2nd 
-                                   for swap and the 3rd for resume, hence one can append enough 
-                                   commas to asign a particular group and nothing for the others.
-* @iraid=mdN[-UUID=<uuid>-<N>]@    comma separated list of arrays for root, swap and resume.
-
-* @iswap=<type>:<VG-LV>[:signature]@              e.g. @iswap=swap:sda2@ for a swap device.
-* @iresume=<type>:<VG-LV>[:signature]@            e.g. @iresume=file:<VG-LV>:0x4400@ for a swapfile.
-* @ikroot=<mode>:<device>:</path/to/file>@        ikroot for [i]root keyfile or [no-]password.
-* @ikswap=<mode>:<device>:</path/to/file>@        iswap for [i]swap keyfile or [no-]password.
-* @ikresume=<mode>:<device>:</path/to/key/file>@  same as above but for [i]resume.
-* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@           squashed directories, see below for more info.    
+* @iroot=<PV|VG-LV>[:c:<fs>:n]@: required root device, recommanded optinal @:c:ext4@ 
+  for an ext4 rootfs, last @:n@ disable a @die@ after fsck failure. 
+* @[imtopt=<ro,inode64,...>]@: optional mount options for rootfs.
+* @[imod=<drm,ttm,...,nouveau>]@: optional modules [list] to load (in the boot group).
+* @ikmap=<kmap>[:<font>]@: optional keymap and font to load, may be handy for passwords.
+* @ishrl=<n>|:<n>@: interrupts init and drops to n level or pass n to real init.
+* @rescue@: drops directly into a minimal shell.
+* @ilvm=<map-PV>,...,<map-PV>@: LVM2 argument @<mapping-PV>@ is collon @:@ separated list 
+  of PVs of a VG; and comma @,@ separated list of VG: 1st for root, 2nd for swap and the 
+  3rd for resume, hence one can append enough commas to asign a particular group.
+* @iraid=mdN[-UUID=<uuid>-<N>]@: comma separated list of arrays for root, swap and resume.
+* @iswap=<type>:<VG-LV>[:signature]@: e.g. @iswap=swap:sda2@ for a swap device.
+* @iresume=<type>:<VG-LV>[:signature]@: e.g. @iresume=file:<VG-LV>:0x4400@ for a swapfile.
+* @ikroot=<mode>:<device>:</path/to/file>@: ikroot for [i]root keyfile or [no-]password.
+* @ikswap=<mode>:<device>:</path/to/file>@: iswap for [i]swap keyfile or [no-]password.
+* @ikresume=<mode>:<device>:</path/to/key/file>@: same as above but for [i]resume.
+* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@: squashed directories, see below for more info.    
 
 h3.	About device, @/dev/@ prefix and detached [LUKS] header
 
 There's no need to provide any @/dev/@ prefix for block devices, find_blkd() will take care of it.
-
 Now one can use @UUID=<uuid>@ or @LABEL=<label>@ instead of @[/dev/]sd<CHAR>@ for any device or PV. 
-
 However, a leading plus @+@ is used as a separator for detached header device|file when using 
 LUKS: @<map-UUID="<uid>"[|LABEL="<label>"][+[/dev/]sd<CHAR>|</path/to/header>]@
 
@@ -58,22 +54,21 @@ h3.	About LVM2 argument
 Actually a PV in a group, respectively root, swap, resume is given by <mapping>-<device>, 
 mapping being a mapping name for cryptsetup and a block device|partition without the @/dev/@ prefix.
 
-* <LV|PV|VG>  - <Logical|Physical Volume|Volume Group>.
-* <VG-LV>     - <Volume Group name-Logical Volume name>
-* <map-PV>    - colon separated list <mapping-PV> e.g. <pv1-sda1:pv2-sdb1:...> for a Volume Group,
-                the 1st being for root, the 2nd for swap and the 3rd for resume. 
-                So this @ilvm=,swp-sdc1,@ asign a VG for swap VG only.
-	h4. NEW!
-	NOTE, for unencrypted PVs, there's no need to provide a list of PVs in ilvm argument. A single 
-	character or word is enough to activate LVM like @ilvm=y@ for root.
+* <LV|PV|VG>: <Logical|Physical Volume|Volume Group>.
+* <VG-LV>: <Volume Group name-Logical Volume name>
+* <map-PV>: colon separated list <mapping-PV> e.g. <pv1-sda1:pv2-sdb1:...> for a Volume Group,
+  the 1st being for root, the 2nd for swap and the 3rd for resume. 
+  So this @ilvm=,swp-sdc1,@ asign a VG for swap VG only.
 
-* PV list     - now @<map-PV>@ [list] can be replaced with @</path/to/list>@ file, this require the 
-                use of keyfile to decrypt PV, which means that a removable media or @/boot@ 
-                device is mounted. List can be a line separated list insted of a collon @:@ list 
-                of the forme @<mapping-UUID=<uid>[/UUID=<uuid>]@ for an UUID list. One can mix 
-	            UUID, LABEL and [h|s]d[a-z][0-9] in a list. However, it's best to use UUID only 
-	            for detached header from cypthertext device which prevent header mismatch. 
-	            One can use multiple lists up to three, one for each group.
+NOTE, for unencrypted PVs, there's no need to provide a list of PVs in ilvm argument. A single 
+character or word is enough to activate LVM like @ilvm=y@ for root.
+
+* PV list: now @<map-PV>@ [list] can be replaced with @</path/to/list>@ file, this require the 
+use of keyfile to decrypt PV, which means that a removable media or @/boot@ device is mounted. 
+List can be a line separated list insted of a collon @:@ list of the forme 
+@<mapping-UUID=<uid>[/UUID=<uuid>]@ for an UUID list. One can mix UUID, LABEL and [h|s]d[a-z][0-9] 
+in a list. However, it's best to use UUID only for detached header from cypthertext device which 
+prevent header mismatch. One can use multiple lists up to three, one for each group.
 
 h3.	About mount options
 
@@ -89,7 +84,7 @@ For partitions or PVs that are encrypted with a key, setting @ikroot@ and/or @ik
 @ikresume@ is required, otherwise a passphrase is required for *each* PV as fall back.
 This information is then used to obtain each key file from the specified removable media if any. 
 
-* @<mode>@          - defines how the init script shall treat the supplied keyfile (see below). 
+* @<mode>@: defines how the init script shall treat the supplied keyfile (see below). 
 * Supported modes:
 
 ** @gpg@ 	-> keyfile is GnuPG-protected
@@ -98,8 +93,8 @@ This information is then used to obtain each key file from the specified removab
 ** @pwd@ 	-> encrypted on a regular passphrase, if no argument is passed, fallback is pwd mode.
 ** @none@   -> handy for unencrypted PVs, with or without LVM2 support.
 
-* @<device|dev>@    - device or PV that will be assigned to the removable media e.g. sd[a-z][0-9]
-* @</path/to/file>@ - full path to file inside the removable media.
+* @<device|dev>@: device or PV that will be assigned to the removable media e.g. sd[a-z][0-9]
+* @</path/to/file>@: full path to file inside the removable media.
 
 h3.	About squashed directories
 
@@ -107,32 +102,24 @@ One can use squashfs+aufs2 to squash directories like @$PORTDIR:var/lib/layamn@,
 directories like @usr:lib32:lib64:bin:sbin@. Advantages are system speed/responsiveness.
 
 Squashed directories argument:
-* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@
-  	- one can use uv_sqfsd and uv_sqfsdir or append directories after a @[n|a]:@ for sqfsd.
-* @isqfsd=/sqfsdir,n:<dir 1>:<dir n>@
-  	- neither uv_sqfsdir nor uv_sqfsd is used, appending sqfsdir and sqfsd dirs is required.
-* @isqfsd=y,y@
-  	- using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
-* @isqfsd=y,a:<dir 1>[:<dir n>]@
-  	- same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
+* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@: one can use uv_sqfsd and uv_sqfsdir or append 
+  directories after a @[n|a]:@ for sqfsd.
+* @isqfsd=/sqfsdir,n:<dir 1>:<dir n>@: neither uv_sqfsdir nor uv_sqfsd is used, sqfsdir,sqfsd dirs is required.
+* @isqfsd=y,y@: using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
+* @isqfsd=y,a:<dir 1>[:<dir n>]@: same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
 
 NOTE: leading @/@ slash is only required for @[uv_|]sqfsdir@, else mounting squashed dirs will fail. 
 
 h3.	Notes on key modes
 
-* [gpg] encrypted key-file:
-	now gpg mode works quite well with... tested with 1.4.11, passed as @gpg -qd ...@; 2.0 seems 
-	to rquire too much trouble; @/usr/share/gnupg/options.skel@ is required, additionally, one 
-	can add a @/.gnupg/gpg.conf@ in the initramfs root to avoid its creattion on each reboot. 
-* [ldk] encrypted key-file: 
-	passed to cryptsetup as @-d /dev/mapper/$(basename /path/to/keyfile)@ after being decrypted. 
-* [reg] regular key-file: 
-	will be passed to cryptsetup as @-d /path/to/keyfile@.
-* [pwd] regular passphrase: 
-	it's not mandatory to append any @ik*=pwd@ in the cmdline for this mode is the fallback.
-* [none] unencrypted Physical Volume or device: 
-	it should be explicitely appended ikroot,ikswap or ikresume. I added this mode first for 
-	testing purpose for those, like me, who have a working system before encrypting rootfs.
+* [gpg] encrypted key-file: now gpg mode works quite well with... tested with 1.4.11, passed as @gpg -qd ...@; 2.0 seems 
+  to rquire too much trouble; @/usr/share/gnupg/options.skel@ is required, additionally, one 
+  can add a @/.gnupg/gpg.conf@ in the initramfs root to avoid its creattion on each reboot. 
+* [ldk] encrypted key-file: passed to cryptsetup as @-d /dev/mapper/$(basename /path/to/keyfile)@ after being decrypted. 
+* [reg] regular key-file: will be passed to cryptsetup as @-d /path/to/keyfile@.
+* [pwd] regular passphrase: it's not mandatory to append any @ik*=pwd@ in the cmdline for this mode is the fallback.
+* [none] unencrypted Physical Volume or device: it should be explicitely appended ikroot,ikswap or ikresume. 
+  I added this mode first for testing purpose for those, like me, who have a working system before encrypting rootfs.
 	
 WARNING: Back up your data! else... you may lose a few of... them by carelessness.
 
@@ -164,11 +151,11 @@ h3.	Modules
 To load modules, one could either create needed groups in @/etc/modules/@ in the initramfs. Each file 
 is a line seperated list of modules. Either append a comma seperated list on cmdline using @imod=@ arg.
 Supported groups:
-* @boot@      - boot time modules loaded but not removed.
-* @tuxonice@  - tuxonice module, wich aren't removed if you don't comment in a line.
-* @remdev@    - modules required to access removable device
-* @gpg@       - modules required to access gpg protected file.
-* @sqfsd@     - modules required for squashfs+aufs2, you can still build them into the kernel.
+* @boot@      -> boot time modules loaded but not removed.
+* @tuxonice@  -> tuxonice module, wich aren't removed if you don't comment in a line.
+* @remdev@    -> modules required to access removable device
+* @gpg@       -> modules required to access gpg protected file.
+* @sqfsd@     -> modules required for squashfs+aufs2, you can still build them into the kernel.
 
 Modules should exist in @/lib/modules/$KERNEL_VERSION/@, the kernel should support modules [un]loading.
 Just make sure to append the necessary modules to right group in mkifs-ll.conf for autoloading, or else
