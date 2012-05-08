@@ -2,8 +2,7 @@
 
 h2. WARNING: USE AT YOUR OWN RISK!
 
-h3.	OPTIONAL ARGUMENTS [ONLY iroot IS REQUIRED else nothing will happen but maybe a kernel panic] 
-
+OPTIONAL ARGUMENTS [ONLY iroot IS REQUIRED else nothing will happen but maybe a kernel panic] 
 and of course when using this script, one does not need @root=<arg>@ nor @resume=<arg>@.
 init script supports the following specific arguments: 
 
