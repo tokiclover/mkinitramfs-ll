@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 01:24:10 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 01:49:26 -tclover Exp $@
 
 h2. WARNING: USE AT YOUR OWN RISK!
 
@@ -54,9 +54,9 @@ h3.	About LVM2 argument
 Actually a PV in a group, respectively root, swap, resume is given by <mapping>-<device>, 
 mapping being a mapping name for cryptsetup and a block device|partition without the @/dev/@ prefix.
 
-* <LV|PV|VG>: <Logical|Physical Volume|Volume Group>.
-* <VG-LV>: <Volume Group name-Logical Volume name>
-* <map-PV>: colon separated list <mapping-PV> e.g. <pv1-sda1:pv2-sdb1:...> for a Volume Group,
+* LV|PV|VG: Logical|Physical Volume|Volume Group.
+* VG-LV: Volume Group name-Logical Volume name
+* map-PV: colon separated list <mapping-PV> e.g. <pv1-sda1:pv2-sdb1:...> for a Volume Group,
   the 1st being for root, the 2nd for swap and the 3rd for resume. 
   So this @ilvm=,swp-sdc1,@ asign a VG for swap VG only.
 
