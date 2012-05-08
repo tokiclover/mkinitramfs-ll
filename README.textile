@@ -1,8 +1,8 @@
-@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 01:52:14 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 01:54:57 -tclover Exp $@
 
 bq. "initramfs with [RAID][LUKS][LVM][TOI][AUFS+SQUASHFS] support [with a handfull zsh[devel]/bash[master] set of scripts]"
 
-h2. WARNING: USE AT YOUR OWN RISK!
+h2. WARNING: USE AT YOUR OWN RISK! 
 
 OPTIONAL ARGUMENTS [ONLY iroot IS REQUIRED else nothing will happen but maybe a kernel panic] 
 and of course when using this script, one does not need @root=<arg>@ nor @resume=<arg>@.
@@ -26,12 +26,12 @@ init script supports the following specific arguments:
 * @ikresume=<mode>:<device>:</path/to/key/file>@: same as above but for [i]resume.
 * @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@: squashed directories, see below for more info.    
 
-h3.	About device, @/dev/@ prefix and detached [LUKS] header
+h3.	About device, @/dev/@ prefix and detached [LUKS] header 
 
 There's no need to provide any @/dev/@ prefix for block devices, find_blkd() will take care of it.
 Now one can use @UUID=<uuid>@ or @LABEL=<label>@ instead of @[/dev/]sd<CHAR>@ for any device or PV. 
 However, a leading plus @+@ is used as a separator for detached header device|file when using 
-LUKS: @<map-UUID="<uid>"[|LABEL="<label>"][+[/dev/]sd<CHAR>|</path/to/header>]@
+*LUKS*: @<map-UUID="<uid>"[|LABEL="<label>"][+[/dev/]sd<CHAR>|</path/to/header>]@
 
 Each encrypted PV, with a detached header is given like:
 * @<[/dev/]sda6+[/dev/]sdc>@ for a detached header to @/dev/sdc@ device [passed as @--header /dev/sdc@]
@@ -40,7 +40,7 @@ Each encrypted PV, with a detached header is given like:
   keyfiles [because it'll be too troublesome otherwise]. Of course, a detached header to a device 
   can use UUID or LABEL instead of @[/dev/]sd<CHAR>[0-9]@ which is recommanded to avoid header mismatch!
 
-h3.	About RAID array
+h3.	About RAID array 
 
 iraid argument can take up to 3 comma separated list of RAID arrays: the 1st for root, 2nd for swap
 and the 3rd for resume.
@@ -51,7 +51,7 @@ the initramfs and use either: @iraid=mdN-UUID=<uuid>-<N>@
 the partition number to scan: @echo DEVICE ls /dev/sd*<N> >> /etc/mdadm.conf@. if <N> partition number 
 is not present every device will be scanned!
 
-h3.	About LVM2 argument
+h3.	About LVM2 argument 
 
 Actually a PV in a group, respectively root, swap, resume is given by <mapping>-<device>, 
 mapping being a mapping name for cryptsetup and a block device|partition without the @/dev/@ prefix.
@@ -62,7 +62,7 @@ mapping being a mapping name for cryptsetup and a block device|partition without
   the 1st being for root, the 2nd for swap and the 3rd for resume. 
   So this @ilvm=,swp-sdc1,@ asign a VG for swap VG only.
 
-NOTE, for unencrypted PVs, there's no need to provide a list of PVs in ilvm argument. A single 
+*NOTE*, for unencrypted PVs, there's no need to provide a list of PVs in ilvm argument. A single 
 character or word is enough to activate LVM like @ilvm=y@ for root.
 
 * PV list: now @<map-PV>@ [list] can be replaced with @</path/to/list>@ file, this require the 
@@ -72,7 +72,7 @@ List can be a line separated list insted of a collon @:@ list of the forme
 in a list. However, it's best to use UUID only for detached header from cypthertext device which 
 prevent header mismatch. One can use multiple lists up to three, one for each group.
 
-h3.	About mount options
+h3.	About mount options 
 
 @imtopt=<rootfs mount options>@
 Say, you have a @rootfs=xfs|jsf|reiser|ext*@ and want to mount your rootfs with specific opts. 
@@ -80,7 +80,7 @@ In case of xfs, for exemple, just create your log LV on a different PV than what
 from and everything is set up--well if the logging LV is in the swap VG--and, in fact, you do 
 not need a swap LV there--you just use that VG as if there were one. 
 
-h3.	About key files|modes
+h3.	About key files|modes 
 
 For partitions or PVs that are encrypted with a key, setting @ikroot@ and/or @ikswap@ and/or 
 @ikresume@ is required, otherwise a passphrase is required for *each* PV as fall back.
@@ -98,7 +98,7 @@ This information is then used to obtain each key file from the specified removab
 * @<device|dev>@: device or PV that will be assigned to the removable media e.g. sd[a-z][0-9]
 * @</path/to/file>@: full path to file inside the removable media.
 
-h3.	About squashed directories
+h3.	About squashed directories 
 
 One can use squashfs+aufs2 to squash directories like @$PORTDIR:var/lib/layamn@, or system related 
 directories like @usr:lib32:lib64:bin:sbin@. Advantages are system speed/responsiveness.
@@ -110,9 +110,9 @@ Squashed directories argument:
 * @isqfsd=y,y@: using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
 * @isqfsd=y,a:<dir 1>[:<dir n>]@: same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
 
-NOTE: leading @/@ slash is only required for @[uv_|]sqfsdir@, else mounting squashed dirs will fail. 
+*NOTE*: leading @/@ slash is only required for @[uv_|]sqfsdir@, else mounting squashed dirs will fail. 
 
-h3.	Notes on key modes
+h3.	Notes on key modes 
 
 * [gpg] encrypted key-file: now gpg mode works quite well with... tested with 1.4.11, passed as @gpg -qd ...@; 2.0 seems 
   to rquire too much trouble; @/usr/share/gnupg/options.skel@ is required, additionally, one 
