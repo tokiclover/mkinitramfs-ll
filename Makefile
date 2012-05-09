@@ -12,7 +12,7 @@ docdir      = ${DESTDIR}/${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
 DOCS=AUTHORS COPYING README.textile sqfsd/README.textile ChangeLog KnownIssue
 
-all: install_init install_svcsquash install_scripts_bash install_scripts_zsh
+all: install_init install_sqfsd_svc install_scripts_bash install_scripts_zsh
 
 install_init:
 	install -pd $(datadir)
@@ -28,7 +28,7 @@ install_scripts_bash:
 	install -pm 755 ${bin_prefix}.bb.bash   $(bindir)
 	install -pm 755 ${bin_prefix}.gen.bash  $(bindir)
 	install -pm 755 ${bin_prefix}.gpg.bash  $(bindir)
-	install -pm 755 sqfsd/sdr.bash          $(bindir)
+	install -pm 755 sqfsd_svc/sdr.bash      $(bindir)
 
 install_scripts_zsh:
 	sed -e 's:\./${bin_prefix}:${bin_prefix}:g' \
@@ -40,17 +40,17 @@ install_scripts_zsh:
 	install -pm 755 ${bin_prefix}.bb.zsh   $(bindir)
 	install -pm 755 ${bin_prefix}.gen.zsh  $(bindir)
 	install -pm 755 ${bin_prefix}.gpg.zsh  $(bindir)
-	install -pm 755 sqfsd/sdr.zsh          $(bindir)
+	install -pm 755 sqfsd_svc/sdr.zsh      $(bindir)
 
-install_svcsquash:
+install_sqfsd_svc:
 	install -pd $(svc_confdir)
 	install -pd $(svc_initdir)
-	install -pm 755 sqfsd/sqfsdmount.initd  $(svc_initdir)/sqfsdmount
-	install -pm 644 sqfsd/sqfsdmount.confd  $(svc_confdir)/sqfsdmount
+	install -pm 755 sqfsd_svc/sqfsdmount.initd  $(svc_initdir)/sqfsdmount
+	install -pm 644 sqfsd_svc/sqfsdmount.confd  $(svc_confdir)/sqfsdmount
 
 postinstall:
 
-uall: unintsall_init uninstall_scripts_bash uninstall_scripts_zsh uninstall_svcsquash
+uall: unintsall_init uninstall_scripts_bash uninstall_scripts_zsh uninstall_sqfsd_svc
 
 uninstall_init:
 	rm -f $(datadir)/init
@@ -69,7 +69,7 @@ uninstall_scripts_zsh:
 	rm -f $(bindir)/${bin_prefix}.gpg.zsh
 	rm -f $(sys_confdir)/${bin_prefix}.conf.zsh
 
-uninstall_svcsquash:
+uninstall_sqfsd_svc:
 	rm -f $(svc_confdir)/sqfsdmount
 	rm -f $(svc_initdir)/sqfsdmount
 
