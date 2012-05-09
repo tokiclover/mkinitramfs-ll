@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 18:10:55 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 22:14:11 -tclover Exp $@
 
 bq. "initramfs with *[[RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -9,12 +9,12 @@ And of course when using this script, one does not need @root=<arg>@ nor @resume
 
 init script supports the following specific arguments: 
 
-* @iroot=<PV|VG-LV>[:c:<fs>:n]@  -> required root device, recommanded optinal @:c:ext4@ 
+* @iroot=<PV|VG-LV>[:c:<fs>:n]@  -> required root device, recommanded optional @:c:ext4@ 
 for an ext4 rootfs, last @:n@ disable a @die@ after fsck failure. 
-* @[imtopt=<ro,inode64,...>]@    -> optional mount options for rootfs.
-* @[imod=<drm,ttm,...,nouveau>]@ -> optional modules [list] to load (in the boot group).
-* @ikmap=<kmap>[:<font>]@        -> optional keymap and font to load, may be handy for passwords.
-* @ishrl=<n>|:<n>@               -> interrupts init and drops to n level or pass n to real init (see EOF).
+* @imtopt=<ro,inode64,...>@      -> optional mount options for rootfs.
+* @imod=<drm,ttm,...,nouveau>@   -> optional modules [list] to load (in the boot group).
+* @ikmap=<kmap>[:<font>@         -> optional keymap and font to load, may be handy for passwords.
+* @ishrl=<n>|:<n>@               -> interrupt init and drop to n level or pass n to real init (see EOF)
 * @rescue@                       -> drops directly into a minimal shell.
 * @ilvm=<map-PV>,...,<map-PV>@   -> LVM argument @<mapping-PV>@ is collon ':' separated 
 list of PVs of a VG; and comma ',' separated list of VG: 1st for root, 2nd for swap and 
@@ -22,8 +22,8 @@ the 3rd for resume, hence one can append enough commas to asign a particular gro
 * @iraid=mdN[-UUID=<uuid>-<N>]@  -> comma separated list of arrays for root, swap and resume.
 * @iswap=<type>:<VG-LV>[:signature]@       -> e.g. @iswap=swap:sda2@ for a swap device.
 * @iresume=<type>:<VG-LV>[:signature]@     -> e.g. @iresume=file:<VG-LV>:0x4400@ for a swapfile.
-* @ikroot=<mode>:<device>:</path/to/file>@ -> ikroot for [i]root keyfile or [no-]password.
-* @ikswap=<mode>:<device>:</path/to/file>@ -> iswap for [i]swap keyfile or [no-]password.
+* @ikroot=<mode>:<device>:</path/to/file>@ -> ikroot for root keyfile or password.
+* @ikswap=<mode>:<device>:</path/to/file>@ -> iswap for swap keyfile or password.
 * @ikresume=<mode>:<device>:</path/to/key/file>@ -> same as above but for [i]resume.
 * @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@    -> squashed directories, see below for more info.    
 
@@ -33,7 +33,7 @@ There's no need to provide any @/dev/@ prefix for block devices, find_blkd() wil
 Now one can use @UUID=<uuid>@ or @LABEL=<label>@ instead of @[/dev/]sd[a-z0-9]@ for any device or PV. 
 However, a leading plus @+@ is used as a separator for detached header device|file when using 
 
-*LUKS*: @<map-UUID=<uid>[|LABEL=<label>][+[/dev/]sd[a-z0-9]|</path/to/header/file>]@
+*LUKS*: @<map-UUID=<uid>[|LABEL=<label>][+[/dev/]sd*]|</path/to/header/file>]@
 
 Each encrypted PV, with a detached header is given like:
 
@@ -51,8 +51,8 @@ and the 3rd for resume.
 Either one has an embeded @/etc/mdadm.conf@ in the initramfs, so one could use @iraid=md0,md1,md2@ to 
 enable 3 arrays for root, swap and resume. Either, one can omit to embed one and use either: 
 @iraid=mdN-UUID=<uuid>-<N>@, @[/dev/]md<N>@ is a RAID array, @/dev/@ prefix is optional, 
-UUID=<uuid> the UUID of the array and <N> the partition number to scan: 
-@echo DEVICE ls /dev/sd*<N> >> /etc/mdadm.conf@. 
+<uuid> the UUID of the array and <N> the partition number to scan: 
+@echo DEVICE $(ls /dev/sd*<N>) >> /etc/mdadm.conf@. 
 if <N> partition number is not present every device will be scanned!
 
 h3. About LVM argument
@@ -71,7 +71,7 @@ character or word is enough to activate LVM like @ilvm=y@ for root.
 * PV list: now @<map-PV>@ [list] can be replaced with @</path/to/list>@ file, this require the 
 use of keyfile to decrypt PV, which means that a removable media or @/boot@ device is mounted. 
 List can be a line separated list insted of a collon @:@ list of the forme 
-@<mapping-UUID=<uid>[/UUID=<uuid>]@ for an UUID list. One can mix UUID, LABEL and [h|s]d[a-z][0-9] 
+@<mapping-UUID=<uid>[+UUID=<uuid>]@ for an UUID list. One can mix UUID, LABEL and [h|s]d??* 
 in a list. However, it's best to use UUID only for detached header from cypthertext device which 
 prevent header mismatch. One can use multiple lists up to three, one for each group.
 

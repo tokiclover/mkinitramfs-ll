@@ -235,12 +235,12 @@ raid_enable() {
 	local lv_dev=${1%%-*} lv_part=$(echo ${1} | cut -d'-' -f3)
 	[ -n "$(echo ${lv_dev} | grep /dev)" ] || lv_dev=/dev/${lv_dev}
 	[ -b ${lv_dev} ] && return
-	[ -n "$(echo ${1} | grep UUID)" ] && {
+	if [ -n "$(echo ${1} | grep UUID)" ]; then
 		if [ -n "${lv_part}" ]; then
 			echo DEVICE $(ls /dev/sd*${lv_part}) >> /etc/mdadm.conf
 		else echo 'DEVICE /dev/sd??*' >> /etc/mdadm.conf; fi
 		echo ARRAY ${lv_dev} $(echo ${1} | cut -d'-' -f2) >> /etc/mdadm.conf
-	}
+	fi
 	mdadm --assemble --scan ${lv_dev} &>/dev/null || raidautorun
 	[ -b ${lv_dev} ] || die "failed to activate ${lv_dev} RAID array."
 }
