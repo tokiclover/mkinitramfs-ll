@@ -11,7 +11,8 @@ will do the trick putting usr and @lib${arch}@ first in the config file because 
 are rushing (especially with rc_parallel) to get userspace ready. 
 Additionaly, one could disable rc_parallel and add more services in the `before' line if need be.
 
-NOTE: @/etc/con.d/sqfsdmount@ configuration variables:
+*NOTE*: @/etc/con.d/sqfsdmount@ configuration variables:
+
 * sys|local is a sufix for system/local which speaks of itself, one should to put squashed 
 dirs related to system in @sfqd_sys@, e.g. @/usr:/sbin:/bin:/opt@, and local ones in the other 
 as @sqfsd_local@ dirs will be unmounted right way when a the init service is stopped which.
