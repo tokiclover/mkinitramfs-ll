@@ -10,7 +10,7 @@ svc_initdir	= ${sys_confdir}/init.d
 datadir	    = ${DESTDIR}/${prefix}/share/$(PACKAGE)
 docdir      = ${DESTDIR}/${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
-DOCS=AUTHORS COPYING README.textile sqfsd/README.textile ChangeLog KnownIssue
+DOCS=AUTHORS COPYING README.textile ChangeLog KnownIssue
 
 all: install_init install_sqfsd_svc install_scripts_bash install_scripts_zsh
 
