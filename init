@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.5.0 2012/02/07 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.5.0 2012/05/09 18:04:53 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -71,7 +71,7 @@ shell_runlevel() {
 	if [ ${gv_shrl} = ${1} ]; then 
 		splash_verbose
 		info "Shell runlevel: ${1}"
-		local lv_scr="$(ls /etc/local.d/${1}*.sh &>/dev/null)"
+		local lv_scr="$(ls /etc/local.d/${1}?-*.sh &>/dev/null)"
 		[ -n "${lv_scr}" ] && for scr in ${lv_scr}
 		do info "executing ${scr}..."; ${scr} &>/dev/null || warn "${scr} failed"; done
 		exec /bin/sh; fi
