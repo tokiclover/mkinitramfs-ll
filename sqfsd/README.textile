@@ -1,0 +1,23 @@
+@$Id: /etc/init.d/sqfsdmount,v 1.1 2012/05/09 13:20:55 -tclover Exp $@
+
+Need dependancies is not mandatory, if and only if, @lib$ARCH@ and usr are mounted in a initramfs, 
+otherwise you might run into big troubles for two reasons: 
+* rc uses a tmpfs mounted on @/lib$ARCH/rc/init.d@ to store states of running services and 
+* many services need binaries/libraries from usr when booting up.
+
+Actually, without an initramfs one can get aufs+squashfs working without an issue if you ensure: 
+usr and @lib$ARCH@ get mounted as earlier as possible with/without localmount help. This initservice 
+will do the trick putting usr and lib$ARCH first in the config file because a few (boot) services 
+are rushing (especially with rc_parallel) to get userspace ready. 
+Additionaly, one could disable rc_parallel and add more services in the `before' line if need be.
+
+NOTE: @/etc/con.d/sqfsdmount@ configuration variables:
+* _sys|_local is a sufix for system/local which speaks of itself, one should to put squashed 
+dirs related to system in @sfqd_sys@, e.g. @/usr:/sbin:/bin:/opt@, and local ones in the other 
+as @sqfsd_local@ dirs will be unmounted right way when a the init service is stopped which.
+* @sqfsdir@ is the root directory where .sfs images and mount points for aufs rw/ro branches. 
+* @sys_umount@: enable umounting system wide squashed directories.
+
+*NOTE*: systemd, or even upstart, users have to make their own way/script for this!
+
+@vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
