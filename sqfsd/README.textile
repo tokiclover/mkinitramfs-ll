@@ -6,8 +6,8 @@ otherwise you might run into big troubles for two reasons:
 * many services need binaries/libraries from usr when booting up.
 
 Actually, without an initramfs one can get aufs+squashfs working without an issue if you ensure: 
-usr and @lib$ARCH@ get mounted as earlier as possible with/without localmount help. This initservice 
-will do the trick putting usr and lib${arch} first in the config file because a few (boot) services 
+usr and @lib${arch}@ get mounted as earlier as possible with/without localmount help. This initservice 
+will do the trick putting usr and @lib${arch}@ first in the config file because a few (boot) services 
 are rushing (especially with rc_parallel) to get userspace ready. 
 Additionaly, one could disable rc_parallel and add more services in the `before' line if need be.
 
