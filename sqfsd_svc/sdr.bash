@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.0.7 2012/05/04 -tclover Exp $
-revision=0.5.0.7
+# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.1.0 2012/05/09 22:51:41 -tclover Exp $
+revision=0.5.1.0
 usage() {
   cat <<-EOF
   usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>
@@ -13,6 +13,7 @@ usage() {
   -o|--offset <int>        offset used for rebuilding squashed directories, default is 10%
   -U|--update              update the underlying source directory e.g. bin:sbin:lib32:lib64
   -R|--remove              remove the underlying source directory e.g. usr:opt:\${PORTDIR}
+  -n|--nomount             do not remount .sfs file nor aufs after rebuilding/updating 
   -u|--usage               print this help/usage and exit
   -v|--version             print version string and exit
 	
@@ -26,8 +27,8 @@ EOF
 exit $?
 }
 [[ $# = 0 ]] && usage
-opt=$(getopt -o b:c:d:e:fo:r:uvUR --long bsize:,comp:,exclude:,fstab,offset: \
-	  --long sqfsdir:,sqfsd:,remove,update,usage,version -n sdr -- "$@" || usage)
+opt=$(getopt -o b:c:d:e:fo:r:nuvUR -l bsize:,comp:,exclude:,fstab,offset:,noremount \
+	  -l sqfsdir:,sqfsd:,remove,update,usage,version -n sdr -- "$@" || usage)
 eval set -- "$opt"
 declare -A opts
 while [[ $# > 0 ]]; do
@@ -42,6 +43,7 @@ while [[ $# > 0 ]]; do
 		-c|--comp) opts[comp]="${2}"; shift 2;;
 		-U|--update) opts[update]=y; shift;;
 		-R|--remove) opts[remove]=y; shift;;
+		-n|--nomount) opts[nomount]=y; shift;;
 		--) shift; break;;
 		-u|--usage|*) usage;;
 	esac
@@ -81,6 +83,7 @@ sqfsd()
 		echo "${dir} /${dir} aufs nodev,udba=reval,br:${opts[sqfsdir]}/${dir}/rw:${opts[sqfsdir]}/${dir}/ro 0 0" \
 			>> /etc/fstab || die "fstab write failure 2."
 	fi
+if [[ -z "${opts[nomount]}" ]]; then
 	mount -t squashfs ${opts[sqfsdir]}/${dir}.sfs ${opts[sqfsdir]}/${dir}/ro \
 		-o nodev,loop,ro &>/dev/null || die "failed to mount ${dir}.sfs img"
 	if [[ -n "${opts[remove]}" ]]; then # now you can update or remove the source dir
@@ -92,6 +95,7 @@ sqfsd()
 	mount -t aufs ${dir} /${dir} \
 		-o nodev,udba=reval,br:${opts[sqfsdir]}/${dir}/rw:${opts[sqfsdir]}/${dir}/ro \
 		&>/dev/null || die "failed to mount ${dir} aufs branch."
+fi
 	if [[ "${dir}" = lib${opts[arch]} ]]; then # move back rc-svcdir and cachedir
 		mount --move /var/cache/splash "/${dir}/splash/cache" &>/dev/nul \
 			|| die "failed to move back cachedir"

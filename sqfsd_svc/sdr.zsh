@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/sqfsd/sdr.zsh,v 0.5.0.6 2012/04/22 -tclover Exp $
-revision=0.5.0.6
+# $Id: mkinitramfs-ll/sqfsd/sdr.zsh,v 0.5.1.0 2012/05/09 23:36:10 -tclover Exp $
+revision=0.5.1.0
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-update|-remove] [-r|-sqfsdir<dir>] -d|-sqfsd:<dir>:<dir>
@@ -14,6 +14,7 @@ usage() {
   -o|-offset <int>         offset used for rebuilding squashed directories, default is 10%
   -U|-update               update the underlying source directory e.g. bin:sbin:lib32:lib64
   -R|-remove               remove the underlying source directory e.g. usr:opt:\${PORTDIR}
+  -n|-nomount              do not remount .sfs file nor aufs after rebuilding/updating 
   -u|-usage                print this help/usage and exit
   -v|-version              print version string and exit
 	
@@ -28,7 +29,7 @@ exit 0
 }
 if [[ $# = 0 ]] { usage
 } else { zmodload zsh/zutil
-	zparseopts -E -D -K -A opts r: sqfsdir: d: sqfsd: f fstab b: bsize: \
+	zparseopts -E -D -K -A opts r: sqfsdir: d: sqfsd: f fstab b: bsize: n nomount \
 		c: comp: e: excl: o: offset: U update R remove u usage v version || usage
 	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 	if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
@@ -41,9 +42,9 @@ if [[ -n $(uname -m | grep 64) ]] { opts[-arch]=64 } else { opts[-arch]=32 }
 :	${opts[-exclude]:=$opts[-e]}
 :	${opts[-bsize]:=${opts[-b]:-131072}}
 :	${opts[-comp]:=${opts[-c]:-gzip}}
-info() 	{ print -P " %B%F{green}*%b%f $@"; }
-error() { print -P " %B%F{red}*%b%f $@"; }
-die()   { error $@; exit 1; }
+info() 	{ print -P " %B%F{green}*%b%f $@" }
+error() { print -P " %B%F{red}*%b%f $@" }
+die()   { error $@; exit 1 }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 setopt NULL_GLOB
 sqfsd()
@@ -74,6 +75,7 @@ sqfsd()
 			nodev,udba=reval,br:${opts[-sqfsdir]}/${dir}/rw:${opts[-sqfsdir]}/${dir}/ro 0 0" \
 			>> /etc/fstab || die "fstab write failure 2." 
 	}
+if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-nomount]} ]] { continue } else {
 	mount -t squashfs ${opts[-sqfsdir]}/${dir}.sfs ${opts[-sqfsdir]}/${dir}/ro -o nodev,loop,ro \
 		&>/dev/null || die "failed to mount ${dir}.sfs img"
 	if [[ -n ${(k)opts[-R]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
@@ -85,6 +87,7 @@ sqfsd()
 	mount -t aufs ${dir} /${dir} -o \
 		nodev,udba=reval,br:${opts[-sqfsdir]}/${dir}/rw:${opts[-sqfsdir]}/${dir}/ro \
 		&>/dev/null || die "failed to mount ${dir} aufs branch"
+}
 	if [[ ${dir} = lib${opts[-arch]} ]] { # move back rc-svcdir and cachedir
 		mount -move /var/cache/splash "/${dir}/splash/cache" &>/dev/nul \
 			|| die "failed to move back cachedir."
