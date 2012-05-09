@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 12:58:13 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 13:03:43 -tclover Exp $@
 
 bq. "initramfs with *[[RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -72,22 +72,20 @@ List can be a line separated list insted of a collon @:@ list of the forme
 in a list. However, it's best to use UUID only for detached header from cypthertext device which 
 prevent header mismatch. One can use multiple lists up to three, one for each group.
 
-h3. About mount options
+h3. About mount options: @imtopt=<rootfs mount options>@
 
-@imtopt=<rootfs mount options>@
-Say, you have a @rootfs=xfs|jsf|reiser|ext*@ and want to mount your rootfs with specific opts. 
+Say, you have a @rootfs=xfs[|jsf|reiser|ext*]@ and want to mount your rootfs with specific opts. 
 In case of xfs, for exemple, just create your log LV on a different PV than what you're logging 
 from and everything is set up--well if the logging LV is in the swap VG--and, in fact, you do 
 not need a swap LV there--you just use that VG as if there were one. 
 
-h3. About key files|modes
+h3. About supported key-files/passwords modes
 
 For partitions or PVs that are encrypted with a key, setting @ikroot@ and/or @ikswap@ and/or 
-@ikresume@ is required, otherwise a passphrase is required for *each* PV as fall back.
+@ikresume@ is required, otherwise a passphrase is required for _each_ PV as fall back.
 This information is then used to obtain each key file from the specified removable media if any. 
 
 * @<mode>@: defines how the init script shall treat the supplied keyfile (see below). 
-*Supported modes:*
 
 ** @gpg@ 	-> keyfile is GnuPG-protected
 ** @ldk@ 	-> keyfile is LUKS encrypted, via loop back device.
@@ -104,11 +102,14 @@ One can use squashfs+aufs2 to squash directories like @$PORTDIR:var/lib/layamn@,
 directories like @usr:lib32:lib64:bin:sbin@. Advantages are system speed/responsiveness.
 
 Squashed directories argument:
-* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@: one can use uv_sqfsd and uv_sqfsdir or append 
-  directories after a @[n|a]:@ for sqfsd.
-* @isqfsd=/sqfsdir,n:<dir 1>:<dir n>@: neither uv_sqfsdir nor uv_sqfsd is used, sqfsdir,sqfsd dirs is required.
-* @isqfsd=y,y@: using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
-* @isqfsd=y,a:<dir 1>[:<dir n>]@: same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
+* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@
+	one can use uv_sqfsd and uv_sqfsdir or append directories after a @[n|a]:@ for sqfsd.
+* @isqfsd=/sqfsdir,n:<dir 1>:<dir n>@
+	neither uv_sqfsdir nor uv_sqfsd is used, sqfsdir,sqfsd dirs is required.
+* @isqfsd=y,y@
+	using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
+* @isqfsd=y,a:<dir 1>[:<dir n>]@
+	same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
 
 *NOTE*: leading @/@ slash is only required for @[uv_|]sqfsdir@, else mounting squashed dirs will fail. 
 
