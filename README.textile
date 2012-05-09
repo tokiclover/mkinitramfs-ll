@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 22:20:38 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 22:24:04 -tclover Exp $@
 
 bq. "initramfs with *[[RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -139,7 +139,7 @@ h3. Kernel parameters example
 * Swap file--resuming from hibernation--ldk protected keyfile on usb stick:
 	@iswap=file:sda3:0x4400 iresume=toi[|CHAR|WORD] ikswap=ldk:sdb1:/path/to/swapkey@
 	    
-*NOTE*: multiple key files (for each group) are supported along with single key file. 
+*NOTE*: multiple key files (one for each group) are supported along with single key file. 
 
 * crypted LVs [root,swap] using LVM--ldk crypted keyfile and--_and_ mount options for rootfs:
 	@iroot=vgr-lvr iswap=file:vgs-lvs:0x4400 imtopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier \@
