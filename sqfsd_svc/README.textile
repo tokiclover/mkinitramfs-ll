@@ -1,4 +1,4 @@
-@$Id: sqfsdmount.initd/README.textile,v 1.1 2012/05/09 14:06:01 -tclover Exp $@
+@$Id: sqfsdmount.initd/README.textile,v 1.1 2012/05/09 14:17:45 -tclover Exp $@
 
 Need dependancies is not mandatory, if and only if, @lib${arch}@ and usr are mounted in a initramfs, 
 otherwise you might run into big troubles for two reasons: 
@@ -17,8 +17,8 @@ Additionaly, one could disable rc_parallel and add more services in the `before'
 dirs related to system in @sfqd_sys@, e.g. @/usr:/sbin:/bin:/opt@, and local ones in the other 
 as @sqfsd_local@ dirs will be unmounted right way when a the init service is stopped which.
 * @sqfsdir@ is the root directory where .sfs images and mount points for aufs rw/ro branches. 
-* @sys_umount@ enable umounting system wide squashed directories.
-* @squashd@ enable to rebuild local squashed directories.
+* @sys_umount@ enable umounting system wide squashed directories before stopping service.
+* @squashd@ enable to rebuild local squashed directories before stopping service.
 
 *NOTE*: systemd, or even upstart, users have to make their own way/script for this!
 
