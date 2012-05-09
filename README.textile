@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 13:03:43 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 13:11:27 -tclover Exp $@
 
 bq. "initramfs with *[[RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -8,34 +8,51 @@ OPTIONAL ARGUMENTS [ONLY iroot IS REQUIRED else nothing will happen but maybe a 
 and of course when using this script, one does not need @root=<arg>@ nor @resume=<arg>@.
 init script supports the following specific arguments: 
 
-* @iroot=<PV|VG-LV>[:c:<fs>:n]@: required root device, recommanded optinal @:c:ext4@ 
-  for an ext4 rootfs, last @:n@ disable a @die@ after fsck failure. 
-* @[imtopt=<ro,inode64,...>]@: optional mount options for rootfs.
-* @[imod=<drm,ttm,...,nouveau>]@: optional modules [list] to load (in the boot group).
-* @ikmap=<kmap>[:<font>]@: optional keymap and font to load, may be handy for passwords.
-* @ishrl=<n>|:<n>@: interrupts init and drops to n level or pass n to real init.
-* @rescue@: drops directly into a minimal shell.
-* @ilvm=<map-PV>,...,<map-PV>@: LVM2 argument @<mapping-PV>@ is collon @:@ separated list 
-of PVs of a VG; and comma @,@ separated list of VG: 1st for root, 2nd for swap and the 
-3rd for resume, hence one can append enough commas to asign a particular group.
-* @iraid=mdN[-UUID=<uuid>-<N>]@: comma separated list of arrays for root, swap and resume.
-* @iswap=<type>:<VG-LV>[:signature]@: e.g. @iswap=swap:sda2@ for a swap device.
-* @iresume=<type>:<VG-LV>[:signature]@: e.g. @iresume=file:<VG-LV>:0x4400@ for a swapfile.
-* @ikroot=<mode>:<device>:</path/to/file>@: ikroot for [i]root keyfile or [no-]password.
-* @ikswap=<mode>:<device>:</path/to/file>@: iswap for [i]swap keyfile or [no-]password.
-* @ikresume=<mode>:<device>:</path/to/key/file>@: same as above but for [i]resume.
-* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@: squashed directories, see below for more info.    
+* @iroot=<PV|VG-LV>[:c:<fs>:n]@
+	required root device, recommanded optinal @:c:ext4@ for an ext4 rootfs, 
+	last @:n@ disable a @die@ after fsck failure. 
+* @[imtopt=<ro,inode64,...>]@
+	optional mount options for rootfs.
+* @[imod=<drm,ttm,...,nouveau>]@
+	optional modules [list] to load (in the boot group).
+* @ikmap=<kmap>[:<font>]@
+	optional keymap and font to load, may be handy for passwords.
+* @ishrl=<n>|:<n>@
+	interrupts init and drops to n level or pass n to real init (see the end of this file).
+* @rescue@
+	drops directly into a minimal shell.
+* @ilvm=<map-PV>,...,<map-PV>@
+	LVM2 argument @<mapping-PV>@ is collon @:@ separated list of PVs of a VG; and comma @,@ 
+	separated list of VG: 1st for root, 2nd for swap and the 3rd for resume, hence one can 
+	append enough commas to asign a particular group.
+* @iraid=mdN[-UUID=<uuid>-<N>]@
+	comma separated list of arrays for root, swap and resume.
+* @iswap=<type>:<VG-LV>[:signature]@
+	e.g. @iswap=swap:sda2@ for a swap device.
+* @iresume=<type>:<VG-LV>[:signature]@
+	e.g. @iresume=file:<VG-LV>:0x4400@ for a swapfile.
+* @ikroot=<mode>:<device>:</path/to/file>@
+	ikroot for [i]root keyfile or [no-]password.
+* @ikswap=<mode>:<device>:</path/to/file>@
+	iswap for [i]swap keyfile or [no-]password.
+* @ikresume=<mode>:<device>:</path/to/key/file>@
+	same as above but for [i]resume.
+* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@
+	squashed directories, see below for more info.    
 
-h3. About device, /dev/ prefix and detached [LUKS] header
+h3. About device, /dev/ prefix and detached LUKS header
 
 There's no need to provide any @/dev/@ prefix for block devices, find_blkd() will take care of it.
 Now one can use @UUID=<uuid>@ or @LABEL=<label>@ instead of @[/dev/]sd<CHAR>@ for any device or PV. 
 However, a leading plus @+@ is used as a separator for detached header device|file when using 
+
 *LUKS*: @<map-UUID="<uid>"[|LABEL="<label>"][+[/dev/]sd<CHAR>|</path/to/header>]@
 
 Each encrypted PV, with a detached header is given like:
+
 * @<[/dev/]sda6+[/dev/]sdc>@ for a detached header to @/dev/sdc@ device [passed as @--header /dev/sdc@]
 * @</path/to/header/file>@ for a detached header file [@--header /mnt/tok/path/to/header/file@] 
+
 so in this case, the header file must be in the same removable device or @/boot@ PV used for 
 keyfiles [because it'll be too troublesome otherwise]. Of course, a detached header to a device 
 can use UUID or LABEL instead of @[/dev/]sd<CHAR>[0-9]@ which is recommanded to avoid header mismatch!
@@ -58,7 +75,7 @@ mapping being a mapping name for cryptsetup and a block device|partition without
 
 * LV|PV|VG: Logical|Physical Volume|Volume Group.
 * VG-LV: Volume Group name-Logical Volume name
-* map-PV: colon separated list <mapping-PV> e.g. <pv1-sda1:pv2-sdb1:...> for a Volume Group,
+* @map-PV@: colon separated list @<mapping-PV>@ e.g. @<pv1-sda1:pv2-sdb1:...>@ for a Volume Group,
 the 1st being for root, the 2nd for swap and the 3rd for resume. 
 So this @ilvm=,swp-sdc1,@ asign a VG for swap VG only.
 
@@ -115,13 +132,13 @@ Squashed directories argument:
 
 h3. Notes on key modes
 
-* [gpg] encrypted key-file: now gpg mode works quite well with... tested with 1.4.11, passed as @gpg -qd ...@; 2.0 seems 
+* @gpg@   -> encrypted key-file: now gpg mode works quite well with... tested with 1.4.11, passed as @gpg -qd ...@; 2.0 seems 
 to rquire too much trouble; @/usr/share/gnupg/options.skel@ is required, additionally, one 
 can add a @/.gnupg/gpg.conf@ in the initramfs root to avoid its creattion on each reboot. 
-* [ldk] encrypted key-file: passed to cryptsetup as @-d /dev/mapper/$(basename /path/to/keyfile)@ after being decrypted. 
-* [reg] regular key-file: will be passed to cryptsetup as @-d /path/to/keyfile@.
-* [pwd] regular passphrase: it's not mandatory to append any @ik*=pwd@ in the cmdline for this mode is the fallback.
-* [none] unencrypted Physical Volume or device: it should be explicitely appended ikroot,ikswap or ikresume. 
+* @ldk@   -> encrypted key-file: passed to cryptsetup as @-d /dev/mapper/$(basename /path/to/keyfile)@ after being decrypted. 
+* @reg@   -> regular key-file: will be passed to cryptsetup as @-d /path/to/keyfile@.
+* @pwd@   -> regular passphrase: it's not mandatory to append any @ik*=pwd@ in the cmdline for this mode is the fallback.
+* @none@  -> unencrypted Physical Volume or device: it should be explicitely appended ikroot,ikswap or ikresume. 
 I added this mode first for testing purpose for those, like me, who have a working system before encrypting rootfs.
 	
 *WARNING*: Back up your data! else... you may lose a few of... them by carelessness.
