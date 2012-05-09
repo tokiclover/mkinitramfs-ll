@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 22:14:11 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.5.0 2012/05/09 22:20:38 -tclover Exp $@
 
 bq. "initramfs with *[[RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -128,7 +128,7 @@ I added this mode first for testing purpose for those, like me, who have a worki
 h3. Kernel parameters example
 
 * unencrypted Root PV: @iroot=sda3 ikroot=none ikmap=es-cp850_i686.bin@
-* Root--key regular passphrase--and fbsplash: @iroot=sda3 ikroot=pwd video=1280x800-24'@'60 \@
+* Root--key regular passphrase--and fbsplash: @iroot=sda3 ikroot=pwd video=1280x800-24 \@
 	@imod=drm,drm_kms_helper,ttm,i915 splash=verbose,theme:livecd-20007.0 console=tty1@
 * Root--regular keyfile--on usb stick: @iroot=sda3 ikroot=reg:sdb1:/path/to/keyfile@
 * Root--gpg encrypted key on usb stick: @iroot=sda3 ikroot=gpg:sdb1:/path/to/file@
