@@ -1,4 +1,7 @@
+# $Header: /etc/conf.d/sqfsdmount, 2012/05/09 14:06:07 -tclover Exp $
 sqfsdir=/sqfsd
 sqfsd_sys=usr:lib32:lib64:bin:sbin:opt
-sqfsd_local=var/db:var/cache/edb:var/lib/layman:var/portage:var/local/portage
+sqfsd_local=var/db:var/cache/edb:var/lib/layman:var/portage
 umount_sys=yes
+squashd=
+# vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:
