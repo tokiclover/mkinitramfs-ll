@@ -1,13 +1,12 @@
 #!/sbin/runscript
 # Copyright 1999-2012 Gentoo Foundation
-# Distributed under the terms of the 2-clause BSD license
-# $Header: /etc/init.d/sqfsdmount,v 1.2 2012/05/11 02:51:24 -tclover Exp $
+# Distributed under the terms of the simplified 2-clause BSD license
+# $Header: /etc/init.d/sqfsdmount,v 1.2 2012/05/11 16:24:39 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="manage (aufs+squashfs) squashed directories"
 
-depend() 
-{
+depend() {
 	need fsck localmount
 	use lvm modules mtab
 	after lvm modules
@@ -15,42 +14,44 @@ depend()
 	keyword -jail -openvz -vserver -lxc
 }
 
-start()
-{
+start() {
 	local IFS="${IFS}:"
 	einfo "mounting system wide squashed dirs"
-	for dir in ${sqfsd_sys}; do sqfsd_mount ${sqfsdir} ${dir}; done
+	for dir in ${sqfsd_sys}; do 
+		smount ${sqfsdir} ${dir}
+	done
 	einfo "mounting local wide squashed dirs"
-	for dir in ${sqfsd_local} ${sqfsd_rebuild}; do sqfsd_mount ${sqfsdir} ${dir}; done
+	for dir in ${sqfsd_local} ${sqfsd_rebuild}; do 
+		smount ${sqfsdir} ${dir}
+	done
 	return 0
 }
 
-stop() 
-{
+stop() {
 	if [[ -n "${sqfsd_rebuild}" ]]; then
 		eeinfo "sdr: rebuild ${squashd} squashed directories"
 		if which sdr &> /dev/null; then sdr -o0 -nd${squashd}
-		else eerror "sdr: there is not a sdr script on PATH"; fi
+		else eerror "sdr: there is not a sdr script in PATH"; fi
 	fi
 	einfo "umounting local wide squashed dirs"
 	local IFS="${IFS}:"
 	if [[ -n "$(uname -m | grep 64)" ]]; then local arch=64
 	else local arch=32; fi
 	sync; sync
-	for dir in ${sqfsd_local}; do sqfsd_umount ${dir}; done
+	for dir in ${sqfsd_local}; do 
+		sumount ${dir}
+	done
 	einfo "remounting in ro mode system squashed dirs"
 	if [[ "${umount_sys}" == "yes" ]]; then
 		for dir in ${sqfsd_sys}; do 
-			if [ "${dir}" == "usr" ]; then sqfsd_remountro ${dir}
-			elif [ "${dir}" != "lib${arch}" ]; then sqfsd_umount ${dir}
-			fi
+			if [[ "${dir}" == "usr" ]]; then sremountro ${dir}
+			elif [[ "${dir}" != "lib${arch}" ]]; then sumount ${dir}; fi
 		done
 	fi
 	return 0
 }
 
-restart()
-{
+restart() {
 	stop; start
 	for dir in $(mount -t aufs | grep ro | awk '{ print $3 }'); do
 		mount -o remount,rw ${dir}
@@ -59,42 +60,38 @@ restart()
 	return 0
 }
 
-sqfsd_mount() 
-{
+smount() {
 	local dir=${2} sqfsdir=${1}
 	if [[ -n "$(mount -t aufs | grep /${dir})" ]]; then 
 		einfo "squashed ${dir} already mounted"
-	else	
-		ebegin "mounting squashed ${dir}"
+	els ebegin "mounting squashed ${dir}"
 		if [[ -n "$(mount -t squashfs | grep ${sqfsdir}/${dir}/ro)" ]]; then 
 			einfo "squashed ${dir}.sfs image already mounted"
 		else
 			mount -t squashfs ${sqfsdir}/${dir}.sfs ${sqfsdir}/${dir}/ro \
-			-o nodev,loop,ro &>/dev/null
+			-o nodev,loop,ro &> /dev/null
        		eend "$?" "failed to mount ${dir}.sfs image" || return
        	fi
 		mount -t aufs ${dir} /${dir} \
-		-o nodev,udba=reval,br:${sqfsdir}/${dir}/rw:${sqfsdir}/${dir}/ro &>/dev/null
+		-o nodev,udba=reval,br:${sqfsdir}/${dir}/rw:${sqfsdir}/${dir}/ro &> /dev/null
 		eend "$?" "failed to mount ${dir} aufs branch"
 	fi
 }
 
-sqfsd_umount() 
-{
+sumount() {
 	[[ "${RC_UNAME}" == "Linux" ]] && no_netdev="-O no_netdev"
 	local dir=${2} sqfsdir=${1}
 	ebegin "umounting squashed ${dir}"
-	umount -lt aufs /${dir} ${no_netdev} &>/dev/null
+	umount -lt aufs /${dir} ${no_netdev} &> /dev/null
 	eend "$?" "failed to umount squashed ${dir}" || return
-	umount -lt squashfs ${sqfsdir}/${dir}/ro ${no_netdev} &>/dev/null
+	umount -lt squashfs ${sqfsdir}/${dir}/ro ${no_netdev} &> /dev/null
 	eend "$?" "failed to umount ${dir}.sfs image"
 }
 
-sqfsd_remountro() 
-{
+sremountro() {
 	local dir=${1} 
 	ebegin "ro mode remounting ${dir} aufs branch"
-	mount -o remount,ro /${dir} &>/dev/null
+	mount -o remount,ro /${dir} &> /dev/null
 	eend "$?" "failed to remount ${dir} aufs branch in ro mode"
 }
 
