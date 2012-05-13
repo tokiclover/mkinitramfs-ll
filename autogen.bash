@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.gen.bash,v 0.5.0.7 2012/05/04 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.bash,v 0.5.2.0 2012/05/13 13:54:41 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} OPTIONS [OPTIONS...]
@@ -91,8 +91,8 @@ mkdir -p "${opts[workdir]}"
 mkdir -p "${opts[bindir]}"
 error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
-[[ -n "${opts[build]}" ]] && { ./mkifs-ll_bb.bash
-	[[ -n "${opts[gpg]}" ]] && { ./mkifs-ll_gpg.bash
+[[ -n "${opts[build]}" ]] && { ./busybox.bash
+	[[ -n "${opts[gpg]}" ]] && { ./gnupg.bash
 		[[ -d "${opts[confdir]}" ]] && { mkdir -p "${opts[miscdir]}"/.gnupg/
 			cp "${opts[confdir]}"/gpg.conf "${opts[miscdir]}"/.gnupg/ || die "eek!"
 		}
