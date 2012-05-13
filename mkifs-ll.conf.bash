@@ -1,4 +1,4 @@
-# $Id: mkinitramfs-ll/mkifs-ll.conf.bash, 2012/05/13 12:21:16 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.conf.bash, 2012/05/14 00:47:35 -tclover Exp $
 #
 # This is needed for building binaries!
 [[ -f /etc/make.conf ]] && source /etc/make.conf
@@ -27,7 +27,7 @@ opts[mtuxonice]+=:
 opts[bin]=:cryptsetup:fsck.ext4:fsck.jfs:fsck.reiserfs:fsck.xfs:v86d:usr/bin/gpg
 #
 opts[font]+=:lat9w-14.psfu:ter-g14n.psf:ter-g14b.psf:ter-g14v.psf:ter-g12n.psf
-opts[keymap]+=:${opts[bindir]}/fr_l1-amd64.bin
+opts[keymap]+=:
 opts[mdep]+=:btrfs:jfs:xfs:i915:nouveau:radeon:drm:drm_kms_helper:ttm:uvesafb
 opts[mdep]+=:video:button:mxm-wmi:i2c-algo-bit
 opts[splash]+=
