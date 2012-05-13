@@ -23,11 +23,11 @@ install_scripts_bash:
 		-e 's:${bin_prefix}.conf:/etc/${bin_prefix}.conf:g' -i ${bin_prefix}*.bash
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
+	install -pm 755 autogen.bash            $(bindir)
+	install -pm 755 busybox.bash            $(bindir)
+	install -pm 755 gnupg.bash              $(bindir)
 	install -pm 644 ${bin_prefix}.conf.bash $(sys_confdir)
 	install -pm 755 ${bin_prefix}.bash      $(bindir)
-	install -pm 755 ${bin_prefix}.bb.bash   $(bindir)
-	install -pm 755 ${bin_prefix}.gen.bash  $(bindir)
-	install -pm 755 ${bin_prefix}.gpg.bash  $(bindir)
 	install -pm 755 sqfsd_svc/sdr.bash      $(bindir)
 
 install_scripts_zsh:
@@ -35,11 +35,11 @@ install_scripts_zsh:
 		-e 's:${bin_prefix}.conf:/etc/${bin_prefix}.conf:g' -i ${bin_prefix}*.zsh
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
+	install -pm 755 autogen.zsh            $(bindir)
+	install -pm 755 busybox.zsh            $(bindir)
+	install -pm 755 gnupg.zsh              $(bindir)
 	install -pm 644 ${bin_prefix}.conf.zsh $(sys_confdir)
 	install -pm 755 ${bin_prefix}.zsh      $(bindir)
-	install -pm 755 ${bin_prefix}.bb.zsh   $(bindir)
-	install -pm 755 ${bin_prefix}.gen.zsh  $(bindir)
-	install -pm 755 ${bin_prefix}.gpg.zsh  $(bindir)
 	install -pm 755 sqfsd_svc/sdr.zsh      $(bindir)
 
 install_sqfsd_svc:
