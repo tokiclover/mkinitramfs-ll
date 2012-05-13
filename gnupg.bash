@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.gpg.bash,v 0.5.0.5 2012/04/13 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.bash,v 0.5.2.0 2012/05/13 13:47:41 -tclover Exp $
 usage() {
    cat <<-EOF
    usage: ${0##*/} [OPTINS]...
