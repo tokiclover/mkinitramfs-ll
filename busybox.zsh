@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.bb.zsh,v 0.5.0.6 2012/04/15 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.5.2.0 2012/05/13 13:43:02 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-D|-build] [-m|-minimal] [-U|-ucl-archi386] ] [-y|-keymap<map:kmap>]
@@ -7,7 +7,6 @@ usage() {
   -i|-instal              install busybox with symliks to \${opts[-bindir]}, require -B
   -n|-minimal             build busybox with minimal applets, default is full applets
   -U|-ucl-arch i386       ARCH string needed to build busybox against uClibc	
-  -y|-keymap <map:kmap>   generate kmap keymap using map as input keymap
   -B|-bindir <bin>        copy builded binary to <bin> directory
   -u|-usage               print the usage/help and exit
 EOF
@@ -19,7 +18,7 @@ alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 if [[ $# = 0 ]] { usage; exit 0
 } else {
 	zmodload zsh/zutil
-	zparseopts -E -D -K -A opts D build n minimal i install y: keymap: \
+	zparseopts -E -D -K -A opts D build n minimal i install \
 		B: bindir: M: miscdir: U: ucl-arch: u usage || usage
 	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 }
@@ -79,12 +78,6 @@ if [[ -n ${(k)opts[-build]} ]] || [[ -n ${(k)opts[-D]} ]] { build
 	cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die "eek"
 	ebuild ${opts[bbt]}.ebuild clean || die "eek"
 	cd ${opts[-worddir]} || die "eek!"
-}
-if [[ -n ${opts[-y]} ]] { dumpkeys > default_keymap || die "dumping keymap failed"
-	loadkeys -u ${(pws,:,)opts[(w)1,-Y]} || die "loading ${opts[-Y]} failed"
-	./busybox dumpkmap > ${opts[-bindir]}/${(pws,:,)opts[(w)2,-Y]} || die "keymap build failed"
-	loadkeys default_keymap && rm default_keymap || die "re-loading default keymap failed"
-	opts[-bindir]+=:${(pws,:,)opts[(w)2,-Y]}
 }
 unset opts[bbt] opts[-n] opts[-minimal] opts[-i] opts[-install] opts[-U] opts[-ucl-arch]
 # vim:fenc=utf-8ft=zsh:ci:pi:sts=0:sw=4:ts=4:
