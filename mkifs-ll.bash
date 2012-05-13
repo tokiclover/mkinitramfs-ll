@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.5.0.7 2012/05/04 -tclover Exp $
-revision=0.5.0.7
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.5.2.0 2012/05/13 13:12:20 -tclover Exp $
+revision=0.5.2.0
 usage() {
   cat <<-EOF
   usage: ${1##*/} [OPTIONS...]
@@ -118,67 +118,67 @@ cp -a /dev/{console,random,urandom,mem,null,tty,tty[1-6],zero} dev/ || addnodes
 	[[ $(echo ${opts[kversion]} | cut -d'.' -f2) -ge 1 ]] && { 
 	cp -a {/,}dev/loop-control &>/dev/null || mknod dev/loop-control c 10 237 || die "eek!"
 }
-cp -a "${opts[workdir]}"/init . && chmod 775 init || die "failed to copy init"
+cp -fa "${opts[workdir]}"/init . && chmod 775 init || die "failed to copy init"
 cp -a {/,}lib/modules/${opts[kversion]}/modules.dep || die "failed to copy modules.dep"
 [[ -e ${opts[miscdir]}/msg ]] && cp ${opts[miscdir]}/msg etc/
 for scr in $(ls ${opts[miscdir]}/*.sh &>/dev/null); do cp ${scr} etc/local.d/; done
 if [[ -x "${opts[bindir]}"/busybox ]]; then opts[bin]+=:bin/busybox
-elif which bb &>/dev/null; then 
-	cp $(which bb) bin/busybox
-else die "there's no busybox/bb binary"; fi
+elif which busybox &> /dev/null && \
+	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]]; then
+	cp $(which busybox) bin/
+elif which bb &>/dev/null; then cp $(which bb) bin/busybox
+	warn "unexpected behaviour may happen using $(which bb) because of missing applets" 
+else die "there's no busybox nor bb binary"; fi
 if [[ -e "${opts[bindir]}"/applets ]]; then
 	cp -a "${opts[bindir]}"/applets etc/
-	for app in $(< etc/applets); do	
-		case ${app%/*} in
-			/sbin) cd sbin && ln -s ../bin/busybox ${app##*/} && cd .. || die "eek!";;
-			/bin) cd bin && ln -s busybox ${app##*/} && cd .. || die "eek!";;
-			*) ln -s bin/busybox .${app} || die "eek!";;
-		esac
-	done
-else sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!"
-	ln -sf bin/busybox linuxrc || die "eek!"
-	cd bin && ln -sf busybox sh && cd .. || die "eek!"; fi
+else bin/busybox --list-full > etc/applets || die; fi
+for app in $(< etc/applets); do	
+	ln -fs /bin/busybox ${app}
+done
 
-[[ -n "${opts[sqfsd]}" ]] && { opts[bin]+=:umount.aufs:mount.aufs
-	for fs in {au,squash}fs
-	do [[ -n "$(echo ${opts[sqfsd]} | grep ${fs})" ]] || opts[sqfsd]+=:${fs}; done
-}
-[[ -n "${opts[gpg]}" ]] && {
+if [[ -n "${opts[sqfsd]}" ]]; then opts[bin]+=:umount.aufs:mount.aufs
+	for fs in {au,squash}fs; do 
+		[[ -n "$(echo ${opts[sqfsd]} | grep ${fs})" ]] || opts[sqfsd]+=:${fs}
+	done
+fi
+if [[ -n "${opts[gpg]}" ]]; then
 	if [[ -x "${opts[bindir]}"/gpg ]]; then opts[bin]+=:usr/bin/gpg
 	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
 		opts[bin]+=":$(which gpg)"
 	else die "there's no usable gpg/gnupg-1.4.x binary"; fi
 	cp -r "${opts[miscdir]}"/share usr/ || die "failed to copy ${opts[miscdir]}/share"
 	cp -r "${opts[miscdir]}"/.gnupg . || die "failed to copy ${opts[miscdir]}/.gnupg"
-	chmod 700 .gnupg; chmod 600 .gnupg/gpg.conf
-}
-[[ -n "${opts[lvm]}" ]] && { opts[bin]+=:lvm.static
+	chmod 700 .gnupg
+	chmod 600 .gnupg/gpg.conf
+fi
+if [[ -n "${opts[lvm]}" ]]; then opts[bin]+=:lvm.static
 	cd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge
-		do ln -sf lvm ${lpv} || die "eek!"
+		do ln -sf lvm ${lpv} || die
 	done
 	cd ..
-}
-[[ -n "${opts[raid]}" ]] && { opts[bin]+=:mdadm.static:mdadm
+fi
+if [[ -n "${opts[raid]}" ]]; then opts[bin]+=:mdadm.static:mdadm
 	cp /etc/mdadm.conf etc/ &>/dev/null || warn "failed to copy /etc/mdadm.conf"
-}
+fi
 addmodule() {
 	local ret
 	for mod in $@; do
 		local module=$(find /lib/modules/${opts[kversion]} -name ${mod}.ko -or -name ${mod}.o)
-		if [ -z ${module} ]; then warn "${mod} does not exist"; ((ret=${ret}+1))
-		else mkdir -p .${module%/*}
-			cp -ar ${module} .${module} || die "${module} copy failed"; fi
+		if [ -n "${module}" ]; then mkdir -p .${module%/*}
+			cp -ar ${module} .${module} || die "failed to copy ${module} module"
+		else warn "${mod} does not exist"; ((ret=${ret}+1)); fi
 	done
 	return ${ret}
 }
 addmodule ${opts[mdep]//:/ }
 for grp in boot gpg sqfsd remdev tuxonice; do
-	[[ -n "${opts[m${grp}]}" ]] && {
-		for mod in ${opts[m${grp}]//:/ }
-		do addmodule ${mod} && echo ${mod} >> etc/modules/${grp}; done
-	}
+	if [[ -n "${opts[m${grp}]}" ]]; then
+		for mod in ${opts[m${grp}]//:/ }; do 
+			addmodule ${mod} && echo ${mod} >> etc/modules/${grp}
+		done
+	fi
 done
 for keymap in ${opts[keymap]//:/ }; do 
 	if [[ -e "${keymap}" ]]; then cp -a "${keymap}" etc/
@@ -193,7 +193,7 @@ for font in ${opts[font]//:/ }; do
 		mv ${font} etc/ || warn "failed to copy /usr/share/consolefonts/${font}.gz"
 	else warn "failed to copy ${font} font"; fi
 done
-[[ -n "${opts[splash]}" ]] && { opts[bin]+=:splash_util.static
+if [[ -n "${opts[splash]}" ]]; then opts[bin]+=:splash_util.static
 	[[ -n "${opts[toi]}" ]] && opts[bin]+=:tuxoniceui_text
 	for theme in ${opts[splash]//:/ }; do 
 		if [[ -d ${theme} ]]; then cp -r ${theme} etc/splash/ 
@@ -203,7 +203,7 @@ done
 			info "copied the whole /etc/splash/${theme} theme"
 		else warn "failed to copy ${theme} theme"; fi
 	done
-}
+fi
 bincp() {
 	for bin in $@; do
 		if [[ -x ${bin} ]]; then cp -aH ${bin} .${bin/%.static}

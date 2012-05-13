@@ -1,4 +1,4 @@
-# $Id: mkinitramfs-ll/mkifs-ll.conf.zsh, 2012/04/15 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.conf.zsh, 2012/05/13 12:21:12 -tclover Exp $
 #
 # This is needed for building binaries!
 if [[ -f /etc/make.conf ]] { source /etc/make.conf }
@@ -13,7 +13,7 @@ if [[ -f /etc/make.conf ]] { source /etc/make.conf }
 # include them and nothing if not so one can leave as is. one could add a list
 # of modules to opts[-mdep] modules dependencies or simply kernel modules which
 # one could load at boot time with `imod' kernel cmdline argument.
-opts[-mboot]+=:blowfish
+opts[-mboot]+=:blowfish_common:blowfish_generic
 opts[-mgpg]+=:cast5
 opts[-msqfsd]+=:squashfs
 opts[-mremdev]+=:nls_cp437:vfat

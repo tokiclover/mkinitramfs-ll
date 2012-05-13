@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.5.0.7 2012/05/01 -tclover Exp $
-revision=0.5.0.7
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.5.2.0 2012/05/13 13:12:15 -tclover Exp $
+revision=0.5.1.0
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS...]
@@ -65,8 +65,7 @@ if [[ $# = 0 ]] { if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 	if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
 		print "${(%):-%1x}-$revision"; exit 0 }
 }
-setopt EXTENDED_GLOB
-setopt NULL_GLOB
+setopt EXTENDED_GLOB NULL_GLOB
 :	${opts[-kversion]:=${opts[-k]:-$(uname -r)}}
 :	${opts[-eversion]:=$opts[-e]}
 :	${opts[-prefix]:=${opts[-p]:-initrd-}}
@@ -99,26 +98,21 @@ cp -a /dev/{console,random,urandom,mem,null,tty,tty[1-6],zero} dev/ || addnodes
 	[[ ${${(pws:.:)opts[-kversion]}[2]} -ge 1 ]] && {
 	cp -a {/,}dev/loop-control &>/dev/null || mknod dev/loop-control c 10 237 || die "eek!"
 }
-cp -a ${opts[-workdir]}/init . && chmod 775 init || die "failed to copy init"
+cp -fa ${opts[-workdir]}/init . && chmod 775 init || die "failed to copy init"
 cp -a {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
 [[ -e ${opts[-miscdir]}/msg ]] && cp ${opts[-miscdir]}/msg etc/
 for scr (${opts[-miscdir]}/*(.).sh) cp ${scr} etc/local.d/
 if [[ -x ${opts[-bindir]}/busybox ]] { opts[-bin]+=:bin/busybox
+} elif [[ $(which busybox) != "busybox not found" && \
+	$(ldd $(which busybox)) == *"not a dynamic executable" ]] {
+	cp $(which busybox) bin/
 } elif [[ $(which bb) != "bb not found" ]] { 
 	cp $(which bb) bin/busybox
-	warn "unexpected results may happen using $(which bb) because of missing applets" 
+	warn "unexpected behaviour may happen using $(which bb) because of missing applets" 
 } else { die "no busybox/bb binary found" }
 if [[ -e ${opts[-bindir]}/applets ]] { cp -a ${opts[-bindir]}/applets etc/
-	for app ($(< etc/applets)) 
-	case ${app:h} in
-		/sbin) cd sbin && ln -s ../bin/busybox ${app:t} && cd .. || die "eek!";;
-		/bin) cd bin && ln -s busybox ${app:t} && cd .. || die "eek!";;
-		/) ln -s bin/busybox ${app:t} || die "eek!";;
-	esac
-} else { sed -e 's|#\t/bin/busybox|\t/bin/busybox|' -i init || die "eek!" 
-	ln -sf bin/busybox linuxrc || die "eek!"
-	cd bin && ln -sf busybox sh && cd .. || die "eek!"
-}
+} else { bin/busybox --list-full > etc/applets || die }
+for app ($(< etc/applets)) ln -s /bin/busybox ${app}
 if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { 
 	if [[ -x ${opts[-bindir]}/gpg ]] { opts[-bin]+=:usr/bin/gpg
 	} elif [[ $($(which gpg) -version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
@@ -131,8 +125,7 @@ if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
 if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] { opts[-bin]+=:lvm.static
 	cd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
-		{lv,vg}reduce lvresize vgmerge)
-		ln -sf lvm ${lpv} || die "eek!"
+		{lv,vg}reduce lvresize vgmerge) ln -sf lvm ${lpv} || die "eek!"
 	cd ..
 }
 if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] { 
@@ -147,8 +140,9 @@ if [[ -n ${(k)opts[-raid]} ]] || [[ -n ${(k)opts[-r]} ]] {
 addmodule() {
 	local ret
 	for mod (/lib/modules/${opts[-kversion]}/**/$@.(ko|o))
-		if [[ ! -e ${mod} ]] { warn "${mod} does not exist"; (( ret = ${ret} +1 )) 
-		} else { mkdir -p .${mod:h} && cp -ar ${mod} .${mod} || die "${mod} copy failed" }
+		if [[ -n ${mod} ]] { mkdir -p .${mod:h} 
+			cp -ar ${mod} .${mod} || die "failed to copy ${mod} module" 
+		} else { warn "${mod} does not exist"; ((ret=${ret}+1)) }
 	return ${ret}
 }
 for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) addmodule ${module}
