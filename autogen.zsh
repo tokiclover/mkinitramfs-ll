@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll_gen.zsh,v 0.5.0.6 2012/04/15 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.zsh,v 0.5.2.0 2012/05/13 13:53:47 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS] [OPTIONS...]
@@ -61,8 +61,8 @@ if [[ $# = 0 ]] { if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 if [[ -f mkifs-ll.conf.zsh ]] { source mkifs-ll.conf.zsh }
 mkdir -p ${opts[-workdir]}
 mkdir -p ${opts[-bindir]}
-if [[ -n ${(k}opts[-build]} ]] || [[ -n ${(k)opts[-D]} ]] { ./mkifs-ll_bb.zsh
-	if [[ -n ${(k}opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { ./mkifs-ll_gpg.zsh
+if [[ -n ${(k}opts[-build]} ]] || [[ -n ${(k)opts[-D]} ]] { ./busybox.zsh
+	if [[ -n ${(k}opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { ./gnupg.zsh
 		if [[ -d ${opts[-confdir]} ]] || [[ -d ${opts[-C]} ]] { 
 			mkdir -p ${opts[-miscdir]}/.gnupg/
 			cp ${opts[-confdir]}/gpg.conf ${opts[-miscdir]}/.gnupg/ || die "eek!"
