@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.gpg.zsh,v 0.5.0.6 2012/04/15 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.zsh,v 0.5.2.0 2012/05/13 13:46:17 -tclover Exp $
 usage() {
    cat <<-EOF
    usage: ${(%):-%1x} [-U|-useflag'falgs'] [-V|-Version'<str>'] [OPTIONS]
