@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.5.2.0 2012/05/13 13:12:15 -tclover Exp $
-revision=0.5.1.0
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.5.2.0 2012/05/13 13:17:42 -tclover Exp $
+revision=0.5.2.0
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS...]
