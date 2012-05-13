@@ -1,1 +1,1 @@
-custom @binnaries@ and busybox @applet@ list are stored in this directory.
+custom @binnaries@ and busybox and its optional @applets@ are stored in this directory.
