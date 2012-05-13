@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bb.bash,v 0.5.0.7 2012/05/04 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.5.2.0 2012/05/13 13:49:23 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} [-b|--build [-m|--minimal] [-Y[|--kmap=]map:kmap] [OPTIONS]
@@ -7,7 +7,6 @@ usage() {
   -i|--install             install busybox with symliks to \${opts[-bindir]}, require -b
   -n|--minimal             build busybox with minimal applets, default is full applets
   -U|--ucl-arch i386       ARCH string needed to build busybox against uClibc	
-  -y|--keymap <map:kmap>   generate kmap keymap using map as input keymap
   -B|--bindir <bin>        copy builded binary to <bin> directory
   -u|--usage               print the usage/help and exit
 EOF
@@ -68,14 +67,16 @@ build() {
 		-e "s|# CONFIG_SWITCH_ROOT is not set|CONFIG_SWITCH_ROOT=y|" -i .config || die "minimal cfg failed"
 	else make defconfig || die "defcfg failed"
 		sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
-		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" -i .config || die "cfg failed"; fi
+		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" -i .config || die "cfg failed"
+	fi
 	# For uClibc users, you need to adjust the cross compiler prefix properly (i386-uclibc-)
-	[[ -n "${opts[U]}" ]] && {
+	if [[ -n "${opts[U]}" ]]; then
 	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[U]}\"|" \
 		-i .config || die "setting uClib ARCH failed"
-	}; make && make busybox.links || die "bb build failed"
+	fi
+	make && make busybox.links || die "bb build failed"
 }
-[[ -n "${opts[build]}" ]] && { build
+if [[ -n "${opts[build]}" ]]; then build
 	[[ -n "${opts[install]}" ]] && {
 		[[ -e "${opts[tmpdir]}" ]] && {
 			make install CONFIG_PREFIX="${opts[tmpdir]}"/busybox
@@ -87,16 +88,6 @@ build() {
 	cd "${PORTDIR:-/usr/portage}"/sys-apps/busybox || die "eek"
 	ebuild ${opts[bbt]}.ebuild clean || die "eek"
 	cd "${opts[workdir]}" || die "eek!"
-}
-[[ -n "${opts[keymap]}" ]] && { cd "${opts[bindir]}" || die "eek!"
-	km_in=$(echo "${opts[keymap]}" | cut -d':' -f1)
-	km_out=$(echo "${opts[keymap]}" | cut -d':' -f2)
-	dumpkeys > default_keymap || die "dumping keymap failed"
-	loadkeys ${km_in} || die "loading ${km_in} failed"
-	dumpkeys | loadkeys -u || die "unicode conversion failed"
-	./busybox dumpkmap > ${km_out} || die "keymap build failed"
-	loadkeys default_keymap && rm default_keymap || die "re-loading default keymap failed"
-	opts[keymap]+=:${km_out}
-}
+fi
 unset -v opts[bbt] opts[install] opts[minimal] opts[U] km_in km_out
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
