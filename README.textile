@@ -1,11 +1,33 @@
-@$Header: mkinitramfs-ll/README,v 0.5.1 2012/05/09 23:36:44 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.5.1 2012/05/14 16:38:02 -tclover Exp $@
 
 bq. "initramfs with *[[RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]]* support [with a handfull zsh and or bash set of scripts]"
 
-h2. WARNING: USE AT YOUR OWN RISK!
+*WARNING: USE AT YOUR OWN RISK!*
 
-_OPTIONAL ARGUMENTS, ONLY_ iroot _IS REQUIRED_ else nothing will happen but, maybe, a kernel panic. 
-And of course when using this script, one does not need @root=<arg>@ nor @resume=<arg>@ etc.
+h3. 1. Getting an intramfs ready
+
+If you have a static busybox binary or if you use Gentoo [you have already one: installed as /bin/bb] 
+you can make an initramfs in a sec with locales settings: keymap and consolefont (in addition to 
+media-fonts/terminus-font if you use the associated ebuild, or else if you have that package installed).
+
+If you want GnuPG support, yo should have an app-crypt/gnupg-1.4*[static] binary along with its 
+options.skel file. Or if you use Gnetoo you can run either gnupg.{ba,z}sh to generate one. 
+@gnupg.zsh -W/usr/local/share/mkinitramfs-ll@ if you installed the package or simply gnupg.zsh 
+will build a binary in the current directory (with a bin/gpg and misc/share/gnupg/options.skel).
+
+And then run @mkifs-ll.zsh -font -keymap -gpg@ or the bash counterpart @mkifs-ll.bash --font --keymap --gpg@
+
+Gentoo users can build everything with: @autogen.zsh -all -font -keymap@ or @autogen.bash --all --font --keymap@
+
+Of course, one can append extra fonts and keymaps with @-f ter-g12n -y fr-latin1@ etc. and the @-a@ option depend 
+on either @{/etc/,}mkifs-ll.conf.${shell}@ so one can put many default values there.
+
+One can get more info on the scripts by running @${script} -u@
+
+h3. 2. _Optional_ kernel cmdline option or arguments
+
+_ONLY_ @iroot@ _IS REQUIRED_ else nothing will happen but, maybe, a kernel panic. 
+And of course when using this script, one does not need @root=<arg>@ nor @resume=<arg>@ etc. options.
 
 init script supports the following specific arguments: 
 
@@ -27,7 +49,7 @@ the 3rd for resume, hence one can append enough commas to asign a particular gro
 * @ikresume=<mode>:<device>:</path/to/key/file>@ -> same as above but for [i]resume.
 * @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@    -> squashed directories, see below for more info.    
 
-h3. About device, /dev/ prefix and detached LUKS header
+h3. 3. About device, /dev/ prefix and detached LUKS header
 
 There's no need to provide any @/dev/@ prefix for block devices, find_blkd() will take care of it.
 Now one can use @UUID=<uuid>@ or @LABEL=<label>@ instead of @[/dev/]sd[a-z0-9]@ for any device or PV. 
@@ -55,7 +77,7 @@ enable 3 arrays for root, swap and resume. Either, one can omit to embed one and
 @echo DEVICE $(ls /dev/sd*<N>) >> /etc/mdadm.conf@. 
 if <N> partition number is not present every device will be scanned!
 
-h3. About LVM argument
+h3. 4. About LVM argument
 
 Actually a PV in a group, respectively root, swap, resume is given by @<mapping>-<device>@, 
 mapping being a mapping name for cryptsetup and a block device|partition without the @/dev/@ prefix.
@@ -75,14 +97,14 @@ List can be a line separated list insted of a collon @:@ list of the forme
 in a list. However, it's best to use UUID only for detached header from cypthertext device which 
 prevent header mismatch. One can use multiple lists up to three, one for each group.
 
-h3. About mount options: @imtopt=<rootfs mount options>@
+h3. 4. About mount options: @imtopt=<rootfs mount options>@
 
 Say, you have a @rootfs=xfs[|jsf|reiser|ext*]@ and want to mount your rootfs with specific opts. 
 In case of xfs, for exemple, just create your log LV on a different PV than what you're logging 
 from and everything is set up--well if the logging LV is in the swap VG--and, in fact, you do 
 not need a swap LV there--you just use that VG as if there were one. 
 
-h3. About supported key-files/passwords modes
+h3. 5. About supported key-files/passwords modes
 
 For partitions or PVs that are encrypted with a key, setting @ikroot@ and/or @ikswap@ and/or 
 @ikresume@ is required, otherwise a passphrase is required for _each_ PV as fall back.
@@ -99,7 +121,7 @@ This information is then used to obtain each key file from the specified removab
 * @<device|dev>@ is a device or PV that will be assigned to the removable media e.g. sd[a-z][0-9]
 * @</path/to/file>@ is a full path to file inside the removable media.
 
-h3. About squashed directories 
+h3. 6. About squashed directories 
 
 One can use squashfs+aufs2 to squash directories like @$PORTDIR:var/lib/layamn@, or system related 
 directories like @usr:lib32:lib64:bin:sbin@. Advantages are system speed/responsiveness.
@@ -112,7 +134,7 @@ Squashed directories argument:
 
 *NOTE*: leading '/' slash is only required for @[uv_|]sqfsdir@, else mounting squashed dirs will fail. 
 
-h3. Notes on key modes
+h3. 7. Notes on key modes
 
 * @gpg@   -> encrypted key-file works quite well with 1.4*, passed as @gpg -qd ...@; 
 2.0 seems to rquire too much trouble; @/usr/share/gnupg/options.skel@ is required, additionally, 
@@ -125,9 +147,10 @@ I added this mode first for testing purpose for those, like me, who have a worki
 	
 *WARNING*: Back up your data! else... you may lose a few of... them by carelessness.
 
-h3. Kernel parameters example
+h3. 8. Kernel parameters example
 
-* unencrypted Root PV: @iroot=sda3 ikroot=none ikmap=es-cp850_i686.bin@
+* unencrypted Root LV: @iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin@
+*Note*: one cann append any character or word like `ilvm=lvr` when using LVM on unencrypted PVs.
 * Root--key regular passphrase--and fbsplash: @iroot=sda3 ikroot=pwd video=1280x800-24 \@
 	@imod=drm,drm_kms_helper,ttm,i915 splash=verbose,theme:livecd-20007.0 console=tty1@
 * Root--regular keyfile--on usb stick: @iroot=sda3 ikroot=reg:sdb1:/path/to/keyfile@
@@ -138,15 +161,13 @@ h3. Kernel parameters example
 	@iswap=swap:sda2 iresume=swap:sda3:0x4400 ikswap=pwd ikresume=pwd@
 * Swap file--resuming from hibernation--ldk protected keyfile on usb stick:
 	@iswap=file:sda3:0x4400 iresume=toi[|CHAR|WORD] ikswap=ldk:sdb1:/path/to/swapkey@
-	    
-*NOTE*: multiple key files (one for each group) are supported along with single key file. 
-
 * crypted LVs [root,swap] using LVM--ldk crypted keyfile and--_and_ mount options for rootfs:
 	@iroot=vgr-lvr iswap=file:vgs-lvs:0x4400 imtopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier \@
 	@ilvm=pva1-UUID=<uuid>:pvb2-UUID=<uuid>,pvc1-UID=<uuid> \@
 	@ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile@
+*NOTE*: multiple key files (one for each group) are supported along with single key file. 
 
-h3. Modules
+h3. 9. Kernel module groups
 
 To load modules, one could either create needed groups in @/etc/modules/@ in the initramfs. Each file 
 is a line seperated list of modules. Either append a comma seperated list on cmdline using @imod=@ arg.
@@ -162,7 +183,7 @@ Modules should exist in @/lib/modules/$KERNEL_VERSION/@, the kernel should suppo
 Just make sure to append the necessary modules to right group in mkifs-ll.conf for autoloading, or else
 use @opts[*mdep]@ variable to be able to append mdoules to imod cmdline arg when using the building script.
 
-h3. User scripts execution
+h3. 10. Optional user scripts
 
 Now one can add scripts to @/etc/local.d@ of the initramfs, or @$gitdir/misc@ if using mkifs-ll 
 building script. Each script should have a @.sh@ sufix and a @${ishrl}?-*@ prefix as the follwing:
