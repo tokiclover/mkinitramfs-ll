@@ -1,6 +1,6 @@
-@$Header: mkinitramfs-ll/README,v 0.5.1 2012/05/14 16:38:02 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.5.1 2012/05/14 16:41:43 -tclover Exp $@
 
-bq. "initramfs with *[[RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]]* support [with a handfull zsh and or bash set of scripts]"
+bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
 *WARNING: USE AT YOUR OWN RISK!*
 
@@ -97,7 +97,7 @@ List can be a line separated list insted of a collon @:@ list of the forme
 in a list. However, it's best to use UUID only for detached header from cypthertext device which 
 prevent header mismatch. One can use multiple lists up to three, one for each group.
 
-h3. 4. About mount options: @imtopt=<rootfs mount options>@
+h3. 4. About mount options: imtopt=<rootfs mount options>
 
 Say, you have a @rootfs=xfs[|jsf|reiser|ext*]@ and want to mount your rootfs with specific opts. 
 In case of xfs, for exemple, just create your log LV on a different PV than what you're logging 
@@ -150,6 +150,7 @@ I added this mode first for testing purpose for those, like me, who have a worki
 h3. 8. Kernel parameters example
 
 * unencrypted Root LV: @iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin@
+
 *Note*: one cann append any character or word like `ilvm=lvr` when using LVM on unencrypted PVs.
 * Root--key regular passphrase--and fbsplash: @iroot=sda3 ikroot=pwd video=1280x800-24 \@
 	@imod=drm,drm_kms_helper,ttm,i915 splash=verbose,theme:livecd-20007.0 console=tty1@
@@ -165,6 +166,7 @@ h3. 8. Kernel parameters example
 	@iroot=vgr-lvr iswap=file:vgs-lvs:0x4400 imtopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier \@
 	@ilvm=pva1-UUID=<uuid>:pvb2-UUID=<uuid>,pvc1-UID=<uuid> \@
 	@ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile@
+
 *NOTE*: multiple key files (one for each group) are supported along with single key file. 
 
 h3. 9. Kernel module groups
