@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.6.0 2012/05/14 00:04:06 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.6.0 2012/05/14 12:22:40 -tclover Exp $
 revision=0.6.0
 usage() {
   cat <<-EOF
@@ -72,16 +72,17 @@ setopt EXTENDED_GLOB NULL_GLOB
 :	${opts[-initdir]:=${opts[-workdir]}/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}}
 :	${opts[-initrd]:=/boot/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}}
 :	${opts[-arch]:=$(uname -m)}
-if [[ -n ${opts[-y]} ]] || [[ -n ${opts[-keymap]} ]] {
-: 	${opts[-keymap]:=${opts[-y]:-$(grep -E '^keymap' /etc/conf.d/keymaps | cut -d'"' -f2)}}
+if [[ -n ${(k)opts[-y]} ]] || [[ -n ${(k)opts[-keymap]} ]] {
+: 	${opts[-keymap]:=${opts[-y]:-:$(grep -E '^keymap' /etc/conf.d/keymaps | cut -d'"' -f2)}}
 }
 if [[ -n ${(k)opts[-f]} ]] || [[ -n ${(k)opts[-font]} ]] {
-:	${opts[-font]:=:$(grep -E '^consolefont' /etc/conf.d/consolefont | cut -d'"' -f2):ter-v14n}
+:	${opts[-font]:=${opts[-f]:-:$(grep -E '^consolefont' /etc/conf.d/consolefont \
+		| cut -d'"' -f2):ter-v14n}}
 }
 if [[ -n $(uname -m | grep 64) ]] { opts[-lib]=64 } else { opts[-lib]=32 }
 if [[ -f mkifs-ll.conf.zsh ]] { source mkifs-ll.conf.zsh }
 if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] { 
-	opts[-g]=; opts[-l]=; opts[-s]=; opts[-t]=; opts[-q]=; opts[-f]=; opts[-y]=
+	opts[-g]=; opts[-l]=; opts[-s]=; opts[-t]=; opts[-q]=; 
 }
 case ${opts[-comp][(w)1]} in
 	bzip2)	opts[-initrd]+=.ibz2;;
@@ -167,7 +168,7 @@ for font (${(pws,:,)opts[-font]} ${(pws,:,)opts[-f]}) {
 	} elif [[ -e ${font} ]] { cp -a ${font} usr/share/consolefonts/
 	} else {
 		for file (/usr/share/consolefonts/${font}*.gz) { cp ${file} . 
-			gzip -d ${file}
+			gzip -d ${file:t}
 			mv ${font}* usr/share/consolefonts/
 		}
 	}
@@ -181,7 +182,7 @@ if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] { opts[-bin]+=:splash_util.
 			info "copied the whole /etc/splash/${theme} theme"
 		} else { warn "splash themes does not exist" }
 }
-bincp() {
+bcp() {
 	for bin ($@)
 	if [[ -x ${bin}  ]] { 
 		cp -aL ${bin} .${bin/%.static}
@@ -194,8 +195,8 @@ bincp() {
 for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 	if [[ -x ${opts[-bindir]}/${bin:t} ]] { 
 		cp ${opts[-bindir]}/${bin:t} ./${bin} || die "failed to copy ${bin}"
-	} elif [[ -x /${bin} ]] { bincp /${bin}
-	} else { bincp $(which ${bin:t}) }
+	} elif [[ -x /${bin} ]] { bcp /${bin}
+	} else { bcp $(which ${bin:t}) }
 find . -print0 | cpio --null -ov --format=newc | ${=opts[-comp]} > ${opts[-initrd]} || die
 print -P "%F{green}>>> ${opts[-initrd]} initramfs built%f"
 unset opts
