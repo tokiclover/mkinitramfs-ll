@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/autogen.bash,v 0.6.0 2012/05/14 00:36:27 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.bash,v 0.6.0 2012/05/14 02:37:09 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} OPTIONS [OPTIONS...]
@@ -39,9 +39,9 @@ usage() {
 EOF
 exit $?
 }
-opt=$(getopt -o ab:c::e:f::gik::lm::p::rs::tuvy::B::M::W::nDC:U:y:: -l all,bin:,bindir::,eversion: \
+opt=$(getopt -o ab:c::e:f::gik::lm::p::rs::tuvy::B::M::W::nC:U:y:: -l all,bin:,bindir::,eversion: \
 	  -l gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev::,mtuxonice::,sqfsd,toi,usage,raid,font:: \
-	  -l lvm,miscdir:,workdir:,kversion::,build,confdir:,minimal,ucl-arch:,keymap::,comp:: \
+	  -l lvm,miscdir:,workdir:,kversion::,confdir:,minimal,ucl-arch:,keymap::,comp:: \
 	  -l install,prefix::,splash:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts

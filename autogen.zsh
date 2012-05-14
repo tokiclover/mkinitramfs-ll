@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/autogen.zsh,v 0.5.2.0 2012/05/14 00:36:30 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.zsh,v 0.6.0 2012/05/14 02:37:18 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS] [OPTIONS...]
