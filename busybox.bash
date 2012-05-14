@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.6.0 2012/05/14 00:42:24 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.6.0 2012/05/14 02:39:37 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} [-m|--minimal] [OPTIONS]
@@ -65,7 +65,6 @@ else make defconfig || die "defconfig failed"
 	sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
 	-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" -i .config || die "config failed"
 fi
-# For uClibc users, you need to adjust the cross compiler prefix properly (i386-uclibc-)
 if [[ -n "${opts[U]}" ]]; then
 	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[U]}\"|" \
 		-i .config || die "setting uClib ARCH failed"
@@ -73,8 +72,8 @@ fi
 make && make busybox.links || die "failed to build busybox"
 if [[ -n "${opts[install]}" ]]; then
 	if [[ -e "${opts[tmpdir]}" ]]; then
-			make install CONFIG_PREFIX="${opts[tmpdir]}"/busybox
-			rm -rf "${opts[tmpdir]}"/busybox
+		make install CONFIG_PREFIX="${opts[tmpdir]}"/busybox
+		rm -rf "${opts[tmpdir]}"/busybox
 	fi
 	applets/install.sh "${opts[bindir]}" --symlinks
 fi
