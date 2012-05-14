@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.6.0 2012/05/13 23:18:40 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.6.0 2012/05/14 03:51:42 -tclover Exp $
 revision=0.6.0
 usage() {
   cat <<-EOF
@@ -53,9 +53,9 @@ addnodes() {
 		[[ -c dev/tty${nod} ]] || mknod dev/tty${nod} c 4 ${nod} || die
 	done
 }
-opt=$(getopt -o ab:c::e:f::gk::lm::rstuvy::B::M::S::W:: -l all,bin:,bindir::,comp::,eversion: \
+opt=$(getopt -o ab:c::e:f::gk::lm::p::rs::tuvy::B::M::S::W:: -l all,bin:,bindir::,comp::,eversion: \
 	  -l font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev::,mtuxonice::,sqfsd,toi,usage,version \
-	  -l keymap::,lvm,miscdir::,workdir::,kversion::,raid -n ${0##*/} -- "$@" || usage)
+	  -l keymap::,lvm,miscdir::,workdir::,kversion::,prefix::,splash::,raid -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
@@ -226,7 +226,7 @@ if [[ -n "${opts[splash]}" ]]; then opts[bin]+=:splash_util.static
 		else warn "failed to copy ${theme} theme"; fi
 	done
 fi
-bincp() {
+bcp() {
 	for bin in $@; do
 		if [[ -x ${bin} ]]; then cp -aH ${bin} .${bin/%.static}
 			if [[ "$(ldd ${bin})" != *"not a dynamic executable"* ]]; then
@@ -238,8 +238,8 @@ bincp() {
 }
 for bin in ${opts[bin]//:/ }; do
 	if [[ -x "${opts[bindir]}"/${bin##*/} ]]; then cp "${opts[bindir]}"/${bin##*/} ${bin%/*}
-	elif [[ -x /${bin} ]]; then bincp /${bin}
-	else bincp $(which ${bin##*/}); fi
+	elif [[ -x /${bin} ]]; then bcp /${bin}
+	else bcp $(which ${bin##*/}); fi
 done
 find . -print0 | cpio --null -ov --format=newc | ${opts[comp]} > "${opts[initrd]}" || die "eek!"
 echo ">>> ${opts[initrd]} initramfs built"
