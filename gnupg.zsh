@@ -1,12 +1,12 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/gnupg.zsh,v 0.6.0 2012/05/14 00:45:20 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.zsh,v 0.6.0 2012/05/14 02:38:49 -tclover Exp $
 usage() {
    cat <<-EOF
    usage: ${(%):-%1x} [-U|-useflag'falgs'] [-V|-Version'<str>'] [OPTIONS]
-   -B|-bindir  <bin>    where to copy builded binary, default is \${PWD}/bin
+   -B|-bindir  [bin]    where to copy builded binary, default is \${PWD}/bin
    -C|-confdir <dir>    copy gpg.conf, GnuPG configuration file, from dir
-   -M|-miscdir <misc>   where to copy {.gnupg/gpg.conf,share/gnupg/options.skel}
-   -W|-wokdir  <dir>    working directory where to create initramfs directory
+   -M|-miscdir [misc]   where to copy {.gnupg/gpg.conf,share/gnupg/options.skel}
+   -W|-wokdir  [<dir>]  working directory where to create initramfs directory
    -U|-useflag <flags>  extra USE flags to append to USE="nls static"
    -v|-version <str>    build gpg-<str> version instead of gpg-1.4.x
    -u|-usage            print this help/uage and exit

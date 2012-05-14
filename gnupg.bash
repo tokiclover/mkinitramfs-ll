@@ -1,11 +1,11 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/gnupg.bash,v 0.6.0 2012/05/14 00:45:18 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.bash,v 0.6.0 2012/05/14 02:38:55 -tclover Exp $
 usage() {
    cat <<-EOF
    usage: ${0##*/} [OPTINS]...
-   -B, --bindir  <bin>    where to copy builded binary, default is \${PWD}/bin
-   -M, --miscdir <misc>   where to copy {.gnupg/gpg.conf,share/gnupg/options.skel}
-   -W, --wokdir  <dir>    working directory where to create initramfs directory
+   -B, --bindir  [bin]    where to copy builded binary, default is \${PWD}/bin
+   -M, --miscdir [misc]   where to copy {.gnupg/gpg.conf,share/gnupg/options.skel}
+   -W, --wokdir  [<dir>]  working directory where to create initramfs directory
    -U, --useflag flags    extra USE flags to append to USE="nls static"
    -v, --version <str>    build gpg-<str> version instead of gpg-1.4.x
    -u, --usage            print this help/uage and exit
