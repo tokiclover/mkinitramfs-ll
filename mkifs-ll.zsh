@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.6.0 2012/05/14 12:22:40 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.6.0 2012/05/14 18:09:34 -tclover Exp $
 revision=0.6.0
 usage() {
   cat <<-EOF
@@ -77,7 +77,7 @@ if [[ -n ${(k)opts[-y]} ]] || [[ -n ${(k)opts[-keymap]} ]] {
 }
 if [[ -n ${(k)opts[-f]} ]] || [[ -n ${(k)opts[-font]} ]] {
 :	${opts[-font]:=${opts[-f]:-:$(grep -E '^consolefont' /etc/conf.d/consolefont \
-		| cut -d'"' -f2):ter-v14n}}
+		| cut -d'"' -f2):ter-v14n:ter-g12n}}
 }
 if [[ -n $(uname -m | grep 64) ]] { opts[-lib]=64 } else { opts[-lib]=32 }
 if [[ -f mkifs-ll.conf.zsh ]] { source mkifs-ll.conf.zsh }
@@ -107,7 +107,7 @@ cp -ar {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy mod
 cp -r ${opts[-miscdir]}/share usr/ || die "failed to copy ${opts[-miscdir]}/share"
 if [[ -e ${opts[-miscdir]}/imsg ]] { cp ${opts[-miscdir]}/imsg etc/ }
 for scr (${opts[-miscdir]}/*(.).sh) cp ${scr} etc/local.d/
-if [[ -x ${opts[-bindir]}/busybox ]] { opts[-bin]+=:bin/busybox
+if [[ -x ${opts[-bindir]}/busybox ]] { cp -a ${opts[-bindir]}/busybox bin/
 } elif [[ $(which busybox) != "busybox not found" && \
 	$(ldd $(which busybox)) == *"not a dynamic executable" ]] {
 	cp -a $(which busybox) bin/

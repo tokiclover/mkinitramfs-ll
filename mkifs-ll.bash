@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.6.0 2012/05/14 03:51:42 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.6.0 2012/05/14 18:09:37 -tclover Exp $
 revision=0.6.0
 usage() {
   cat <<-EOF
@@ -92,7 +92,7 @@ while [[ $# > 0 ]]; do
 		-f|--font) 
 			if [[ -n "${2}" ]] ;then opts[font]+=":${2}"
 			else opts[font]+=:$(grep -E '^consolefont' /etc/conf.d/consolefont \
-				| cut -d'"' -f2):ter-v14n
+				| cut -d'"' -f2):ter-v14n:ter-g12n
 			fi
 			shift 2;;
 		--) shift; break;;
@@ -136,7 +136,7 @@ cp -ar "${opts[miscdir]}"/share usr/ || die "failed to copy ${opts[miscdir]}/sha
 for scr in $(ls ${opts[miscdir]}/*.sh &>/dev/null); do 
 	cp ${scr} etc/local.d/
 done
-if [[ -x "${opts[bindir]}"/busybox ]]; then opts[bin]+=:bin/busybox
+if [[ -x "${opts[bindir]}"/busybox ]]; then cp ${opts[bindir]}/busybox bin/
 elif which busybox &> /dev/null && \
 	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]]; then
 	cp -a $(which busybox) bin/
