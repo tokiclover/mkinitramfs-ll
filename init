@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/15 13:44:28 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/15 14:40:39 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -88,7 +88,7 @@ ishrl() {
 				${scr} || warn "${scr} failed"
 			done
 		fi
-#		exec sh
+		exec sh
 	fi
 }
 
@@ -119,30 +119,30 @@ getkey() {
 			fi
 		else return; fi
 	else return; fi
-	[ "${lv_kmode}" != "pwd" ] && {
+	if [ "${lv_kmode}" != "pwd" ]; then
 		[ -n "${2}" ] || die "ik${4}=${1}:${2}:${3} device field empty."
 		[ -n "${3}" ] || die "ik${4}=${1}:${2}:${3} filepath field empty."
 		local lv_dev=$(_blkid "${2}"); gv_fpath="${3}"
-			[ -n "$(mount | grep /mnt/tok)" ] || { 
-			[ -b "${lv_dev}" ] || { 
-			sleep 2; lv_dev=$(_blkid "${2}")
+		if [ -z "$(mount | grep /mnt/tok)" ]; then
+			if [ ! -b "${lv_dev}" ]; then
+				sleep 2; lv_dev=$(_blkid "${2}")
 				if [ ! -b "${lv_dev}" ]; then
-					info "Insert removable device and press Enter."; read
-					sleep 2; lv_dev=$(_blkid "${2}"); fi
+					info "Insert removable device and press Enter."
+					read; sleep 2; lv_dev=$(_blkid "${2}")
+				fi
 				while [ ! -b "${lv_dev}" ]; do
 					info "${lv_dev} does not exist, input a valid dev name"
 					info "e.g. '[/dev/]sdb1', 'LABEL=<label>' 'UUID=<uuid>'"
-					read lv_dev
-					sleep 2; lv_dev=$(_blkid "${lv_dev}")
+					read lv_dev; sleep 2; lv_dev=$(_blkid "${lv_dev}")
 				done
-			}
-			mount -n -r "${lv_dev}" /mnt/tok &>/dev/null || \
+			fi
+			mount -n -r "${lv_dev}" /mnt/tok &> /dev/null || \
 				die "Failed to mount ${lv_dev} remdev."
 			info "Removable device mounted."
-		}
+		fi
 		[ -f "/mnt/tok/${gv_fpath}" ] || \
 			die "${gv_fpath} keyfile does not exist in ${lv_dev} remdev."
-	}
+	fi
 	case ${lv_kmode} in
 		gpg) [ ${uv_check_env} ] || bchk "gpg" "--"
 			 gv_kfile="/mnt/tok/${gv_fpath}"; gv_cmode=gpg;;
