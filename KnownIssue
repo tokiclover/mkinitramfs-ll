@@ -1,50 +1,10 @@
-# $Header: mkinitramfs-ll/KnownIssue,v 0.4.0 2011/11/23 -tclover Exp $
+# $Header: mkinitramfs-ll/KnownIssue,v 0.6.0 2012/05/15 15:05:09 -tclover Exp $
 #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 # a device list should have two and only two groups because the awk script that 
 # parse devices behaves strangely with three groups (>=init-0.4.0). And one 
 # group can be an empty group with the header `[root]', `[swap]' or `[toi]'.
 # resume group is called `[toi]' because resume is a reserved word for awk(?).
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# well, this should have been added to begin with, when using sdr|sqfsd-rebuild
-# to rebuild bin:lib64 after having updated util-linux/coreutiles, cp cannot
-# override itself of course and the libraries linked to cp. So one has to copy
-# (with a `cp -a') and move those files afterwards to where they should be.
-# WARING: if libraries from lib64 for amd64 users, or lib32 for x86 users, are 
-# part of that very few files which werent copied over the underlying directory
-# one should reboot ASAP! because in that case rc-svcdir, for OpenRC users, is 
-# moved to `/var/lib/init.d' and one cannot do that moving quick enough before 
-# rc update `/lib/rc/init.d'--MEANING--rc will take an empty directory for NO
-# services is running/or services were killed or something. For those who use
-# GNOME or KDE you may not have enough time to reboot before that thing happen
-# meaning you'll be forced to hard reboot because your box will be running fine
-# but you cannot use it anymore for some reason-well there's no services running
-# for rc even if they are, in fact, running. I can reboot without any hassle e17 
-# and I could barely do it with GNOME-2.3x--I had to watch over when rebuilding 
-# lib64 after a util-linux/coreutils update and reboot asap after a failure to 
-# update lib64 and move back `/lib64/rc/init.d'.
-# SO A REBOOT IS NECESSARY TO COPY OVER `/newroot/sqfsd/lib64/ro' 
-# (with a `cp -ar') to `/newroot/lib64' in the minimal shell--easily done.
-# Of course if you can ssh over your box and move back rc-svcdir maybe... or 
-# wait untill next reboot to update the underlying bin:lib$ARCH if it's just 
-# a failure to copy a few files.
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# there's a bug with the previous release, `ikmap' need an extra colon `:' even 
-# if there's no font appended after the key map! just append a colon `:' 
-# to avoid it. I will fix it latter.
-# I commited (4b7842f) a fix for `ikmap=<kmap>:' mandatory colon `:' issue, that 
-# commit should fix it, if not... append one again. I've just seen a peculiar 
-# failure after rebooting yesterday with that fix so I rm-ed my previous 
-# initramfs for new ones. I did not reboot yet. 
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# The `login lockup' seems to have disappeared completely on my desktop and 
-# laptop which is good. In fact, I tried resetting `RC_SVCDIR'--replacing 
-# `: ${RC_SVCDIR:=/lib64/rc/init.d}' by a simple `RC_SVCDIR=/var/lib/rc.init.d'-
-# -and rc-svcdir was in fact mounted there after rebooting. That resetting was 
-# necessary since just replacing `/lib64/rc/init.d' by `/var/lib/rc.init.d' did 
-# not do the trick. However the change wasn't kept after the next reboot and 
-# rc-svcdir was mounted on `/lib64/rc/init.d/' and my mod disappeared with  no 
-# login errors!
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 # Now I have an unxpected issue when resuming from hibernation with my desktop. 
 # The script runs seamlessly on my laptop and I can resume in no time. However, 
