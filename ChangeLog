@@ -1,10 +1,23 @@
-# $Id: mkinitramfs-ll/ChangeLog -tclover Exp $
-#
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
-# ToDo: Done. However, if somebody want anything else... feel free to do it #
-# of course. And now I added LVM2... done I'm saying...                     #
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
-#
+# $Id: mkinitramfs-ll/ChangeLog, 2012/05/15 14:06:54 -tclover Exp $
+
+*mkinitramfs-ll-0.6.0 (15 May 2012)
+	* mkifs-ll.$shell now take care of generating unicode compatible keymap;
+	* now one can add keymaps in `$miscdir/share/keymaps' and consolefonts in
+	  `$miscdir/share/consolefonts', as the whole $miscdir directory will be 
+	  copied in $initdir/usr, everything will be included in the initramfs;
+	* init script will try to load fonts and keymaps first from usr/share/*
+	  and then from `/etc' and lastly from `/', so one can append to ikmap
+	  arg `/path/to/font' or `/path/to/keymap';
+	* now busybox `applets' file is more than optional because mlifs-ll.$shell
+	  will generate one from the include binary directly, but the old behavior
+	  is preserved--it'll still try to include first from `$bindir/applets'--;
+	* renames: mkifs-ll.gen->autogen, mkifs-ll.bb->busybox and
+	  mkifs-ll.gpg->gnupg which are more understandable;
+	* README->README.textile whish is more readable on the web intertubes;
+	* now sqfsdmount.initd was update to be able to rebuild squashed dirs
+	* gentoo users can rely on the static, already merged, bb binary;
+	* fixes and update/edit/clean up (again) init to be more readable.
+
 *2012-02-07:
 	* changes slash `/' to plus `+' as a detached header separator.
 
@@ -332,4 +345,4 @@
 	* Andreas Steinmetz [kernel doc: power/swsusp-dmcrypt.txt]
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
 
-# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
+# vim:fenc=utf-8:ci:pi:sts=0:sw=2:ts=2:
