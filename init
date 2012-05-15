@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/15 14:40:39 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/15 15:07:05 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -235,10 +235,11 @@ dmopen() {
 	fi
 }
 
-_lvm() {
+lvopen() {
 	[ "${uv_check_env}" ] || bchk "lvm" "--"
+	info "lvm"
 	if lvchange -ay ${1/-//}; then continue
-	info "$? \n"
+	info "$?"
 	elif [ -n "${2}" ]; then
 		local lv_pv="${2}" IFS="${IFS}:"
 		[ -e "/mnt/tok/${lv_pv}" ] && lv_pv="$(cat /mnt/tok/${lv_pv})"
@@ -252,7 +253,7 @@ _lvm() {
 	echo "$lv_mapping"
 }
 
-_raid() {
+mdopen() {
 	local lv_dev=${1%%-*} lv_part=$(echo ${1} | cut -d'-' -f3)
 	[ -n "$(echo ${lv_dev} | grep /dev)" ] || lv_dev=/dev/${lv_dev}
 	[ -b ${lv_dev} ] && return
@@ -300,10 +301,9 @@ rootfs() {
 	getkey "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
 	ishrl 3d
 	info "ROOT LV..."
-	[ -n "${lv_raid}" ] && _raid "${lv_raid}"
+	[ -n "${lv_raid}" ] && mdopen "${lv_raid}"
 	if [ -n "${lv_lvm}" ]; then 
-		info lvm
-		local lv_dev=$(_lvm "${lv_root}" "${lv_lvm}")
+		local lv_dev=$(lvopen "${lv_root}" "${lv_lvm}")
 	elif [ -n "${gv_cmode}" ]; then info "...encrypted rootfs."
 		dmopen "${uv_root_map:-root}-${gv_root}" 
 		local lv_dev=/dev/mapper/${uv_root_map:-root}
@@ -338,9 +338,9 @@ swp() {
 	[ -n "$lv_sign" ] && lv_sign=:$lv_sign
 	info "SWAP LV..."
 	getkey "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
-	[ -n "${lv_raid}" ] && _raid "${lv_raid}"
+	[ -n "${lv_raid}" ] && mdopen "${lv_raid}"
 	if [ -n "${lv_lvm}" ]; then 
-		gv_dev=${lv_type}:$(_lvm "${lv_hdev}" "${lv_lvm}")${lv_sign}
+		gv_dev=${lv_type}:$(lvopen "${lv_hdev}" "${lv_lvm}")${lv_sign}
 	elif [ -n "${gv_cmode}" ]; then info "...encrypted ${lv_mapp}."
 		dmopen "${lv_mapp}-${lv_hdev}"
 		gv_dev=${lv_type}:/dev/mapper/${lv_mapp}${lv_sign}
