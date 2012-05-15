@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.5.1 2012/05/14 18:17:49 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.6.0 2012/05/15 13:47:28 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
