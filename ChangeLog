@@ -1,6 +1,17 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2012/05/15 14:06:54 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2012/05/16 16:00:54 -tclover Exp $
 
 *mkinitramfs-ll-0.6.0 (15 May 2012)
+	16 May 2012
+
+	* now rescue{,shell} will drop into a rescue shell;
+	* rootfs fsck failure option is dropped;
+	* added a handy debug() function to follow the init process;
+	* user scripts should get executed as expected, before it was only to a
+	  single runlevel gv_shrl=<i> appended in the cmdline with ishrl;
+	* and fixes....
+
+	15 May 2012
+
 	* mkifs-ll.$shell now take care of generating unicode compatible keymap;
 	* now one can add keymaps in `$miscdir/share/keymaps' and consolefonts in
 	  `$miscdir/share/consolefonts', as the whole $miscdir directory will be 
