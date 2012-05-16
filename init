@@ -32,6 +32,7 @@ debug() {
 			-i) info "i[${ret}]: ${lvc}";;
 		esac
 	fi
+	echo "${ret}"
 }
 
 die() {
