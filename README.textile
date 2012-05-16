@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.6.0 2012/05/16 02:11:53 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.6.0 2012/05/16 15:22:35 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -32,12 +32,11 @@ And of course when using this script, one does not need @root=<arg>@ nor @resume
 init script supports the following specific arguments: 
 
 * @iroot=<PV|VG-LV>[:c:<fs>:n]@  -> required root device, recommanded optional @:c:ext4@ 
-for an ext4 rootfs, last @:n@ disable a @die@ after fsck failure. 
 * @imtopt=<ro,inode64,...>@      -> optional mount options for rootfs.
 * @imod=<drm,ttm,...,nouveau>@   -> optional modules [list] to load (in the boot group).
 * @ikmap=<kmap>[:<font>@         -> optional keymap and font to load, may be handy for passwords.
 * @ishrl=<n>|:<n>@               -> interrupt init and drop to n level or pass n to real init (see EOF)
-* @rescue@                       -> drops directly into a minimal shell.
+* @rescue|rescueshell@           -> drops directly into a minimal shell.
 * @ilvm=<map-PV>,...,<map-PV>@   -> LVM argument @<mapping-PV>@ is collon ':' separated 
 list of PVs of a VG; and comma ',' separated list of VG: 1st for root, 2nd for swap and 
 the 3rd for resume, hence one can append enough commas to asign a particular group.
@@ -50,7 +49,7 @@ the 3rd for resume, hence one can append enough commas to asign a particular gro
 * @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@    -> squashed directories, see below for more info.    
 
 init script accept @single@ argument and will append single runlevel to real init, no special care 
-for @ro|rw@ because it can be appended as @imtopt=ro@, rw mode is the default behavior, for example.
+for @ro|rw@ because it can be appended as @imtopt=ro@, @rw@ mode is the default behavior, for example.
 
 h3. 3. About device, /dev/ prefix and detached LUKS header
 
