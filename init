@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/16 20:25:10 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/16 20:39:24 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -42,9 +42,7 @@ die() {
 	info "dropping you into a rescueshell..."
 	for lk in ${gv_lkey}; do dmclose "${lk}"; done
 	for ld in ${gv_ldev}; do losetup -d ${ld}; done
-	if [ -c "/dev/tty1" ]; then 
-		setsid sh -c "exec sh --login < /dev/tty1 > /dev/tty1 2>&1"
-	else sh --login; fi
+	exec sh
 }
 
 bchk() {
@@ -105,9 +103,7 @@ ishrl() {
 	fi
 	if [ "${gv_shrl}" == "${1}" ]; then verbose
 		info "${1}: dropping into a rescueshell"
-		if [ -c "/dev/tty1" ]; then 
-			setsid sh -c "exec sh --login < /dev/tty1 > /dev/tty1 2>&1"
-		else sh --login; fi
+		exec sh
 	fi
 }
 
