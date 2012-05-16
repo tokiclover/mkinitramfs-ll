@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/16 17:41:09 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/16 20:25:10 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -19,8 +19,8 @@ info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
 error() { echo -ne "\033[1;31m * \033[0m$@\n"; }
 
 debug() {
-	local lvd=$(echo "${@}" | cut -c-2) ret
-	local lvc=$(echo "${@}" | cut -c4-)
+	local lvd="${@:0:2}"
+	local lvc="${@:3:${#@}}"
 	if [ "$lvd" == "-d" ] || [ "$lvd" == "-e" ] || [ "$lvd" == "-i" ]; then $lvc
 	else lvc=; $@; fi
 	ret=$?
@@ -32,7 +32,7 @@ debug() {
 			-i) info "i[${ret}]: ${lvc}";;
 		esac
 	fi
-	echo "${ret}"
+	return "${ret}"
 }
 
 die() {
