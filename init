@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/16 20:39:24 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/17 10:23:04 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -254,10 +254,9 @@ lvopen() {
 		for pv in ${lv_pv}; do debug dmopen "${pv}"; done
 		debug vgchange -ay ${1%-*} || debug -d dmclose "${lv_pv}" "${1}"
 	else die "${1} require a valid crypted physical volume"; fi
-	if [ -b "/dev/mapper/${1}" ]; then local lvmap=/dev/mapper/${1}
-	elif [ -b "/dev/${1/-//}" ]; then local lvmap=/dev/${1/-//}
-	else die "${1} VG/LV do not exist."; fi
-	echo "${lvmap}"
+	if [ -b "/dev/mapper/${1}" ]; then eval ${3}=/dev/mapper/${1}
+	elif [ -b "/dev/${1/-//}" ]; then eval ${3}=/dev/${1/-//}
+	else die "${1/-//} VG/LV do not exist."; fi
 }
 
 mdopen() {
@@ -278,7 +277,7 @@ squashd() {
 	[ -n "$sqfsdir" ] || die "uv_sqfsdir wasn't set and sqfsdir is empty."
 	[ -n "$sqfsd" ]   || die "uv_sqfsd wasn't set and sqfsd is empty."
 	[ -d /newroot/"$sqfsdir" ] || die "sqfsdir=$sqfsdir dir doesn't exist."
-	_modprobe sqfsd
+	debug _modprobe sqfsd
 	cd /newroot
 	local IFS="${IFS}:"
 	for dir in $sqfsd; do
@@ -291,40 +290,37 @@ squashd() {
 	done
 }
 rootfs() {
+	local lv_root=${gv_root%%:*}
 	local lv_kmod=${gv_kroot%%:*}
 	local lv_kdev="$(echo "${gv_kroot}" | cut -d':' -f2)"
 	local lv_kfpt="$(echo "${gv_kroot}" | cut -d':' -f3)"
-	local lv_root=${gv_root%%:*}
-	local lv_rofs="$(echo "${gv_root}" | cut -d':' -f2)"
-:	local ${lv_lvm:=${gv_lvm%%,*}}
-:	${lv_lvm:=${gv_lvm_root}}
-:	local ${lv_raid:=${gv_raid%%,*}}
-	local lv_fscf=${gv_root##*:}
-	[ -n "${gbov_mtopt}" ] && local lv_mtopt="-o ${gv_mtopt}"
-	[ -n "${lv_rofs}" ]  && lv_rofs="-t ${lv_rofs}"
-	[ -n "${gv_root}" ] || die "iroot=* arg [PV|VG-LV][:fsck:<fs>] are missing."
+	local lv_fsck="$(echo "${gv_root}" | cut -d':' -f2)"
+	local lv_fs="$(echo "${gv_root}" | cut -d':' -f3)"
+:	local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f1)}
+:	local ${lv_raid:=$(echo "${gv_raid}" | cut -d',' -f1)}
+	[ -n "${gv_root}" ] || die "iroot=[PV|VG-LV][:<fs>] argument is missing"
 	debug getkey "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
 	ishrl 3d
 	[ -n "${lv_raid}" ] && mdopen "${lv_raid}"
 	if [ -n "${lv_lvm}" ]; then 
-		local lv_dev=$(debug -d lvopen "${lv_root}" "${lv_lvm}")
-	elif [ -n "${gv_cmode}" ]; then info "...encrypted rootfs."
+		debug -d lvopen "${lv_root}" "${lv_lvm}" "gv_dev"
+	elif [ -n "${gv_cmode}" ]; then
 		debug -d dmopen "${uv_root_map:-root}-${gv_root}" 
-		local lv_dev=/dev/mapper/${uv_root_map:-root}
-	else local lv_dev=$(debug -d _blkid "${lv_root}"); fi
+		gv_dev=/dev/mapper/${uv_root_map:-root}
+	else gv_dev=$(debug -d _blkid "${lv_root}"); fi
 	ishrl 3f
-	[ -n "${lv_fsck}" ] && debug -d fsck ${lv_rofs} ${lv_dev} 
+	[ -n "${lv_fsck}" ] && debug -d fsck ${lv_fs:+-t${lv_fs}} ${gv_dev} 
 	ishrl 3m
-	debug mount ${lv_mtopt} ${lv_rofs} ${lv_dev} /newroot
+	debug mount ${gv_mopt:+-o${gv_mtopt}} ${lv_fs:+-t${lv_fs}} ${gv_dev} /newroot
 	if [ ! "$?" ]; then
 		if [ -n "${gv_cmode}" ]; then
 			debug -d dmclose "${lv_lvm:-${uv_root_map:-root}}" "${lv_lvm:+${lv_root}}"
 		fi
-		die "Failed to mount rootfs."
+		die "failed to mount rootfs"
 	fi
 	ishrl 3s
 	[ -n "${sqfsd}" ] && debug squashd
-	lv_lvm=; lv_mtopt=; gv_cmode=
+	lv_lvm=; gv_mtopt=; gv_cmode=; gv_dev=
 }
 
 swp() {
@@ -333,22 +329,20 @@ swp() {
 	local lv_sign="$(echo "$2"|cut -d':' -s -f3)"
 	local lv_kmod=${3%%:*}
 	local lv_kdev="$(echo "$3"|cut -d':' -s -f2)"
-	local lv_kfpt=${3##*:}
+	local lv_kfpt="$(echo "$3"|cut -d':' -s -f3)"
 	local lv_mapp=${1}
-	[ -n "$lv_hdev" ] || die "${lv_mapp} dev|VG-LV is missing."
-	[ -n "$lv_type" ] || die "${lv_mapp} type file|swap is missing."
-	[ -n "$lv_sign" ] && lv_sign=:$lv_sign
-	debug getkey "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
-	[ -n "${lv_raid}" ] && mdopen "${lv_raid}"
+	[ -n "$lv_hdev" ] || die "${lv_mapp} [PV|VG-LV] is missing"
+	[ -n "$lv_type" ] || die "${lv_mapp} type [file|swap] is missing"
+	debug getkey "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${1}"
+	[ -n "${lv_raid}" ] && debug -d mdopen "${lv_raid}"
 	if [ -n "${lv_lvm}" ]; then 
-		gv_dev=${lv_type}:$(debug -d lvopen "${lv_hdev}" "${lv_lvm}")${lv_sign}
-	elif [ -n "${gv_cmode}" ]; then info "...encrypted ${lv_mapp}."
+		debug -d lvopen "${lv_hdev}" "${lv_lvm}" "gv_dev"
+		gv_dev=${lv_type}:${gv_dev}${lv_sign:+:${lv_sign}}
+	elif [ -n "${gv_cmode}" ]; then
 		debug -d dmopen "${lv_mapp}-${lv_hdev}"
-		gv_dev=${lv_type}:/dev/mapper/${lv_mapp}${lv_sign}
-	else info "...unencrypted ${lv_mapp}."
-		gv_dev=${lv_type}:$(ebug die _blkid "${lv_hdev}")${lv_sign}
-	fi
-	lv_lvm=; lv_raid=; gv_cmode=
+		gv_dev=${lv_type}:/dev/mapper/${lv_mapp}${lv_sign:+:${lv_sign}}
+	else gv_dev=${lv_type}:$(debug -d _blkid "${lv_hdev}")${lv_sign:+:${lv_sign}}; fi
+	lv_lvm=; lv_raid=; gv_cmode=; gv_dev=
 }
 
 resume() {
@@ -357,7 +351,6 @@ resume() {
 	if [ -n "$(echo "${gv_toi}" | cut -d':' -s -f2)" ]; then
 :		local ${lv_raid:=$(echo "${gv_raid}" | cut -d',' -f3)}
 :		local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f3)}
-:		${lv_lvm:=${gv_lvm_resume}}
 		debug swp "resume"  "${gv_toi}" "${gv_kresume}"
 	fi
 	debug _modprobe tuxonice
@@ -424,7 +417,6 @@ main() {
 	if [ -n "${gv_swap}" ]; then
 :		local ${lv_raid:=$(echo "${gv_raid}" | cut -d',' -f2)}
 :		local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f2)}
-:		${lv_lvm:=${gv_lvm_swap}}
 		ishrl 2s
 		swp "swap" "${gv_swap}" "${gv_kswap}"
 	fi
