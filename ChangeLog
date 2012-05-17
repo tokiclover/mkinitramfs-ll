@@ -1,6 +1,11 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2012/05/16 16:00:54 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2012/05/17 10:55:57 -tclover Exp $
 
 *mkinitramfs-ll-0.6.0 (15 May 2012)
+	17 May 2012
+		
+	* minor fixes and replaced echoing return values by setting global
+	  variables...
+	
 	16 May 2012
 
 	* now rescue{,shell} will drop into a rescue shell;

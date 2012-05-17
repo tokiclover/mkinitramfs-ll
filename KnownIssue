@@ -1,5 +1,7 @@
-# $Header: mkinitramfs-ll/KnownIssue,v 0.6.0 2012/05/15 15:05:09 -tclover Exp $
+# $Header: mkinitramfs-ll/KnownIssue,v 0.6.0 2012/05/17 10:55:49 -tclover Exp $
 #
+#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+# *echo*ing return values is roblematic, minimize or eplace by global variables
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 # a device list should have two and only two groups because the awk script that 
 # parse devices behaves strangely with three groups (>=init-0.4.0). And one 
