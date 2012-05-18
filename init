@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/18 21:03:31 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/18 21:13:10 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -334,20 +334,17 @@ swp() {
 	local lv_kmod=${3%%:*}
 	local lv_kdev="$(echo "${3}" | cut -d':' -s -f2)"
 	local lv_kfpt="$(echo "${3}" | cut -d':' -s -f3)"
-	local lv_mapp=${1} 
+	local lv_map=${1} 
 	local lvdev
-	[ -n "$lv_hdev" ] || die "${lv_mapp} [PV|VG-LV] is missing"
-	[ -n "$lv_type" ] || die "${lv_mapp} type [file|swap] is missing"
+	[ -n "${lv_hdev}" ] || die "${lv_map} [PV|VG-LV] is missing"
+	[ -n "${lv_type}" ] || die "${lv_map} type [file|swap] is missing"
 	debug getkey "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${1}"
 	[ -n "${lv_raid}" ] && debug -d mdopen "${lv_raid}"
 	if [ -n "${lv_lvm}" ]; then debug -d lvopen "${lv_hdev}" "${lv_lvm}" "lvdev"
-		lvdev=${lv_type}:${lvdev}${lv_sign:+:${lv_sign}}
-	elif [ -n "${gv_cmode}" ]; then
-		debug -d dmopen "${lv_mapp}-${lv_hdev}"
-		lvdev=${lv_type}:/dev/mapper/${lv_mapp}${lv_sign:+:${lv_sign}}
-	else debug -d _blkid "${lv_hdev}" "lvdev"
-		lvdev=${lv_type}:${lvdev}${lv_sign:+:${lv_sign}}
-	fi
+	elif [ -n "${gv_cmode}" ]; then debug -d dmopen "${lv_map}-${lv_hdev}"
+		lvdev=/dev/mapper/${lv_map}
+	else debug -d _blkid "${lv_hdev}" "lvdev"; fi
+	lvdev=${lv_type}:${lvdev}${lv_sign:+:${lv_sign}}
 	[ -n "${4}" ] && eval ${4}=${lvdev}
 	lv_lvm=; lv_raid=; gv_cmode=
 }
