@@ -1,12 +1,23 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2012/05/17 10:55:57 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2012/05/19 03:03:09 -tclover Exp $
+
+*mkinitramfs-ll-0.6.1 (19 May 2012)
+
+	19 May 2012
+
+	* added cyrptsetup-1.4.2 uuid support
 
 *mkinitramfs-ll-0.6.0 (15 May 2012)
-	17 May 2012
+	
+	May 19 2012
+
+	* fixes and stabilized 0.6.0, particulary squashd() aufs mount failures.
+
+	May 17 2012
 		
 	* minor fixes and replaced echoing return values by setting global
 	  variables...
 	
-	16 May 2012
+	May 16 2012
 
 	* now rescue{,shell} will drop into a rescue shell;
 	* rootfs fsck failure option is dropped;
@@ -15,7 +26,7 @@
 	  single runlevel gv_shrl=<i> appended in the cmdline with ishrl;
 	* and fixes....
 
-	15 May 2012
+	May 15 2012
 
 	* mkifs-ll.$shell now take care of generating unicode compatible keymap;
 	* now one can add keymaps in `$miscdir/share/keymaps' and consolefonts in
