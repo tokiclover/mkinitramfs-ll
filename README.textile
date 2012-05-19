@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.6.0 2012/05/19 12:26:19 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.6.0 2012/05/19 12:27:59 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -7,7 +7,7 @@ bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support 
 h3. 1. Getting an intramfs ready
 
 If you have a static busybox binary or if you use Gentoo [you have already one: installed as /bin/bb] 
-you can make an initramfs in a sec with locales settings: keymap and consolefont (in addition to 
+you can make an initramfs in matter of secondes with locales settings: keymap and consolefont (in addition to 
 media-fonts/terminus-font if you use the associated "ebuild":https://github.com/tokiclover/bar-overlay, or else if you have that package installed).
 
 If you want GnuPG support, yo should have an app-crypt/gnupg-1.4*[static] binary along with its 
