@@ -4,4 +4,4 @@ jut like in @/usr@ without the @/usr@ prefix.
 Extra user scripts are also stored with prefix @{1,2{r,s},3{f,d,m},4{s,u}]}?-@
 corresponding to a init runlevel and a `.sh' suffix.
 
-*Note*: @?@ is, of course, a single characters of digit.
+*Note*: @?@ is, of course, a single characters or digit.
