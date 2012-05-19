@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.1 2012/05/19 03:03:12 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.1 2012/05/19 03:09:17 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -84,7 +84,7 @@ smsg() { debug scmd "set message $@"; debug scmd "repaint"; }
 spalshd_init() {
 	[ "${uv_check_env}" ] || debug bchk "splash_util" "--"
 	[ -n "$(echo ${gv_tty} | grep /dev)" ] || gv_tty="/dev/${gv_tty}"
-	[ -n "${gv_tty}" ] && debug exec < ${gv_tty} > ${gv_tty}
+	[ -n "${gv_tty}" ] && exec < ${gv_tty} > ${gv_tty}
 	[ -e /lib/splash/cache ] || mkdir -p /lib/splash/cache
 	[ -e /lib/splash/cache/.splash ] || mknod /lib/splash/cache/.splash p
 	debug splash_util --daemon "--theme=${gv_splash_theme}"
