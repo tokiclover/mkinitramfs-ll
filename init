@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/18 21:13:10 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/19 02:23:27 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -40,8 +40,8 @@ die() {
 	[ "${gv_splash}" == "silent" ] || verbose
 	error "$@"
 	info "dropping you into a rescueshell..."
-	for lk in ${gv_lkey}; do dmclose "${lk}"; done
-	for ld in ${gv_ldev}; do losetup -d ${ld}; done
+	for lk in ${gv_lkey}; do debug dmclose "${lk}"; done
+	for ld in ${gv_ldev}; do debug losetup -d ${ld}; done
 	exec sh
 }
 
@@ -76,26 +76,26 @@ _modprobe() {
 	fi
 }
 
-scmd() { [ "${gv_splashd}" ] && echo "$@" >/lib/splash/cache/.splash; }
-verbose() { scmd "set mode verbose"; }
-silent() { scmd "set mode silent"; }
-smsg() { scmd "set message $@"; scmd "repaint"; }
+scmd() { [ "${gv_splashd}" ] && debug echo "$@" > /lib/splash/cache/.splash; }
+verbose() { debug scmd "set mode verbose"; }
+silent() { debug scmd "set mode silent"; }
+smsg() { debug scmd "set message $@"; debug scmd "repaint"; }
 
 spalshd_init() {
-	[ "${uv_check_env}" ] || bchk "splash_util" "--"
-	[ -n "$(echo ${gv_stty} | grep /dev)" ] || gv_stty="/dev/${gv_stty}"
-	[ -n "${gv_stty}" ] && exec < ${gv_stty} > ${gv_stty} &>/dev/null
+	[ "${uv_check_env}" ] || debug bchk "splash_util" "--"
+	[ -n "$(echo ${gv_tty} | grep /dev)" ] || gv_tty="/dev/${gv_tty}"
+	[ -n "${gv_tty}" ] && debug exec < ${gv_tty} > ${gv_tty}
 	[ -e /lib/splash/cache ] || mkdir -p /lib/splash/cache
 	[ -e /lib/splash/cache/.splash ] || mknod /lib/splash/cache/.splash p
-	splash_util --daemon "--theme=${gv_splash_theme}"
+	debug splash_util --daemon "--theme=${gv_splash_theme}"
 	gv_splashd=0
 }
 
-splashd_stop() { [ "${gv_splashd}" ] && gv_splashd=1 scmd "exit"; }
+splashd_stop() { [ "${gv_splashd}" ] && gv_splashd=1; debug scmd "exit"; }
 
 ishrl() {
 	info "init shell runlevel: ${1}"
-	local lv_scr="$(ls /etc/local.d/${1}?-*.sh &>/dev/null)"
+	local lv_scr="$(ls /etc/local.d/${1}?-*.sh &> /dev/null)"
 	if [ -n "${lv_scr}" ]; then
 		for scr in ${lv_scr}; do 
 			info "executing ${scr}..."
@@ -103,7 +103,7 @@ ishrl() {
 		done
 	fi
 	if [ "${gv_shrl}" == "${1}" ]; then verbose
-		info "${1}: dropping into a rescueshell"
+		debug info "${1}: dropping into a rescueshell"
 		exec sh
 	fi
 }
@@ -289,7 +289,7 @@ squashd() {
 		mkdir -p ."$sqfsdir/$dir"/rw && mkdir -p ."$sqfsdir/$dir"/ro
 		debug -d mount -t squashfs .${sqfsdir}/${dir}.sfs \
 			.${sqfsdir}/${dir}/ro -o nodev,loop,ro
-		debug -d mount -t aufs ${dir} ${dir} \
+		mount -t aufs ${dir} ${dir} \
 			-o nodev,udba=reval,br:.${sqfsdir}/${dir}/rw:.${sqfsdir}/${dir}/ro
 	done
 }
@@ -433,7 +433,7 @@ main() {
 	for ld in ${gv_ldev}; do debug losetup -d ${ld}; done
 	debug _rmmod gpg
 	debug -d umount -n -l /mnt/tok
-	ebug _rmmod remdev
+	debug _rmmod remdev
 	debug switch
 }
 
@@ -459,7 +459,7 @@ _getopts() {
 			splash=*)   dir=${arg#*=}
 				    gv_splash_theme=${dir#*:}
 				    gv_splash=${dir%,*};;
-			console=*)  gv_stty=${arg#*=};;
+			console=*)  gv_tty=${arg#*=};;
 			iresume=*)  gv_toi=${arg#*=};;
 			ikmap=*)    gv_kmap=$(echo ${arg#*=}|cut -d':' -f1)
 				        gv_font=$(echo ${arg#*=}|cut -d':' -f2);;
