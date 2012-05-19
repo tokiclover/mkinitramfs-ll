@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.6.0 2012/05/14 18:09:34 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.6.1 2012/05/19 03:06:46 -tclover Exp $
 revision=0.6.0
 usage() {
   cat <<-EOF
@@ -43,14 +43,14 @@ warn()  { print -P " %B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 addnodes() {
-	[[ -c dev/console ]] || mknod dev/console c 5 1 || die
+	[[ -c dev/console ]] || mknod -m 600 dev/console c 5 1 || die
 	[[ -c dev/urandom ]] || mknod dev/urandom c 1 9 || die
 	[[ -c dev/random ]]  || mknod dev/random  c 1 8 || die
 	[[ -c dev/mem ]]     || mknod dev/mem     c 1 1 || die
-	[[ -c dev/null ]]    || mknod dev/null    c 1 3 || die
-	[[ -c dev/tty ]]     || mknod dev/tty     c 5 0 || die
+	[[ -c dev/null ]]    || mknod -m 666 dev/null    c 1 3 || die
+	[[ -c dev/tty ]]     || mknod -m 666 dev/tty     c 5 0 || die
 	[[ -c dev/zero ]]    || mknod dev/zero    c 1 5 || die
-	for nod ($(seq 0 6)) [[ -c dev/tty${nod} ]] || mknod dev/tty${nod} c 4 ${nod} || die
+	for nod ($(seq 0 6)) [[ -c dev/tty${nod} ]] || mknod -m 620 dev/tty${nod} c 4 ${nod} || die
 }
 zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: r raid \

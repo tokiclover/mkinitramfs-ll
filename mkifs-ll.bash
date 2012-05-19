@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.6.0 2012/05/14 18:09:37 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.6.1 2012/05/19 03:06:43 -tclover Exp $
 revision=0.6.0
 usage() {
   cat <<-EOF
@@ -42,15 +42,15 @@ info() 	{ echo -ne " \e[1;32m* \e[0m$@\n"; }
 warn() 	{ echo -ne " \e[1;33m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
 addnodes() {
-	[[ -c dev/console ]] || mknod dev/console c 5 1 || die
+	[[ -c dev/console ]] || mknod -m 600 dev/console c 5 1 || die
 	[[ -c dev/urandom ]] || mknod dev/urandom c 1 9 || die
 	[[ -c dev/random ]]  || mknod dev/random  c 1 8 || die
 	[[ -c dev/mem ]]     || mknod dev/mem     c 1 1 || die
-	[[ -c dev/null ]]    || mknod dev/null    c 1 3 || die
-	[[ -c dev/tty ]]     || mknod dev/tty     c 5 0 || die
+	[[ -c dev/null ]]    || mknod -m 666 dev/null    c 1 3 || die
+	[[ -c dev/tty ]]     || mknod -m 666 dev/tty     c 5 0 || die
 	[[ -c dev/zero ]]    || mknod dev/zero    c 1 5 || die
 	for nod in $(seq 0 6); do 
-		[[ -c dev/tty${nod} ]] || mknod dev/tty${nod} c 4 ${nod} || die
+		[[ -c dev/tty${nod} ]] || mknod -m 620 dev/tty${nod} c 4 ${nod} || die
 	done
 }
 opt=$(getopt -o ab:c::e:f::gk::lm::p::rs::tuvy::B::M::S::W:: -l all,bin:,bindir::,comp::,eversion: \
