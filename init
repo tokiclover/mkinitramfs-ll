@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.0 2012/05/19 02:23:27 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.1 2012/05/19 02:23:27 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -112,7 +112,7 @@ _blkid() { eval ${2}=$(blkid | grep "${1#*=}" | cut -d':' -f1); }
 
 getldkey() {
 	local lv_fname="${1##*/}"
-	if [ ! "${gv_crypt_loop}" ]; then
+	if [ ! "${gv_cldev}" ]; then
 		local lv_ldev="$(debug -d losetup -f)"
 		debug -d losetup ${lv_ldev} ${1}
 		gv_ldev="${lv_ldev}:${gv_ldev}"
@@ -128,10 +128,11 @@ getkey() {
 	local lv_kmode="${1}" lv_dev
 	if [ -n "${lv_kmode}" ]; then 
 		if [ "${lv_kmode}" != "none" ];then
-			if [ -z "${gv_crypt_loop}" ]; then
+			if [ -z "${gv_cldev}" ]; then
 				local lv_version=$(cryptsetup --version | awk '{ print $2 }')
-				[ $(echo "${lv_version}" | cut -d'.' -f2) -ge 3 ] && gv_crypt_loop=0
-				[ $(echo "${lv_version}" | cut -d'.' -f2) -ge 4 ] && gv_crypt_header=0
+				[ $(echo "${lv_version}" | cut -d'.' -f2) -ge 3 ] && gv_cldev=0
+				[ $(echo "${lv_version}" | cut -d'.' -f2) -ge 4 ] && gv_cdh=0
+				[ "${gv_cdh}" ] && [ $(echo "${lv_version}" | cut -d'.' -f3) -ge 2 ] && gv_cuuid=0
 			fi
 		else return; fi
 	else return; fi
@@ -207,10 +208,13 @@ dmopen() {
 	local lv_map=$(echo "${1}" | cut -d'-' -f1)
 	local lv_dev=$(echo "${1#*-}" | cut -d'+' -f1)
 	local lv_header=$(echo "${1}" | cut -d'+' -s -f2)
-	debug -d _blkid "${lv_dev}" "lv_dev"
+	if [ "${gv_cuuid}" ] && [ -n "$(echo "${lv_dev}" | grep -i UUID)" ]; then continue
+	else debug -d _blkid "${lv_dev}" "lv_dev"; fi
 	if [ -n "${lv_header}" ]; then local lv_hdev
 		if [ -n "$(echo "${lv_header}" | grep -E '(UUID|LABEL|sd[a-z][0-9])')" ]; then 
-			debug _blkid "${lv_header}" "lv_hdev"
+			if [ "${gv_cuuid}" ] && [ -n "$(echo "${lv_header}" | grep -i UUID)" ]; then 
+				lv_hdev=${lv_header}
+			else debug _blkid "${lv_header}" "lv_hdev"; fi
 			[ -b "${lv_hdev}" ] && lv_header="--header ${lv_hdev}" || \
 			die "$lv_header block device doesn't exist."
 		elif [ -e "/mnt/tok/${lv_header}" ]; then 
