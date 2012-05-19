@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.6.0 2012/05/19 12:27:59 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.6.0 2012/05/19 12:41:39 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -31,7 +31,10 @@ And of course when using this script, one does not need @root=<arg>@ nor @resume
 
 init script supports the following specific arguments: 
 
-* @iroot=<PV|VG-LV>[:c:<fs>:n]@  -> required root device, recommanded optional @:c:ext4@ 
+* @iroot=<PV|VG-LV>[:c:<fs>]@    -> required root device, recommanded optional @:c:ext4@ 
+
+*Note*: @:n:ext4@ or @:no:ext4@ will disable a die if fsck fails to check rootfs.
+
 * @imtopt=<ro,inode64,...>@      -> optional mount options for rootfs.
 * @imod=<drm,ttm,...,nouveau>@   -> optional modules [list] to load (in the boot group).
 * @ikmap=<kmap>[:<font>@         -> optional keymap and font to load, may be handy for passwords.

@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.1 2012/05/19 03:09:17 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.1 2012/05/19 12:41:44 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -317,7 +317,11 @@ rootfs() {
 		lv_dev=/dev/mapper/${uv_root_map:-root}
 	else debug -d _blkid "${lv_root}" "lv_dev"; fi
 	ishrl 3f
-	[ -n "${lv_fsck}" ] && debug -d fsck ${lv_fs:+-t${lv_fs}} ${lv_dev} 
+	if [ -n "${lv_fsck}" ]; then 
+		if [ "${lv_fsck}" == "n" ] || [ "${lv_fsck}" == "no" ]; then lv_fsck="-e"
+		else lv_fsck="-d"; fi
+		debug ${lv_fsck} fsck ${lv_fs:+-t${lv_fs}} ${lv_dev} 
+	fi
 	ishrl 3m
 	debug mount ${gv_mopt:+-o${gv_mtopt}} ${lv_fs:+-t${lv_fs}} ${lv_dev} /newroot
 	if [ ! "$?" ]; then
