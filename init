@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.1 2012/05/19 12:41:44 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.1 2012/05/23 00:56:32 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -19,8 +19,7 @@ info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
 error() { echo -ne "\033[1;31m * \033[0m$@\n"; }
 
 debug() {
-	local lvd="${@:0:2}"
-	local lvc="${@:3:${#@}}"
+	local lvd="${@:0:2}" lvc="${@:3:${#@}}"
 	if [ "$lvd" == "-d" ] || [ "$lvd" == "-e" ] || [ "$lvd" == "-i" ]; then $lvc
 	else lvc=; $@; fi
 	ret=$?
@@ -358,37 +357,52 @@ swp() {
 }
 
 resume() {
-	local lva lv_dev
-	[ "${gv_splash}" == "silent" ] || smsg "Resuming..."
+	local lv_dev
+	[ "${gv_splash}" == "silent" ] || smsg "Resuming from hibernation..."
 	debug splashd_stop
 	if [ -n "$(echo "${gv_toi}" | cut -d':' -s -f2)" ]; then
 :		local ${lv_raid:=$(echo "${gv_raid}" | cut -d',' -f3)}
 :		local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f3)}
 		debug swp "resume"  "${gv_toi}" "${gv_kresume}" "lv_dev"
 	fi
-	debug _modprobe tuxonice
-	debug -d echo ${lv_dev} > /sys/power/tuxonice/resume
-	local lv_img="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
-	if [ ${lv_img} == 1 ]; then 
-		error "There is no recognizable signature at location pointed by iresume|iswap"
-		error "Do you want to proceed [NO|yes]? "
-		read lva
-		[ "${lv_asw:-no}" != "yes" ] && die "Resume aborted by user"
-	elif [ ${lv_img} = 0 ]; then 
-		die "No image exist at location pointed by iresume|iswap"; fi
-	[ -n "${gv_splash_theme}" ] && ln -sf "/etc/splash/${gv_splash_theme}" \
-		/etc/splash/tuxonice
-	[ -n "$(which tuxoniceui_text)" ] && echo $(which tuxoniceui_text) > \
-		/sys/power/tuxonice/user_interface/program
-	[ -z "$(cat /sys/power/tuxonice/user_interface/program)" ] && \
-		echo $(which tuxoniceui_fbsplash) >/sys/power/tuxonice/user_interface/program
 	debug -d mount -n -o remount,ro
-	info "RESUMING from hibernation S[4-5]."
-	debug -d echo > /sys/power/tuxonice/do_resume
+	if [ -d /sys/power/tuxonice ]; then local lva lv_img lv_toi
+		lv_toiui="$(which tuxoniceui_text)"
+:		${lv_toiui:=$(which tuxoniceui_fbsplash)}
+		debug _modprobe tuxonice
+		debug -d echo ${lv_dev} > /sys/power/tuxonice/resume
+		lv_img="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
+		if [ "${lv_img}" == "1" ]; then 
+			error "toi: no recognizable signature at the pointed location"
+			error "toi: proceed anyway [NO|yes]? "
+			read lva
+			[ "${lva:-no}" != "yes" ] && die "toi: resume aborted"
+		else die "toi: no image found at the pointed location"; fi
+		if [ -n "${gv_splash_theme}" ]; then
+			ln -sf "/etc/splash/${gv_splash_theme}" /etc/splash/tuxonice
+		fi
+		echo ${lv_toiui} > /sys/power/tuxonice/user_interface/program
+		debug -d echo > /sys/power/tuxonice/do_resume
+		debug -d echo > /sys/power/tuxonice/image_exists
+		debug _rmmod tuxonice
+	elif [ -f /sys/power/resume ]; then local lva lv_img lv_susp
+		lv_susp="$(which suspendui_text)"
+:		${lv_susp:=$(which suspendui_fbsplash)}
+		debug _modprobe suspend
+		debug -d echo ${lv_dev} > /sys/power/disk/resume
+		lv_img="$(cat /sys/power/image_exists | head -n 1)"
+		if [ "${lv_img}" == "1" ]; then 
+			error "suspend: no recognizable signature at the pointed location"
+			error "suspend: proceed anyway [NO|yes]? "
+			read lva
+			[ "${lva:-no}" != "yes" ] && die "suspend: resume aborted"
+		else die "suspend: no image found at the pointed location"; fi
+		debug -d echo disk > /sys/power/state
+		debug _rmmod suspend
+	fi
+	info "RESUMING from hibernation S[4-5]"
 	debug -d mount -n -o remount,rw /
-	debug -d echo > /sys/power/tuxonice/image_exists
-	debug _rmmod tuxonice
-	die "failed to resume from hibernation, image destroied"
+	die "failed to resume from hibernation"
 }
 
 switch() {
