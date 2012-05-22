@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.6.1 2012/05/19 03:06:43 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.6.1 2012/05/23 01:20:28 -tclover Exp $
 revision=0.6.0
 usage() {
   cat <<-EOF
@@ -102,7 +102,7 @@ done
 [[ -n "${opts[kversion]}" ]] || opts[kversion]="$(uname -r)"
 [[ -n "${opts[workdir]}" ]] || opts[workdir]="$(pwd)"
 [[ -n "${opts[miscdir]}" ]] || opts[miscdir]="${opts[workdir]}"/misc
-[[ -n "${opts[prefix]}" ]] || opts[prefix]=initrd-
+[[ -n "${opts[prefix]}" ]] || opts[prefix]=initramfs-
 [[ -n "${opts[bindir]}" ]] || opts[bindir]="${opts[workdir]}"/bin
 opts[initdir]="${opts[workdir]}"/${opts[prefix]}${opts[kversion]}${opts[eversion]}
 opts[initrd]=/boot/${opts[prefix]}${opts[kversion]}${opts[eversion]}

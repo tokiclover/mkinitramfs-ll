@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.6.1 2012/05/19 03:06:46 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.6.1 2012/05/23 01:20:31 -tclover Exp $
 revision=0.6.0
 usage() {
   cat <<-EOF
@@ -64,7 +64,7 @@ if [[ -z ${opts[*]} ]] { typeset -A opts }
 setopt EXTENDED_GLOB NULL_GLOB
 :	${opts[-kversion]:=${opts[-k]:-$(uname -r)}}
 :	${opts[-eversion]:=$opts[-e]}
-:	${opts[-prefix]:=${opts[-p]:-initrd-}}
+:	${opts[-prefix]:=${opts[-p]:-initramfs-}}
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-miscdir]:=${opts[-M]:-$opts[-workdir]/misc}}
 :	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
