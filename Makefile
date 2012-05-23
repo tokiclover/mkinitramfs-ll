@@ -32,7 +32,7 @@ install_bash:
 	install -pm 755 gnupg.zsh               $(bindir)/${bin_prefix}-gnupg.bash
 	install -pm 644 ${bin_prefix}.conf.bash $(sys_confdir)
 	install -pm 755 ${bin_prefix}.bash      $(bindir)
-	install -pm 755 sqfsd_svc/sdr.bash      $(bindir)
+	install -pm 755 sqfsdsvc/sdr.bash       $(bindir)
 
 install_zsh:
 	sed -e 's:\./${bin_prefix}:${bin_prefix}:g' \
@@ -48,13 +48,13 @@ install_zsh:
 	install -pm 755 gnupg.zsh               $(bindir)/${bin_prefix}-gnupg.zsh
 	install -pm 644 ${bin_prefix}.conf.zsh  $(sys_confdir)
 	install -pm 755 ${bin_prefix}.zsh       $(bindir)
-	install -pm 755 sqfsd_svc/sdr.zsh       $(bindir)
+	install -pm 755 sqfsdsvc/sdr.zsh       	$(bindir)
 
 install_svc:
 	install -pd $(svc_confdir)
 	install -pd $(svc_initdir)
-	install -pm 755 sqfsd_svc/sqfsdmount.initd  $(svc_initdir)/sqfsdmount
-	install -pm 644 sqfsd_svc/sqfsdmount.confd  $(svc_confdir)/sqfsdmount
+	install -pm 755 sqfsdsvc/sqfsdmount.initd $(svc_initdir)/sqfsdmount
+	install -pm 644 sqfsdsvc/sqfsdmount.confd $(svc_confdir)/sqfsdmount
 
 postinstall:
 
