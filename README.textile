@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.6.0 2012/05/23 11:37:56 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.6.0 2012/05/23 12:00:57 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -79,9 +79,9 @@ and the 3rd for resume.
 Either one has an embeded @/etc/mdadm.conf@ in the initramfs, so one could use @iraid=md0,md1,md2@ to 
 enable 3 arrays for root, swap and resume. Either, one can omit to embed one and use either: 
 @iraid=md<n>-UUID=<uuid>+<p>@, @[/dev/]md<n>@ is a RAID array, @/dev/@ prefix is optional, 
-<uuid> the UUID of the array and <p> the partition number to scan: 
+@UUID=<uuid>@ the UUID of the array and @<p>@ the partition number to scan: 
 @echo DEVICE $(ls /dev/sd*<p>) >> /etc/mdadm.conf@. 
-if <p> partition number is not present every device will be scanned!
+if @<p>@ partition number is not present every device will be scanned!
 
 h3. 4. About LVM argument
 
@@ -103,7 +103,7 @@ List can be a line separated list insted of a collon @:@ list of the forme
 in a list. However, it's best to use UUID only for detached header from cypthertext device which 
 prevent header mismatch. One can use multiple lists up to three, one for each group.
 
-h3. 4. About mount options: imtopt=<rootfs mount options>
+h3. 4. About mount options: @imtopt=<rootfs mount options>@
 
 Say, you have a @rootfs=xfs[|jsf|reiser|ext*]@ and want to mount your rootfs with specific opts. 
 In case of xfs, for exemple, just create your log LV on a different PV than what you're logging 
