@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.1 2012/05/23 00:56:32 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.6.1 2012/05/23 11:36:13 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -267,14 +267,14 @@ lvopen() {
 }
 
 mdopen() {
-	local lv_dev=${1%%-*} lv_part=$(echo ${1} | cut -d'-' -f3)
+	local lv_dev=${1%%-*} lv_part=$(echo "${1}" | cut -d'+' -f2)
 	[ -n "$(echo ${lv_dev} | grep /dev)" ] || lv_dev=/dev/${lv_dev}
 	[ -b ${lv_dev} ] && return
 	if [ -n "$(echo ${1} | grep UUID)" ]; then
 		if [ -n "${lv_part}" ]; then
 			echo DEVICE $(ls /dev/sd*${lv_part}) >> /etc/mdadm.conf
 		else echo 'DEVICE /dev/sd??*' >> /etc/mdadm.conf; fi
-		echo ARRAY ${lv_dev} $(echo ${1} | cut -d'-' -f2) >> /etc/mdadm.conf
+		echo ARRAY ${lv_dev} $(echo "${1#*-}" | cut -d'+' -f1) >> /etc/mdadm.conf
 	fi
 	debug mdadm --assemble --scan ${lv_dev} || raidautorun
 	[ -b ${lv_dev} ] || die "failed to activate ${lv_dev} RAID array."
