@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.6.0 2012/05/25 02:00:05 -tclover Exp $
-revision=0.6.0
+# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.7.0 2012/05/25 12:34:58 -tclover Exp $
+revision=0.7.0
 usage() {
   cat <<-EOF
   usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>
@@ -55,11 +55,11 @@ die()   { error "$@"; exit 1; }
 [[ -n "${opts[sqfsdir]}" ]] || opts[sqfsdir]=/sqfsd
 [[ -n "${opts[bsize]}" ]] || opts[bsize]=131072
 [[ -n "${opts[comp]}" ]] || opts[comp]=gzip
-[[ -n "${opts[--exclude]}" ]] && opts[exclude]="-wildcards -regex -e ${opts[exclude]//:/ }"
+[[ -n "${opts[exclude]}" ]] && opts[exclude]="-wildcards -regex -e ${opts[exclude]//:/ }"
 sqfsd() 
 {
-	mkdir -p "${opts[sqfsdir]}/${dir}"/{ro,rw} || die "failed to create ${dir}/{ro,rw} dirs"
-	mksquashfs /${dir} ${opts[sqfsdir]}/${dir}.tmp.sfs -b ${opts[bsize]} -comp ${opts[comp]} \
+	mkdir -p "${basedir}"/{ro,rw} || die "failed to create ${dir}/{ro,rw} dirs"
+	mksquashfs /${dir} ${basedir}.tmp.sfs -b ${opts[bsize]} -comp ${opts[comp]} \
 		${opts[exclude]} >/dev/null || die "failed to build ${dir}.sfs img"
 	if [[ "${dir}" == lib${opts[arch]} ]]; then # move rc-svcdir and cachedir if mounted
 		if [[ -n "$(mount -ttmpfs | grep /${dir}/splash/cache)" ]]; then
@@ -74,33 +74,34 @@ sqfsd()
 	if [[ -n "$(mount -t aufs | grep -w ${dir})" ]]; then 
 		umount -l /${dir} &>/dev/null || die "failed to umount ${dir} aufs branch"
 	fi
-	if [[ -n "$(mount -t squashfs | grep ${opts[sqfsdir]}/${dir}/ro)" ]]; then 
-		umount -l ${opts[sqfsdir]}/${dir}/ro &>/dev/null || die "failed to umount sfs img"
+	if [[ -n "$(mount -t squashfs | grep ${basedir}/ro)" ]]; then 
+		umount -l ${basedir}/ro &>/dev/null || die "failed to umount sfs img"
 	fi
-	rm -rf "${opts[sqfsdir]}/${dir}"/rw/* || die "failed to clean up ${opts[sqfsdir]}/${dir}/rw"
-	[[ -e ${opts[sqfsdir]}/${dir}.sfs ]] && rm -f ${opts[sqfsdir]}/${dir}.sfs 
-	mv ${opts[sqfsdir]}/${dir}.tmp.sfs ${opts[sqfsdir]}/${dir}.sfs || die "failed to move ${dir}.tmp.sfs img"
-	if [[ "${opts[fstab]}" == "y" ]]; then
-		echo "${opts[sqfsdir]}/${dir}.sfs ${opts[sqfsdir]}/${dir}/ro squashfs nodev,loop,ro 0 0" \
-			>> /etc/fstab || die "fstab write failure 1."
-		echo "${dir} /${dir} aufs nodev,udba=reval,br:${opts[sqfsdir]}/${dir}/rw:${opts[sqfsdir]}/${dir}/ro 0 0" \
-			>> /etc/fstab || die "fstab write failure 2."
+	rm -fr "${basedir}"/rw/* || die "failed to clean up ${basedir}/rw"
+	[[ -e ${basedir}.sfs ]] && rm -f ${basedir}.sfs 
+	mv ${basedir}.tmp.sfs ${basedir}.sfs || die "failed to move ${dir}.tmp.sfs img"
+	if [[ "${opts[fstab]}" == "y" ]]; then local lfs lfa
+		echo "${basedir}.sfs ${basedir}/ro squashfs nodev,loop,ro 0 0" \
+			>> /etc/fstab || die "failed to write squashfs line"
+		echo "${dir} /${dir} aufs nodev,udba=reval,br:${basedir}/rw:${basedir}/ro 0 0" \
+			>> /etc/fstab || die "failed to write aufs line"
 	fi
-if [[ -z "${opts[nomount]}" ]]; then
-	mount -t squashfs ${opts[sqfsdir]}/${dir}.sfs ${opts[sqfsdir]}/${dir}/ro \
-		-o nodev,loop,ro &>/dev/null || die "failed to mount ${dir}.sfs img"
-	if [[ -n "${opts[remove]}" ]]; then # now you can update or remove the source dir
-		rm -rf /${dir}/* || die "failed to clean up ${opts[sqfsdir]}/${dir}"
-	elif [[ -n "${opts[update]}" ]]; then echo >/tmp/sdr
-		cp -aru ${opts[sqfsdir]}/${dir}/ro /${dir}ro
-		mv /${dir}{,rm} && mv /${dir}{ro,} || ${opts[sqfsdir]}/bin/ro/mv /${dir}{ro,} \
-		|| info "failed to update ${dir}"
-		rm -fr /${dir}rm
+	if [[ -z "${opts[nomount]}" ]]; then
+		mount ${basedir}.sfs ${basedir}/ro -t squashfs \
+		-o nodev,loop,ro &> /dev/null || die "failed to mount ${dir}.sfs img"
+		if [[ "${dir}" == "bin" ]]; then local cp=${opts[sqfsdir]}/bin/ro/cp
+			local mv=${opts[sqfsdir]}/bin/ro/mv rm=${opts[sqfsdir]}/bin/ro/rm
+		else local cp=cp mv=mv rm=rm; fi
+		if [[ -n "${opts[remove]}" ]]; then
+			${rm} -rf /${dir}/* || die "failed to clean up ${basedir}"
+		fi
+		if [[ -n "${opts[update]}" ]]; then
+			${cp} -aru ${basedir}/ro /${dir}ro
+			${mv} /${dir}{ro,} && ${rm} -fr /${dir}rm || info "failed to update ${dir}"
+		fi
+		mount -o nodev,udba=reval,br:${basedir}/rw:${basedir}/ro \
+		-t aufs ${dir} /${dir} &> /dev/null || die "failed to mount ${dir} aufs branch."
 	fi
-	mount -t aufs ${dir} /${dir} \
-		-o nodev,udba=reval,br:${opts[sqfsdir]}/${dir}/rw:${opts[sqfsdir]}/${dir}/ro \
-		&>/dev/null || die "failed to mount ${dir} aufs branch."
-fi
 	if [[ -n "${mcachedir}" ]]; then
 		mount -move /var/cache/splash "/${dir}/splash/cache" &> /dev/nul \
 			|| die "failed to move back cachedir"
@@ -112,15 +113,16 @@ fi
 	echo -ne "\e[1;32m>>> ...sucessfully build squashed ${dir}\e[0m\n"
 }
 for dir in ${opts[sqfsd]//:/ }; do
+	basedir="${opts[sqfsdir]}/${dir}"
 	if [[ -e /sqfsd/${dir}.sfs ]]; then
 		if [[ ${opts[offset]:-10} != 0 ]]; then
-			ro_size=$(du -sk ${opts[sqfsdir]}/${dir}/ro | awk '{print $1}')
-			rw_size=$(du -sk ${opts[sqfsdir]}/${dir}/rw | awk '{print $1}')
+			ro_size=$(du -sk ${basedir}/ro | awk '{print $1}')
+			rw_size=$(du -sk ${basedir}/rw | awk '{print $1}')
 			if (( ( ${rw_size}*100/${ro_size} ) < ${opts[offset]:-10} )); then
 				info "${dir}: skiping... there's an '-o' offset option to change the offset"
 			else echo -ne "\e[1;32m>>> updating squashed ${dir}...\e[0m\n"; sqfsd; fi
 		else echo -ne "\e[1;32m>>> updating squashed ${dir}...\e[0m\n"; sqfsd; fi
 	else echo -ne "\e[1;32m>>> building squashed ${dir}...\e[0m\n"; sqfsd; fi			
 done
-unset opt opts ro_size rw_size
+unset basedir opt opts ro_size rw_size
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
