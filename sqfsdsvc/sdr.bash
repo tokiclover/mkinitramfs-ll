@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.5.1.0 2012/05/09 22:51:41 -tclover Exp $
-revision=0.5.1.0
+# $Id: mkinitramfs-ll/sqfsd/sdr.bash,v 0.6.0 2012/05/25 02:00:05 -tclover Exp $
+revision=0.6.0
 usage() {
   cat <<-EOF
   usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d[|--sqfsd=]<dir>:<dir>
@@ -61,12 +61,15 @@ sqfsd()
 	mkdir -p "${opts[sqfsdir]}/${dir}"/{ro,rw} || die "failed to create ${dir}/{ro,rw} dirs"
 	mksquashfs /${dir} ${opts[sqfsdir]}/${dir}.tmp.sfs -b ${opts[bsize]} -comp ${opts[comp]} \
 		${opts[exclude]} >/dev/null || die "failed to build ${dir}.sfs img"
-	if [[ "${dir}" = lib${opts[arch]} ]]; then # move rc-svcdir and cachedir.
-		mkdir -p /var/{lib/init.d,cache/splash}
-		mount --move "/${dir}/splash/cache" /var/cache/splash &>/dev/null \
-			|| die "fled to move cachedir"
-		mount --move "/${dir}/rc/init.d" /var/lib/init.d &>/dev/null \
-			|| die "failed to move rc-svcdir"
+	if [[ "${dir}" == lib${opts[arch]} ]]; then # move rc-svcdir and cachedir if mounted
+		if [[ -n "$(mount -ttmpfs | grep /${dir}/splash/cache)" ]]; then
+			mount -move /${dir}/splash/cache /var/cache/splash &> /dev/null \
+			&& local mcachedir=yes || die "failed to move cachedir"
+		fi
+		if [[ -n "$(mount -ttmpfs | grep /${dir}/rc/init.d)" ]]; then
+			mount -move /${dir}/rc/init.d /var/lib/init.d &> /dev/null \
+			&& local mrcsvcdir=yes || die "failed to move rc-svcdir"
+		fi
 	fi
 	if [[ -n "$(mount -t aufs | grep -w ${dir})" ]]; then 
 		umount -l /${dir} &>/dev/null || die "failed to umount ${dir} aufs branch"
@@ -90,16 +93,20 @@ if [[ -z "${opts[nomount]}" ]]; then
 		rm -rf /${dir}/* || die "failed to clean up ${opts[sqfsdir]}/${dir}"
 	elif [[ -n "${opts[update]}" ]]; then echo >/tmp/sdr
 		cp -aru ${opts[sqfsdir]}/${dir}/ro /${dir}ro
-		mv /${dir}{,rm} && mv /${dir}{ro,} && rm -fr /${dir}rm || info "failed to update ${dir}"
+		mv /${dir}{,rm} && mv /${dir}{ro,} || ${opts[sqfsdir]}/bin/ro/mv /${dir}{ro,} \
+		|| info "failed to update ${dir}"
+		rm -fr /${dir}rm
 	fi
 	mount -t aufs ${dir} /${dir} \
 		-o nodev,udba=reval,br:${opts[sqfsdir]}/${dir}/rw:${opts[sqfsdir]}/${dir}/ro \
 		&>/dev/null || die "failed to mount ${dir} aufs branch."
 fi
-	if [[ "${dir}" = lib${opts[arch]} ]]; then # move back rc-svcdir and cachedir
-		mount --move /var/cache/splash "/${dir}/splash/cache" &>/dev/nul \
+	if [[ -n "${mcachedir}" ]]; then
+		mount -move /var/cache/splash "/${dir}/splash/cache" &> /dev/nul \
 			|| die "failed to move back cachedir"
-		mount --move /var/lib/init.d "/${dir}/rc/init.d" &>/dev/null \
+	fi
+	if [[ -n "${mrcsvcdir}" ]]; then
+		mount -move /var/lib/init.d "/${dir}/rc/init.d" &> /dev/null \
 			|| die "failed to move back rc-svcdir"
 	fi
 	echo -ne "\e[1;32m>>> ...sucessfully build squashed ${dir}\e[0m\n"
