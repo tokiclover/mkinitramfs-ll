@@ -11,7 +11,10 @@ will do the trick putting usr and @lib${arch}@ first in the config file because 
 are rushing (especially with rc_parallel) to get userspace ready. 
 Additionaly, one could disable rc_parallel and add more services in the `before' line if need be.
 
-*NOTE*: @/etc/con.d/sqfsdmount@ configuration variables:
+*Note*: those two considerations are not true anymore with >=openrc-0.10 which moved `/lib/rc/init.d'
+to `/run/openrc'; remain the splash cachedir.
+
+*Note*: @/etc/con.d/sqfsdmount@ configuration variables:
 
 * sqfsd_{sys,local} is a sufix for system/local which speaks of itself, one should to put squashed 
 dirs related to system in @sfqd_sys@, e.g. @/usr:/sbin:/bin:/opt@, and local ones in the other 
@@ -20,6 +23,6 @@ as @sqfsd_local@ dirs will be unmounted right way before stopping the init servi
 * @sys_umount@ enable umounting system wide squashed directories before stopping service.
 * @sqfsd_rebuild@ rebuild local squashed directories before stopping service, similar to sqfsd_local
 
-*NOTE*: systemd, or even upstart, users have to make their own way/script for this!
+*Note*: systemd, or even upstart, users have to make their own way/script for this!
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
