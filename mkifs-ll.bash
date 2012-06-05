@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.6.1 2012/05/23 01:20:28 -tclover Exp $
-revision=0.6.0
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.7.0 2012/05/23 01:20:28 -tclover Exp $
+revision=0.7.0
 usage() {
   cat <<-EOF
   usage: ${1##*/} [OPTIONS...]
@@ -25,6 +25,7 @@ usage() {
       --msqfsd [:<mod>]     colon separated list of kernel modules to add to sqfsd group
       --mremdev [:<mod>]    colon separated list of kernel modules to add to remdev group
       --mtuxonice [:<mod>]  colon separated list of kernel modules to add to tuxonice group
+  -T, --mount [/usr:/var]   colon separated list of directories mount support
   -t, --toi                 add tuxonice support for splash, require tuxoniceui_text binary
   -q, --sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -r, --raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
@@ -55,7 +56,8 @@ addnodes() {
 }
 opt=$(getopt -o ab:c::e:f::gk::lm::p::rs::tuvy::B::M::S::W:: -l all,bin:,bindir::,comp::,eversion: \
 	  -l font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev::,mtuxonice::,sqfsd,toi,usage,version \
-	  -l keymap::,lvm,miscdir::,workdir::,kversion::,prefix::,splash::,raid -n ${0##*/} -- "$@" || usage)
+	  -l keymap::,lvm,miscdir::,workdir::,kversion::,prefix::,splash::,raid,mount:: -o T:: \
+	  -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
@@ -83,6 +85,10 @@ while [[ $# > 0 ]]; do
 		-W|--workdir) opts[workdir]="${2}"; shift 2;;
 		-m|--mdep) opts[mdep]+=":${2}"; shift 2;;
 		-p|--prefix) opts[prefix]=${2}; shift 2;;
+		-T|--mount)
+			if [[ -n "${2}" ]]; then opts[mount]+=:"${2}"
+			else opts[mount]+=:/usr; fi
+			shift 2;;
 		-y|--keymap) 
 			if [[ -n "${2}" ]]; then opts[keymap]+=:"${2}"
 			else opts[keymap]+=:$(grep -E '^keymap' /etc/conf.d/keymaps \
@@ -173,6 +179,11 @@ if [[ -n "${opts[lvm]}" ]]; then opts[bin]+=:lvm.static
 fi
 if [[ -n "${opts[raid]}" ]]; then opts[bin]+=:mdadm.static:mdadm
 	cp /etc/mdadm.conf etc/ &>/dev/null || warn "failed to copy /etc/mdadm.conf"
+fi
+if [[ -n "${opts[mount]}" ]]; then
+	for dir in ${opts[mount]//:/ }; do
+		echo "$(grep ${dir} /etc/fstab 2> /dev/null)" >> etc/fstab
+	done
 fi
 addmodule() {
 	local ret
