@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.7.0 2012/06/05 19:46:20 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.7.0 2012/06/05 20:08:16 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -208,6 +208,6 @@ building script. Each script should have a @.sh@ sufix and a @${ishrl}?-*@ prefi
 * runlevel 1: boot and cmdline modules, keymap, font -> 1 -> print msg;
 * runlevel 2?: before... 2s -> swap: 2r -> resume;
 * runlevel 3?: before... 3d -> decrypt: 3f -> fsck: 3m -> mount root;
-* runlevel 4?: before... 4c -> clean up: 4u -> umount: 4s -> switch root.
+* runlevel 4?: before... 4c -> clean up: 4m -> mount /usr:/var...: 4u -> umount: 4s -> switch root.
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
