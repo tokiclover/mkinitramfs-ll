@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.7.0 2012/06/05 19:35:24 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.7.0 2012/06/05 19:46:20 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -139,8 +139,8 @@ This information is then used to obtain each key file from the specified removab
 
 h3. 6. About squashed directories 
 
-One can use squashfs+aufs2 to squash directories like @$PORTDIR:var/lib/layamn@, or system related 
-directories like @usr:lib32:lib64:bin:sbin@. Advantages are system speed/responsiveness.
+One can use squashfs+aufs2 to squash directories like @$PORTDIR:var/lib/layamn@, or system related directories 
+like @usr:lib32:lib64:bin:sbin@. Advantages are system speed, responsiveness and very small rootfs footprint.
 
 Squashed directories argument:
 * @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@ -> using default or append directories after a @[n|a]:@ for sqfsd.
