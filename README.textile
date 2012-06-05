@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.7.0 2012/06/05 19:34:48 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.7.0 2012/06/05 19:35:24 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -67,7 +67,7 @@ It also support @splash=silent,fadein,theme:emergence console=[/dev/]tty1@ splas
 
 h3. 3. About device, /dev/ prefix and detached LUKS header
 
-There's no need to provide any @/dev/@ prefix for block devices, find_blkd() will take care of it.
+There's no need to provide any @/dev/@ prefix for block devices, _blkid() will take care of it.
 Now one can use @UUID=<uuid>@ or @LABEL=<label>@ instead of @[/dev/]sd[a-z0-9]@ for any device or PV. 
 However, a leading plus @+@ is used as a separator for detached header device|file when using 
 
