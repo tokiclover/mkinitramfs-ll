@@ -36,6 +36,16 @@ init script supports the following specific arguments:
 *Note*: @:n:ext4@ or @:no:ext4@ will disable a die if fsck fails to check rootfs.
 
 * @imtopt=<ro,inode64,...>@      -> optional mount options for rootfs.
+* @imount=</usr:/var:...>@       -> mount /usr:/var using /etc/fstab
+
+*Note*:@imount@ can be used to mount /usr:/var ... mount points, each mount point should have a line 
+in @/etc/fstab@. Mounting are done with mount options. If those mount device are on unencrypted PV
+nothing more is required. However, if those device are LV on LUKS and/or RAID array, one should ensure that
+the underlaying PVs are available after swp(), resume() and rootfs() being executed. That mean if the device
+are on LVM in the same VG as root, swap or resume, everything should be fine. Just make sure to add the right 
+VG in swap or resume VG or RAID array or LUKS PV, if not root group, to make sure the required volume is 
+available even if there are no swap nor resume VG, RAID array or LUKS PV [as if there were one]. 
+
 * @imod=<drm,ttm,...,nouveau>@   -> optional modules [list] to load (in the boot group).
 * @ikmap=<kmap>[:<font>@         -> optional keymap and font to load, may be handy for passwords.
 * @ishrl=<n>|:<n>@               -> interrupt init and drop to n level or pass n to real init (see EOF)

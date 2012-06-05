@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.6.1 2012/05/23 11:36:13 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.7.0 2012/06/05 12:41:17 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -405,6 +405,28 @@ resume() {
 	die "failed to resume from hibernation"
 }
 
+imount() {
+	local fs dvc pnt opt x y z IFS="${IFS}:"
+	for x in ${gv_mount}; do
+		y="$(grep ${x} /newroot/etc/fstab)"
+		if [ -n "${y}" ]; then
+			 fs=$(echo "${y}" | awk '{print $3}')
+			dvc=$(echo "${y}" | awk '{print $1}')
+			pnt=$(echo "${y}" | awk '{print $2}')
+			opt=$(echo "${y}" | awk '{print $4}')
+		else
+			error "${y} not found in fstab"
+			break
+		fi
+		for z in 0 1 2 3 4; do
+			[ "${opt}" == "${z}" ] && opt=
+		done
+		debug -d test -b ${dvc}
+		debug -d test -d ${pnt}
+		debug -d mount -t${fs} ${opt:+-o${opt}} ${dvc} /newroot/${pnt}
+	done
+}
+
 switch() {
 	echo > /proc/sys/kernel/hotplug
 	[ "${gv_splash}" == "silent" ] && silent && smsg "Switching / ..."
@@ -456,6 +478,7 @@ main() {
 	debug _rmmod gpg
 	debug -d umount -n -l /mnt/tok
 	debug _rmmod remdev
+	[ -n "${gv_mount}" ] && ishrl 4m && imount
 	debug switch
 }
 
@@ -477,6 +500,7 @@ _getopts() {
 			*init=*)    uv_init=${arg#*=};;
 			ilvm=*)     gv_lvm=${arg#*=};;
 			imod=*)     gv_mod=${arg#*=};;
+			imount=*)   gv_mount=${arg#*=};;
 			imtopt=*)   gv_mtopt=${arg#*=};;
 			splash=*)   dir=${arg#*=}
 				    gv_splash_theme=${dir#*:}
