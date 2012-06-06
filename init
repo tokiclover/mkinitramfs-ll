@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.7.0 2012/06/05 12:41:17 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.7.0 2012/06/06 11:28:54 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -365,7 +365,7 @@ resume() {
 :		local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f3)}
 		debug swp "resume"  "${gv_toi}" "${gv_kresume}" "lv_dev"
 	fi
-	debug -d mount -n -o remount,ro
+	debug -d mount -n -o remount,ro /newroot
 	if [ -d /sys/power/tuxonice ]; then local lva lv_img lv_toi
 		lv_toiui="$(which tuxoniceui_text)"
 :		${lv_toiui:=$(which tuxoniceui_fbsplash)}
@@ -401,7 +401,7 @@ resume() {
 		debug _rmmod suspend
 	fi
 	info "RESUMING from hibernation S[4-5]"
-	debug -d mount -n -o remount,rw /
+	debug -d mount -n -o remount,rw /newroot
 	die "failed to resume from hibernation"
 }
 
