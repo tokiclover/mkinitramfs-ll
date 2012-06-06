@@ -24,7 +24,7 @@ install_bash:
 		-i autogen.zsh busybox.zsh gnupg.zsh $(bin_prefix).zsh
 	sed -e 's:busybox.bash:$(bin_prefix)-busybox.bash:' \
 		-e 's:gnupg.bash:$(bin_prefix)-gnupg.bash:' -e 's:\./::' \
-		-e 's:"\${opts[workdir]}"/busybox.mcfg:$(datadir)/busybox.mcfg:' \
+		-e 's:"\${opts[workdir]}"/busybox.mcfg:"$(datadir)"/busybox.mcfg:' \
 		-i autogen.bash
 	install -pd $(sys_confdir)
 	install -pd $(bindir)

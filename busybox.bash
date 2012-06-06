@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.7.0 2012/06/06 11:09:03 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.7.0 2012/06/06 11:14:04 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} [-m|--minimal] [OPTIONS]
@@ -40,7 +40,7 @@ ebuild ${opts[bbt]}.ebuild clean || die "clean failed"
 ebuild ${opts[bbt]}.ebuild unpack || die "unpack failed"
 cd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/${opts[bbt]}/work/${opts[bbt]} || die
 if [[ -n "${opts[minimal]}" ]]; then make allnoconfig || die
-	for cfg in $(< ${opts[workdir]}/busybox.mcfg); do
+	for cfg in $(< "${opts[workdir]}"/busybox.mcfg); do
 		sed -e "s|# ${cfg%=y} is not set|${cfg}|" -i .config || die
 	done
 else
