@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.7.0 2012/05/23 01:20:31 -tclover Exp $
-revision=0.7.0
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.6.1 2012/05/23 01:20:31 -tclover Exp $
+revision=0.6.0
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS...]
@@ -25,7 +25,6 @@ usage() {
      -msqfsd [:<mod>]     colon separated list of kernel modules to add to sqfsd group
      -mremdev [:<mod>]    colon separated list of kernel modules to add to remdev group
      -mtuxonice [:<mod>]  colon separated list of kernel modules to add to tuxonice group
-  -T|-mount [/usr:/var]   colon separated list of directories mount support
   -t|-toi                 adds tuxonice support for splash, require tuxoniceui_text binary
   -q|-sqfsd               adds aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -r|-raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
@@ -57,7 +56,7 @@ zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: r raid \
 	e: eversion: k: kversion: m+:: mdep+:: f+:: font+:: M:: miscdir:: s:: splash:: \
 	u usage v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: B:: bindir:: \
-	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: T:: mount:: || usage
+	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
 	print "${(%):-%1x}-$revision"; exit 0 }
@@ -141,10 +140,6 @@ if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] {
 if [[ -n ${(k)opts[-raid]} ]] || [[ -n ${(k)opts[-r]} ]] { 
 	opts[-bin]+=:mdadm.static:mdadm
 	cp /etc/mdadm.conf etc/ &>/dev/null || warn "failed to copy /etc/mdadm.conf"
-}
-if [[ -n ${(k)opts[-T]} ]] || [[ -n ${(k)opts[-mount]} ]] {
-	for dir (${(pws,:,)opts[-mount]:-${opts[-T]:-/usr}}) 
-		echo "$(grep ${dir} /etc/fstab 2> /dev/null)" >> etc/fstab
 }
 addmodule() {
 	local ret
