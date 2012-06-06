@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.7.0 2012/06/05 20:08:16 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.7.0 2012/06/06 06:58:32 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -38,13 +38,9 @@ init script supports the following specific arguments:
 * @imtopt=<ro,inode64,...>@      -> optional mount options for rootfs.
 * @imount=</usr:/var:...>@       -> mount /usr:/var using /etc/fstab
 
-*Note*:@imount@ can be used to mount /usr:/var ... mount points, each mount point should have a line 
-in @/etc/fstab@. Mounting are done with mount options. If those mount device are on unencrypted PV
-nothing more is required. However, if those device are LV on LUKS and/or RAID array, one should ensure that
-the underlaying PVs are available after swp(), resume() and rootfs() being executed. That mean if the device
-are on LVM in the same VG as root, swap or resume, everything should be fine. Just make sure to add the right 
-VG in swap or resume VG or RAID array or LUKS PV, if not root group, to make sure that the required volume is 
-available even if there are no swap nor resume VG, RAID array or LUKS PV [as if there were one]. 
+*Note*:@imount@ can be used to mount /usr:/var ... using @/etc/fstab@. Nothing more is required if unencrypted. 
+However, if using LVM and/or LUKS and/or RAID array, one should ensure that the underlaying PVs are available 
+after swp(), resume() and rootfs() being executed, meaning that, the volume(s) should be either in one group. 
 
 * @imod=<drm,ttm,...,nouveau>@   -> optional modules [list] to load (in the boot group).
 * @ikmap=<kmap>[:<font>]@        -> optional keymap and font to load, may be handy for passwords.
