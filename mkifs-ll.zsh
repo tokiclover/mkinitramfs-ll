@@ -1,10 +1,10 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.7.0 2012/06/07 13:35:06 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.7.0 2012/06/07 13:49:44 -tclover Exp $
 revision=0.7.0
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS...]
-  -a|-all                 short forme/hand of '-sqfsd -lvm -gpg -toi'
+  -a|-all                 short forme/hand of '-sqfsd -luks -lvm -gpg -toi'
   -f|-font [ter-v14n]     append colon separated list of fonts to in include
   -e|-eversion d          append an extra 'd' version after \$kv to the initramfs image
   -k|-kversion 3.3.2-git  build an initramfs for '3.3.2-git' kernel, else for \$(uname -r)
