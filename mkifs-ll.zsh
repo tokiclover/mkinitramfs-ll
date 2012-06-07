@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.6.1 2012/05/23 01:20:31 -tclover Exp $
-revision=0.6.0
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.7.0 2012/06/07 12:14:34 -tclover Exp $
+revision=0.7.0
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS...]
@@ -12,6 +12,7 @@ usage() {
   -g|-gpg                 adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p|-prefix initramfs-   prefix scheme to name the initramfs image default is 'initrd-'
   -y|-keymap :fr-latin1   append colon separated list of keymaps to include in the initramfs
+  -L|-luks                adds LUKS support, require a sys-fs/cryptsetup[static] binary
   -l|-lvm                 adds LVM2 support, require a static sys-fs/lvm2[static] binary
   -B|-bindir [bin]        try to include binaries from bin dir {busybox,applets,gpg} first
   -M|-miscdir [misc]      use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
@@ -56,7 +57,7 @@ zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: r raid \
 	e: eversion: k: kversion: m+:: mdep+:: f+:: font+:: M:: miscdir:: s:: splash:: \
 	u usage v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: B:: bindir:: \
-	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: || usage
+	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
 	print "${(%):-%1x}-$revision"; exit 0 }
@@ -118,6 +119,9 @@ if [[ -x ${opts[-bindir]}/busybox ]] { cp -a ${opts[-bindir]}/busybox bin/
 if [[ -e ${opts[-bindir]}/applets ]] { cp -a ${opts[-bindir]}/applets etc/
 } else { bin/busybox --list-full > etc/applets || die }
 for app ($(< etc/applets)) ln -fs /bin/busybox ${app}
+if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] {
+	[[ -n ${(pws,:,)opts[(rw)cryptsetup,-bin]} ]] || opts[-bin]+=:cryptsetup
+}
 if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { 
 	if [[ -x ${opts[-bindir]}/gpg ]] { opts[-bin]+=:usr/bin/gpg
 	} elif [[ $($(which gpg) -version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {

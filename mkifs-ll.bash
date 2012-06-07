@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.6.1 2012/05/23 01:20:28 -tclover Exp $
-revision=0.6.0
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.7.0 2012/05/23 01:20:28 -tclover Exp $
+revision=0.7.0
 usage() {
   cat <<-EOF
   usage: ${1##*/} [OPTIONS...]
@@ -12,6 +12,7 @@ usage() {
   -g, --gpg                 adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p, --prefix initramfs-   prefix scheme to name the initramfs image default is 'initrd-'
   -y, --keymap :fr-latin1   append colon separated list of keymaps to include in the initramfs
+  -L, --luks                adds LUKS support, require a sys-fs/cryptsetup[static] binary
   -l, --lvm                 adds LVM2 support, require a static sys-fs/lvm2[static] binary
   -B, --bindir [bin]        try to include binaries from bin dir {busybox,applets,gpg} first
   -M, --miscdir [misc]      use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
@@ -55,7 +56,8 @@ addnodes() {
 }
 opt=$(getopt -o ab:c::e:f::gk::lm::p::rs::tuvy::B::M::S::W:: -l all,bin:,bindir::,comp::,eversion: \
 	  -l font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev::,mtuxonice::,sqfsd,toi,usage,version \
-	  -l keymap::,lvm,miscdir::,workdir::,kversion::,prefix::,splash::,raid -n ${0##*/} -- "$@" || usage)
+	  -l keymap::,luks,lvm,miscdir::,workdir::,kversion::,prefix::,splash::,raid -oL \
+	  -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
@@ -73,6 +75,7 @@ while [[ $# > 0 ]]; do
 		-g|--gpg) opts[gpg]=y; shift;;
 		-t|--toi) opts[toi]=y; shift;;
 		-l|--lvm) opts[lvm]=y; shift;;
+		-L|--luks) opts[luks]=y; shift;;
 		--mgpg) opts[mgpg]+=:${2}; shift 2;;
 		--mboot) opts[mboot]+=:${2}; shift 2;;
 		--msqfsd) opts[msqfsd]+=:${2}; shift 2;;
@@ -149,6 +152,9 @@ else bin/busybox --list-full > etc/applets || die; fi
 for app in $(< etc/applets); do	
 	ln -fs /bin/busybox ${app}
 done
+if [[ -n "${opts[luks]}" ]]; then
+	[[ -n "$(echo ${opts[bin]} | grep cryptsetup)" ]] || opts[bin]+=:cryptsetup
+fi
 if [[ -n "${opts[sqfsd]}" ]]; then opts[bin]+=:umount.aufs:mount.aufs
 	for fs in {au,squash}fs; do 
 		[[ -n "$(echo ${opts[sqfsd]} | grep ${fs})" ]] || opts[sqfsd]+=:${fs}
