@@ -63,8 +63,8 @@ eval set -- "$opt"
 while [[ $# > 0 ]]; do
 	case $1 in
 		-v|--version) echo "${0##*/}-$revision"; exit 0;;
-		-a|--all) opts[sqfsd]=y; opts[gpg]=y; 
-			opts[lvm]=y; opts[toi]=y; shift;;
+		-a|--all) opts[sqfsd]=y; opts[gpg]=y; opts[toi]=y;
+			opts[lvm]=y; opts[luks]=y; shift;;
 		-r|--raid) opts[raid]=y; shift;;
 		-q|--sqfsd) opts[sqfsd]=y; shift;;
 		-b|--bin) opts[bin]+=:${2}; shift 2;;

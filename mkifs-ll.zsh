@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.7.0 2012/06/07 12:14:34 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.7.0 2012/06/07 13:35:06 -tclover Exp $
 revision=0.7.0
 usage() {
   cat <<-EOF
@@ -83,7 +83,7 @@ if [[ -n ${(k)opts[-f]} ]] || [[ -n ${(k)opts[-font]} ]] {
 if [[ -n $(uname -m | grep 64) ]] { opts[-lib]=64 } else { opts[-lib]=32 }
 if [[ -f mkifs-ll.conf.zsh ]] { source mkifs-ll.conf.zsh }
 if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] { 
-	opts[-g]=; opts[-l]=; opts[-s]=; opts[-t]=; opts[-q]=; 
+	opts[-g]=; opts[-l]=; opts[-s]=; opts[-t]=; opts[-q]=; opts[-L]=;
 }
 case ${opts[-comp][(w)1]} in
 	bzip2)	opts[-initrd]+=.ibz2;;
