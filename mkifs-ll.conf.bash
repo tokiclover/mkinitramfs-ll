@@ -1,4 +1,4 @@
-# $Id: mkinitramfs-ll/mkifs-ll.conf.bash, 2012/05/14 00:47:35 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.conf.bash, 2012/06/07 12:00:57 -tclover Exp $
 #
 # This is needed for building binaries!
 [[ -f /etc/make.conf ]] && source /etc/make.conf
@@ -24,7 +24,7 @@ opts[mtuxonice]+=:
 # $(ldd /library/dependency) may be necessary. binaries will be copied first from 
 # $opts[-bindir] and then from $PATH. Binaries from $opts[-bindir] should have the 
 # head path without the leading slash `/', otherwise they will be copied to `/'.
-opts[bin]=:cryptsetup:fsck.ext4:fsck.jfs:fsck.reiserfs:fsck.xfs:v86d:usr/bin/gpg
+opts[bin]+=:cryptsetup:fsck.ext4:fsck.jfs:fsck.reiserfs:fsck.xfs:v86d:usr/bin/gpg
 #
 opts[font]+=:lat9w-14.psfu:ter-g14n.psf:ter-g14b.psf:ter-g14v.psf:ter-g12n.psf
 opts[keymap]+=:
