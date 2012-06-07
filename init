@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.7.0 2012/06/06 11:28:54 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.7.0 2012/06/07 16:01:46 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -11,8 +11,8 @@ uv_check_env=0          # test if busybox/applets and the other binaries exist
 uv_sqfsdir=/sqfsd       # squashed source dir related variable
 uv_sqfsd=usr:bin:sbin:lib32:lib64 # squashed dirs variable
 # default values [edit at your own risk]
-gv_splashd=1
-gv_splash=verbose
+gv_spld=1
+gv_spl=verbose
 gv_shrl=0
 # functions
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
@@ -36,7 +36,7 @@ debug() {
 
 die() {
 	umount -ln /mnt/tok
-	[ "${gv_splash}" == "silent" ] || verbose
+	[ "${gv_spl}" == "silent" ] || splv
 	error "$@"
 	info "dropping you into a rescueshell..."
 	for lk in ${gv_lkey}; do debug dmclose "${lk}"; done
@@ -75,22 +75,22 @@ _modprobe() {
 	fi
 }
 
-scmd() { [ "${gv_splashd}" ] && debug echo "$@" > /lib/splash/cache/.splash; }
-verbose() { debug scmd "set mode verbose"; }
-silent() { debug scmd "set mode silent"; }
-smsg() { debug scmd "set message $@"; debug scmd "repaint"; }
+splc() { [ "${gv_spld}" ] && debug echo "$@" > /lib/splash/cache/.splash; }
+splv() { debug splc "set mode verbose"; }
+spls() { debug splc "set mode silent"; }
+splm() { debug splc "set message $@"; debug splc "repaint"; }
 
-spalshd_init() {
+spld_init() {
 	[ "${uv_check_env}" ] || debug bchk "splash_util" "--"
 	[ -n "$(echo ${gv_tty} | grep /dev)" ] || gv_tty="/dev/${gv_tty}"
 	[ -n "${gv_tty}" ] && exec < ${gv_tty} > ${gv_tty}
 	[ -e /lib/splash/cache ] || mkdir -p /lib/splash/cache
 	[ -e /lib/splash/cache/.splash ] || mknod /lib/splash/cache/.splash p
-	debug splash_util --daemon "--theme=${gv_splash_theme}"
-	gv_splashd=0
+	debug splash_util --daemon "--theme=${gv_splt}"
+	gv_spld=0
 }
 
-splashd_stop() { [ "${gv_splashd}" ] && gv_splashd=1; debug scmd "exit"; }
+spld_stop() { [ "${gv_spld}" ] && gv_spld=1; debug splc "exit"; }
 
 ishrl() {
 	info "init shell runlevel: ${1}"
@@ -101,7 +101,7 @@ ishrl() {
 			debug ${scr} || debug -e "${scr} failed"
 		done
 	fi
-	if [ "${gv_shrl}" == "${1}" ]; then verbose
+	if [ "${gv_shrl}" == "${1}" ]; then splv
 		debug info "${1}: dropping into a rescueshell"
 		exec sh
 	fi
@@ -358,8 +358,8 @@ swp() {
 
 resume() {
 	local lva lv_dev lv_img lv_toi lv_spd
-	[ "${gv_splash}" == "silent" ] || smsg "Resuming from hibernation..."
-	debug splashd_stop
+	[ "${gv_spl}" == "silent" ] || splm "Resuming from hibernation..."
+	debug spld_stop
 	if [ -n "$(echo "${gv_toi}" | cut -d':' -s -f2)" ]; then
 :		local ${lv_raid:=$(echo "${gv_raid}" | cut -d',' -f3)}
 :		local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f3)}
@@ -378,8 +378,8 @@ resume() {
 			read lva
 			[ "${lva:-no}" != "yes" ] && die "toi: resume aborted"
 		else die "toi: no image found at the pointed location"; fi
-		if [ -n "${gv_splash_theme}" ]; then
-			ln -sf "/etc/splash/${gv_splash_theme}" /etc/splash/tuxonice
+		if [ -n "${gv_splt}" ]; then
+			ln -sf "/etc/splash/${gv_splt}" /etc/splash/tuxonice
 		fi
 		echo ${lv_toi} > /sys/power/tuxonice/user_interface/program
 		debug -d echo > /sys/power/tuxonice/do_resume
@@ -429,9 +429,9 @@ imount() {
 
 switch() {
 	echo > /proc/sys/kernel/hotplug
-	[ "${gv_splash}" == "silent" ] && silent && smsg "Switching / ..."
+	[ "${gv_spl}" == "silent" ] && silent && splm "Switching / ..."
 	info "SWITCHING root '/'..."
-	debug splashd_stop
+	debug spld_stop
 	sleep 1
 	ishrl 4u
 	debug -d umount -l /proc
@@ -444,7 +444,7 @@ switch() {
 imsg() { [ -e /etc/msg ] && info "$(cat /etc/msg)"; }
 
 main() {
-	[ "${gv_splash}" == "verbose" ] && verbose
+	[ "${gv_spl}" == "verbose" ] && splv
 	if [ -n "${gv_kmap}" ]; then
 		for dir in /usr/share/keymaps /etc /; do
 			if [ -f "${dir}/${gv_kmap}" ]; then
@@ -503,8 +503,8 @@ _getopts() {
 			imount=*)   gv_mount=${arg#*=};;
 			imtopt=*)   gv_mtopt=${arg#*=};;
 			splash=*)   dir=${arg#*=}
-				    gv_splash_theme=${dir#*:}
-				    gv_splash=${dir%,*};;
+				    gv_splt=${dir#*:}
+				    gv_spl=${dir%,*};;
 			console=*)  gv_tty=${arg#*=};;
 			iresume=*)  gv_toi=${arg#*=};;
 			ikmap=*)    gv_kmap=$(echo ${arg#*=}|cut -d':' -f1)
