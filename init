@@ -357,7 +357,7 @@ swp() {
 }
 
 resume() {
-	local lv_dev
+	local lva lv_dev lv_img lv_toi lv_spd
 	[ "${gv_splash}" == "silent" ] || smsg "Resuming from hibernation..."
 	debug splashd_stop
 	if [ -n "$(echo "${gv_toi}" | cut -d':' -s -f2)" ]; then
@@ -366,9 +366,9 @@ resume() {
 		debug swp "resume"  "${gv_toi}" "${gv_kresume}" "lv_dev"
 	fi
 	debug -d mount -n -o remount,ro /newroot
-	if [ -d /sys/power/tuxonice ]; then local lva lv_img lv_toi
-		lv_toiui="$(which tuxoniceui_text)"
-:		${lv_toiui:=$(which tuxoniceui_fbsplash)}
+	if [ -d /sys/power/tuxonice ]; then
+		lv_toi="$(which tuxoniceui_text)"
+:		${lv_toi:=$(which tuxoniceui_fbsplash)}
 		debug _modprobe tuxonice
 		debug -d echo ${lv_dev} > /sys/power/tuxonice/resume
 		lv_img="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
@@ -381,13 +381,13 @@ resume() {
 		if [ -n "${gv_splash_theme}" ]; then
 			ln -sf "/etc/splash/${gv_splash_theme}" /etc/splash/tuxonice
 		fi
-		echo ${lv_toiui} > /sys/power/tuxonice/user_interface/program
+		echo ${lv_toi} > /sys/power/tuxonice/user_interface/program
 		debug -d echo > /sys/power/tuxonice/do_resume
 		debug -d echo > /sys/power/tuxonice/image_exists
 		debug _rmmod tuxonice
-	elif [ -f /sys/power/resume ]; then local lva lv_img lv_susp
-		lv_susp="$(which suspendui_text)"
-:		${lv_susp:=$(which suspendui_fbsplash)}
+	elif [ -f /sys/power/resume ]; then
+		lv_spd="$(which suspendui_text)"
+:		${lv_spd:=$(which suspendui_fbsplash)}
 		debug _modprobe suspend
 		debug -d echo ${lv_dev} > /sys/power/disk/resume
 		lv_img="$(cat /sys/power/image_exists | head -n 1)"
@@ -415,7 +415,7 @@ imount() {
 			pnt=$(echo "${y}" | awk '{print $2}')
 			opt=$(echo "${y}" | awk '{print $4}')
 		else
-			error "${y} not found in fstab"
+			error "${x} not found in fstab"
 			break
 		fi
 		for z in 0 1 2 3 4; do
