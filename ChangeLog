@@ -1,6 +1,11 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2012/06/05 18:59:02 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2012/06/08 16:19:59 -tclover Exp $
 
-*init-0.7.0 busybox.{ba,z}sh-0.7.0 sdr.{ba,z}sh-0.7.0 (5 June 2012)
+*init-0.8.0: (8 June 2012)
+
+	* (M) [major] init clean up size went from 18 KB -> 16 KB;
+	* (m) fixes, aufs can be mounted without a 'debug -x' prefix.
+
+*init-0.7.0: busybox.{ba,z}sh-0.7.0 sdr.{ba,z}sh-0.7.0 (5 June 2012)
 
 	* added imount kernel cmdline option, so the init script is capable of
 	  mounting `/usr:/var' [imount=/usr:/var] ... out of the box;

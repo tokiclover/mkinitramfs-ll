@@ -1,401 +1,375 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.7.0 2012/06/07 16:01:46 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.8.0 2012/06/08 14:52:12 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 #
 # user defined variables
-uv_init=/sbin/init      # init to execute after switching to real root
-uv_root_map=root        # self descriptive
-uv_check_env=0          # test if busybox/applets and the other binaries exist 
-uv_sqfsdir=/sqfsd       # squashed source dir related variable
-uv_sqfsd=usr:bin:sbin:lib32:lib64 # squashed dirs variable
+init=/sbin/init # real init to execute after switching to real root
+eck=0           # test if env binaries exist in PATH
+rmp=root        # root mapping for dmcrypt
 # default values [edit at your own risk]
-gv_spld=1
-gv_spl=verbose
-gv_shrl=0
+spld=1
+spl=verbose
+srl=0
 # functions
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
 error() { echo -ne "\033[1;31m * \033[0m$@\n"; }
 
 debug() {
-	local lvd="${@:0:2}" lvc="${@:3:${#@}}"
-	if [ "$lvd" == "-d" ] || [ "$lvd" == "-e" ] || [ "$lvd" == "-i" ]; then $lvc
-	else lvc=; $@; fi
-	ret=$?
-	echo "[${ret}]: ${lvc:-$@}" >> /init.log
-	if [ ! "${ret}" ]; then
-		case ${lvd} in
-			-d) die "d[${ret}]: ${lvc}";;
-			-e) error "e[${ret}]: ${lvc}";;
-			-i) info "i[${ret}]: ${lvc}";;
+	local _cmd _opt="${@:0:2}"
+	if [ "$_opt" = "-d" ] || [ "$_opt" = "-e" ] || [ "$_opt" = "-i" ]; then
+		_cmd="${@:3:${#@}}"
+	else _cmd="$@"; fi
+	$_cmd; ret=$?
+	echo "[$ret]: ${_cmd:-$@}" >> /init.log
+	if [ ! "$ret" ]; then
+		case $_opt in
+			-d) die "d[$ret]: $_cmd";;
+			-e) error "e[$ret]: $_cmd";;
+			-i) info "i[$ret]: $_cmd";;
 		esac
 	fi
-	return "${ret}"
+	return "$ret"
 }
 
 die() {
 	umount -ln /mnt/tok
-	[ "${gv_spl}" == "silent" ] || splv
+	[ "$spl" = "silent" ] || splv
 	error "$@"
 	info "dropping you into a rescueshell..."
-	for lk in ${gv_lkey}; do debug dmclose "${lk}"; done
-	for ld in ${gv_ldev}; do debug losetup -d ${ld}; done
+	for _k in $ldk; do debug dmclose "$_k"; done
+	for _d in $ldv; do debug losetup -d "$_d"; done
 	exec sh
 }
 
-bchk() {
+bck() {
 	for dir in /bin /sbin /usr/bin /usr/sbin; do
-		[ -f "${dir}/${1}" ] && return
+		[ -f "$dir/$1" ] && return
 	done
-	die "${1} binary not found"
+	die "$1 binary not found"
 }
 
-achk() {
+ack() {
 	if [ -e "/etc/applets" ]; then	
-		for app in $(cat /etc/applets); do 
-			[ -h ${app} ] || busybox --install -s && break
+		for _app in $(cat /etc/applets); do 
+			[ -h $_app ] || busybox --install -s && break
 		done
 	else debug -i busybox --install -s; fi
 }
 
 _rmmod() {
-	if [ -f "/etc/modules/${1}" ]; then
-		for mod in $(cat /etc/modules/${1}); do 
-			debug rmmod ${mod}
+	if [ -f "/etc/modules/$1" ]; then
+		for _m in $(cat /etc/modules/$1); do 
+			debug rmmod $_m
 		done
 	fi
 }
 
 _modprobe() {
-	if [ -f "/etc/modules/${1}" ]; then
-		for mod in $(cat /etc/modules/${1}); do 
-			debug modprobe ${mod}
+	if [ -f "/etc/modules/$1" ]; then
+		for _m in $(cat /etc/modules/$1); do 
+			debug modprobe $_m
 		done
 	fi
 }
 
-splc() { [ "${gv_spld}" ] && debug echo "$@" > /lib/splash/cache/.splash; }
+splc() { [ "$spld" ] && debug echo "$@" > /lib/splash/cache/.splash; }
 splv() { debug splc "set mode verbose"; }
 spls() { debug splc "set mode silent"; }
 splm() { debug splc "set message $@"; debug splc "repaint"; }
 
 spld_init() {
-	[ "${uv_check_env}" ] || debug bchk "splash_util" "--"
-	[ -n "$(echo ${gv_tty} | grep /dev)" ] || gv_tty="/dev/${gv_tty}"
-	[ -n "${gv_tty}" ] && exec < ${gv_tty} > ${gv_tty}
+	[ "$eck" ] || debug bck "splash_util" "--"
+	[ -n "$(echo $tty | grep /dev)" ] || tty="/dev/$tty"
+	[ -n "$tty" ] && exec < $tty > $tty
 	[ -e /lib/splash/cache ] || mkdir -p /lib/splash/cache
 	[ -e /lib/splash/cache/.splash ] || mknod /lib/splash/cache/.splash p
-	debug splash_util --daemon "--theme=${gv_splt}"
-	gv_spld=0
+	debug splash_util --daemon "--theme=$theme"
+	spld=0
 }
 
-spld_stop() { [ "${gv_spld}" ] && gv_spld=1; debug splc "exit"; }
+spld_stop() { [ "$spld" ] && spld=1; debug splc "exit"; }
 
-ishrl() {
-	info "init shell runlevel: ${1}"
-	local lv_scr="$(ls /etc/local.d/${1}?-*.sh &> /dev/null)"
-	if [ -n "${lv_scr}" ]; then
-		for scr in ${lv_scr}; do 
-			info "executing ${scr}..."
-			debug ${scr} || debug -e "${scr} failed"
+isrl() {
+	info "switching to init shell runlevel: $1"
+	local _scr="$(ls /etc/local.d/${1}?-*.sh &> /dev/null)"
+	if [ -n "$_scr" ]; then
+		for _s in $_scr; do 
+			info "exec: $_s..."
+			debug -e $_s
 		done
 	fi
-	if [ "${gv_shrl}" == "${1}" ]; then splv
-		debug info "${1}: dropping into a rescueshell"
+	if [ "$srl" = "$1" ]; then splv
+		debug info "$1: dropping into a rescueshell"
 		exec sh
 	fi
 }
 
-_blkid() { eval ${2}=$(blkid | grep "${1#*=}" | cut -d':' -f1); }
+_blkid() { eval $2=$(blkid | grep "${1#*=}" | cut -d':' -f1); }
 
-getldkey() {
-	local lv_fname="${1##*/}"
-	if [ ! "${gv_cldev}" ]; then
-		local lv_ldev="$(debug -d losetup -f)"
-		debug -d losetup ${lv_ldev} ${1}
-		gv_ldev="${lv_ldev}:${gv_ldev}"
+getldk() {
+	if [ ! "$cld" ]; then
+		local _ld="$(debug -d losetup -f)"
+		debug -d losetup "$_ld" "$1"
+		ldv="$_ld:$ldv"
 	fi
-	debug cryptsetup luksOpen "${lv_ldev}" "${lv_fname}" 
+	debug cryptsetup luksOpen "$_ld" "$_fn" 
 	if [ "$?" ]; then
-		gv_kfile=/dev/mapper/"${lv_fname}"
-		gv_lkey="${lv_fname}:${gv_lkey}"
+		kfile=/dev/mapper/"$_fn"
+		ldk="$_fn:$ldk"
 	fi
 }
 
 getkey() {
-	local lv_kmode="${1}" lv_dev
-	if [ -n "${lv_kmode}" ]; then 
-		if [ "${lv_kmode}" != "none" ];then
-			if [ -z "${gv_cldev}" ]; then
-				local lv_version=$(cryptsetup --version | awk '{ print $2 }')
-				[ $(echo "${lv_version}" | cut -d'.' -f2) -ge 3 ] && gv_cldev=0
-				[ $(echo "${lv_version}" | cut -d'.' -f2) -ge 4 ] && gv_cdh=0
-				[ "${gv_cdh}" ] && [ $(echo "${lv_version}" | cut -d'.' -f3) -ge 2 ] && gv_cuuid=0
+	local _fp="$(echo "$1" | cut -d':' -s -f3)"
+	local _kd="$(echo "$1" | cut -d':' -s -f2)"
+	local _dv _fn=${_fp##*/} _km="${1%%:*}"
+	if [ -n "$_km" ]; then 
+		if [ "$_km" != "none" ];then
+			if [ -z "$cld" ]; then
+				local _v=$(cryptsetup --version | awk '{print $2}')
+				[ $(echo "$_v" | cut -d'.' -f2) -ge 3 ] && cld=0
+				[ $(echo "$_v" | cut -d'.' -f2) -ge 4 ] && cdh=0
+				[ "$cdh" ] && [ $(echo "$_v" | cut -d'.' -f3) -ge 2 ] && cid=0
 			fi
 		else return; fi
 	else return; fi
-	if [ "${lv_kmode}" != "pwd" ]; then
-		[ -n "${2}" ] || die "ik${4}=${1}:${2}:${3} device field empty."
-		[ -n "${3}" ] || die "ik${4}=${1}:${2}:${3} filepath field empty."
-		debug _blkid "${2}" "lv_dev"; gv_fpath="${3}"
+	if [ "$_km" != "pwd" ]; then
+		[ -n "$_kd" ] || die "ik$2=$_km:$_kd:$_fp device field empty"
+		[ -n "$_fp" ] || die "ik$2=$_km:$_kd:$_fp filepath field empty"
+		debug _blkid "$_kd" "_dv"
 		if [ -z "$(mount | grep /mnt/tok)" ]; then
-			if [ ! -b "${lv_dev}" ]; then
-				sleep 2; debug _blkid "${2}" "lv_dev"
-				if [ ! -b "${lv_dev}" ]; then
+			if [ ! -b "$_dv" ]; then
+				sleep 2; debug _blkid "$_kd" "_dv"
+				if [ ! -b "$_dv" ]; then
 					info "Insert removable device and press Enter."
-					read; sleep 2; debug _blkid "${2}" "lv_dev"
+					read; sleep 2; debug _blkid "$_kd" "_dv"
 				fi
-				while [ ! -b "${lv_dev}" ]; do
-					info "${lv_dev} does not exist, input a valid dev name"
+				while [ ! -b "$_dv" ]; do
+					info "$_dv does not exist, input a valid dev name"
 					info "e.g. '[/dev/]sdb1', 'LABEL=<label>' 'UUID=<uuid>'"
-					read lv_dev; sleep 2; debug _blkid "${lv_dev}" "lv_dev"
+					read _dv; sleep 2; debug _blkid "$_dv" "_dv"
 				done
 			fi
-			debug -d mount -n -r "${lv_dev}" /mnt/tok
-			info "${lv_dev}: removable device mounted"
+			debug -d mount -n -r "$_dv" /mnt/tok
 		fi
-		[ -f "/mnt/tok/${gv_fpath}" ] || \
-			die "${gv_fpath} keyfile does not exist in ${lv_dev} remdev"
+		debug -d test -f "/mnt/tok/$_fp"
 	fi
-	case ${lv_kmode} in
-		gpg) [ ${uv_check_env} ] || bchk "gpg" "--"
-			 gv_kfile="/mnt/tok/${gv_fpath}"; gv_cmode=gpg;;
-		reg) gv_kfile="/mnt/tok/${gv_fpath}"; gv_cmode=reg;;
-		ldk) [ -e "/dev/mapper/${gv_fname}" ] || \
-			 getldkey "/mnt/tok/${gv_fpath}"; gv_cmode=ldk;;
-		pwd) gv_cmode=pwd;;
-		*)   die "${lv_kmode}:mode is not valid.";; 
+	case $_km in
+		gpg) [ $eck ] || bck "gpg" "--"; kfile="/mnt/tok/$_fp"; kmd=gpg;;
+		reg) kfile="/mnt/tok/$_fp"; kmd=reg;;
+		ldk) [ -e "/dev/mapper/$_fn" ] || getldk "/mnt/tok/$_fp"; kmd=ldk;;
+		pwd) kmd=pwd;;
+		*)   die "$_km: key mode is not valid";; 
 	esac
 }
 
 dmclose() { 
-	[ -n "${2}" ] && debug -d vgchange -an ${2%-*}
+	[ -n "$2" ] && debug -d vgchange -an ${2%-*}
 	local IFS="${IFS}:" 
-	for pv in ${1}; do 
-		debug cryptsetup luksClose ${1%%-*} || debug cryptsetup remove ${1%%-*}
+	for _p in $1; do 
+		debug cryptsetup luksClose ${_p%%-*} || debug cryptsetup remove ${_p%%-*}
 	done
 }
 
 dmcrypt() {
-	local lva lvc lvk lvp lvu
+	local _apd _asw _cpr _ksz _use
 	info "Type a valid LUKS cipher:hash, default is 'aes-xts-plain:sha256'"
 	info "you can take something safer like 'aes-cbc-essiv:sha256'"
-	read lvc
+	read _cpr
 	info "Type a valide key-size [256|512], default is 256 bits:"
-	read lvk
-	if [ -e "${gv_kfile}" ]; then 
-		info "use the existing ${gv_kfile} keyfile? [NO|yes]"
-		read lvu
-		[ "${lvu:-no}" == "yes" ] && lvu="-d ${lvu}" || lvu=
+	read _ksz
+	if [ -e "$kfile" ]; then 
+		info "use the existing $kfile keyfile? [NO|yes]"
+		read _use
+		[ "${_use:-no}" = "yes" ] && _use="-d $_use" || _use=
 	fi
-	if [ -n "${lv_header}" ]; then info "use ${lv_header} detached header [NO|yes]?"
-		read lva
-		if [ "${lva:-no}" == "yes" ]; then info "Enter a valid aligh-payload offset,"
+	if [ -b "$_hdr" ]; then info "use $_hdr detached header [NO|yes]?"
+		read _asw
+		if [ "${_asw:-no}" = "yes" ]; then info "Enter a valid aligh-payload offset,"
 			info "this option is taken as absolute sector alignment and can be zero"
-			read lvp
-			[ -n "${lvp}" ] && lvp="--align-payload ${lvp}"
-		else lv_header=; lvp=; fi
+			read _apd; _apd="--align-payload $_apd"
+		else _hdr=; fi
 	fi
-	debug -d cryptsetup ${lv_arg} ${lv_dev} -c${lvc:-aes-xts-plain:sha256} \
-		-s${lvk:-256} ${lvu} ${lv_header} ${lvp}
+	debug -d cryptsetup $_arg $_dev -c${_cpr:-aes-xts-plain:sha256} \
+		-s${_ksz:-256} $_use $_hdr $_apd
 }
 
 dmopen() { 
-	[ "${uv_check_env}" ] || bchk "cryptsetup" "--"
-	local lv_arg=luksFormat
-	local lv_map=$(echo "${1}" | cut -d'-' -f1)
-	local lv_dev=$(echo "${1#*-}" | cut -d'+' -f1)
-	local lv_header=$(echo "${1}" | cut -d'+' -s -f2)
-	if [ "${gv_cuuid}" ] && [ -n "$(echo "${lv_dev}" | grep -i UUID)" ]; then continue
-	else debug -d _blkid "${lv_dev}" "lv_dev"; fi
-	if [ -n "${lv_header}" ]; then local lv_hdev
-		if [ -n "$(echo "${lv_header}" | grep -E '(UUID|LABEL|sd[a-z][0-9])')" ]; then 
-			if [ "${gv_cuuid}" ] && [ -n "$(echo "${lv_header}" | grep -i UUID)" ]; then 
-				lv_hdev=${lv_header}
-			else debug _blkid "${lv_header}" "lv_hdev"; fi
-			[ -b "${lv_hdev}" ] && lv_header="--header ${lv_hdev}" || \
-			die "$lv_header block device doesn't exist."
-		elif [ -e "/mnt/tok/${lv_header}" ]; then 
-			lv_header="--header /mnt/tok/${lv_header}"
-		else die "${lv_header} detached header doesn't exist."; fi
+	[ "$eck" ] || bck "cryptsetup" "--"
+	local _arg=luksFormat _asw
+	local _map=$(echo "$1" | cut -d'-' -f1)
+	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
+	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
+	if [ "$cid" ] && [ -n "$(echo "$_dev" | grep -i UUID)" ]; then continue
+	else debug -d _blkid "$_dev" "_dev"; fi
+	if [ -n "$_hdr" ]; then
+		if [ -n "$(echo "$_hdr" | grep -E '(UUID|LABEL|sd[a-z][0-9])')" ]; then 
+			if [ "$cid" ] && [ -n "$(echo "$_hdr" | grep -i UUID)" ]; then continue
+			else debug _blkid "$_hdr" "_hdr"; fi
+			debug -d test -b "$_hdr" && _hdr="--header $_hdr"
+		elif [ -e "/mnt/tok/$_hdr" ]; then _hdr="--header /mnt/tok/$_hdr"
+		else die "$_hdr detached header doesn't exist."; fi
 	fi
-	debug cryptsetup isLuks "${lv_dev}"
-	if [ ! "$?" ]; then local lva
- 		info "cre[ate] ${lv_dev} or dec[rypt] another LUKS PV? [cre|DEC]"
-		read lva
-		if [ "${lva:-dec}" == "dec" ]; then
+	debug cryptsetup isLuks "$_dev"
+	if [ ! "$?" ]; then
+ 		info "cre[ate] $_dev or dec[rypt] another LUKS PV? [cre|DEC]"
+		read _asw
+		if [ "${_asw:-dec}" = "dec" ]; then
 			while true; do
 				info "Type in valid LUKS PV e.g. sda5|UUID=<uuid>|LABEL=<label>"
-				read lv_dev; debug _blkid "${lv_dev}" "lv_dev"
-				debug cryptsetup isLuks "${lv_dev}" && break
+				read _dev; debug _blkid "$_dev" "_dev"
+				debug cryptsetup isLuks "$_dev" && break
 			done
-		elif [ "${lva}" == "cre" ]; then debug dmcrypt; fi
+		elif [ "$_asw" = "cre" ]; then debug dmcrypt; fi
 	fi
-	[ -b "${lv_dev}" ] || die "${lv_dev} block device doesn't exist."
-	debug -d cryptsetup isLuks "${lv_dev}"
-	lv_arg=luksOpen
-	if [ "${gv_cmode}" == "gpg" ]; then 
+	debug -d test -b "$_dev" && _arg=luksOpen
+	if [ "$kmd" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
-		for i in 1 2 3; do
-			debug gpg -qd "${gv_kfile}" | cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}" \
-				${lv_header} && break
-			[ ${i} -eq 3 ] && error "...there's still a pwd mode fallback..."
+		for _i in 1 2 3; do
+			debug gpg -qd "$kfile" | cryptsetup "$_arg" "$_dev" "$_map" $_hdr && break
+			[ $_i -eq 3 ] && error "...there's still a pwd mode fallback..."
 		done
 		rm /dev/tty && mv /dev/bak /dev/tty
-	elif [ "${gv_cmode}" == "ldk" ] || [ "${gv_cmode}" == "reg" ]; then 
-		debug cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}" -d "${gv_kfile}" \
-		${lv_header} || error "...there's still a pwd mode fallback..."
+	elif [ "$kmd" = "ldk" ] || [ "$kmd" = "reg" ]; then 
+		debug cryptsetup "$_arg" "$_dev" "$_map" -d "$kfile" $_hdr ||
+		error "...there's still a pwd mode fallback..."
 	fi
-	if [ ! -b "/dev/mapper/${lv_map}" ]; then
-		debug -d cryptsetup "${lv_arg}" "${lv_dev}" "${lv_map}" "${lv_header}"
-	fi
+	local _dv=/dev/mapper/$_map
+	[ ! -b "$_dv" ] || debug -d cryptsetup "$_arg" "$_dev" "$_map" "$_hdr"
+	debug -d test -b $_dv && eval $2=$_dv
 }
 
 lvopen() {
-	[ "${uv_check_env}" ] || bchk "lvm" "--"
-	if debug lvchange -ay ${1/-//}; then continue
-	elif [ -n "${2}" ]; then
-		local lv_pv="${2}" IFS="${IFS}:"
-		[ -e "/mnt/tok/${lv_pv}" ] && lv_pv="$(cat /mnt/tok/${lv_pv})"
-		for pv in ${lv_pv}; do debug dmopen "${pv}"; done
-		debug vgchange -ay ${1%-*} || debug -d dmclose "${lv_pv}" "${1}"
-	else die "${1} require a valid crypted physical volume"; fi
-	if [ -b "/dev/mapper/${1}" ]; then eval ${3}=/dev/mapper/${1}
-	elif [ -b "/dev/${1/-//}" ]; then eval ${3}=/dev/${1/-//}
-	else die "${1/-//} VG/LV do not exist."; fi
+	[ "$eck" ] || bck "lvm" "--"
+	local _lv=${1/-//}
+	if debug lvchange -ay $_lv; then continue
+	elif [ -n "$2" ]; then
+		local _pv="$2" IFS="${IFS}:"
+		[ -e "/mnt/tok/$_pv" ] && _pv="$(cat /mnt/tok/$_pv)"
+		for _p in $_pv; do debug dmopen "$_p"; done
+		debug vgchange -ay ${1%-*} || debug -d dmclose "$_pv" "$1"
+	else die "$1 require a valid crypted physical volume"; fi
+	if [ -b "/dev/mapper/$1" ]; then eval $3=/dev/mapper/$1
+	elif [ -b "/dev/$_lv" ]; then eval $3=/dev/$_lv
+	else die "$_lv VG/LV do not exist."; fi
 }
 
 mdopen() {
-	local lv_dev=${1%%-*} lv_part=$(echo "${1}" | cut -d'+' -f2)
-	[ -n "$(echo ${lv_dev} | grep /dev)" ] || lv_dev=/dev/${lv_dev}
-	[ -b ${lv_dev} ] && return
-	if [ -n "$(echo ${1} | grep UUID)" ]; then
-		if [ -n "${lv_part}" ]; then
-			echo DEVICE $(ls /dev/sd*${lv_part}) >> /etc/mdadm.conf
+	local _dev=${1%%-*} _prt=$(echo "$1" | cut -d'+' -f2)
+	[ -n "$(echo $_dev | grep /dev)" ] || _dev=/dev/$_dev
+	[ -b "$_dev" ] && return
+	if [ -n "$(echo $1 | grep UUID)" ]; then
+		if [ -n "$_prt" ]; then
+			echo DEVICE $(ls /dev/sd*$_prt) >> /etc/mdadm.conf
 		else echo 'DEVICE /dev/sd??*' >> /etc/mdadm.conf; fi
-		echo ARRAY ${lv_dev} $(echo "${1#*-}" | cut -d'+' -f1) >> /etc/mdadm.conf
+		echo ARRAY $_dev $(echo "${1#*-}" | cut -d'+' -f1) >> /etc/mdadm.conf
 	fi
-	debug mdadm --assemble --scan ${lv_dev} || raidautorun
-	[ -b ${lv_dev} ] || die "failed to activate ${lv_dev} RAID array."
+	debug mdadm --assemble --scan "$_dev" || raidautorun
+	debug -d test -b "$_dev"
 }
 
-squashd() {
-	[ -n "$sqfsdir" ] || die "uv_sqfsdir wasn't set and sqfsdir is empty."
-	[ -n "$sqfsd" ]   || die "uv_sqfsd wasn't set and sqfsd is empty."
-	[ -d /newroot/"$sqfsdir" ] || die "sqfsdir=$sqfsdir dir doesn't exist."
+sqfsd() {
+	local IFS="${IFS}:" _rd=${sqfsdir}
+	debug -d test -n $_rd
+	debug -d test -n $sqfsd
+	debug -d test -d /newroot$_rd
 	debug _modprobe sqfsd
 	cd /newroot
-	local IFS="${IFS}:"
-	for dir in $sqfsd; do
-		[ -e ."$sqfsdir/$dir".sfs ] || die "$dir.sfs image doesn't exist."
-		mkdir -p ."$sqfsdir/$dir"/rw && mkdir -p ."$sqfsdir/$dir"/ro
-		debug -d mount -t squashfs .${sqfsdir}/${dir}.sfs \
-			.${sqfsdir}/${dir}/ro -o nodev,loop,ro
-		mount -t aufs ${dir} ${dir} \
-			-o nodev,udba=reval,br:.${sqfsdir}/${dir}/rw:.${sqfsdir}/${dir}/ro
+	for _d in $sqfsd; do
+		debug -d test -f .$_rd/$_d.sfs
+		mkdir -p .$_rd/$_d/rw; mkdir -p .$_rd/$_d/ro
+		debug -d mount -tsquashfs -onodev,loop,ro .$_rd/$_d.sfs .$_rd/$_d/ro &&
+		mount -taufs -onodev,udba=reval,br:.$_rd/$_d/rw:.$_rd/$_d/ro $_d $_d
 	done
 }
 rootfs() {
-	local lv_dev
-	local lv_root=${gv_root%%:*}
-	local lv_kmod=${gv_kroot%%:*}
-	local lv_kdev="$(echo "${gv_kroot}" | cut -d':' -f2)"
-	local lv_kfpt="$(echo "${gv_kroot}" | cut -d':' -f3)"
-	local lv_fsck="$(echo "${gv_root}" | cut -d':' -f2)"
-	local lv_fs="$(echo "${gv_root}" | cut -d':' -f3)"
-:	local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f1)}
-:	local ${lv_raid:=$(echo "${gv_raid}" | cut -d',' -f1)}
-	[ -n "${gv_root}" ] || die "iroot=[PV|VG-LV][:<fs>] argument is missing"
-	debug getkey "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "root"
-	ishrl 3d
-	[ -n "${lv_raid}" ] && mdopen "${lv_raid}"
-	if [ -n "${lv_lvm}" ]; then debug -d lvopen "${lv_root}" "${lv_lvm}" "lv_dev"
-	elif [ -n "${gv_cmode}" ]; then
-		debug -d dmopen "${uv_root_map:-root}-${gv_root}" 
-		lv_dev=/dev/mapper/${uv_root_map:-root}
-	else debug -d _blkid "${lv_root}" "lv_dev"; fi
-	ishrl 3f
-	if [ -n "${lv_fsck}" ]; then 
-		if [ "${lv_fsck}" == "n" ] || [ "${lv_fsck}" == "no" ]; then lv_fsck="-e"
-		else lv_fsck="-d"; fi
-		debug ${lv_fsck} fsck ${lv_fs:+-t${lv_fs}} ${lv_dev} 
+	[ -n "$root" ] || die "iroot=<PV|VG-LV>[:<c>:<fs>] argument is missing"
+	local _dev _fscf _rdev=${root%%:*}
+	local _fsck="$(echo "$root" | cut -d':' -f2)"
+	local _fs="$(echo "$root" | cut -d':' -f3)"
+:	local ${_lvm:=$(echo "$lvm" | cut -d',' -f1)}
+:	local ${_raid:=$(echo "$raid" | cut -d',' -f1)}
+	debug getkey "$kroot" "root"
+	isrl 3d
+	[ -n "$_raid" ] && mdopen "$_raid"
+	if [ -n "$_lvm" ]; then debug -d lvopen "$_rdev" "$_lvm" "_dev"
+	elif [ -n "$kmd" ]; then debug -d dmopen "${rmp:-root}-$root" "_dev"
+	else debug -d _blkid "$_rdev" "_dev"; fi
+	isrl 3f
+	if [ -n "$_fsck" ]; then 
+		if [ "$_fsck" = "n" ] || [ "$_fsck" = "no" ]; then _fscf="-e"
+		else _fscf="-d"; fi
+		debug $_fscf fsck ${_fs:+-t$_fs} $_dev 
 	fi
-	ishrl 3m
-	debug mount ${gv_mopt:+-o${gv_mtopt}} ${lv_fs:+-t${lv_fs}} ${lv_dev} /newroot
+	isrl 3m
+	debug mount ${mopt:+-o$mopt} ${_fs:+-t$_fs} $_dev /newroot
 	if [ ! "$?" ]; then
-		if [ -n "${gv_cmode}" ]; then
-			debug -d dmclose "${lv_lvm:-${uv_root_map:-root}}" "${lv_lvm:+${lv_root}}"
+		if [ -n "$kmd" ]; then
+			debug -d dmclose "${_lvm:-${rmp:-root}}" "${_lvm:+$_rdev}"
 		fi
 		die "failed to mount rootfs"
 	fi
-	ishrl 3s
-	[ -n "${sqfsd}" ] && debug squashd
-	lv_lvm=; gv_mtopt=; gv_cmode=
+	isrl 3s
+	[ -n "$sqfsd" ] && debug -d sqfsd
+	_lvm=; mopt=; kmd=
 }
 
-swp() {
-	local lv_hdev="$(echo "${2}" | cut -d':' -s -f2)" 
-	local lv_type=${2%%:*}
-	local lv_sign="$(echo "${2}" | cut -d':' -s -f3)"
-	local lv_kmod=${3%%:*}
-	local lv_kdev="$(echo "${3}" | cut -d':' -s -f2)"
-	local lv_kfpt="$(echo "${3}" | cut -d':' -s -f3)"
-	local lv_map=${1} 
-	local lvdev
-	[ -n "${lv_hdev}" ] || die "${lv_map} [PV|VG-LV] is missing"
-	[ -n "${lv_type}" ] || die "${lv_map} type [file|swap] is missing"
-	debug getkey "${lv_kmod}" "${lv_kdev}" "${lv_kfpt}" "${1}"
-	[ -n "${lv_raid}" ] && debug -d mdopen "${lv_raid}"
-	if [ -n "${lv_lvm}" ]; then debug -d lvopen "${lv_hdev}" "${lv_lvm}" "lvdev"
-	elif [ -n "${gv_cmode}" ]; then debug -d dmopen "${lv_map}-${lv_hdev}"
-		lvdev=/dev/mapper/${lv_map}
-	else debug -d _blkid "${lv_hdev}" "lvdev"; fi
-	lvdev=${lv_type}:${lvdev}${lv_sign:+:${lv_sign}}
-	[ -n "${4}" ] && eval ${4}=${lvdev}
-	lv_lvm=; lv_raid=; gv_cmode=
+swap() {
+	[ -n "$2" ] || die "i$1=<type>:<PV|VG-LV>[:<sign>] argument is missing"
+	local _dev _swp="$1"  _type="${2%%:*}"
+	local _hdev="$(echo "$2" | cut -d':' -s -f2)" 
+	local _sign="$(echo "$2" | cut -d':' -s -f3)"
+	debug getkey "$_swp" "$3"
+	[ -n "$_raid" ] && debug -d mdopen "$_raid"
+	if [ -n "$_lvm" ]; then debug -d lvopen "$_hdev" "$_lvm" "_dev"
+	elif [ -n "$kmd" ]; then debug -d dmopen "$_swp-$_hdev" "_dev"
+	else debug -d _blkid "$_hdev" "_dev"; fi
+	[ -n "$4" ] && eval $4=$_type:$_dev${_sign+:$_sign}
+	_lvm=; _raid=; kmd=
 }
 
 resume() {
-	local lva lv_dev lv_img lv_toi lv_spd
-	[ "${gv_spl}" == "silent" ] || splm "Resuming from hibernation..."
+	local _asw _dev _img _toi _spd
+	[ "$spl" = "silent" ] || splm "Resuming from hibernation..."
 	debug spld_stop
-	if [ -n "$(echo "${gv_toi}" | cut -d':' -s -f2)" ]; then
-:		local ${lv_raid:=$(echo "${gv_raid}" | cut -d',' -f3)}
-:		local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f3)}
-		debug swp "resume"  "${gv_toi}" "${gv_kresume}" "lv_dev"
+	if [ -n "$(echo "$toi" | cut -d':' -s -f2)" ]; then
+:		local ${_raid:=$(echo "$raid" | cut -d',' -f3)}
+:		local ${_lvm:=$(echo "$lvm" | cut -d',' -f3)}
+		debug -d swap "resume"  "$toi" "$kresume" "_dev"
 	fi
 	debug -d mount -n -o remount,ro /newroot
 	if [ -d /sys/power/tuxonice ]; then
-		lv_toi="$(which tuxoniceui_text)"
-:		${lv_toi:=$(which tuxoniceui_fbsplash)}
+		_toi="$(which tuxoniceui_text)"
+:		${_toi:=$(which tuxoniceui_fbsplash)}
 		debug _modprobe tuxonice
-		debug -d echo ${lv_dev} > /sys/power/tuxonice/resume
-		lv_img="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
-		if [ "${lv_img}" == "1" ]; then 
+		debug -d echo $_dev > /sys/power/tuxonice/resume
+		_i="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
+		if [ "$_img" = "1" ]; then 
 			error "toi: no recognizable signature at the pointed location"
 			error "toi: proceed anyway [NO|yes]? "
-			read lva
-			[ "${lva:-no}" != "yes" ] && die "toi: resume aborted"
+			read _asw
+			[ "${_asw:-no}" != "yes" ] && die "toi: resume aborted"
 		else die "toi: no image found at the pointed location"; fi
-		if [ -n "${gv_splt}" ]; then
-			ln -sf "/etc/splash/${gv_splt}" /etc/splash/tuxonice
+		if [ -n "$theme" ]; then
+			ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
 		fi
-		echo ${lv_toi} > /sys/power/tuxonice/user_interface/program
+		echo $_toi > /sys/power/tuxonice/user_interface/program
 		debug -d echo > /sys/power/tuxonice/do_resume
 		debug -d echo > /sys/power/tuxonice/image_exists
 		debug _rmmod tuxonice
 	elif [ -f /sys/power/resume ]; then
-		lv_spd="$(which suspendui_text)"
-:		${lv_spd:=$(which suspendui_fbsplash)}
+		_spd="$(which suspendui_text)"
+:		${_spd:=$(which suspendui_fbsplash)}
 		debug _modprobe suspend
-		debug -d echo ${lv_dev} > /sys/power/disk/resume
-		lv_img="$(cat /sys/power/image_exists | head -n 1)"
-		if [ "${lv_img}" == "1" ]; then 
+		debug -d echo ${_dev} > /sys/power/disk/resume
+		_img="$(cat /sys/power/image_exists | head -n 1)"
+		if [ "$_img" = "1" ]; then 
 			error "suspend: no recognizable signature at the pointed location"
 			error "suspend: proceed anyway [NO|yes]? "
-			read lva
-			[ "${lva:-no}" != "yes" ] && die "suspend: resume aborted"
+			read _asw
+			[ "${_asw:-no}" != "yes" ] && die "suspend: resume aborted"
 		else die "suspend: no image found at the pointed location"; fi
 		debug -d echo disk > /sys/power/state
 		debug _rmmod suspend
@@ -406,79 +380,79 @@ resume() {
 }
 
 imount() {
-	local fs dvc pnt opt x y z IFS="${IFS}:"
-	for x in ${gv_mount}; do
-		y="$(grep ${x} /newroot/etc/fstab)"
+	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
+	for _x in $mount; do
+		_y="$(grep $_x /newroot/etc/fstab)"
 		if [ -n "${y}" ]; then
-			 fs=$(echo "${y}" | awk '{print $3}')
-			dvc=$(echo "${y}" | awk '{print $1}')
-			pnt=$(echo "${y}" | awk '{print $2}')
-			opt=$(echo "${y}" | awk '{print $4}')
+			 _fs=$(echo "$_y" | awk '{print $3}')
+			_dev=$(echo "$_y" | awk '{print $1}')
+			_mpt=$(echo "$_y" | awk '{print $2}')
+			_opt=$(echo "$_y" | awk '{print $4}')
 		else
-			error "${x} not found in fstab"
+			error "$_x not found in fstab"
 			break
 		fi
-		for z in 0 1 2 3 4; do
-			[ "${opt}" == "${z}" ] && opt=
+		for _z in 0 1 2 3 4; do
+			[ "$_opt" = "$_z" ] && _opt=
 		done
-		debug -d test -b ${dvc}
-		debug -d test -d ${pnt}
-		debug -d mount -t${fs} ${opt:+-o${opt}} ${dvc} /newroot/${pnt}
+		debug -d test -b $_dev
+		debug -d test -d $_mpt
+		debug -d mount -t$_fs ${_opt:+-o$_opt} $_dev /newroot/$_mpt
 	done
 }
 
 switch() {
 	echo > /proc/sys/kernel/hotplug
-	[ "${gv_spl}" == "silent" ] && silent && splm "Switching / ..."
+	[ "$spl" = "silent" ] && silent && splm "Switching / ..."
 	info "SWITCHING root '/'..."
 	debug spld_stop
 	sleep 1
-	ishrl 4u
+	isrl 4u
 	debug -d umount -l /proc
 	debug -d umount -l /sys
 	debug -d umount -l /dev
-	ishrl 4s
-	debug -d exec switch_root /newroot ${uv_init:-/sbin/init} ${gv_inrl}
+	isrl 4s
+	debug -d exec switch_root /newroot ${init:-/sbin/init} $irl
 }
 
 imsg() { [ -e /etc/msg ] && info "$(cat /etc/msg)"; }
 
 main() {
-	[ "${gv_spl}" == "verbose" ] && splv
-	if [ -n "${gv_kmap}" ]; then
-		for dir in /usr/share/keymaps /etc /; do
-			if [ -f "${dir}/${gv_kmap}" ]; then
-				debug -d loadkmap < "${dir}/${gv_kmap}" && break
+	[ "$spl" = "verbose" ] && splv
+	if [ -n "$kmap" ]; then
+		for _dir in /usr/share/keymaps /etc /; do
+			if [ -f "$_dir/$kmap" ]; then
+				debug -d loadkmap < "$_dir/$kmap" && break
 			fi
 		done
 	fi
-	if [ -n "${gv_font}" ]; then
-		for dir in /usr/share/consolefonts /etc /; do
-			if [ -f "${dir}/${gv_font}" ]; then
-				debug -d loadfont < "${dir}/${gv_font}" && break
+	if [ -n "$font" ]; then
+		for _dir in /usr/share/consolefonts /etc /; do
+			if [ -f "$_dir/$font" ]; then
+				debug -e loadfont < "$_dir/$font" && break
 			fi
 		done
 	fi
 	debug imsg
-	ishrl 1
+	isrl 1
 	debug _modprobe gpg
 	debug _modprobe remdev
-	if [ -n "${gv_swap}" ]; then
-:		local ${lv_raid:=$(echo "${gv_raid}" | cut -d',' -f2)}
-:		local ${lv_lvm:=$(echo "${gv_lvm}" | cut -d',' -f2)}
-		ishrl 2s
-		swp "swap" "${gv_swap}" "${gv_kswap}"
+	if [ -n "$swap" ]; then
+:		local ${_raid:=$(echo "$raid" | cut -d',' -f2)}
+:		local ${_lvm:=$(echo "$lvm" | cut -d',' -f2)}
+		isrl 2s
+		swap "swap" "$swap" "$kswap"
 	fi
-	[ -n "${gv_toi}" ] && ishrl 2r && resume
+	[ -n "$toi" ] && isrl 2r && debug resume
 	debug rootfs
-	ishrl 4c
+	isrl 4c
 	local IFS="${IFS}:"
-	for lk in ${gv_lkey}; do debug dmclose "${lk}"; done
-	for ld in ${gv_ldev}; do debug losetup -d ${ld}; done
+	for _k in $ldk; do debug dmclose "$_k"; done
+	for _d in $ldv; do debug losetup -d $_d; done
 	debug _rmmod gpg
 	debug -d umount -n -l /mnt/tok
 	debug _rmmod remdev
-	[ -n "${gv_mount}" ] && ishrl 4m && imount
+	[ -n "$imount" ] && isrl 4m && debug imount
 	debug switch
 }
 
@@ -486,56 +460,52 @@ _getopts() {
 	local dir
 	for arg in $(cat /proc/cmdline); do
     		case $arg in
-			rescue*)    gv_shrl=1;;
-			single)     gv_inrl=2;;
+			rescue*)    srl=1;;
+			single)     irl=2;;
 			isqfsd=*)   dir=${arg#*=}
-				if [ "${dir%,*}" = "y" ]; then sqfsdir=${uv_sqfsdir:-/sqfsd}
+				if [ "${dir%,*}" = "y" ]; then sqfsdir=${sqfsdir:-/sqfsd}
 				else sqfsdir=${dir%,*}; fi
-				if [ "${dir#*,}" = "y" ]; then sqfsd=${uv_sqfsd:-usr:opt:bin:sbin}
+				if [ "${dir#*,}" = "y" ]; then sqfsd=${sqfsd:-usr:opt:bin:sbin}
 				elif [ "$(echo ${dir#*,}|cut -d':' -f1)" = "a" ]; then
-					sqfsd=${uv_sqfsd:-usr:opt:bin:sbin}:$(echo ${dir#*,} | cut -c3-)
+					sqfsd=${sqfsd:-usr:opt:bin:sbin}:$(echo ${dir#*,} | cut -c3-)
 				else 	sqfsd=$(echo ${dir#*,} | cut -c3-); fi;;
-			iroot=*)    gv_root=${arg#*=};;
-			iraid=*)    gv_raid=${arg#*=};;
-			*init=*)    uv_init=${arg#*=};;
-			ilvm=*)     gv_lvm=${arg#*=};;
-			imod=*)     gv_mod=${arg#*=};;
-			imount=*)   gv_mount=${arg#*=};;
-			imtopt=*)   gv_mtopt=${arg#*=};;
-			splash=*)   dir=${arg#*=}
-				    gv_splt=${dir#*:}
-				    gv_spl=${dir%,*};;
-			console=*)  gv_tty=${arg#*=};;
-			iresume=*)  gv_toi=${arg#*=};;
-			ikmap=*)    gv_kmap=$(echo ${arg#*=}|cut -d':' -f1)
-				        gv_font=$(echo ${arg#*=}|cut -d':' -f2);;
-			ishrl=*)    gv_shrl=$(echo ${arg#*=}|cut -d':' -f1)
-				        gv_inrl=$(echo ${arg#*=}|cut -d':' -f2);;
-			iswap=*)    gv_swap=${arg#*=};;
-			ikroot=*)   gv_kroot=${arg#*=};;
-			ikswap=*)   gv_kswap=${arg#*=};;
-			ikresume=*) gv_kresume=${arg#*=};;
+			iroot=*)    root=${arg#*=};;
+			iraid=*)    raid=${arg#*=};;
+			*init=*)    init=${arg#*=};;
+			ilvm=*)     lvm=${arg#*=};;
+			imod=*)     mod=${arg#*=};;
+			imopt=*)    mopt=${arg#*=};;
+			splash=*)   dir=${arg#*=}; theme=${dir#*:}; spl=${dir%,*};;
+			console=*)  tty=${arg#*=};;
+			iresume=*)  toi=${arg#*=};;
+			ikmap=*)    kmap=$(echo ${arg#*=}|cut -d':' -f1)
+				        font=$(echo ${arg#*=}|cut -d':' -f2);;
+			ishrl=*)    srl=$(echo ${arg#*=}|cut -d':' -f1)
+				        irl=$(echo ${arg#*=}|cut -d':' -f2);;
+			iswap=*)    swap=${arg#*=};;
+			ikroot=*)   kroot=${arg#*=};;
+			ikswap=*)   kswap=${arg#*=};;
+			imount=*)   imount=${arg#*=};;
+			ikresume=*) kresume=${arg#*=};;
 	   	 esac
 	done
 }
 
 _init() {
 	export PATH=/sbin:/bin:/usr/bin:/usr/sbin
-#	dmesg -n 1
 	umask 0077
 	for dir in dev proc sys newroot mnt/tok; do mkdir -p /$dir; done
 	debug -d mount -t proc proc /proc
-#	busybox --install -s
-	[ "${uv_check_env}" ] || achk
+	[ "$eck" ] || ack
 	debug -d mount -t sysfs sysfs /sys
 	debug _getopts
 	debug _modprobe boot
 	debug -d mount -t tmpfs tmpfs /dev
 	debug -d mdev -s
 	debug -d echo /sbin/mdev > /proc/sys/kernel/hotplug
-	if [ -n "${gv_mod}" ]; then local IFS="${IFS},"
-		for module in ${gv_mod}; do 
-			debug modprobe ${module}
+	if [ -n "$mod" ]; then local IFS="${IFS},"
+		for _m in $mod; do 
+			debug modprobe $_m
 		done
 	fi
 	debug main
