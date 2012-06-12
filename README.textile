@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.7.0 2012/06/06 06:58:32 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.8.1 2012/06/12 17:12:08 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -15,12 +15,12 @@ options.skel file. Or if you run Gentoo you can run either gnupg.{ba,z}sh to gen
 @gnupg.zsh -W/usr/local/share/mkinitramfs-ll@ if you installed the package or simply gnupg.zsh 
 will build a binary in the current directory (with a bin/gpg and misc/share/gnupg/options.skel).
 
-And then run @mkifs-ll.zsh -font -keymap -gpg@ or the bash counterpart @mkifs-ll.bash --font --keymap --gpg@
+And then run @mkinitramfs-ll.zsh -font -keymap -gpg@ or the bash counterpart @mkinitramfs-ll.bash --font --keymap --gpg@
 
 Gentoo users can build everything with: @autogen.zsh -all -font -keymap@ or @autogen.bash --all --font --keymap@
 
 Of course, one can append extra fonts and keymaps with @-f ter-g12n -y fr-latin1@ etc. and the @-a@ option depend 
-on either @{/etc/,}mkifs-ll.conf.${shell}@ so one can put many default values there.
+on either @{/etc/,}mkinitramfs-ll.conf}@ so one can put many default values there.
 
 One can get more info on the scripts by running @${script} -u@
 
