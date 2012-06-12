@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.8.1 2012/06/12 17:12:08 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.8.1 2012/06/12 22:07:25 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -116,11 +116,11 @@ In case of xfs, for exemple, just create your log LV on a different PV than what
 from and everything is set up--well if the logging LV is in the swap VG--and, in fact, you do 
 not need a swap LV there--you just use that VG as if there were one. 
 
-h3. 5. About supported key-files/passwords modes
+h3. 5. About supported keyfile/password modes
 
 For partitions or PVs that are encrypted with a key, setting @ikroot@ and/or @ikswap@ and/or 
-@ikresume@ is required, otherwise a passphrase is required for _each_ PV as fall back.
-This information is then used to obtain each key file from the specified removable media if any. 
+@ikresume@ is required, otherwise a passphrase is required for _each_ PV as a fall back.
+This is then used to obtain each key file from the specified removable media if any. 
 
 * @<mode>@: defines how the init script shall treat the supplied keyfile (see below). 
 
@@ -148,14 +148,12 @@ Squashed directories argument:
 
 h3. 7. Notes on key modes
 
-* @gpg@   -> encrypted key-file works quite well with 1.4*, passed as @gpg -qd ...@; 
-2.0 seems to rquire too much trouble; @/usr/share/gnupg/options.skel@ is required, additionally, 
-one can add a @/.gnupg/gpg.conf@ in the initramfs root to avoid its creattion on each reboot. 
-* @ldk@   -> encrypted key-file passed to cryptsetup as @-d /dev/mapper/$(basename /path/to/keyfile)@ after decryption. 
-* @reg@   -> regular key-file passed to cryptsetup as @-d /path/to/keyfile@.
-* @pwd@   -> regular passphrase: it's not mandatory to append any @ik*=pwd@ in the cmdline, this mode is the fallback.
-* @none@  -> unencrypted Physical Volume or device: it should be explicitely appended ikroot, ikswap or ikresume. 
-I added this mode first for testing purpose for those, like me, who have a working system before encrypting rootfs.
+* @gpg@   -> GnuPG encrypted keyfile support only gnupg-1.4*, passed as @gpg -qd /path/to/keyfile |@ 
+one can add a @/.gnupg/gpg.conf@ in the initramfs root to avoid its creattion on each boot 
+* @ldk@   -> encrypted keyfile passed to cryptsetup as @-d /dev/mapper/$(basename /path/to/keyfile)@ after decryption 
+* @reg@   -> regular keyfile passed to cryptsetup as @-d /path/to/keyfile@
+* @pwd@   -> regular passphrase: it's not mandatory to append any @ikroot[|swap|resume]=pwd@ (fallback keymode)
+* @none@  -> unencrypted Physical Volume or device which should be explicitely appended 
 	
 *WARNING*: Back up your data! else... you may lose a few of... them by carelessness.
 
@@ -183,27 +181,27 @@ h3. 8. Kernel parameters example
 
 h3. 9. Kernel module groups
 
-To load modules, one could either create needed groups in @/etc/modules/@ in the initramfs. Each file 
-is a line seperated list of modules. Either append a comma seperated list on cmdline using @imod=@ arg.
+To load kernel modules, one could either create needed groups in @/etc/mkinitramfs-ll/module.$group@ 
+(IFS separated list of module). Or else, append a comma seperated list on cmdline using @imod=@ arg.
 
 Supported groups:
-* @boot@      -> boot time modules loaded but not removed.
-* @tuxonice@  -> tuxonice module, wich aren't removed if you don't comment in a line.
+* @boot@      -> boot up modules, loaded but not removed
+* @tuxonice@  -> tuxonice module, wich aren't removed
 * @remdev@    -> modules required to access removable device
-* @gpg@       -> modules required to access gpg protected file.
-* @sqfsd@     -> modules required for squashfs+aufs2, you can still build them into the kernel.
+* @gpg@       -> modules required to access gpg crypted keyfile
+* @sqfsd@     -> modules required for squashfs+aufs2, can be built into the kernel
 
 Modules should exist in @/lib/modules/$KERNEL_VERSION/@, the kernel should support modules [un]loading.
-Just make sure to append the necessary modules to right group in mkifs-ll.conf for autoloading, or else
-use @opts[*mdep]@ variable to be able to append mdoules to imod cmdline arg when using the building script.
+Just make sure to append the necessary modules to the right group in mkinitramfs-ll.conf for autoloading, 
+or else append to @opts[-mdep]@ variable to be able to append kernel mdoules to @imod=@ cmdline argument.
 
 h3. 10. Optional user scripts
 
 Now one can add scripts to @/etc/local.d@ of the initramfs, or @$gitdir/misc@ if using mkifs-ll 
 building script. Each script should have a @.sh@ sufix and a @${ishrl}?-*@ prefix as the follwing:
-* runlevel 1: boot and cmdline modules, keymap, font -> 1 -> print msg;
-* runlevel 2?: before... 2s -> swap: 2r -> resume;
-* runlevel 3?: before... 3d -> decrypt: 3f -> fsck: 3m -> mount root;
-* runlevel 4?: before... 4c -> clean up: 4m -> mount /usr:/var...: 4u -> umount: 4s -> switch root.
+* runlevel 1: boot and cmdline modules, initialization -> keymap -> font -> 1 -> print boot msg
+* runlevel 2?: before... swap: 2s -> resume: 2r -> rootfs
+* runlevel 3?: before... decrypt: 3d -> rootfs fsck: 3f -> rootfs mount: 3m ->
+* runlevel 4?: before... clean up: 4c -> mount /usr:/var...: 4m -> umount: 4u -> switch root: 4s ->
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
