@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/autogen.zsh,v 0.6.0 2012/05/14 02:37:18 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.zsh,v 0.8.1 2012/06/12 13:10:16 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS] [OPTIONS...]
@@ -53,7 +53,7 @@ if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-miscdir]:=${opts[-M]:-${opts[-workdir]}/misc}}
 :	${opts[-bindir]:=${opts[-B]:-${opts[-workdir]}/bin}}
-if [[ -f mkifs-ll.conf.zsh ]] { source mkifs-ll.conf.zsh }
+if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 mkdir -p ${opts[-workdir]}
 mkdir -p ${opts[-bindir]}
 busybox.zsh

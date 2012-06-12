@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.7.0 2012/06/05 15:36:12 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.8.1 2012/06/05 15:36:12 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-m|-minimal] [-U|-ucl-archi386] 
@@ -24,7 +24,7 @@ if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 :	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
 :	${opts[-U]:-$opts[-ucl-arch]}
 :	${opts[-y]:-$opts[-keymap]}
-if [[ -f mkifs-ll.conf.zsh ]] { source mkifs-ll.conf.zsh }
+if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 mkdir -p ${opts[-bindir]}
 cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] { 
@@ -35,7 +35,7 @@ ebuild ${opts[bbt]}.ebuild clean || die "clean failed"
 ebuild ${opts[bbt]}.ebuild unpack || die "unpack failed"
 cd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/${opts[bbt]}/work/${opts[bbt]} || die
 if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-minimal]} ]] { make allnoconfig || die
-	for cfg ($(< ${opts[-workdir]}/busybox.mcfg))
+	for cfg ($(< ${opts[-workdir]}/busybox.cfg))
 	sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
 } else {
 	make defconfig || die "defconfig failed" 

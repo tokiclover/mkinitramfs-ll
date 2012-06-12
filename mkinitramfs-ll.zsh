@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.7.0 2012/06/07 13:49:44 -tclover Exp $
-revision=0.7.0
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.8.1 2012/06/12 13:07:08 -tclover Exp $
+revision=0.8.1
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS...]
@@ -70,8 +70,8 @@ setopt EXTENDED_GLOB NULL_GLOB
 :	${opts[-miscdir]:=${opts[-M]:-$opts[-workdir]/misc}}
 :	${opts[-bindir]:=${opts[-B]:-$opts[-workdir]/bin}}
 :	${opts[-comp]:=${opts[-c]:-xz -9 --check=crc32}}
-:	${opts[-initdir]:=${opts[-workdir]}/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}}
-:	${opts[-initrd]:=/boot/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}}
+:	${opts[-initramfsdir]:=${opts[-workdir]}/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}}
+:	${opts[-initramfs]:=/boot/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}}
 :	${opts[-arch]:=$(uname -m)}
 if [[ -n ${(k)opts[-y]} ]] || [[ -n ${(k)opts[-keymap]} ]] {
 : 	${opts[-keymap]:=${opts[-y]:-:$(grep -E '^keymap' /etc/conf.d/keymaps | cut -d'"' -f2)}}
@@ -81,22 +81,22 @@ if [[ -n ${(k)opts[-f]} ]] || [[ -n ${(k)opts[-font]} ]] {
 		| cut -d'"' -f2):ter-v14n:ter-g12n}}
 }
 if [[ -n $(uname -m | grep 64) ]] { opts[-lib]=64 } else { opts[-lib]=32 }
-if [[ -f mkifs-ll.conf.zsh ]] { source mkifs-ll.conf.zsh }
+if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] { 
 	opts[-g]=; opts[-l]=; opts[-s]=; opts[-t]=; opts[-q]=; opts[-L]=;
 }
 case ${opts[-comp][(w)1]} in
-	bzip2)	opts[-initrd]+=.ibz2;;
-	gzip) 	opts[-initrd]+=.igz;;
-	xz) 	opts[-initrd]+=.ixz;;
-	lzma)	opts[-initrd]+=.ilzma;;
-	lzop)	opts[-initrd]+=.ilzo;;
+	bzip2)	opts[-initramfs]+=.ibz2;;
+	gzip) 	opts[-initramfs]+=.igz;;
+	xz) 	opts[-initramfs]+=.ixz;;
+	lzma)	opts[-initramfs]+=.ilzma;;
+	lzop)	opts[-initramfs]+=.ilzo;;
 esac
-print -P "%F{green}>>> building ${opts[-initrd]}...%f"
-rm -rf ${opts[-initdir]} || die "eek!"
-mkdir -p ${opts[-initdir]} && cd ${opts[-initdir]} || die
-mkdir -p {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
-mkdir -p dev proc root sys newroot mnt/tok etc/{modules,splash,local.d} || die
+print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
+rm -rf ${opts[-initramfsdir]} || die "eek!"
+mkdir -p ${opts[-initramfsdir]} && cd ${opts[-initramfsdir]} || die
+mkdir -p run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
+mkdir -p dev proc root sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
 mkdir -p lib${opts[-lib]}/{splash/cache,modules/${opts[-kversion]}} || die
 ln -sf lib${opts[-lib]} lib || die
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[0-6],zero} dev/ || addnodes
@@ -116,9 +116,9 @@ if [[ -x ${opts[-bindir]}/busybox ]] { cp -a ${opts[-bindir]}/busybox bin/
 	cp -a $(which bb) bin/busybox
 	warn "unexpected behaviour may happen using $(which bb) because of missing applets" 
 } else { die "no busybox/bb binary found" }
-if [[ -e ${opts[-bindir]}/applets ]] { cp -a ${opts[-bindir]}/applets etc/
-} else { bin/busybox --list-full > etc/applets || die }
-for app ($(< etc/applets)) ln -fs /bin/busybox ${app}
+if [[ -e ${opts[-bindir]}/busybox.app ]] { cp -a ${opts[-bindir]}/busybox.app etc/
+} else { bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die }
+for app ($(< etc/mkinitramfs-ll/busybox.app)) ln -fs /bin/busybox ${app}
 if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] {
 	[[ -n ${(pws,:,)opts[(rw)cryptsetup,-bin]} ]] || opts[-bin]+=:cryptsetup
 }
@@ -134,7 +134,7 @@ if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] { opts[-bin]+=:lvm.stati
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge) ln -sf lvm ${lpv} || die
-	pushd
+	popd
 }
 if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] { 
 	opts[-bin]+=:mount.aufs:umount.aufs
@@ -156,7 +156,7 @@ addmodule() {
 for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) addmodule ${module}
 for grp (boot gpg remdev sqfsd tuxonice)
 	for module (${(pws,:,)opts[-m${grp}]}) 
-		addmodule ${module} && echo ${module} >> etc/modules/${grp}
+		addmodule ${module} && echo ${module} >> etc/mkinitramfs-ll/module.${grp}
 for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
 	if [[ -e ${keymap} ]] { cp -a ${keymap} usr/share/keymaps/
 	} elif [[ -e ${opts[-miscdir]}/share/keymaps/${keymap}-${opts[-arch]}.bin ]] { 
@@ -201,7 +201,7 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 		cp ${opts[-bindir]}/${bin:t} ./${bin} || die "failed to copy ${bin}"
 	} elif [[ -x /${bin} ]] { bcp /${bin}
 	} else { bcp $(which ${bin:t}) }
-find . -print0 | cpio --null -ov --format=newc | ${=opts[-comp]} > ${opts[-initrd]} || die
-print -P "%F{green}>>> ${opts[-initrd]} initramfs built%f"
+find . -print0 | cpio --null -ov --format=newc | ${=opts[-comp]} > ${opts[-initramfs]} || die
+print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
 unset opts
 # vim:fenc=utf-8ft=zsh:ci:pi:sts=0:sw=4:ts=4:

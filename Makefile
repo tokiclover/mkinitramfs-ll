@@ -1,9 +1,8 @@
 PACKAGE = mkinitramfs-ll
-VERSION = $(grep Header init | sed -e 's:# $Header.*,v ::' -e 's:2012.*$::')
+VERSION = $(grep Header init | awk '{print $4}')
 
-prefix      = usr/local
+prefix      = /usr/local
 bindir      = ${DESTDIR}/${prefix}/sbin
-bin_prefix  = mkifs-ll
 sys_confdir	= ${DESTDIR}/etc
 svc_confdir	= ${sys_confdir}/conf.d
 svc_initdir	= ${sys_confdir}/init.d
@@ -16,38 +15,38 @@ all: install_init install_sqfsd_svc install_scripts_bash install_scripts_zsh
 
 install:
 	install -pd $(datadir)
-	install -pm 644 busybox.mcfg           $(datadir)
-	install -pm 755 init                   $(datadir)
+	install -pm 644 busybox.cfg       $(datadir)
+	install -pm 755 init              $(datadir)
 
 install_bash:
-	sed -e 's:$(bin_prefix).conf:/etc/$(bin_prefix).conf:g' \
-		-i autogen.zsh busybox.zsh gnupg.zsh $(bin_prefix).zsh
-	sed -e 's:busybox.bash:$(bin_prefix)-busybox.bash:' \
-		-e 's:gnupg.bash:$(bin_prefix)-gnupg.bash:' -e 's:\./::' \
+	sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
+		-i autogen.zsh busybox.zsh gnupg.zsh $(PACKAGE).zsh
+	sed -e 's:busybox.bash:$(PACKAGE)-busybox.bash:' \
+		-e 's:gnupg.bash:$(PACKAGE)-gnupg.bash:' -e 's:\./::' \
 		-i autogen.bash
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
-	install -pm 755 autogen.bash            $(bindir)/${bin_prefix}-autogen.bash
-	install -pm 755 busybox.bash            $(bindir)/${bin_prefix}-busybox.bash
-	install -pm 755 gnupg.bash              $(bindir)/${bin_prefix}-gnupg.bash
-	install -pm 644 ${bin_prefix}.conf.bash $(sys_confdir)
-	install -pm 755 ${bin_prefix}.bash      $(bindir)
-	install -pm 755 sqfsdsvc/sdr.bash       $(bindir)
+	install -pm 755 autogen.bash      $(bindir)/$(PACKAGE)-autogen.bash
+	install -pm 755 busybox.bash      $(bindir)/$(PACKAGE)-busybox.bash
+	install -pm 755 gnupg.bash        $(bindir)/$(PACKAGE)-gnupg.bash
+	install -pm 644 $(PACKAGE).conf   $(sys_confdir)
+	install -pm 755 $(PACKAGE).bash   $(bindir)
+	install -pm 755 sqfsdsvc/sdr.bash $(bindir)
 
 install_zsh:
-	sed -e 's:$(bin_prefix).conf:/etc/$(bin_prefix).conf:g' \
-		-i autogen.bash busybox.bash gnupg.bash $(bin_prefix).zsh
-	sed -e 's:busybox.zsh:$(bin_prefix)-busybox.zsh:' \
-		-e 's:gnupg.zsh:$(bin_prefix)-gnupg.zsh:' -e 's:\./::' \
+	sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
+		-i autogen.bash busybox.bash gnupg.bash $(PACKAGE).zsh
+	sed -e 's:busybox.zsh:$(PACKAGE)-busybox.zsh:' \
+		-e 's:gnupg.zsh:$(PACKAGE)-gnupg.zsh:' -e 's:\./::' \
 		-i autogen.zsh
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
-	install -pm 755 autogen.zsh             $(bindir)/${bin_prefix}-autogen.zsh
-	install -pm 755 busybox.zsh             $(bindir)/${bin_prefix}-busybox.zsh
-	install -pm 755 gnupg.zsh               $(bindir)/${bin_prefix}-gnupg.zsh
-	install -pm 644 ${bin_prefix}.conf.zsh  $(sys_confdir)
-	install -pm 755 ${bin_prefix}.zsh       $(bindir)
-	install -pm 755 sqfsdsvc/sdr.zsh       	$(bindir)
+	install -pm 755 autogen.zsh       $(bindir)/$(PACKAGE)-autogen.zsh
+	install -pm 755 busybox.zsh       $(bindir)/$(PACKAGE)-busybox.zsh
+	install -pm 755 gnupg.zsh         $(bindir)/$(PACKAGE)-gnupg.zsh
+	install -pm 644 $(PACKAGE).conf   $(sys_confdir)
+	install -pm 755 $(PACKAGE).zsh    $(bindir)
+	install -pm 755 sqfsdsvc/sdr.zsh  $(bindir)
 
 install_svc:
 	install -pd $(svc_confdir)
@@ -63,18 +62,16 @@ uninstall:
 	rm -f $(datadir)/init
 
 uninstall_bash:
-	rm -f $(bindir)/$(bin_prefix).bash
-	rm -f $(bindir)/$(bin_prefix)-busybox.bash
-	rm -f $(bindir)/$(bin_prefix)-autogen.bash
-	rm -f $(bindir)/$(bin_prefix)-gnupg.bash
-	rm -f $(sys_confdir)/$(bin_prefix).conf.bash
+	rm -f $(bindir)/$(PACKAGE).bash
+	rm -f $(bindir)/$(PACKAGE)-busybox.bash
+	rm -f $(bindir)/$(PACKAGE)-autogen.bash
+	rm -f $(bindir)/$(PACKAGE)-gnupg.bash
 
 uninstall_zsh:
-	rm -f $(bindir)/$(bin_prefix).zsh
-	rm -f $(bindir)/$(bin_prefix)-busybox.zsh
-	rm -f $(bindir)/$(bin_prefix)-autoen.zsh
-	rm -f $(bindir)/${bin_prefix)-gnupg.zsh
-	rm -f $(sys_confdir)/$(bin_prefix).conf.zsh
+	rm -f $(bindir)/$(PACKAGE).zsh
+	rm -f $(bindir)/$(PACKAGE)-busybox.zsh
+	rm -f $(bindir)/$(PACKAGE)-autoen.zsh
+	rm -f $(bindir)/$(PACKAGE)-gnupg.zsh
 
 uninstall_svc:
 	rm -f $(svc_confdir)/sqfsdmount

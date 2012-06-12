@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/gnupg.zsh,v 0.6.0 2012/05/14 02:38:49 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.zsh,v 0.8.1 2012/06/12 13:10:24 -tclover Exp $
 usage() {
    cat <<-EOF
    usage: ${(%):-%1x} [-U|-useflag'falgs'] [-V|-Version'<str>'] [OPTIONS]
@@ -23,7 +23,7 @@ if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-bindir]:=${opts[-B]:-${opts[-workdir]}/bin}}
 :	${opts[-bindir]:=${opts[-M]:-${opts[-workdir]}/misc}}
-if [[ -f mkifs-ll.conf.zsh ]] { source mkifs-ll.conf.zsh }
+if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 mkdir -p ${opts[-bindir]}
 mkdir -p ${opts[-miscdir]}/share/gnupg
 cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die
