@@ -1,12 +1,12 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.8.1 2012/06/06 11:14:04 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.8.1 2012/06/12 16:00:15 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} [-m|--minimal] [OPTIONS]
   -i, --install             install busybox with symliks to \${opts[-bindir]}, require -b
   -n, --minimal             build busybox with minimal applets, default is full applets
   -U, --ucl-arch i386       ARCH string needed to build busybox against uClibc	
-  -B, --bindir [-bin]        copy builded binary to <bin> directory
+  -B, --bindir [<bin>]      copy builded binary to <bin> directory
   -v, --version 1.20.0      use 1.20.0 instead of latest version
   -u, --usage               print the usage/help and exit
 EOF
@@ -62,7 +62,7 @@ if [[ -n "${opts[-install]}" ]]; then
 	applets/install.sh "${opts[-bindir]}" --symlinks
 fi
 cp -a busybox "${opts[-bindir]}"/ || die "failed to copy busybox binary"
-cp busybox.links "${opts[-bindir]}"/applets || die "failed to copy applets"
+cp busybox.links "${opts[-bindir]}"/busybox.app || die "failed to copy applets"
 cd "${PORTDIR:-/usr/portage}"/sys-apps/busybox || die
 ebuild ${opts[bbt]}.ebuild clean || die
 cd "${opts[-workdir]}" || die

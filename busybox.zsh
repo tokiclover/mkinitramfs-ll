@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.8.1 2012/06/05 15:36:12 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.8.1 2012/06/12 16:00:12 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-m|-minimal] [-U|-ucl-archi386] 
@@ -55,7 +55,7 @@ if [[ -n ${(k)opts[-i]} ]] || [[ -n ${(k)opts[-install]} ]] {
 	applets/install.sh ${opts[-bindir]} --symlinks
 }
 cp -a busybox ${opts[-bindir]}/ || die "failed to copy busybox binary"
-cp busybox.links ${opts[-bindir]}/applets || die "failed to copy applets"
+cp busybox.links ${opts[-bindir]}/busybox.app || die "failed to copy applets"
 cd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die
 ebuild ${opts[bbt]}.ebuild clean || die
 cd ${opts[-worddir]} || die
