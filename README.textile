@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.8.1 2012/06/13 00:00:52 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.8.1 2012/06/13 00:02:42 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -155,8 +155,6 @@ one can add a @/.gnupg/gpg.conf@ in the initramfs root to avoid its creattion on
 * @pwd@   -> regular passphrase: it's not mandatory to append any @ikroot[|swap|resume]=pwd@ (fallback keymode)
 * @none@  -> unencrypted Physical Volume or device which should be explicitely appended 
 	
-*WARNING*: Back up your data! else... you may lose a few of... them by carelessness.
-
 h3. 8. Kernel parameters example
 
 * unencrypted Root LV: @iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin:ter-g12n.psf@
@@ -203,5 +201,7 @@ building script. Each script should have a @.sh@ sufix and a @${ishrl}?-*@ prefi
 * runlevel 2?: before... swap: 2s -> resume: 2r -> rootfs
 * runlevel 3?: before... decrypt: 3d -> rootfs fsck: 3f -> rootfs mount: 3m ->
 * runlevel 4?: before... clean up: 4c -> mount /usr:/var...: 4m -> umount: 4u -> switch root: 4s ->
+
+*WARNING*: Back up your data! else... you may lose a few of... them by carelessness.
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
