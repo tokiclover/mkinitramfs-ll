@@ -2,12 +2,12 @@ PACKAGE = mkinitramfs-ll
 VERSION = $(grep Header init | awk '{print $4}')
 
 prefix      = /usr/local
-bindir      = ${DESTDIR}/${prefix}/sbin
+bindir      = ${DESTDIR}${prefix}/sbin
 sys_confdir	= ${DESTDIR}/etc
 svc_confdir	= ${sys_confdir}/conf.d
 svc_initdir	= ${sys_confdir}/init.d
-datadir	    = ${DESTDIR}/${prefix}/share/$(PACKAGE)
-docdir      = ${DESTDIR}/${prefix}/share/doc/$(PACKAGE)-${VERSION}
+datadir	    = ${DESTDIR}${prefix}/share/$(PACKAGE)
+docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
 DOCS=AUTHORS COPYING README.textile ChangeLog KnownIssue
 
