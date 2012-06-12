@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.8.1 2012/06/12 22:07:25 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.8.1 2012/06/13 00:00:52 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -139,12 +139,12 @@ One can use squashfs+aufs2 to squash directories like @$PORTDIR:var/lib/layamn@,
 like @usr:lib32:lib64:bin:sbin@. Advantages are system speed, responsiveness and very small rootfs footprint.
 
 Squashed directories argument:
-* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@ -> using default or append directories after a @[n|a]:@ for sqfsd.
-* @isqfsd=/sqfsdir,n:<dir 1>:<dir n>@ -> neither uv_sqfsdir nor uv_sqfsd is used, sqfsdir,sqfsd dirs is required.
-* @isqfsd=y,y@ -> using uv_sqfsd and uv_sqfsdir default values do not require any additional argument. 
+* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@ -> using default or append directories after a @[n|a]:@
+* @isqfsd=/sqfsdir,n:<dir 1>:<dir n>@ -> neither sqfsdir nor sqfsd default is used, sqfsdir,sqfsd required
+* @isqfsd=y,y@ -> using sqfsd and sqfsdir default values do not require any additional argument. 
 * @isqfsd=y,a:<dir 1>[:<dir n>]@ -> same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
 
-*NOTE*: leading '/' slash is only required for @[uv_|]sqfsdir@, else mounting squashed dirs will fail. 
+*NOTE*: leading '/' slash is only required for @sqfsdir@, else mounting squashed dirs will fail. 
 
 h3. 7. Notes on key modes
 
