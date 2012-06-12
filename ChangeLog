@@ -1,4 +1,13 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2012/06/08 16:19:59 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2012/06/12 13:40:29 -tclover Exp $
+
+*init-0.8.1: (12 June 2012)
+
+	* rename mkifs-ll -> mkinitramfs-ll and removed mkifs-ll.conf.bash in
+	  favor using a single mkinitramfs-ll.conf for bash and zsg scripts;
+	* added `/run' (tmpfs) to initramfs layout, so now init will be
+	  `/run/log/init.log' and splash will use `/run/splash/cache':
+	* many splash related fixes, now splash code should be near of working 
+	  code 'will try to test it soon).
 
 *init-0.8.0: (8 June 2012)
 
