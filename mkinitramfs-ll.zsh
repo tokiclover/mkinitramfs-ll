@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.8.1 2012/06/12 13:07:08 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.8.1 2012/06/12 16:13:01 -tclover Exp $
 revision=0.8.1
 usage() {
   cat <<-EOF
@@ -86,11 +86,11 @@ if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] {
 	opts[-g]=; opts[-l]=; opts[-s]=; opts[-t]=; opts[-q]=; opts[-L]=;
 }
 case ${opts[-comp][(w)1]} in
-	bzip2)	opts[-initramfs]+=.ibz2;;
-	gzip) 	opts[-initramfs]+=.igz;;
-	xz) 	opts[-initramfs]+=.ixz;;
-	lzma)	opts[-initramfs]+=.ilzma;;
-	lzop)	opts[-initramfs]+=.ilzo;;
+	bzip2)	opts[-initramfs]+=.cpio.bz2;;
+	gzip) 	opts[-initramfs]+=.cpio.gz;;
+	xz) 	opts[-initramfs]+=.cpio.xz;;
+	lzma)	opts[-initramfs]+=.cpio.lzma;;
+	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 rm -rf ${opts[-initramfsdir]} || die "eek!"

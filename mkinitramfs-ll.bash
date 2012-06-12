@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.8.1 2012/06/12 13:09:44 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.8.1 2012/06/12 16:12:58 -tclover Exp $
 revision=0.8.1
 usage() {
   cat <<-EOF
@@ -114,11 +114,11 @@ opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}
 [[ -n "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
 [[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf
 case ${opts[-comp]%% *} in
-	bzip2)	opts[-initramfs]+=.ibz2;;
-	gzip) 	opts[-initramfs]+=.igz;;
-	xz) 	opts[-initramfs]+=.ixz;;
-	lzma)	opts[-initramfs]+=.ilzma;;
-	lzop)	opts[-initramfs]+=.ilzo;;
+	bzip2)	opts[-initramfs]+=.cpio.bz2;;
+	gzip) 	opts[-initramfs]+=.cpio.gz;;
+	xz) 	opts[-initramfs]+=.cpio.xz;;
+	lzma)	opts[-initramfs]+=.cpio.lzma;;
+	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
 echo ">>> building ${opts[-initramfs]}..."
 rm -rf "${opts[-initramfsdir]}" || die "eek!"
