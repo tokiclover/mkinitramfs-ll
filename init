@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/12 02:02:43 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/13 11:41:03 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -31,22 +31,21 @@ debug() {
 }
 
 rsh() {
-	local _tty=/dev/console
 	export PS1='rsh:$(tty | cut -c6-):$PWD # '
-	if [ "$spld" ]; then _tty=$tty
-		debug openvt -c${_tty#*tty} sh -i 0<$_tty 1>$_tty 2>&1
-	elif ack setsid; then debug setsid sh -i 0<$_tty 1>$_tty 2>&1
-	else debug sh -i 0<$_tty 1>$_tty 2>&1; fi
+	if [ "$spld" ]; then
+		debug openvt -c${tty#*tty} sh -i 0<$tty 1>$tty 2>&1
+	elif ack setsid; then debug setsid sh -i 0<$tty 1>$tty 2>&1
+	else debug exec sh -i 0<$tty 1>$tty 2>&1; fi
 }
 
 die() {
-	local _msg="Dropping into a rescueshell..." _tty=/dev/console
+	local _msg="Dropping into a rescueshell..."
 	debug umount -fl /mnt/tok &>/dev/null
 	[ -n "$@" ] && error "$@" && spl_msg "$@"
 	info "$_msg"; spl_msg "$_msg"
 	for _k in $ldk; do debug dmclose "$_k"; done
 	for _d in $ldv; do debug losetup -d "$_d"; done
-	debug rsh || debug exec sh -i 0<$_tty 1>$_tty 2>&1
+	debug rsh || debug exec sh -i
 }
 
 bck() { debug -d which $1 &>/dev/null; }
@@ -83,16 +82,13 @@ spl_msg() { [ "$spld" ] && debug spl_cmd "set message $@" && debug spl_cmd "repa
 
 spld_stop() { [ "$spld" ] && spld=1; debug spl_cmd "exit"; }
 spld_init() {
-	local _opt IFS="${IFS},"
-	[ -n "$(echo "$spl" | grep fadein)" ] && _opt="-c set effects fadein"
+	[ -n "$(echo "$spl" | grep fadein)" ] && local _opt="-c set effects fadein"
 :	${tty:=tty1}
 	spl_mode=${spl%%,*}
 	spl_cachedir=/run/splash/cache
 	spl_util=splash_util
 	export SPLASH_FIFO=$spl_cachedir/.splash
 	[ "$eck" ] && debug bck $spl_uil
-	[ -n "$(echo $tty | grep /dev)" ] || tty="/dev/$tty"
-	debug exec 0<$tty 1>$tty 2>&1
 	[ ! -d "$spl_cachedir" ] && mkdir -p $spl_cachedir
 	debug mkfifo $SPLASH_FIFO
 	debug $spl_util $_opt -d -t "$theme" && spld=0
@@ -120,7 +116,7 @@ getldk() {
 		local _ld="$(debug -d losetup -f)"
 		debug -d losetup "$_ld" "$1"
 		ldv="$_ld:$ldv"
-	fi
+	else local _ld="$1"; fi
 	debug cryptsetup luksOpen "$_ld" "$_fn" 
 	if [ "$?" ]; then
 		kfile=/dev/mapper/"$_fn"
@@ -131,7 +127,8 @@ getldk() {
 getkey() {
 	local _fp="$(echo "$1" | cut -d':' -s -f3)"
 	local _kd="$(echo "$1" | cut -d':' -s -f2)"
-	local _dv _fn=${_fp##*/} _km="${1%%:*}"
+	local _km="$(echo "$1" | cut -d':' -s -f1)"
+	local _dv _fn=${_fp##*/}
 	if [ -n "$_km" ]; then 
 		if [ "$_km" != "none" ];then
 			if [ -z "$cld" ]; then
@@ -176,7 +173,8 @@ dmclose() {
 	[ -n "$2" ] && debug -d vgchange -an ${2%-*}
 	local IFS="${IFS}:" 
 	for _p in $1; do 
-		debug cryptsetup luksClose ${_p%%-*} || debug cryptsetup remove ${_p%%-*}
+		debug cryptsetup luksClose ${_p%%-*} $header ||
+			debug cryptsetup remove ${_p%%-*} $heder
 	done
 }
 
@@ -215,11 +213,11 @@ dmopen() {
 		if [ -n "$(echo "$_hdr" | grep -E '(UUID|LABEL|sd[a-z][0-9])')" ]; then 
 			if [ "$cid" ] && [ -n "$(echo "$_hdr" | grep -i UUID)" ]; then continue
 			else debug _blkid "$_hdr" "_hdr"; fi
-			debug -d test -b "$_hdr" && _hdr="--header $_hdr"
-		elif [ -e "/mnt/tok/$_hdr" ]; then _hdr="--header /mnt/tok/$_hdr"
+			debug -d test -b "$_hdr" && header="$_hdr" _hdr="--header $_hdr"
+		elif [ -e "/mnt/tok/$_hdr" ]; then header="$_hdr" _hdr="--header /mnt/tok/$_hdr"
 		else die "$_hdr detached header doesn't exist."; fi
 	fi
-	debug cryptsetup isLuks "$_dev"
+	debug cryptsetup isLuks "$_dev" "$header"
 	if [ ! "$?" ]; then
  		info "cre[ate] $_dev or dec[rypt] another LUKS PV? [cre|DEC]"
 		read _asw
@@ -227,7 +225,7 @@ dmopen() {
 			while true; do
 				info "Type in valid LUKS PV e.g. sda5|UUID=<uuid>|LABEL=<label>"
 				read _dev; debug _blkid "$_dev" "_dev"
-				debug cryptsetup isLuks "$_dev" && break
+				debug cryptsetup isLuks "$_dev" "$header" && break
 			done
 		elif [ "$_asw" = "cre" ]; then debug dmcrypt; fi
 	fi
@@ -521,6 +519,9 @@ _init() {
 	[ -n /dev/stderr ] || debug ln -fs /proc/self/fd/2 /dev/stderr
 	[ -n /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
 	[ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
+:	${tty:=/dev/console}
+	[ -n "$(echo $tty | grep /dev)" ] || tty="/dev/$tty"
+	debug exec 0<$tty 1>$tty 2>&1
 	[ -n "$spl" ] && spld_init
 	debug main
 }
