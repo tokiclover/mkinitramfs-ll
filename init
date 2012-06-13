@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/13 13:13:01 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/13 13:48:14 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -102,8 +102,8 @@ isrl() {
 	local _scr="$(ls /etc/local.d/${1}?-*.sh &> /dev/null)"
 	if [ -n "$_scr" ]; then
 		for _s in $_scr; do 
-			info "exec: $_s..."
-			debug -e $_s
+			info "exec: sh -ex $_s..."
+			debug -e sh -ex $_s
 		done
 	fi
 	[ "$srl" = "$1" ] && debug die
