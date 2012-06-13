@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/13 11:41:03 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/13 12:34:15 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -174,7 +174,7 @@ dmclose() {
 	local IFS="${IFS}:" 
 	for _p in $1; do 
 		debug cryptsetup luksClose ${_p%%-*} $header ||
-			debug cryptsetup remove ${_p%%-*} $heder
+			debug cryptsetup remove ${_p%%-*} $header
 	done
 }
 
