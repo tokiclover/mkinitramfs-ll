@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.8.1 2012/06/12 16:13:01 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.8.1 2012/06/13 13:06:54 -tclover Exp $
 revision=0.8.1
 usage() {
   cat <<-EOF
@@ -95,7 +95,7 @@ esac
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 rm -rf ${opts[-initramfsdir]} || die "eek!"
 mkdir -p ${opts[-initramfsdir]} && cd ${opts[-initramfsdir]} || die
-mkdir -p run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
+mkdir -p root run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
 mkdir -p dev proc root sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
 mkdir -p lib${opts[-lib]}/{splash/cache,modules/${opts[-kversion]}} || die
 ln -sf lib${opts[-lib]} lib || die
@@ -122,13 +122,15 @@ for app ($(< etc/mkinitramfs-ll/busybox.app)) ln -fs /bin/busybox ${app}
 if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] {
 	[[ -n ${(pws,:,)opts[(rw)cryptsetup,-bin]} ]] || opts[-bin]+=:cryptsetup
 }
+if [[ -f ${opts[-bindir]}/mdev.conf ]] { cp ${opts[-bindir]}/mdev.conf etc/
+} elif [[ -f /etc/mdev.conf ]] { cp {/,}etc/mdev.conf }
 if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { 
 	if [[ -x ${opts[-bindir]}/gpg ]] { opts[-bin]+=:usr/bin/gpg
 	} elif [[ $($(which gpg) -version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
 		opts[-bin]+=:$(which gpg)
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
-	cp -r ${opts[-miscdir]}/.gnupg . || die "failed to copy ${opts[-miscdir]}/.gnupg"
-	chmod 700 .gnupg; chmod 600 .gnupg/gpg.conf
+	cp -r ${opts[-miscdir]}/.gnupg root/ || die "failed to copy ${opts[-miscdir]}/.gnupg"
+	chmod 700 root/.gnupg; chmod 600 root/.gnupg/gpg.conf
 }
 if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] { opts[-bin]+=:lvm.static
 	pushd sbin

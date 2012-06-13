@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/13 12:34:15 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/13 13:13:01 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -497,7 +497,7 @@ _getopts() {
 }
 
 _init() {
-	export PATH=/sbin:/bin:/usr/bin:/usr/sbin
+	export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	umask 0077
 	for dir in dev proc run sys newroot mnt/tok; do mkdir -p /$dir; done
 	mount -tproc -orw,nosuid,nodev,noexec,relatime proc /proc

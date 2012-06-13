@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.8.1 2012/06/12 16:12:58 -tclover Exp $
+# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.8.1 2012/06/13 13:12:56 -tclover Exp $
 revision=0.8.1
 usage() {
   cat <<-EOF
@@ -123,7 +123,7 @@ esac
 echo ">>> building ${opts[-initramfs]}..."
 rm -rf "${opts[-initramfsdir]}" || die "eek!"
 mkdir -p "${opts[-initramfsdir]}" && pushd "${opts[-initramfsdir]}" || die
-mkdir -p run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
+mkdir -p root run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
 mkdir -p dev proc root sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
 mkdir -p lib${opts[-lib]}/{splash/cache,modules/${opts[-kversion]}} || die
 ln -sf lib${opts[-lib]} lib || die
@@ -152,6 +152,8 @@ else bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die; fi
 for app in $(< etc/mkinitramfs-ll/busybox.app); do	
 	ln -fs /bin/busybox ${app}
 done
+if [[ -f ${opts[-bindir]}/mdev.conf ]]; then cp ${opts[-bindir]}/mdev.conf etc/
+elif [[ -f /etc/mdev.conf ]]; then cp {/,}etc/mdev.conf; fi
 if [[ -n "${opts[-luks]}" ]]; then
 	[[ -n "$(echo ${opts[-bin]} | grep cryptsetup)" ]] || opts[-bin]+=:cryptsetup
 fi
@@ -165,9 +167,8 @@ if [[ -n "${opts[-gpg]}" ]]; then
 	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
 		opts[-bin]+=":$(which gpg)"
 	else die "there's no usable gpg/gnupg-1.4.x binary"; fi
-	cp -r "${opts[-miscdir]}"/.gnupg . || die "failed to copy ${opts[-miscdir]}/.gnupg"
-	chmod 700 .gnupg
-	chmod 600 .gnupg/gpg.conf
+	cp -r "${opts[-miscdir]}"/.gnupg root/ || die "failed to copy ${opts[-miscdir]}/.gnupg"
+	chmod 700 root/.gnupg; chmod 600 root/.gnupg/gpg.conf
 fi
 if [[ -n "${opts[-lvm]}" ]]; then opts[-bin]+=:lvm.static
 	pushd sbin
