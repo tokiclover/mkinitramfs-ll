@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/13 13:48:14 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/15 13:07:50 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -9,7 +9,6 @@ init=/sbin/init # real init to execute after switching to real root
 eck=1           # test if env binaries exist in PATH
 rmp=root        # root mapping for dmcrypt
 # default values [edit at your own risk]
-spld=1
 srl=0
 # functions
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
@@ -33,9 +32,9 @@ debug() {
 rsh() {
 	export PS1='rsh:$(tty | cut -c6-):$PWD # '
 	if [ "$spld" ]; then
-		debug openvt -c${tty#*tty} sh -i 0<$tty 1>$tty 2>&1
-	elif ack setsid; then debug setsid sh -i 0<$tty 1>$tty 2>&1
-	else debug sh -i 0<$tty 1>$tty 2>&1; fi
+		debug openvt -c${tty#*tty} 'sh -i 0<$tty 1>$tty 2>&1'
+	elif ack setsid; then debug setsid 'sh -i 0<$tty 1>$tty 2>&1'
+	else debug 'sh -i 0<$tty 1>$tty 2>&1'; fi
 }
 
 die() {
@@ -82,9 +81,9 @@ spl_msg() { [ "$spld" ] && debug spl_cmd "set message $@" && debug spl_cmd "repa
 
 spld_stop() { [ "$spld" ] && spld=1; debug spl_cmd "exit"; }
 spld_init() {
-	[ -n "$(echo "$spl" | grep fadein)" ] && local _opt="-c set effects fadein"
+	[ -n "$(echo "$splash" | grep fadein)" ] && local _opt="-c set effects fadein"
 :	${tty:=tty1}
-	spl_mode=${spl%%,*}
+	spl_mode=${splash%%,*}
 	spl_cachedir=/run/splash/cache
 	spl_util=splash_util
 	export SPLASH_FIFO=$spl_cachedir/.splash
@@ -480,7 +479,7 @@ _getopts() {
 			ilvm=*)     lvm=${arg#*=};;
 			imod=*)     mod=${arg#*=};;
 			imopt=*)    mopt=${arg#*=};;
-			splash=*)   dir=${arg#*=}; theme=${dir#*:}; spl=${dir%,*};;
+			splash=*)   splash=${arg#*=}; theme:=${splash#*:};;
 			console=*)  tty=${arg#*=};;
 			iresume=*)  toi=${arg#*=};;
 			ikmap=*)    kmap=$(echo ${arg#*=}|cut -d':' -f1)
@@ -509,7 +508,7 @@ _init() {
 	debug _modprobe boot
 	debug -d mount -ttmpfs -orw,nosuid,nodev,noexec,relatime tmpfs /dev
 	debug -d mdev -s
-	debug -d echo /sbin/mdev > /proc/sys/kernel/hotplug
+	echo /sbin/mdev > /proc/sys/kernel/hotplug
 	if [ -n "$mod" ]; then local IFS="${IFS},"
 		for _m in $mod; do 
 			debug modprobe $_m
@@ -519,10 +518,10 @@ _init() {
 	[ -n /dev/stderr ] || debug ln -fs /proc/self/fd/2 /dev/stderr
 	[ -n /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
 	[ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
+	[ -n "$splash" ] && debug spld_init
 :	${tty:=/dev/console}
 	[ -n "$(echo $tty | grep /dev)" ] || tty="/dev/$tty"
-#	debug exec 0<$tty 1>$tty 2>&1
-	[ -n "$spl" ] && spld_init
+#	exec 0<$tty 1>$tty 2>&1
 	debug main
 }
 debug _init
