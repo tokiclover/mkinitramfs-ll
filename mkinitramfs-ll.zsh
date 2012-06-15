@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkifs-ll.zsh,v 0.8.1 2012/06/13 13:06:54 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.8.1 2012/06/13 13:06:54 -tclover Exp $
 revision=0.8.1
 usage() {
   cat <<-EOF
@@ -10,7 +10,7 @@ usage() {
   -k|-kversion 3.3.2-git  build an initramfs for '3.3.2-git' kernel, else for \$(uname -r)
   -c|-comp ['gzip -9']    compression command to use to build initramfs, default is 'xz -9..'
   -g|-gpg                 adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
-  -p|-prefix initramfs-   prefix scheme to name the initramfs image default is 'initrd-'
+  -p|-prefix initrd-      prefix scheme to name the initramfs image default is 'initramfs-'
   -y|-keymap :fr-latin1   append colon separated list of keymaps to include in the initramfs
   -L|-luks                adds LUKS support, require a sys-fs/cryptsetup[static] binary
   -l|-lvm                 adds LVM2 support, require a static sys-fs/lvm2[static] binary
@@ -95,7 +95,7 @@ esac
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 rm -rf ${opts[-initramfsdir]} || die "eek!"
 mkdir -p ${opts[-initramfsdir]} && cd ${opts[-initramfsdir]} || die
-mkdir -p root run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
+mkdir -p run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
 mkdir -p dev proc root sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
 mkdir -p lib${opts[-lib]}/{splash/cache,modules/${opts[-kversion]}} || die
 ln -sf lib${opts[-lib]} lib || die
@@ -103,7 +103,7 @@ cp -a /dev/{console,random,urandom,mem,null,tty,tty[0-6],zero} dev/ || addnodes
 if [[ ${${(pws:.:)opts[-kversion]}[1]} -eq 3 ]] && [[ ${${(pws:.:)opts[-kversion]}[2]} -ge 1 ]] {
 	cp -a {/,}dev/loop-control &>/dev/null || mknod dev/loop-control c 10 237 || die
 }
-cp -af ${opts[-workdir]}/init . && chmod 775 init || die "failed to copy init"
+cp -af ${opts[-workdir]}/init . && chmod 775 init && mkdir -pm700 root || die
 cp -ar {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
 cp -r ${opts[-miscdir]}/share usr/ || die "failed to copy ${opts[-miscdir]}/share"
 if [[ -e ${opts[-miscdir]}/imsg ]] { cp ${opts[-miscdir]}/imsg etc/ }
@@ -122,8 +122,6 @@ for app ($(< etc/mkinitramfs-ll/busybox.app)) ln -fs /bin/busybox ${app}
 if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] {
 	[[ -n ${(pws,:,)opts[(rw)cryptsetup,-bin]} ]] || opts[-bin]+=:cryptsetup
 }
-if [[ -f ${opts[-bindir]}/mdev.conf ]] { cp ${opts[-bindir]}/mdev.conf etc/
-} elif [[ -f /etc/mdev.conf ]] { cp {/,}etc/mdev.conf }
 if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { 
 	if [[ -x ${opts[-bindir]}/gpg ]] { opts[-bin]+=:usr/bin/gpg
 	} elif [[ $($(which gpg) -version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {

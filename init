@@ -35,7 +35,7 @@ rsh() {
 	if [ "$spld" ]; then
 		debug openvt -c${tty#*tty} sh -i 0<$tty 1>$tty 2>&1
 	elif ack setsid; then debug setsid sh -i 0<$tty 1>$tty 2>&1
-	else debug exec sh -i 0<$tty 1>$tty 2>&1; fi
+	else debug sh -i 0<$tty 1>$tty 2>&1; fi
 }
 
 die() {
@@ -380,7 +380,7 @@ resume() {
 		spld_stop
 		debug -d echo disk > /sys/power/state
 		debug _rmmod suspend
-	fi
+	else error "no suspend/hibernation support found"; fi
 	debug -d mount -n -o remount,rw /newroot
 	die "failed to resume from hibernation"
 }
@@ -521,7 +521,7 @@ _init() {
 	[ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
 :	${tty:=/dev/console}
 	[ -n "$(echo $tty | grep /dev)" ] || tty="/dev/$tty"
-	debug exec 0<$tty 1>$tty 2>&1
+#	debug exec 0<$tty 1>$tty 2>&1
 	[ -n "$spl" ] && spld_init
 	debug main
 }

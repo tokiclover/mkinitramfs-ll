@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkifs-ll.bash,v 0.8.1 2012/06/13 13:12:56 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.8.1 2012/06/13 13:12:56 -tclover Exp $
 revision=0.8.1
 usage() {
   cat <<-EOF
@@ -10,7 +10,7 @@ usage() {
   -k, --kversion 3.3.2-git  build an initramfs for '3.1.4-git' kernel, else for \$(uname -r)
   -c, --comp ['gzip -9']    compression command to use to build initramfs, default is 'xz -9..'
   -g, --gpg                 adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
-  -p, --prefix initramfs-   prefix scheme to name the initramfs image default is 'initrd-'
+  -p, --prefix initrd-      prefix scheme to name the initramfs image default is 'initramfs-'
   -y, --keymap :fr-latin1   append colon separated list of keymaps to include in the initramfs
   -L, --luks                adds LUKS support, require a sys-fs/cryptsetup[static] binary
   -l, --lvm                 adds LVM2 support, require a static sys-fs/lvm2[static] binary
@@ -121,9 +121,9 @@ case ${opts[-comp]%% *} in
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
 echo ">>> building ${opts[-initramfs]}..."
-rm -rf "${opts[-initramfsdir]}" || die "eek!"
+rm -rf "${opts[-initramfsdir]}" || die
 mkdir -p "${opts[-initramfsdir]}" && pushd "${opts[-initramfsdir]}" || die
-mkdir -p root run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
+mkdir -p run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
 mkdir -p dev proc root sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
 mkdir -p lib${opts[-lib]}/{splash/cache,modules/${opts[-kversion]}} || die
 ln -sf lib${opts[-lib]} lib || die
@@ -132,7 +132,7 @@ if [[ $(echo ${opts[-kversion]} | cut -d'.' -f1 ) -eq 3 ]] && \
 	[[ $(echo ${opts[-kversion]} | cut -d'.' -f2) -ge 1 ]]; then
 	cp -a {/,}dev/loop-control &>/dev/null || mknod dev/loop-control c 10 237 || die
 fi
-cp -a "${opts[-workdir]}"/init . && chmod 775 init || die "failed to copy init"
+cp -a "${opts[-workdir]}"/init . && chmod 775 init && mkdir -pm700 root || die
 cp -af {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
 cp -ar "${opts[-miscdir]}"/share usr/ || die "failed to copy ${opts[-miscdir]}/share"
 [[ -e ${opts[-miscdir]}/imsg ]] && cp ${opts[-miscdir]}/imsg etc/
@@ -152,8 +152,6 @@ else bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die; fi
 for app in $(< etc/mkinitramfs-ll/busybox.app); do	
 	ln -fs /bin/busybox ${app}
 done
-if [[ -f ${opts[-bindir]}/mdev.conf ]]; then cp ${opts[-bindir]}/mdev.conf etc/
-elif [[ -f /etc/mdev.conf ]]; then cp {/,}etc/mdev.conf; fi
 if [[ -n "${opts[-luks]}" ]]; then
 	[[ -n "$(echo ${opts[-bin]} | grep cryptsetup)" ]] || opts[-bin]+=:cryptsetup
 fi
@@ -248,7 +246,7 @@ for bin in ${opts[-bin]//:/ }; do
 	elif [[ -x /${bin} ]]; then bcp /${bin}
 	else bcp $(which ${bin##*/}); fi
 done
-find . -print0 | cpio --null -ov --format=newc | ${opts[-comp]} > "${opts[-initramfs]}" || die "eek!"
+find . -print0 | cpio --null -ov --format=newc | ${opts[-comp]} > "${opts[-initramfs]}" || die
 echo ">>> ${opts[-initramfs]} initramfs built"
 unset -v opt opts
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
