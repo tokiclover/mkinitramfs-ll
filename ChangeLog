@@ -1,4 +1,9 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2012/06/12 13:40:29 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2012/06/16 12:24:26 -tclover Exp $
+
+*init-0.8.2: (14 June 2012)
+
+	* stabilize init-0.8.x with a little clean up (_getopts());
+	* renamed imtopt->imopt cmdline; many fixes... splash code should work.
 
 *init-0.8.1: (12 June 2012)
 

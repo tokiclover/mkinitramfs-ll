@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.8.1 2012/06/15 13:38:40 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.8.2 2012/06/16 12:26:14 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -7,9 +7,7 @@
 # user defined variables
 init=/sbin/init # real init to execute after switching to real root
 eck=1           # test if env binaries exist in PATH
-rmp=root        # root mapping for dmcrypt
-# default values [edit at your own risk]
-srl=0
+rmap=root        # root mapping for dmcrypt
 # functions
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
 error() { echo -ne "\033[1;31m * \033[0m$@\n"; }
@@ -31,10 +29,10 @@ debug() {
 
 rsh() {
 	export PS1='rsh:$(tty | cut -c6-):$PWD # '
-	if [ "$spld" ]; then
-		debug openvt -c${tty#*tty} 'sh -i 0<$tty 1>$tty 2>&1'
-	elif ack setsid; then debug setsid 'sh -i 0<$tty 1>$tty 2>&1'
-	else debug 'sh -i 0<$tty 1>$tty 2>&1'; fi
+	if [ $spld ]; then
+		debug openvt -c${console#*tty} sh -i 0<$console 1>$console 2>&1
+	elif ack setsid; then debug setsid sh -i 0<$console 1>$console 2>&1
+	else debug sh -i 0<$console 1>$console 2>&1; fi
 }
 
 die() {
@@ -75,15 +73,15 @@ _modprobe() {
 }
 
 spl_cmd() { debug echo "$@" > $SPLASH_FIFO; }
-spl_verbose() { debug chvt ${tty#*tty}; debug spl_cmd "set mode verbose"; }
-spl_silent() { debug chvt ${tty#*tty}; debug spl_cmd "set mode silent"; }
-spl_msg() { [ "$spld" ] && debug spl_cmd "set message $@" && debug spl_cmd "repaint"; }
+spl_verbose() { debug chvt ${console#*tty}; debug spl_cmd "set mode verbose"; }
+spl_silent() { debug chvt ${console#*tty}; debug spl_cmd "set mode silent"; }
+spl_msg() { [ $spld ] && debug spl_cmd "set message $@" && debug spl_cmd "repaint"; }
 
-spld_stop() { [ "$spld" ] && spld=1; debug spl_cmd "exit"; }
+spld_stop() { [ $spld ] && spld=1; debug spl_cmd "exit"; }
 spld_init() {
 	[ -n "$(echo "$splash" | grep fadein)" ] && local _opt="-c set effects fadein"
-:	${tty:=tty1}
-	spl_mode=${splash%%,*}
+:	${console:=tty1}
+	spl_mode=${splash%%,*} theme:=${splash#*:}
 	spl_cachedir=/run/splash/cache
 	spl_util=splash_util
 	export SPLASH_FIFO=$spl_cachedir/.splash
@@ -95,7 +93,7 @@ spld_init() {
 	[ "${spl_mode:-verbose}" = "verbose" ] && spl_verbose || spl_silent
 }
 
-isrl() {
+shrl() {
 	local _msg="Switching to init shell runlevel: $1"
 	info "$_msg"; spl_msg "$_msg"
 	local _scr="$(ls /etc/local.d/${1}?-*.sh &> /dev/null)"
@@ -105,7 +103,7 @@ isrl() {
 			debug -e sh -ex $_s
 		done
 	fi
-	[ "$srl" = "$1" ] && debug die
+	[ "$shrl" = "$1" ] && debug die
 }
 
 _blkid() { eval $2=$(blkid | grep "${1#*=}" | cut -d':' -f1); }
@@ -172,8 +170,8 @@ dmclose() {
 	[ -n "$2" ] && debug -d vgchange -an ${2%-*}
 	local IFS="${IFS}:" 
 	for _p in $1; do 
-		debug cryptsetup luksClose ${_p%%-*} $header ||
-			debug cryptsetup remove ${_p%%-*} $header
+		debug cryptsetup luksClose ${_p%-*} $header ||
+			debug cryptsetup remove ${_p%-*} $header
 	done
 }
 
@@ -202,7 +200,7 @@ dmcrypt() {
 
 dmopen() { 
 	[ "$eck" ] && bck "cryptsetup"
-	local _arg=luksFormat _asw
+	local _arg=luksFormat _asw dev
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
 	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
@@ -240,9 +238,9 @@ dmopen() {
 		debug cryptsetup "$_arg" "$_dev" "$_map" -d "$kfile" $_hdr ||
 		error "...there's still a pwd mode fallback..."
 	fi
-	local _dv=/dev/mapper/$_map
-	[ ! -b "$_dv" ] || debug -d cryptsetup "$_arg" "$_dev" "$_map" "$_hdr"
-	debug -d test -b $_dv && eval $2=$_dv
+	dev=/dev/mapper/$_map
+	[ ! -b "$dev" ] || debug -d cryptsetup "$_arg" "$_dev" "$_map" "$_hdr"
+	debug -d test -b $dev && eval ${2:-ctxt}=$dev
 }
 
 lvopen() {
@@ -289,47 +287,46 @@ sqfsd() {
 	done
 }
 rootfs() {
-	[ -n "$root" ] || die "iroot=<PV|VG-LV>[:<c>:<fs>] argument is missing"
-	local _dev _fscf _rdev=${root%%:*}
-	local _fsck="$(echo "$root" | cut -d':' -f2)"
-	local _fs="$(echo "$root" | cut -d':' -f3)"
-:	local ${_lvm:=$(echo "$lvm" | cut -d',' -f1)}
-:	local ${_raid:=$(echo "$raid" | cut -d',' -f1)}
-	debug getkey "$kroot" "root"
-	isrl 3d
+	[ -n "$iroot" ] || die "iroot=<PV|VG-LV>[:<c>:<fs>] argument is missing"
+	local _fscf _dev=${iroot%%:*}
+	local _fsck="$(echo "$iroot" | cut -d':' -f2)"
+	local _fs="$(echo "$iroot" | cut -d':' -f3)"
+:	local ${_lvm:=$(echo "$ilvm" | cut -d',' -f1)}
+:	local ${_raid:=$(echo "$iraid" | cut -d',' -f1)}
+	debug -d getkey "$ikroot" "root"
+	shrl 3d
 	[ -n "$_raid" ] && mdopen "$_raid"
-	if [ -n "$_lvm" ]; then debug -d lvopen "$_rdev" "$_lvm" "_dev"
-	elif [ -n "$kmode" ]; then debug -d dmopen "${rmp:-root}-$root" "_dev"
-	else debug -d _blkid "$_rdev" "_dev"; fi
-	isrl 3f
+	if [ -n "$_lvm" ]; then debug -d lvopen "$_dev" "$_lvm" "_dev"
+	elif [ -n "$kmode" ]; then debug -d dmopen "${rmap:-root}-$iroot" "_dev"
+	else debug -d _blkid "$_dev" "_dev"; fi
+	shrl 3f
 	if [ -n "$_fsck" ]; then 
-		if [ "$_fsck" = "n" ] || [ "$_fsck" = "no" ]; then _fscf="-e"
-		else _fscf="-d"; fi
+		[ "$_fsck" = "n" ] || [ "$_fsck" = "no" ] && _fscf="-e" || _fscf="-d"
 		debug $_fscf fsck ${_fs:+-t$_fs} $_dev 
 	fi
-	isrl 3m
-	debug mount ${mopt:+-o$mopt} ${_fs:+-t$_fs} $_dev /newroot
+	shrl 3m
+	debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot
 	if [ ! "$?" ]; then
 		if [ -n "$kmode" ]; then
-			debug -d dmclose "${_lvm:-${rmp:-root}}" "${_lvm:+$_rdev}"
+			debug -d dmclose "${_lvm:-${rmap:-root}}" "${_lvm:+${_dev##*/}}"
 		fi
 		die "failed to mount rootfs"
 	fi
-	isrl 3s
+	shrl 3s
 	[ -n "$sqfsd" ] && debug -d sqfsd
-	_lvm=; mopt=; kmode=
+	_lvm=; imopt=; kmode=
 }
 
 swap() {
 	[ -n "$2" ] || die "i$1=<type>:<PV|VG-LV>[:<sign>] argument is missing"
-	local _dev _swp="$1"  _type="${2%%:*}"
-	local _hdev="$(echo "$2" | cut -d':' -s -f2)" 
-	local _sign="$(echo "$2" | cut -d':' -s -f3)"
-	debug getkey "$_swp" "$3"
+	local _swp="$3"  _type="${1%%:*}"
+	local _dev="$(echo "$1" | cut -d':' -s -f2)" 
+	local _sign="$(echo "$1" | cut -d':' -s -f3)"
+	debug -d getkey "$2" "$_swp"
 	[ -n "$_raid" ] && debug -d mdopen "$_raid"
 	if [ -n "$_lvm" ]; then debug -d lvopen "$_hdev" "$_lvm" "_dev"
-	elif [ -n "$kmode" ]; then debug -d dmopen "$_swp-$_hdev" "_dev"
-	else debug -d _blkid "$_hdev" "_dev"; fi
+	elif [ -n "$kmode" ]; then debug -d dmopen "$_swp-$_dev" "_dev"
+	else debug -d _blkid "$_dev" "_dev"; fi
 	[ -n "$4" ] && eval $4=$_type:$_dev${_sign+:$_sign}
 	_lvm=; _raid=; kmode=
 }
@@ -338,10 +335,10 @@ resume() {
 	local _asw _dev _img _msg _toi _spd
 	_msg="Resuming from hibernation..."
 	info "$_msg"; spl_msg "$_msg"
-	if [ -n "$(echo "$toi" | cut -d':' -s -f2)" ]; then
-:		local ${_raid:=$(echo "$raid" | cut -d',' -f3)}
-:		local ${_lvm:=$(echo "$lvm" | cut -d',' -f3)}
-		debug -d swap "resume"  "$toi" "$kresume" "_dev"
+	if [ -n "$(echo "$iresume" | cut -d':' -s -f2)" ]; then
+:		local ${_raid:=$(echo "$iraid" | cut -d',' -f3)}
+:		local ${_lvm:=$(echo "$ilvm" | cut -d',' -f3)}
+		debug -d swap "$iresume" "$ikresume" "resume" "_dev"
 	fi
 	debug -d mount -n -o remount,ro /newroot
 	if [ -d /sys/power/tuxonice ]; then
@@ -386,7 +383,7 @@ resume() {
 
 imount() {
 	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
-	for _x in $mount; do
+	for _x in $imount; do
 		_y="$(grep $_x /newroot/etc/fstab)"
 		if [ -n "${y}" ]; then
 			 _fs=$(echo "$_y" | awk '{print $3}')
@@ -408,89 +405,76 @@ imount() {
 
 switch() {
 	echo > /proc/sys/kernel/hotplug
-	local spl_msg="Switching / ..."
+	local _msg="Switching / ..."
 	info "$_msg"; spl_msg "$_msg"
 	debug spld_stop
 	sleep 1
-	isrl 4u
+	shrl 4u
 	debug -d umount -l /proc
 	debug -d umount -l /sys
 	debug -d umount -l /dev
-	isrl 4s
-	debug -d exec switch_root /newroot ${init:-/sbin/init} $irl
+	shrl 4s
+	debug -d exec switch_root /newroot ${init:-/sbin/init} $rirl
 }
 
 imsg() { [ -e /etc/msg ] && info "$(cat /etc/msg)"; }
 
 main() {
-	if [ -n "$kmap" ]; then
+	local _font=$(echo "$ikmap" | cut -d':' -f2)
+	local _kmap=$(echo "$ikmap" | cut -d':' -f1)
+	if [ -n "$_kmap" ]; then
 		for _dir in /usr/share/keymaps /etc /; do
-			if [ -f "$_dir/$kmap" ]; then
-				debug -d loadkmap < "$_dir/$kmap" && break
+			if [ -f "$_dir/$_kmap" ]; then
+				debug -d loadkmap < "$_dir/$_kmap" && break
 			fi
 		done
 	fi
-	if [ -n "$font" ]; then
+	if [ -n "$_font" ]; then
 		for _dir in /usr/share/consolefonts /etc /; do
-			if [ -f "$_dir/$font" ]; then
-				debug -e loadfont < "$_dir/$font" && break
+			if [ -f "$_dir/$_font" ]; then
+				debug -e loadfont < "$_dir/$_font" && break
 			fi
 		done
 	fi
 	debug imsg
-	isrl 1
+	shrl 1
 	debug _modprobe gpg
 	debug _modprobe remdev
-	if [ -n "$swap" ]; then
-:		local ${_raid:=$(echo "$raid" | cut -d',' -f2)}
-:		local ${_lvm:=$(echo "$lvm" | cut -d',' -f2)}
-		isrl 2s
-		swap "swap" "$swap" "$kswap"
+	if [ -n "$iswap" ]; then
+:		local ${_raid:=$(echo "$iraid" | cut -d',' -f2)}
+:		local ${_lvm:=$(echo "$ilvm" | cut -d',' -f2)}
+		shrl 2s
+		swap "$iswap" "$ikswap" "swap"
 	fi
-	[ -n "$toi" ] && isrl 2r && debug resume
+	[ -n "$iresume" ] && shrl 2r && debug resume
 	debug rootfs
-	isrl 4c
+	shrl 4c
 	local IFS="${IFS}:"
 	for _k in $ldk; do debug dmclose "$_k"; done
 	for _d in $ldv; do debug losetup -d $_d; done
 	debug _rmmod gpg
 	debug -d umount -n -l /mnt/tok
 	debug _rmmod remdev
-	[ -n "$imount" ] && isrl 4m && debug imount
+	[ -n "$imount" ] && shrl 4m && debug imount
 	debug switch
 }
 
 _getopts() {
-	local dir
 	for arg in $(cat /proc/cmdline); do
     		case $arg in
-			rescue*)    srl=1;;
-			single)     irl=2;;
-			isqfsd=*)   dir=${arg#*=}
-				if [ "${dir%,*}" = "y" ]; then sqfsdir=${sqfsdir:-/sqfsd}
-				else sqfsdir=${dir%,*}; fi
-				if [ "${dir#*,}" = "y" ]; then sqfsd=${sqfsd:-usr:opt:bin:sbin}
-				elif [ "$(echo ${dir#*,}|cut -d':' -f1)" = "a" ]; then
-					sqfsd=${sqfsd:-usr:opt:bin:sbin}:$(echo ${dir#*,} | cut -c3-)
-				else 	sqfsd=$(echo ${dir#*,} | cut -c3-); fi;;
-			iroot=*)    root=${arg#*=};;
-			iraid=*)    raid=${arg#*=};;
-			*init=*)    init=${arg#*=};;
-			ilvm=*)     lvm=${arg#*=};;
-			imod=*)     mod=${arg#*=};;
-			imopt=*)    mopt=${arg#*=};;
-			splash=*)   splash=${arg#*=}; theme:=${splash#*:};;
-			console=*)  tty=${arg#*=};;
-			iresume=*)  toi=${arg#*=};;
-			ikmap=*)    kmap=$(echo ${arg#*=}|cut -d':' -f1)
-				        font=$(echo ${arg#*=}|cut -d':' -f2);;
-			ishrl=*)    srl=$(echo ${arg#*=}|cut -d':' -f1)
-				        irl=$(echo ${arg#*=}|cut -d':' -f2);;
-			iswap=*)    swap=${arg#*=};;
-			ikroot=*)   kroot=${arg#*=};;
-			ikswap=*)   kswap=${arg#*=};;
-			imount=*)   imount=${arg#*=};;
-			ikresume=*) kresume=${arg#*=};;
+			rescue*)  shrl=1;;
+			single)   rirl=2;;
+			isqfsd=*) ${arg}
+				if [ "${isqfsd%,*}" = "y" ]; then sqfsdir=${sqfsdir:-/sqfsd}
+				else sqfsdir=${isqfsd%,*}; fi
+				if [ "${isqfsd#*,}" = "y" ]; then sqfsd=${sqfsd:-usr:opt:bin:sbin}
+				elif [ "$(echo ${isqfsd#*,}|cut -d':' -f1)" = "a" ]; then
+					sqfsd=${sqfsd:-usr:opt:bin:sbin}:$(echo ${isqfsd#*,} | cut -c3-)
+				else sqfsd=$(echo ${isqfsd#*,} | cut -c3-); fi;;
+			*init=*)  init=${arg#*=};;
+			ishrl=*)  shrl=$(echo ${arg#*=}|cut -d':' -f1)
+				      rirl=$(echo ${arg#*=}|cut -d':' -f2);;
+			ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export ${arg};;
 	   	 esac
 	done
 }
@@ -499,21 +483,22 @@ _init() {
 	export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	umask 0077
 	for dir in dev proc run sys newroot mnt/tok; do mkdir -p /$dir; done
-	mount -tproc -orw,nosuid,nodev,noexec,relatime proc /proc
-	mount -ttmpfs -orw,nosuid,nodev,relatime,mode=755 tmpfs /run
+	mount -t proc proc /proc
+	mount -t tmpfs -o mode=755 tmpfs /run
 	mkdir /run/log
 	[ "$eck" ] && ack
-	debug -d mount -tsysfs -orw,nosuid,nodev,noexec,relatime sysfs /sys
+	debug -d mount -t sysfs sysfs /sys
 	debug _getopts
 	debug _modprobe boot
 	if grep devtmpfs /proc/filesystems &>/dev/null; then
-		debug -d mount -tdevtmpfs -orw,nosuid,nodev,noexec,relatime devtmpfs /dev
-	else debug -d mount -ttmpfs -orw,nosuid,nodev,noexec,relatime tmpfs /dev; fi
+		debug -d mount -t devtmpfs devtmpfs /dev
+	else debug -d mount -t tmpfs tmpfs /dev; fi
 	debug -d mdev -s
 	echo /sbin/mdev > /proc/sys/kernel/hotplug
 	if [ -c /dev/device-mapper ]; then
-		if [ -c /dev/mapper/control ]; then rm -f /dev/device-mapper
-		else mv -f /dev/device-mapper /dev/mapper/control; fi
+		debug mkdir -p /dev/mapper
+		if [ -c /dev/mapper/control ]; then debug rm -f /dev/device-mapper
+		else debug mv -f /dev/device-mapper /dev/mapper/control; fi
 	fi
 	if [ -n "$mod" ]; then local IFS="${IFS},"
 		for _m in $mod; do 
@@ -525,9 +510,9 @@ _init() {
 	[ -n /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
 	[ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
 	[ -n "$splash" ] && debug spld_init
-:	${tty:=/dev/console}
-	[ -n "$(echo $tty | grep /dev)" ] || tty="/dev/$tty"
-#	exec 0<$tty 1>$tty 2>&1
+:	${console:=/dev/tty1}
+	[ -n "$(echo $console | grep /dev)" ] || console="/dev/$tty"
+	exec 0<$console 1>$console 2>&1
 	debug main
 }
 debug _init

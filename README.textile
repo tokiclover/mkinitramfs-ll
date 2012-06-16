@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.8.1 2012/06/13 13:48:30 -tclover Exp $@
+@$Header: mkinitramfs-ll/README,v 0.8.2 2012/06/16 12:21:20 -tclover Exp $@
 
 bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
 
@@ -35,7 +35,7 @@ init script supports the following specific arguments:
 
 *Note*: @:n:ext4@ or @:no:ext4@ will disable a die if fsck fails to check rootfs.
 
-* @imtopt=<ro,inode64,...>@      -> optional mount options for rootfs.
+* @imopt=<ro,inode64,...>@       -> optional mount options for rootfs.
 * @imount=</usr:/var:...>@       -> mount /usr:/var using /etc/fstab
 
 *Note*:@imount@ can be used to mount /usr:/var ... using @/etc/fstab@. Nothing more is required if unencrypted. 
