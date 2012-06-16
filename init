@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.8.2 2012/06/16 12:26:14 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.8.2 2012/06/16 12:53:46 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -464,17 +464,17 @@ _getopts() {
     		case $arg in
 			rescue*)  shrl=1;;
 			single)   rirl=2;;
-			isqfsd=*) ${arg}
+			isqfsd=*) export $arg
 				if [ "${isqfsd%,*}" = "y" ]; then sqfsdir=${sqfsdir:-/sqfsd}
 				else sqfsdir=${isqfsd%,*}; fi
 				if [ "${isqfsd#*,}" = "y" ]; then sqfsd=${sqfsd:-usr:opt:bin:sbin}
 				elif [ "$(echo ${isqfsd#*,}|cut -d':' -f1)" = "a" ]; then
 					sqfsd=${sqfsd:-usr:opt:bin:sbin}:$(echo ${isqfsd#*,} | cut -c3-)
 				else sqfsd=$(echo ${isqfsd#*,} | cut -c3-); fi;;
-			*init=*)  init=${arg#*=};;
+			*init=*)  export init=${arg#*=};;
 			ishrl=*)  shrl=$(echo ${arg#*=}|cut -d':' -f1)
 				      rirl=$(echo ${arg#*=}|cut -d':' -f2);;
-			ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export ${arg};;
+			ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export $arg;;
 	   	 esac
 	done
 }
