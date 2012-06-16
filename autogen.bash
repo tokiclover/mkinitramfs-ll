@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/autogen.bash,v 0.8.1 2012/06/12 13:10:11 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.bash,v 0.8.1 2012/06/16 14:52:53 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} OPTIONS [OPTIONS...]
@@ -94,5 +94,5 @@ if [[ -n "${opts[-gpg]}" ]]; then gnupg.bash
 		cp "${opts[-confdir]}"/gpg.conf "${opts[-miscdir]}"/.gnupg/ || die
 	fi
 fi
-./mkifs-ll.bash
+./mkinitramfs-ll.bash
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

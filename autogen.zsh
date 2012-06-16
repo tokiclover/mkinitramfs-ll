@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/autogen.zsh,v 0.8.1 2012/06/12 13:10:16 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.zsh,v 0.8.1 2012/06/16 14:52:51 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS] [OPTIONS...]
@@ -63,5 +63,5 @@ if [[ -n ${(k}opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { gnupg.zsh
 		cp ${opts[-confdir]}/gpg.conf ${opts[-miscdir]}/.gnupg/ || die
 	}
 }
-./mkifs-ll.zsh
+./mkinitramfs-ll.zsh
 # vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:
