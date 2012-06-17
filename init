@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.8.2 2012/06/16 12:57:17 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.8.2 2012/06/17 12:04:14 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -80,13 +80,12 @@ spl_msg() { [ $spld ] && debug spl_cmd "set message $@" && debug spl_cmd "repain
 spld_stop() { [ $spld ] && spld=1; debug spl_cmd "exit"; }
 spld_init() {
 	[ -n "$(echo "$splash" | grep fadein)" ] && local _opt="-c set effects fadein"
-:	${console:=tty1}
 	spl_mode=${splash%%,*} theme:=${splash#*:}
 	spl_cachedir=/run/splash/cache
 	spl_util=splash_util
 	export SPLASH_FIFO=$spl_cachedir/.splash
 	[ "$eck" ] && debug bck $spl_uil
-	[ ! -d "$spl_cachedir" ] && mkdir -p $spl_cachedir
+	[ -d "$spl_cachedir" ] || mkdir -p $spl_cachedir
 	debug mkfifo $SPLASH_FIFO
 	debug $spl_util $_opt -d -t "$theme" && spld=0
 	debug spl_cmd "set event dev evdev"
@@ -100,7 +99,7 @@ shrl() {
 	if [ -n "$_scr" ]; then
 		for _s in $_scr; do 
 			info "exec: sh -ex $_s..."
-			debug -e sh -ex $_s
+			debug -d sh -ex $_s
 		done
 	fi
 	[ "$shrl" = "$1" ] && debug die
@@ -365,7 +364,7 @@ resume() {
 		_spd="$(which suspendui_text)"
 :		${_spd:=$(which suspendui_fbsplash)}
 		debug _modprobe suspend
-		debug -d echo ${_dev} > /sys/power/disk/resume
+		debug -d echo $_dev > /sys/power/disk/resume
 		_img="$(cat /sys/power/image_exists | head -n 1)"
 		if [ "$_img" = "1" ]; then 
 			error "suspend: no recognizable signature at the pointed location"
@@ -454,7 +453,7 @@ main() {
 	for _k in $ldk; do debug dmclose "$_k"; done
 	for _d in $ldv; do debug losetup -d $_d; done
 	debug _rmmod gpg
-	debug -d umount -n -l /mnt/tok
+	debug -d umount -f -l /mnt/tok
 	debug _rmmod remdev
 	[ -n "$imount" ] && shrl 4m && debug imount
 	debug switch
