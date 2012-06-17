@@ -1,4 +1,11 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2012/06/16 12:24:26 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2012/06/17 19:46:23 -tclover Exp $
+
+*init-0.9.0: (17 June 2012)
+
+	* major update of the initial initramfs layout; fixed and update;
+	  one can add binaries, scripts, config files (/etc/mdev.conf)...
+	  directly to $gitdir/usr|/$prefix/mkinitrmafs/share/usr directory
+	  if installed.
 
 *init-0.8.2: (14 June 2012)
 
