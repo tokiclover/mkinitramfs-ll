@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.8.2 2012/06/17 12:04:14 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.8.2 2012/06/17 12:14:16 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -453,7 +453,7 @@ main() {
 	for _k in $ldk; do debug dmclose "$_k"; done
 	for _d in $ldv; do debug losetup -d $_d; done
 	debug _rmmod gpg
-	debug -d umount -f -l /mnt/tok
+	debug -e umount -f -l /mnt/tok
 	debug _rmmod remdev
 	[ -n "$imount" ] && shrl 4m && debug imount
 	debug switch
