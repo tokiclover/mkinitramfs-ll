@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.0 2012/06/17 18:27:29 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.0 2012/06/17 22:15:46 -tclover Exp $
 revision=0.9.0
 usage() {
   cat <<-EOF
@@ -118,6 +118,10 @@ esac
 echo ">>> building ${opts[-initramfs]}..."
 rm -rf "${opts[-initramfsdir]}" || die
 mkdir -p "${opts[-initramfsdir]}" && pushd "${opts[-initramfsdir]}" || die
+if [[ -d "${opts[-usrdir]}" ]]; then
+	cp -ar "${opts[-usrdir]}" . && rm -f usr/README* || die
+	mv -f {usr/,}root &>/dev/null; mv -f {usr/,}etc &>/dev/null || die
+else mkdir -pm700 root; warn "${opts[-usrdir]} does not exist"; fi
 mkdir -p run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
 mkdir -p dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
 mkdir -p lib${opts[-lib]}/{splash/cache,modules/${opts[-kversion]}} || die
@@ -129,16 +133,11 @@ if [[ $(echo ${opts[-kversion]} | cut -d'.' -f1 ) -eq 3 ]] && \
 fi
 cp -a "${opts[-workdir]}"/init . && chmod 775 init && mkdir -pm700 root || die
 cp -af {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
-if [[ -d "${opts[-usrdir]}"/usr ]]; then
-	cp -ar "${opts[-usrdir]}"/usr . && rm -f usr/README*
-	mv -f {usr/,}root &>/dev/null; mv -f {usr/,}etc &>/dev/null
-else mkdir -pm700 root; warn "${opts[-usrdir]} does not exist"; fi
 if [[ -x usr/bin/busybox ]]; then mv -f {usr/,}bin/busybox
 elif which busybox &> /dev/null &&
 	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]]; then
 	cp -a $(which busybox) bin/
 elif which bb &>/dev/null; then cp -a $(which bb) bin/busybox
-	warn "unexpected behaviour may happen using $(which bb) because of missing applets" 
 else die "there's no busybox nor bb binary"; fi
 if [[ -f etc/mkinitramfs-ll/busybox.app ]]; then continue
 else bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die; fi
