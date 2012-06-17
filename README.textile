@@ -1,6 +1,6 @@
 @$Header: mkinitramfs-ll/README,v 0.8.2 2012/06/16 12:21:20 -tclover Exp $@
 
-bq. "initramfs with *optional [RAID]|[LUKS]|[LVM][TOI]|[AUFS+SQUASHFS]* support [with a handfull zsh and or bash set of scripts]"
+bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
 *WARNING: USE AT YOUR OWN RISK!*
 
@@ -46,6 +46,11 @@ after swp(), resume() and rootfs() being executed, meaning that, the volume(s) s
 * @ikmap=<kmap>[:<font>]@        -> optional keymap and font to load, may be handy for passwords.
 * @ishrl=<n>|:<n>@               -> interrupt init and drop to n level or pass n to real init (see EOF)
 * @rescue|rescueshell@           -> drops directly into a minimal shell.
+
+*Note*: now with >=init-0.8.2 one can @exit@ the rescue shell after having finished to fix a issue
+which caused a @die@, or simply after a @rescue[shell]@ on kernel cmdline and the init will resume
+booting from there.
+
 * @ilvm=<map-PV>,...,<map-PV>@   -> LVM argument @<mapping-PV>@ is collon ':' separated 
 list of PVs of a VG; and comma ',' separated list of VG: 1st for root, 2nd for swap and 
 the 3rd for resume, hence one can append enough commas to asign a particular group.
