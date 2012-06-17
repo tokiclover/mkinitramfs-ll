@@ -1,5 +1,5 @@
-PACKAGE = mkinitramfs-ll
-VERSION = $(grep Header init | awk '{print $4}')
+PACKAGE     = mkinitramfs-ll
+VERSION     = $(shell grep Header init | awk '{print $4}')
 
 prefix      = /usr/local
 bindir      = ${DESTDIR}${prefix}/sbin
@@ -17,6 +17,9 @@ install:
 	install -pd $(datadir)
 	install -pm 644 busybox.cfg       $(datadir)
 	install -pm 755 init              $(datadir)
+	for file in $(shell find usr -name '.keep'); do \
+		install -Dpm644 $${file} $(datadir)/$${file}; \
+	done
 
 install_bash:
 	sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
