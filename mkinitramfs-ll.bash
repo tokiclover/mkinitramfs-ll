@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.0 2012/06/17 22:15:46 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.0 2012/06/17 22:28:26 -tclover Exp $
 revision=0.9.0
 usage() {
   cat <<-EOF
@@ -113,6 +113,7 @@ case ${opts[-comp]%% *} in
 	gzip) 	opts[-initramfs]+=.cpio.gz;;
 	xz) 	opts[-initramfs]+=.cpio.xz;;
 	lzma)	opts[-initramfs]+=.cpio.lzma;;
+	lzip)	opts[-initramfs]+=.cpio.lzip;;
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
 echo ">>> building ${opts[-initramfs]}..."

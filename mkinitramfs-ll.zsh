@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.0 2012/06/17 22:15:43 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.0 2012/06/17 22:28:28 -tclover Exp $
 revision=0.9.0
 usage() {
   cat <<-EOF
@@ -87,6 +87,7 @@ case ${opts[-comp][(w)1]} in
 	gzip) 	opts[-initramfs]+=.cpio.gz;;
 	xz) 	opts[-initramfs]+=.cpio.xz;;
 	lzma)	opts[-initramfs]+=.cpio.lzma;;
+	lzip)	opts[-initramfs]+=.cpio.lzip;;
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
