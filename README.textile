@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README,v 0.8.2 2012/06/17 13:21:02 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.8.2 2012/06/17 15:10:01 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -148,8 +148,8 @@ one can add a @/.gnupg/gpg.conf@ in the initramfs root to avoid its creattion on
 	
 h3. 6. About squashed directories 
 
-One can use squashfs+aufs2 to squash directories like @$PORTDIR:var/lib/layamn@, or system related directories 
-like @usr:lib32:lib64:bin:sbin@. Advantages are system speed, responsiveness and very small rootfs footprint.
+One can use squashfs+aufs to squash directories like @$PORTDIR:var/lib/layamn@, or system related directories 
+like @usr:lib32:lib64:bin:sbin@. Advantages are system speed, responsiveness and very small disk size footprint.
 
 Squashed directories argument:
 * @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@ -> using default or append directories after a @[n|a]:@
@@ -191,7 +191,7 @@ Supported groups:
 * @tuxonice@  -> tuxonice module, wich aren't removed
 * @remdev@    -> modules required to access removable device
 * @gpg@       -> modules required to access gpg crypted keyfile
-* @sqfsd@     -> modules required for squashfs+aufs2, can be built into the kernel
+* @sqfsd@     -> modules required for squashfs+aufs, can be built into the kernel
 
 Modules should exist in @/lib/modules/$KERNEL_VERSION/@, the kernel should support modules [un]loading.
 Just make sure to append the necessary modules to the right group in mkinitramfs-ll.conf for autoloading, 

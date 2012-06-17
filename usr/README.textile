@@ -1,0 +1,12 @@
+@$Header: mkinitramfs-ll/usr/README.textile,v 0.8.3 2012/06/17 13:33:17 -tclover Exp $@
+
+This where user extra files (binaries, man pages, info and scripts (to etc/local.d))
+files are stored relatively from this dir,just like in @/usr@.
+
+User scripts should have a prefix @{1,2{r,s},3{f,d,m},4{s,u}]}?-@ corresponding to 
+a init runlevel and a `.sh' suffix to be correctly executed in the right run level.
+
+*Note*: busybox (stored in bin) and its optional applets--@busybox.app@--in
+etc/mkinitramfs-ll/ and @mdev.conf@ in etc/ are stored in this directory as well.
+
+@vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@

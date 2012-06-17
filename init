@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.8.2 2012/06/17 12:14:16 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.0 2012/06/17 15:09:58 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -363,7 +363,7 @@ resume() {
 	elif [ -f /sys/power/resume ]; then
 		_spd="$(which suspendui_text)"
 :		${_spd:=$(which suspendui_fbsplash)}
-		debug _modprobe suspend
+		debug _modprobe swsusp
 		debug -d echo $_dev > /sys/power/disk/resume
 		_img="$(cat /sys/power/image_exists | head -n 1)"
 		if [ "$_img" = "1" ]; then 
@@ -374,7 +374,7 @@ resume() {
 		else die "suspend: no image found at the pointed location"; fi
 		spld_stop
 		debug -d echo disk > /sys/power/state
-		debug _rmmod suspend
+		debug _rmmod swsusp
 	else error "no suspend/hibernation support found"; fi
 	debug -d mount -n -o remount,rw /newroot
 	die "failed to resume from hibernation"

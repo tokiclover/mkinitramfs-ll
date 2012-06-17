@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.8.1 2012/06/13 13:12:56 -tclover Exp $
-revision=0.8.1
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.0 2012/06/17 18:27:29 -tclover Exp $
+revision=0.9.0
 usage() {
   cat <<-EOF
   usage: ${1##*/} [OPTIONS...]
@@ -9,14 +9,12 @@ usage() {
   -e, --eversion d          append an extra 'd' version after \$kv to the initramfs image
   -k, --kversion 3.3.2-git  build an initramfs for '3.1.4-git' kernel, else for \$(uname -r)
   -c, --comp ['gzip -9']    compression command to use to build initramfs, default is 'xz -9..'
+  -d, --usrdir [usr]        use usr dir for user extra files, binaries, scripts, fonts...
   -g, --gpg                 adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p, --prefix initrd-      prefix scheme to name the initramfs image default is 'initramfs-'
   -y, --keymap :fr-latin1   append colon separated list of keymaps to include in the initramfs
   -L, --luks                adds LUKS support, require a sys-fs/cryptsetup[static] binary
   -l, --lvm                 adds LVM2 support, require a static sys-fs/lvm2[static] binary
-  -B, --bindir [bin]        try to include binaries from bin dir {busybox,applets,gpg} first
-  -M, --miscdir [misc]      use msc dir for {.gnupg/gpg.conf,share/gnupg/options.skel} files,
-                            one can add manpages {gpg,lvm,cryptsetup} and user scripts as well
   -W, --wokdir [<dir>]      working directory where to create initramfs dir, default is PWD
   -b, --bin :<bin>          append colon separated list of binar-y-ies to include
   -m, --mdep [:<mod>]       colon separated list of kernel module-s to include
@@ -54,10 +52,9 @@ addnodes() {
 		[[ -c dev/tty${nod} ]] || mknod -m 620 dev/tty${nod} c 4 ${nod} || die
 	done
 }
-opt=$(getopt -o ab:c::e:f::gk::lLm::p::rs::tuvy::B::M::S::W:: -l all,bin:,bindir::,comp::,eversion: \
+opt=$(getopt -o ab:c::d::e:f::gk::lLm::p::rs::tuvy::W:: -l all,bin:,usrdir::,comp::,eversion: \
 	  -l font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev::,mtuxonice::,sqfsd,toi,usage,version \
-	  -l keymap::,luks,lvm,miscdir::,workdir::,kversion::,prefix::,splash::,raid \
-	  -n ${0##*/} -- "$@" || usage)
+	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,raid -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
@@ -69,7 +66,7 @@ while [[ $# > 0 ]]; do
 		-q|--sqfsd) opts[-sqfsd]=y; shift;;
 		-b|--bin) opts[-bin]+=:${2}; shift 2;;
 		-c|--comp) opts[-comp]="${2}"; shift 2;;
-		-B|--bindir) opts[-bindir]=${2}; shift 2;;
+		-d|--usrdir) opts[-usrdir]=${2}; shift 2;;
 		-e|--eversion) opts[-eversion]=${2}; shift 2;;
 		-k|--kversion) opts[-kversion]=${2}; shift 2;;
 		-g|--gpg) opts[-gpg]=y; shift;;
@@ -81,7 +78,6 @@ while [[ $# > 0 ]]; do
 		--msqfsd) opts[-msqfsd]+=:${2}; shift 2;;
 		--mremdev) opts[-mremdev]+=:${2}; shift 2;;
 		--mtuxonice) opts[-tuxonice]+=:${2}; shift 2;;
-		-M|--miscdir) opts[-miscdir]="${2}"; shift 2;;
 		-s|--splash) opts[-splash]+=":${2}"; shift 2;;
 		-W|--workdir) opts[-workdir]="${2}"; shift 2;;
 		-m|--mdep) opts[-mdep]+=":${2}"; shift 2;;
@@ -104,9 +100,8 @@ while [[ $# > 0 ]]; do
 done
 [[ -n "${opts[-kversion]}" ]] || opts[-kversion]="$(uname -r)"
 [[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
-[[ -n "${opts[-miscdir]}" ]] || opts[-miscdir]="${opts[-workdir]}"/misc
 [[ -n "${opts[-prefix]}" ]] || opts[-prefix]=initramfs-
-[[ -n "${opts[-bindir]}" ]] || opts[-bindir]="${opts[-workdir]}"/bin
+[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/usr
 opts[-initramfsdir]="${opts[-workdir]}"/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}
 opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}
 [[ -n "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
@@ -124,7 +119,7 @@ echo ">>> building ${opts[-initramfs]}..."
 rm -rf "${opts[-initramfsdir]}" || die
 mkdir -p "${opts[-initramfsdir]}" && pushd "${opts[-initramfsdir]}" || die
 mkdir -p run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
-mkdir -p dev proc root sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
+mkdir -p dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
 mkdir -p lib${opts[-lib]}/{splash/cache,modules/${opts[-kversion]}} || die
 ln -sf lib${opts[-lib]} lib || die
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[0-6],zero} dev/ || addnodes
@@ -134,20 +129,18 @@ if [[ $(echo ${opts[-kversion]} | cut -d'.' -f1 ) -eq 3 ]] && \
 fi
 cp -a "${opts[-workdir]}"/init . && chmod 775 init && mkdir -pm700 root || die
 cp -af {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
-cp -ar "${opts[-miscdir]}"/share usr/ || die "failed to copy ${opts[-miscdir]}/share"
-[[ -e ${opts[-miscdir]}/imsg ]] && cp ${opts[-miscdir]}/imsg etc/
-for scr in $(ls ${opts[-miscdir]}/*.sh &>/dev/null); do 
-	cp ${scr} etc/local.d/
-done
-if [[ -x "${opts[-bindir]}"/busybox ]]; then cp ${opts[-bindir]}/busybox bin/
-elif which busybox &> /dev/null && \
+if [[ -d "${opts[-usrdir]}"/usr ]]; then
+	cp -ar "${opts[-usrdir]}"/usr . && rm -f usr/README*
+	mv -f {usr/,}root &>/dev/null; mv -f {usr/,}etc &>/dev/null
+else mkdir -pm700 root; warn "${opts[-usrdir]} does not exist"; fi
+if [[ -x usr/bin/busybox ]]; then mv -f {usr/,}bin/busybox
+elif which busybox &> /dev/null &&
 	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]]; then
 	cp -a $(which busybox) bin/
 elif which bb &>/dev/null; then cp -a $(which bb) bin/busybox
 	warn "unexpected behaviour may happen using $(which bb) because of missing applets" 
 else die "there's no busybox nor bb binary"; fi
-if [[ -e "${opts[-bindir]}"/busybox.app ]]; then
-	cp -a "${opts[-bindir]}"/busybox.app etc/mkinitramfs-ll/
+if [[ -f etc/mkinitramfs-ll/busybox.app ]]; then continue
 else bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die; fi
 for app in $(< etc/mkinitramfs-ll/busybox.app); do	
 	ln -fs /bin/busybox ${app}
@@ -161,12 +154,12 @@ if [[ -n "${opts[-sqfsd]}" ]]; then opts[-bin]+=:umount.aufs:mount.aufs
 	done
 fi
 if [[ -n "${opts[-gpg]}" ]]; then
-	if [[ -x "${opts[-bindir]}"/gpg ]]; then opts[-bin]+=:usr/bin/gpg
+	if [[ -x usr/bin/gpg ]]; then continue
 	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
 		opts[-bin]+=":$(which gpg)"
 	else die "there's no usable gpg/gnupg-1.4.x binary"; fi
-	cp -r "${opts[-miscdir]}"/.gnupg root/ || die "failed to copy ${opts[-miscdir]}/.gnupg"
-	chmod 700 root/.gnupg; chmod 600 root/.gnupg/gpg.conf
+	[[ -f root/.gnupg/gpg.conf ]] && ln -sf {root/,}.gnupg ||
+		warn "no gpg.conf was found"
 fi
 if [[ -n "${opts[-lvm]}" ]]; then opts[-bin]+=:lvm.static
 	pushd sbin
@@ -198,36 +191,32 @@ for grp in boot gpg sqfsd remdev tuxonice; do
 	fi
 done
 for keymap in ${opts[-keymap]//:/ }; do
-	if [[ -f "${keymap}" ]]; then cp -a "${keymap}" usr/share/keymaps/
-	elif [[ -f "${opts[-miscdir]}/share/keymaps/${keymap}" ]]; then 
-		cp -a "${opts[-miscdir]}/share/keymaps/${keymap}" usr/share/keymaps/
-	else opts[genkm]+=:${keymap}; fi
-done
-for keymap in ${opts[genkm]//:/ }; do
-	loadkeys -b -u ${keymap} > usr/share/keymaps/${keymap}-${opts[-arch]}.bin \
-		|| die "failed to build ${keymap} keymap"
+	if [[ -f usr/share/keymaps/"${keymap}" ]]; then continue
+	elif [[ -f "${keymap}" ]]; then cp -a "${keymap}" usr/share/keymaps/
+	else 
+		loadkeys -b -u ${keymap} > usr/share/keymaps/${keymap}-${opts[-arch]}.bin ||
+			die "failed to build ${keymap} keymap"
+	fi
 done
 for font in ${opts[-font]//:/ }; do
-	if [[ -f ${font} ]]; then cp -a ${font} usr/share/consolefonts/
-	elif [[ -f "${opts[-miscdir]}"/share/consolefonts/${font} ]]; then 
-		cp -a "${opts[-miscdir]}"/share/consolefonts/${font} usr/share/consolefonts/ 
+	if [[ -f usr/share/consolefonts/${font} ]]; then continue
+	elif [[ -f ${font} ]]; then cp -a ${font} usr/share/consolefonts/ 
 	else 
 		for file in $(ls /usr/share/consolefonts/${font}*.gz); do
-			if [[ -f ${file} ]]; then cp ${file} . 
+			if [[ -f ${file} ]]; then
+				cp ${file} . 
 				gzip -d ${file##*/}
-				mv ${font}* usr/share/consolefonts/
 			fi
 		done
+		mv ${font}* usr/share/consolefonts/
 	fi
 done
 if [[ -n "${opts[-splash]}" ]]; then opts[-bin]+=:splash_util.static
 	[[ -n "${opts[-toi]}" ]] && opts[-bin]+=:tuxoniceui_text
 	for theme in ${opts[-splash]//:/ }; do 
-		if [[ -d ${theme} ]]; then cp -r ${theme} etc/splash/ 
-		elif [[ -d "${opts[-miscdir]}"/${theme} ]]; then 
-			cp -r "${opts[-miscdir]}"/${theme} etc/splash/
+		if [[ -d etc/splash/${theme} ]]; then continue 
 		elif [[ -d /etc/splash/${theme} ]]; then cp -r {/,}etc/splash/${theme}
-			info "copied the whole /etc/splash/${theme} theme"
+		elif [[ -d ${theme} ]]; then cp -ar ${theme} etc/splash/ 
 		else warn "failed to copy ${theme} theme"; fi
 	done
 fi
@@ -242,8 +231,9 @@ bcp() {
 	done
 }
 for bin in ${opts[-bin]//:/ }; do
-	if [[ -x "${opts[-bindir]}"/${bin##*/} ]]; then cp "${opts[-bindir]}"/${bin##*/} ${bin%/*}
-	elif [[ -x /${bin} ]]; then bcp /${bin}
+	if [[ -x usr/bin/${bin##*/} ]] || [[ -x usr/sbin/${bin##*/} ]] ||
+	[[ -x bin/${bin##*/} ]] || [[ -x sbin/${bin##*/} ]]; then continue
+	elif [[ -x ${bin} ]]; then bcp ${bin}
 	else bcp $(which ${bin##*/}); fi
 done
 find . -print0 | cpio --null -ov --format=newc | ${opts[-comp]} > "${opts[-initramfs]}" || die
