@@ -1,7 +1,7 @@
 #!/sbin/runscript
 # Copyright 1999-2012 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: /etc/init.d/sqfsdmount,v 1.2 2012/05/25 02:46:51 -tclover Exp $
+# $Header: /etc/init.d/sqfsdmount,v 1.2 2012/06/18 12:58:25 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="manage (aufs+squashfs) squashed directories"
