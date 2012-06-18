@@ -54,8 +54,8 @@ install_zsh:
 install_svc:
 	install -pd $(svc_confdir)
 	install -pd $(svc_initdir)
-	install -pm 755 sqfsdsvc/sqfsdmount.initd $(svc_initdir)/sqfsdmount
-	install -pm 644 sqfsdsvc/sqfsdmount.confd $(svc_confdir)/sqfsdmount
+	install -pm 755 svc/sqfsdmount.initd $(svc_initdir)/sqfsdmount
+	install -pm 644 svc/sqfsdmount.confd $(svc_confdir)/sqfsdmount
 
 postinstall:
 
