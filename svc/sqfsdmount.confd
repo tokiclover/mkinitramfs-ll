@@ -2,6 +2,6 @@
 sqfsdir=/sqfsd
 sqfsd_sys=usr:lib32:lib64:bin:sbin:opt
 sqfsd_local=var/db:var/cache/edb:var/lib/layman:var/portage
-sqfsd_rebuild=
+sqfsd_sdr=
 umount_sys=yes
 # vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:

@@ -28,9 +28,9 @@ start() {
 }
 
 stop() {
-	if [[ -n "${sqfsd_rebuild}" ]]; then
-		eeinfo "sdr: rebuild ${squashd} squashed directories"
-		if which sdr &> /dev/null; then sdr -o0 -nd${squashd}
+	if [[ -n "${sqfsd_sdr}" ]]; then
+		eeinfo "sdr: rebuilding ${sqfsd_sdr} squashed directories"
+		if which sdr &> /dev/null; then sdr -o0 -nd${sqfsd_sdr} &>/dev/null
 		else eerror "sdr: there is not a sdr script in PATH"; fi
 	fi
 	einfo "umounting local wide squashed dirs"
