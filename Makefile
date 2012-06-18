@@ -34,7 +34,7 @@ install_bash:
 	install -pm 755 gnupg.bash        $(bindir)/$(PACKAGE)-gnupg.bash
 	install -pm 644 $(PACKAGE).conf   $(sys_confdir)
 	install -pm 755 $(PACKAGE).bash   $(bindir)
-	install -pm 755 sqfsdsvc/sdr.bash $(bindir)
+	install -pm 755 svc/sdr.bash      $(bindir)
 
 install_zsh:
 	sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
@@ -49,7 +49,7 @@ install_zsh:
 	install -pm 755 gnupg.zsh         $(bindir)/$(PACKAGE)-gnupg.zsh
 	install -pm 644 $(PACKAGE).conf   $(sys_confdir)
 	install -pm 755 $(PACKAGE).zsh    $(bindir)
-	install -pm 755 sqfsdsvc/sdr.zsh  $(bindir)
+	install -pm 755 svc/sdr.zsh       $(bindir)
 
 install_svc:
 	install -pd $(svc_confdir)
