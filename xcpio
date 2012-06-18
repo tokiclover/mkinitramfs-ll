@@ -1,9 +1,9 @@
 #!/bin/sh
-# $Id: mkinitramfs-ll/xcpio, 2012/06/18 12:05:45 -tclover Exp $
-[ -z "$@" ] && echo "usage: ${0##*/} -l|-i files" && exit 1
+# $Id: mkinitramfs-ll/xcpio, 2012/06/18 12:19:08 -tclover Exp $
+[ -z "$@" ] && echo "usage: ${0##*/} -l|-x files" && exit 1
 case $1 in
 	-l|-ls|-list) opt=-t; shift;;
-	-x|-*xtract)  opt=-i; shift;;
+	-x|-*xtract)  opt='-d -i'; shift;;
 	*) opt=-t;;
 esac
 for file in $@; do
