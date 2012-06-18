@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.0 2012/06/17 15:09:58 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.0 2012/06/18 12:57:15 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -7,7 +7,7 @@
 # user defined variables
 init=/sbin/init # real init to execute after switching to real root
 eck=1           # test if env binaries exist in PATH
-rmap=root        # root mapping for dmcrypt
+rmap=root       # root mapping for dmcrypt
 # functions
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
 error() { echo -ne "\033[1;31m * \033[0m$@\n"; }
@@ -509,8 +509,8 @@ _init() {
 	[ -n /dev/stderr ] || debug ln -fs /proc/self/fd/2 /dev/stderr
 	[ -n /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
 	[ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
-	[ -n "$splash" ] && debug spld_init
 :	${console:=/dev/tty1}
+	[ -n "$splash" ] && debug spld_init
 	[ -n "$(echo $console | grep /dev)" ] || console="/dev/$tty"
 	exec 0<$console 1>$console 2>&1
 	debug main
