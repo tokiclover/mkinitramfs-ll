@@ -62,19 +62,25 @@ postinstall:
 uall: unintsall uninstall_bash uninstall_zsh uninstall_svc
 
 uninstall:
+	rm -f $(datadir)/busybox.cfg
 	rm -f $(datadir)/init
+	for file in $(shell find usr -name '.keep'); do \
+		rm -f $(datadir)/$${file}; \
+	done
 
 uninstall_bash:
 	rm -f $(bindir)/$(PACKAGE).bash
 	rm -f $(bindir)/$(PACKAGE)-busybox.bash
 	rm -f $(bindir)/$(PACKAGE)-autogen.bash
 	rm -f $(bindir)/$(PACKAGE)-gnupg.bash
+	rm -f $(sys_confdir)/$(PACKAGE).conf
 
 uninstall_zsh:
 	rm -f $(bindir)/$(PACKAGE).zsh
 	rm -f $(bindir)/$(PACKAGE)-busybox.zsh
 	rm -f $(bindir)/$(PACKAGE)-autoen.zsh
 	rm -f $(bindir)/$(PACKAGE)-gnupg.zsh
+	rm -f $(sys_confdir)/$(PACKAGE).conf
 
 uninstall_svc:
 	rm -f $(svc_confdir)/sqfsdmount
