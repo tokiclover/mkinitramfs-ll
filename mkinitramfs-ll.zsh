@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.0 2012/06/18 10:55:29 -tclover Exp $
-revision=0.9.0
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.1 2012/06/18 12:02:58 -tclover Exp $
+revision=0.9.1
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [OPTIONS...]
@@ -27,6 +27,7 @@ usage() {
   -t|-toi                 adds tuxonice support for splash, require tuxoniceui_text binary
   -q|-sqfsd               adds aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -r|-raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
+  -R|-regen               regenerate a new initramfs from an old dir with newer init
   -u|-usage               print this help/usage and exit
   -v|-version             print version string and exit
 
@@ -55,7 +56,7 @@ zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: r raid \
 	e: eversion: k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage \
 	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: \
-	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks || usage
+	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks R regen || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
 	print "${(%):-%1x}-$revision"; exit 0 }
@@ -90,6 +91,15 @@ case ${opts[-comp][(w)1]} in
 	lzip)	opts[-initramfs]+=.cpio.lz;;
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
+if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-R]} ]] {
+	[[ -d ${opts[-initramfsdir]} ]] || die "${opts[-initramfsdir]}: no old initramfs dir"
+	print -P "%F{green}>>> regenerating ${opts[-initramfs]}...%f"
+	pushd ${opts[-initramfsdir]} || die
+	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
+	print -- ${opts[-gencmd]}
+	find . -print0 | cpio -0 -ov -Hnewc | ${=opts[-comp]} > ${opts[-initramfs]} && exit 0 || die
+	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f"
+}
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 rm -rf ${opts[-initramfsdir]} || die "eek!"
 mkdir -p ${opts[-initramfsdir]} && pushd ${opts[-initramfsdir]} || die

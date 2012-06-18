@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.0 2012/06/18 10:55:35 -tclover Exp $
-revision=0.9.0
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.1 2012/06/18 12:03:00 -tclover Exp $
+revision=0.9.1
 usage() {
   cat <<-EOF
   usage: ${1##*/} [OPTIONS...]
@@ -27,6 +27,7 @@ usage() {
   -t, --toi                 add tuxonice support for splash, require tuxoniceui_text binary
   -q, --sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -r, --raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
+  -R, --regen               regenerate a new initramfs from an old dir with newer init
   -u, --usage               print this help/usage and exit
   -v, --version             print version string and exit
 
@@ -52,9 +53,10 @@ addnodes() {
 		[[ -c dev/tty${nod} ]] || mknod -m 620 dev/tty${nod} c 4 ${nod} || die
 	done
 }
-opt=$(getopt -o ab:c::d::e:f::gk::lLm::p::rs::tuvy::W:: -l all,bin:,usrdir::,comp::,eversion: \
+opt=$(getopt -o ab:c::d::e:f::gk::lLm::p::rRs::tuvy::W:: -l all,bin:,usrdir::,comp::,eversion: \
 	  -l font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev::,mtuxonice::,sqfsd,toi,usage,version \
-	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,raid -n ${0##*/} -- "$@" || usage)
+	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,raid,regen \
+	  -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
@@ -63,6 +65,7 @@ while [[ $# > 0 ]]; do
 		-a|--all) opts[-sqfsd]=y; opts[-gpg]=y; opts[-toi]=y;
 			opts[-lvm]=y; opts[-luks]=y; shift;;
 		-r|--raid) opts[-raid]=y; shift;;
+		-R|--regen) opts[-regen]=y; shift;;
 		-q|--sqfsd) opts[-sqfsd]=y; shift;;
 		-b|--bin) opts[-bin]+=:${2}; shift 2;;
 		-c|--comp) opts[-comp]="${2}"; shift 2;;
@@ -116,6 +119,15 @@ case ${opts[-comp]%% *} in
 	lzip)	opts[-initramfs]+=.cpio.lz;;
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
+if [[ -n ${opts[-regen]} ]]; then
+	[[ -d ${opts[-initramfsdir]} ]] || die "${opts[-initramfsdir]}: no old initramfs dir"
+	echo ">>> regenerating ${opts[-initramfs]}..."
+	pushd ${opts[-initramfsdir]} || die
+	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
+	echo -- ${opts[-gencmd]}
+	find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${opts[-initramfs]} && exit 0 || die
+	echo ">>> regenerated ${opts[-initramfs]}..."
+fi
 echo ">>> building ${opts[-initramfs]}..."
 rm -rf "${opts[-initramfsdir]}" || die
 mkdir -p "${opts[-initramfsdir]}" && pushd "${opts[-initramfsdir]}" || die
