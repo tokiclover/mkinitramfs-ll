@@ -1,20 +1,19 @@
 #!/bin/sh
-# $Id: mkinitramfs-ll/xcpio, 2012/06/17 22:28:26 -tclover Exp $
+# $Id: mkinitramfs-ll/xcpio, 2012/06/18 10:55:59 -tclover Exp $
 [ -z "$@" ] && echo "usage: ${0##*/} -l|-i files" && exit 1
 case $1 in
-	-l|-ls|-list) opt=-t;;
-	-x|-*xtract)  opt=-i;;
-	*) echo "usage: ${0##*/} -list|-extract files"; exit 1;;
+	-l|-ls|-list) opt=-t; shift;;
+	-x|-*xtract)  opt=-i; shift;;
+	*) opt=-t;;
 esac
-shift
 for file in $@; do
 	case ${file##*.} in
-		bzip2)	comp=bzcat;;
-		gzip) 	comp=zcat;;
+		bz*2)	comp=bzcat;;
+		gz*) 	comp=zcat;;
 		xz) 	comp=xzcat;;
 		lzma)	comp=xzcat;;
-		lzip)	comp=lzip -cd;;
-		lzop)	comp=lzop -cd;;
+		lz*)	comp=lzip -cd;;
+		lzo*)	comp=lzop -cd;;
 		*) echo "unsupported compression format"; exit 1;;
 	esac
 	$comp $file | cpio $opt
