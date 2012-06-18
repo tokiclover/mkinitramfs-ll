@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.1 2012/06/18 12:03:00 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.1 2012/06/18 14:25:47 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -152,7 +152,7 @@ elif which busybox &> /dev/null &&
 	cp -a $(which busybox) bin/
 elif which bb &>/dev/null; then cp -a $(which bb) bin/busybox
 else die "there's no busybox nor bb binary"; fi
-if [[ -f etc/mkinitramfs-ll/busybox.app ]]; then continue
+if [[ -f etc/mkinitramfs-ll/busybox.app ]]; then :;
 else bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die; fi
 for app in $(< etc/mkinitramfs-ll/busybox.app); do	
 	ln -fs /bin/busybox ${app}
@@ -166,7 +166,7 @@ if [[ -n "${opts[-sqfsd]}" ]]; then opts[-bin]+=:umount.aufs:mount.aufs
 	done
 fi
 if [[ -n "${opts[-gpg]}" ]]; then
-	if [[ -x usr/bin/gpg ]]; then continue
+	if [[ -x usr/bin/gpg ]]; then :;
 	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
 		opts[-bin]+=":$(which gpg)"
 	else die "there's no usable gpg/gnupg-1.4.x binary"; fi
@@ -203,7 +203,7 @@ for grp in boot gpg sqfsd remdev tuxonice; do
 	fi
 done
 for keymap in ${opts[-keymap]//:/ }; do
-	if [[ -f usr/share/keymaps/"${keymap}" ]]; then continue
+	if [[ -f usr/share/keymaps/"${keymap}" ]]; then :;
 	elif [[ -f "${keymap}" ]]; then cp -a "${keymap}" usr/share/keymaps/
 	else 
 		loadkeys -b -u ${keymap} > usr/share/keymaps/${keymap}-${opts[-arch]}.bin ||
@@ -211,7 +211,7 @@ for keymap in ${opts[-keymap]//:/ }; do
 	fi
 done
 for font in ${opts[-font]//:/ }; do
-	if [[ -f usr/share/consolefonts/${font} ]]; then continue
+	if [[ -f usr/share/consolefonts/${font} ]]; then :;
 	elif [[ -f ${font} ]]; then cp -a ${font} usr/share/consolefonts/ 
 	else 
 		for file in $(ls /usr/share/consolefonts/${font}*.gz); do
@@ -226,7 +226,7 @@ done
 if [[ -n "${opts[-splash]}" ]]; then opts[-bin]+=:splash_util.static
 	[[ -n "${opts[-toi]}" ]] && opts[-bin]+=:tuxoniceui_text
 	for theme in ${opts[-splash]//:/ }; do 
-		if [[ -d etc/splash/${theme} ]]; then continue 
+		if [[ -d etc/splash/${theme} ]]; then :; 
 		elif [[ -d /etc/splash/${theme} ]]; then cp -r {/,}etc/splash/${theme}
 		elif [[ -d ${theme} ]]; then cp -ar ${theme} etc/splash/ 
 		else warn "failed to copy ${theme} theme"; fi
@@ -244,7 +244,7 @@ bcp() {
 }
 for bin in ${opts[-bin]//:/ }; do
 	if [[ -x usr/bin/${bin##*/} ]] || [[ -x usr/sbin/${bin##*/} ]] ||
-	[[ -x bin/${bin##*/} ]] || [[ -x sbin/${bin##*/} ]]; then continue
+	[[ -x bin/${bin##*/} ]] || [[ -x sbin/${bin##*/} ]]; then :;
 	elif [[ -x ${bin} ]]; then bcp ${bin}
 	else bcp $(which ${bin##*/}); fi
 done

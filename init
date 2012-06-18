@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.0 2012/06/18 12:57:15 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.0 2012/06/18 14:25:40 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -203,11 +203,11 @@ dmopen() {
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
 	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
-	if [ "$cid" ] && [ -n "$(echo "$_dev" | grep -i UUID)" ]; then continue
+	if [ "$cid" ] && [ -n "$(echo "$_dev" | grep -i UUID)" ]; then :;
 	else debug -d _blkid "$_dev" "_dev"; fi
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | grep -E '(UUID|LABEL|sd[a-z][0-9])')" ]; then 
-			if [ "$cid" ] && [ -n "$(echo "$_hdr" | grep -i UUID)" ]; then continue
+			if [ "$cid" ] && [ -n "$(echo "$_hdr" | grep -i UUID)" ]; then :;
 			else debug _blkid "$_hdr" "_hdr"; fi
 			debug -d test -b "$_hdr" && header="$_hdr" _hdr="--header $_hdr"
 		elif [ -e "/mnt/tok/$_hdr" ]; then header="$_hdr" _hdr="--header /mnt/tok/$_hdr"
@@ -245,7 +245,7 @@ dmopen() {
 lvopen() {
 	[ "$eck" ] && bck "lvm"
 	local _lv=${1/-//}
-	if debug lvchange -ay $_lv; then continue
+	if debug lvchange -ay $_lv; then :;
 	elif [ -n "$2" ]; then
 		local _pv="$2" IFS="${IFS}:"
 		[ -e "/mnt/tok/$_pv" ] && _pv="$(cat /mnt/tok/$_pv)"

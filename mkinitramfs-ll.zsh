@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.1 2012/06/18 12:02:58 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.1 2012/06/18 14:25:50 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -124,14 +124,14 @@ if [[ -x usr/bin/busybox ]] { mv -f {usr/,}bin/busybox
 } elif [[ $(which bb) != "bb not found" ]] { 
 	cp -a $(which bb) bin/busybox
 } else { die "no busybox/bb binary found" }
-if [[ -f etc/mkinitramfs-ll/busybox.app ]] { continue
+if [[ -f etc/mkinitramfs-ll/busybox.app ]] { :;
 } else { bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die }
 for app ($(< etc/mkinitramfs-ll/busybox.app)) ln -fs /bin/busybox ${app}
 if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] {
 	[[ -n ${(pws,:,)opts[(rw)cryptsetup,-bin]} ]] || opts[-bin]+=:cryptsetup
 }
 if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { 
-	if [[ -x usr/bin/gpg ]] { continue
+	if [[ -x usr/bin/gpg ]] { :;
 	} elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
 		opts[-bin]+=:$(which gpg)
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
@@ -166,7 +166,7 @@ for grp (boot gpg remdev sqfsd tuxonice)
 	for module (${(pws,:,)opts[-m${grp}]}) 
 		addmodule ${module} && echo ${module} >> etc/mkinitramfs-ll/module.${grp}
 for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
-	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] { continue
+	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] { :;
 	} elif [[ -f ${keymap} ]] { cp -a ${keymap} usr/share/keymaps/
 	} else { 
 		loadkeys -b -u ${keymap} > usr/share/keymaps/${keymap}-${opts[-arch]}.bin ||
@@ -174,7 +174,7 @@ for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
 	}
 }
 for font (${(pws,:,)opts[-font]} ${(pws,:,)opts[-f]}) {
-	if [[ -f usr/share/consolefonts/${font} ]] { continue
+	if [[ -f usr/share/consolefonts/${font} ]] { :;
 	} elif [[ -f ${font} ]] { cp -a ${font} usr/share/consolefonts/
 	} else {
 		for file (/usr/share/consolefonts/${font}*.gz) {
@@ -187,7 +187,7 @@ for font (${(pws,:,)opts[-font]} ${(pws,:,)opts[-f]}) {
 if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] { opts[-bin]+=:splash_util.static
 	if [[ -n ${(k)opts[-tuxonice]} ]] || [[ -n ${(k)opts[-t]} ]] { opts[-bin]+=:tuxoniceui_text }
 	for theme (${(pws,:,)opts[-splash]} ${(pws,:,)opts[-s]})
-		if [[ -d etc/splash/${theme} ]] { continue  
+		if [[ -d etc/splash/${theme} ]] { :;  
 		} elif [[ -d /etc/splash/${theme} ]] { cp -ar {/,}etc/splash/${theme}
 		} elif [[ -d ${theme} ]] { cp -r ${theme} etc/splash/ 
 		} else { warn "splash themes does not exist" }
@@ -204,7 +204,7 @@ bcp() {
 }
 for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 	if [[ -x usr/bin/${bin:t} ]] || [[ -x usr/sbin/${bin:t} ]] ||
-	[[ -x bin/${bin:t} ]] || [[ -x sbin/${bin:t} ]] { continue
+	[[ -x bin/${bin:t} ]] || [[ -x sbin/${bin:t} ]] { :;
 	} elif [[ -x ${bin} ]] { bcp ${bin}
 	} else { bcp $(which ${bin:t}) }
 find . -print0 | cpio --null -ov --format=newc | ${=opts[-comp]} > ${opts[-initramfs]} || die
