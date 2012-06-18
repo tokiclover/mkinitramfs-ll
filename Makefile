@@ -64,7 +64,7 @@ uall: unintsall uninstall_bash uninstall_zsh uninstall_svc
 uninstall:
 	rm -f $(datadir)/busybox.cfg
 	rm -f $(datadir)/init
-	for file in $(shell find usr -name '.keep'); do \
+	for file in $(shell find ${datadir}/usr -name '.keep'); do \
 		rm -f $(datadir)/$${file}; \
 	done
 
