@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.1 2012/06/19 11:24:46 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.1 2012/06/19 12:48:19 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -106,7 +106,7 @@ done
 opts[-initramfsdir]="${opts[-workdir]}"/${opts[-prefix]}${opts[-kversion]}
 opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kversion]}
 [[ -n "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
-[[ -n "$(uname -m | grep 64)" ]] && opts[-lib]=64 || opts[-lib]=32
+[[ -n "$(uname -m | grep 64)" ]] && opts[-arc]=64 || opts[-arc]=32
 [[ -n "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
 [[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf
 case ${opts[-comp]%% *} in
@@ -132,11 +132,12 @@ mkdir -p "${opts[-initramfsdir]}" && pushd "${opts[-initramfsdir]}" || die
 if [[ -d "${opts[-usrdir]}" ]]; then
 	cp -ar "${opts[-usrdir]}" . && rm -f usr/README* || die
 	mv -f {usr/,}root &>/dev/null; mv -f {usr/,}etc &>/dev/null || die
+	mv -f usr/lib{,${opts[-arc]}} || die
 else mkdir -pm700 root; warn "${opts[-usrdir]} does not exist"; fi
-mkdir -p run {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps}} || die
+mkdir -p {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
 mkdir -p dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
-mkdir -p lib${opts[-lib]}/{splash/cache,modules/${opts[-kversion]}} || die
-ln -sf lib${opts[-lib]} lib || die
+mkdir -p run lib${opts[-arc]}/{splash/cache,modules/${opts[-kversion]}} || die
+ln -sf lib{${opts[-arc]},} && pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[0-6],zero} dev/ || addnodes
 if [[ $(echo ${opts[-kversion]} | cut -d'.' -f1 ) -eq 3 ]] && \
 	[[ $(echo ${opts[-kversion]} | cut -d'.' -f2) -ge 1 ]]; then
