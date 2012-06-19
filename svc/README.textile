@@ -1,4 +1,4 @@
-@$Id: sqfsdmount.initd/README.textile,v 1.1 2012/06/18 13:02:53 -tclover Exp $@
+@$Id: mkinitramfs-ll/svc/README.textile,v 1.1 2012/06/19 13:37:37 -tclover Exp $@
 
 Need dependancies is not mandatory, if and only if, @lib${arch}@ and usr are mounted in a initramfs, 
 otherwise you might run into big troubles for two reasons: 

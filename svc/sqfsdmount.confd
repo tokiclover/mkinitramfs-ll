@@ -1,4 +1,4 @@
-# $Header: /etc/conf.d/sqfsdmount, 2012/06/18 12:58:38 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sqfsdmount.confd, 2012/06/19 13:38:02 -tclover Exp $
 sqfsdir=/sqfsd
 sqfsd_sys=usr:lib32:lib64:bin:sbin:opt
 sqfsd_local=var/db:var/cache/edb:var/lib/layman:var/portage

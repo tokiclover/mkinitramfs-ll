@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/sqfsd/sdr.zsh,v 0.7.0 2012/05/25 12:34:56 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.7.0 2012/06/19 13:37:54 -tclover Exp $
 revision=0.7.0
 usage() {
   cat <<-EOF
