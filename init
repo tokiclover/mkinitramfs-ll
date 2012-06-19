@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.1 2012/06/19 14:04:00 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.1 2012/06/19 20:03:53 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -271,18 +271,19 @@ mdopen() {
 	debug -d test -b "$_dev"
 }
 
-sqfsd() {
-	local IFS="${IFS}:" _rd=${sqfsdir}
+squashd() {
+	local IFS="${IFS}:"
 	debug -d test -n $_rd
 	debug -d test -n $sqfsd
 	debug -d test -d /newroot$_rd
 	debug _modprobe sqfsd
 	cd /newroot
-	for _d in $sqfsd; do
-		debug -d test -f .$_rd/$_d.sfs
-		mkdir -p .$_rd/$_d/rw; mkdir -p .$_rd/$_d/ro
-		debug -d mount -tsquashfs -onodev,loop,ro .$_rd/$_d.sfs .$_rd/$_d/ro &&
-		mount -taufs -onodev,udba=reval,br:.$_rd/$_d/rw:.$_rd/$_d/ro $_d $_d
+	for _dir in $sqfsd; do
+		local _bdir="$sqfsdir"/$_dir
+		debug -d test -f .$_bdir.sfs
+		mkdir -p .$_bdir/rw; mkdir -p .$_bdir/ro
+		debug -d mount -tsquashfs -onodev,loop,ro .$_bdir.sfs .$_bdir/ro &&
+		mount -taufs -onodev,udba=reval,br:.$_bdir/rw:.$_bdir/ro $_dir $_dir
 	done
 }
 rootfs() {
@@ -312,7 +313,7 @@ rootfs() {
 		die "failed to mount rootfs"
 	fi
 	shrl 3s
-	[ -n "$sqfsd" ] && debug -d sqfsd
+	[ -n "$sqfsd" ] && debug -d squashd
 	_lvm=; imopt=; kmode=
 }
 
