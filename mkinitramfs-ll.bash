@@ -1,39 +1,38 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.1 2012/06/18 14:25:47 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.1 2012/06/19 11:24:46 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
-  usage: ${1##*/} [OPTIONS...]
-  -a, --all                 short forme/hand of '--sqfsd --luks --lvm --gpg --toi'
-  -f, --font [:ter-v14n]    append colon separated list of fonts to in include
-  -e, --eversion d          append an extra 'd' version after \$kv to the initramfs image
-  -k, --kversion 3.3.2-git  build an initramfs for '3.1.4-git' kernel, else for \$(uname -r)
-  -c, --comp ['gzip -9']    compression command to use to build initramfs, default is 'xz -9..'
+  usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
+  -a, --all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
+  -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
+  -k, --kversion 3.3.2-git  build an initramfs for kernel 3.4.3-git or else \$(uname -r)
+  -c, --comp ['gzip -9']    use 'gzip -9' command instead default compression command
+  -L, --luks                add LUKS support, require a sys-fs/cryptsetup[static] binary
+  -l, --lvm                 add LVM support, require a static sys-fs/lvm2[static] binary
+  -b, --bin :<bin>          include a colon separated list of binar-y-ies to the initramfs
   -d, --usrdir [usr]        use usr dir for user extra files, binaries, scripts, fonts...
-  -g, --gpg                 adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
-  -p, --prefix initrd-      prefix scheme to name the initramfs image default is 'initramfs-'
-  -y, --keymap :fr-latin1   append colon separated list of keymaps to include in the initramfs
-  -L, --luks                adds LUKS support, require a sys-fs/cryptsetup[static] binary
-  -l, --lvm                 adds LVM2 support, require a static sys-fs/lvm2[static] binary
-  -W, --wokdir [<dir>]      working directory where to create initramfs dir, default is PWD
-  -b, --bin :<bin>          append colon separated list of binar-y-ies to include
-  -m, --mdep [:<mod>]       colon separated list of kernel module-s to include
-  -s, --splash [:<theme>]   colon ':' separated list of splash themes to include
-      --mgpg [:<mod>]       colon separated list of kernel modules to add to gpg group
-      --mboot [:<mod>]      colon separated list of kernel modules to add to boot group
-      --msqfsd [:<mod>]     colon separated list of kernel modules to add to sqfsd group
-      --mremdev [:<mod>]    colon separated list of kernel modules to add to remdev group
-      --mtuxonice [:<mod>]  colon separated list of kernel modules to add to tuxonice group
+  -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
+  -p, --prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
+  -W, --workdir [<dir>]     use <dir> as a work directory to create initramfs instead of \$PWD
+  -m, --mdep [:<mod>]       include a colon separated list of kernel modules to the initramfs
+      --mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
+      --mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
+      --msqfsd [:<mod>]     include a colon separated list of kernel modules to sqfsd   group
+      --mgpg [:<mod>]       include a colon separated list of kernel modules to gpg     group
+      --mboot [:<mod>]      include a colon separated list of kernel modules to boot   group
+  -s, --splash [:<theme>]   include a colon separated list of splash themes to the initramfs
   -t, --toi                 add tuxonice support for splash, require tuxoniceui_text binary
   -q, --sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
-  -r, --raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
   -R, --regen               regenerate a new initramfs from an old dir with newer init
-  -u, --usage               print this help/usage and exit
+  -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
+  -r, --raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
+  -u, --usage               print this help or usage message and exit
   -v, --version             print version string and exit
 
-  # usage: without an argument, build an initramfs for \$(uname -r) with only LUKS support
-  # build with LUKS/GPG/LVM2/AUFS2 support for 3.0.3-git kernel with an extra '-d' version
-  ${0##*/} -a -e-d -k3.0.3-git
+  usage: without an argument, build an initramfs for kernel \$(uname -r)
+  build with LUKS/GPG/LVM2/AUFS2 support for 3.4.3-git kernel with font and keymap:
+  ${0##*/} -a -f -y -k3.4.3-git
 EOF
 exit $?
 }
@@ -53,10 +52,10 @@ addnodes() {
 		[[ -c dev/tty${nod} ]] || mknod -m 620 dev/tty${nod} c 4 ${nod} || die
 	done
 }
-opt=$(getopt -o ab:c::d::e:f::gk::lLm::p::rRs::tuvy::W:: -l all,bin:,usrdir::,comp::,eversion: \
-	  -l font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev::,mtuxonice::,sqfsd,toi,usage,version \
+opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev:: \
+	  -l mtuxonice::,sqfsd,toi,usage,usrdir::,version \
 	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,raid,regen \
-	  -n ${0##*/} -- "$@" || usage)
+	  -o ab:c::d::f::gk::lLm::p::rRs::tuvy::W:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
@@ -70,7 +69,6 @@ while [[ $# > 0 ]]; do
 		-b|--bin) opts[-bin]+=:${2}; shift 2;;
 		-c|--comp) opts[-comp]="${2}"; shift 2;;
 		-d|--usrdir) opts[-usrdir]=${2}; shift 2;;
-		-e|--eversion) opts[-eversion]=${2}; shift 2;;
 		-k|--kversion) opts[-kversion]=${2}; shift 2;;
 		-g|--gpg) opts[-gpg]=y; shift;;
 		-t|--toi) opts[-toi]=y; shift;;
@@ -105,8 +103,8 @@ done
 [[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
 [[ -n "${opts[-prefix]}" ]] || opts[-prefix]=initramfs-
 [[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/usr
-opts[-initramfsdir]="${opts[-workdir]}"/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}
-opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kversion]}${opts[-eversion]}
+opts[-initramfsdir]="${opts[-workdir]}"/${opts[-prefix]}${opts[-kversion]}
+opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kversion]}
 [[ -n "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
 [[ -n "$(uname -m | grep 64)" ]] && opts[-lib]=64 || opts[-lib]=32
 [[ -n "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)

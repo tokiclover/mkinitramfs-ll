@@ -1,45 +1,46 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/autogen.bash,v 0.9.0 2012/06/17 18:27:23 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.bash,v 0.9.1 2012/06/19 11:24:34 -tclover Exp $
 usage() {
   cat <<-EOF
-  usage: ${0##*/} OPTIONS [OPTIONS...]
-  -a, --all                 short forme/hand of '--sqfsd --lvm --gpg --toi'
-  -f, --font [:<font>]      append colon separated list of fonts to in include
-  -e, --eversion d          append an extra 'd' version after \$kv to the initramfs image
-  -k, --kversion 3.3.2-git  build an initramfs for '3.1.4-git' kernel, else for \$(uname -r)
-  -c, --comp                compression command to use to build initramfs, default is 'xz -9..'
+  usage: ${0##*/} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
+  -a, --all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
+  -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
+  -k, --kversion 3.3.2-git  build an initramfs for kernel 3.4.3-git or else \$(uname -r)
+  -c, --comp ['gzip -9']    use 'gzip -9' command instead default compression command
+  -L, --luks                add LUKS support, require a sys-fs/cryptsetup[static] binary
+  -l, --lvm                 add LVM support, require a static sys-fs/lvm2[static] binary
+  -b, --bin :<bin>          include a colon separated list of binar-y-ies to the initramfs
   -d, --usrdir [usr]        use usr dir for user extra files, binaries, scripts, fonts...
-  -g, --gpg                 adds GnuPG support, require a static gnupg-1.4.x and 'options.skel'
-  -p, --prefix initramfs-   prefix scheme to name the initramfs image default is 'initrd-'
-  -y, --keymap :fr-latin1   append colon separated list of keymaps to include in the initramfs
-  -l, --lvm                 adds LVM2 support, require a static sys-fs/lvm2[static] binary
-  -W, --workdir [dir]       working directory where to create initramfs dir, default is PWD
-  -b, --bin :<bin>          append colon separated list of binar-y-ies to include
-  -C, --confdir <dir>       copy gpg.conf, GnuPG configuration file, from dir
-  -m, --mdep [:<mod>]       colon separated list of kernel module-s to include
-  -s, --splash :<theme>     colon ':' separated list of splash themes to include
-      --mgpg [:<mod>]       colon separated list of kernel modules to add to gpg group
-      --mboot [:<mod>]      colon separated list of kernel modules to add to boot group
-      --msqfsd [:<mod>]     colon separated list of kernel modules to add to sqfsd group
-      --mremdev [:<mod>]    colon separated list of kernel modules to add to remdev group
-      --mtuxonice [:<mod>]  colon separated list of kernel modules to add to tuxonice group
-  -t, --toi                 adds tuxonice support for splash, require tuxoniceui_text binary
+  -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
+  -n, --minimal             build a minimal busybox binary insead of including all applets
+  -U, --ucl-arch i386       use i386 arch to build busybox linked uClibc instead of glibc
+  -p, --prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
+  -W, --workdir [<dir>]     use <dir> as a work directory to create initramfs instead of \$PWD
+  -m, --mdep [:<mod>]       include a colon separated list of kernel modules to the initramfs
+      --mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
+      --mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
+      --msqfsd [:<mod>]     include a colon separated list of kernel modules to sqfsd   group
+      --mgpg [:<mod>]       include a colon separated list of kernel modules to gpg     group
+      --mboot [:<mod>]      include a colon separated list of kernel modules to boot   group
+  -s, --splash [:<theme>]   include a colon separated list of splash themes to the initramfs
+  -t, --toi                 add tuxonice support for splash, require tuxoniceui_text binary
   -q, --sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
-  -n, --minimal	            build busybox with minimal applets, default is full applets
+  -R, --regen               regenerate a new initramfs from an old dir with newer init
+  -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
   -r, --raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
-  -U, --ucl-arch i386       ARCH string needed to build busybox linked uClibc
-  -u, --usage               print this help/usage and exit
+  -C, --confdir <dir>       use <dir> copy gpg.conf, GnuPG configuration file
+  -u, --usage               print this help or usage message and exit
 
   usage: runned without arguments, build an initramfs for kernel \$(uname -r)
-  # build an initramfs after building gnupg/busybox (AUFS2/LVM2/GPG support)
-  ${0##*/} --all --gpg
+  build an initramfs after building gnupg/busybox binaries with AUFS/LVM/GPG support:
+  ${0##*/} --all --font --keymap --gpg
 EOF
 exit $?
 }
-opt=$(getopt -o ab:c::d::e:f::gk::lm::p::rs::tuvy::W::nC:U:y:: -l all,bin:,usrdir::,eversion: \
-	  -l gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev::,mtuxonice::,sqfsd,toi,usage,raid,font:: \
-	  -l lvm,workdir:,kversion::,confdir:,minimal,ucl-arch:,keymap::,comp::,prefix::,splash:: \
-	  -n ${0##*/} -- "$@" || usage)
+opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev:: \
+	  -l mtuxonice::,sqfsd,toi,usage,usrdir::,version,confdir:,minimal,ucl-arch: \
+	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,raid,regen \
+	  -o ab:c::d::f::gk::lLm::p::rRs::tuvy::W::C:nU: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
@@ -66,7 +67,6 @@ while [[ $# > 0 ]]; do
 		-s|--splash) opts[-splash]+=":${2}"; shift 2;;
 		-W|--workdir) opts[-workdir]="${2}"; shift 2;;
 		-U|--ucl-arch) opts[-ucl-arch]=${2}; shift 2;;
-		-e|--eversion) opts[-eversion]=${2}; shift 2;;
 		-k|--kversion) opts[-kversion]=${2}; shift 2;;
 		-y|--keymap) opts[-keymap]="${2}"; shift 2;;
 		-p|--prefix) opts[-prefix]=${2}; shift 2;;
