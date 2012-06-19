@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.9.1 2012/06/19 20:14:47 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.9.1 2012/06/20 01:46:57 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -85,8 +85,8 @@ squashd() {
 			die "$dir: failed to write aufs line"
 	fi
 	if [[ -z "${opts[nomount]}" ]]; then
-		mount $bdir.sfs $bdir/ro -tsquashfs -onodev,loop,ro &>/dev/null ||
-			die "failed to mount $dir.sfs"
+		mount $bdir.sfs $bdir/ro -tsquashfs -onodev,loop,ro &>/dev/null &&
+		{
 		if [[ "$dir" = "bin" ]]; then local cp=$bdir/ro/cp mv=$bdir/ro/mv rm=$bdir/ro/rm
 		else local cp=cp mv=mv rm=rm; fi
 		if [[ -n "${opts[remove]}" ]]; then
@@ -98,6 +98,7 @@ squashd() {
 		fi
 		mount -onodev,udba=reval,br:$bdir/rw:$bdir/ro -taufs $dir /$dir &>/dev/null ||
 			die "$dir: failed to mount aufs branch"
+		} || die "failed to mount $dir.sfs"
 	fi
 	if [[ -n "$mcdir" ]]; then
 		mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul ||

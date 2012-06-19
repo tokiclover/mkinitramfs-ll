@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.9.1 2012/06/19 13:37:54 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.9.1 2012/06/20 01:47:04 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -76,8 +76,8 @@ squashd() {
 			die "$dir: failed to write aufs line" 
 	}
 	if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-nomount]} ]] { :; } else {
-		mount $bdir.sfs $bdir/ro -tsquashfs -onodev,loop,ro &>/dev/null ||
-			die "failed to mount $dir.sfs"
+		mount $bdir.sfs $bdir/ro -tsquashfs -onodev,loop,ro &>/dev/null &&
+		{	
 		if [[ "$dir" = "bin" ]] { local cp=$bdir/ro/cp mv=$bdir/ro/mv rm=$bdir/ro/rm
 		} else { local cp=cp mv=mv rm=rm }
 		if [[ -n ${(k)opts[-R]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
@@ -89,6 +89,7 @@ squashd() {
 		}
 		mount -onodev,udba=reval,br:$bdir/rw:$bdir/ro -taufs $dir /$dir &>/dev/null ||
 			die "$dir: failed to mount aufs branch"
+		} || die "failed to mount $dir.sfs"
 	}
 	if [[ -n $mcdir ]] { 
 		mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul ||
