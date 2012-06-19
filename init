@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.0 2012/06/18 14:25:40 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.0 2012/06/19 04:01:59 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -495,16 +495,6 @@ _init() {
 	else debug -d mount -t tmpfs tmpfs /dev; fi
 	debug -d mdev -s
 	echo /sbin/mdev > /proc/sys/kernel/hotplug
-	if [ -c /dev/device-mapper ]; then
-		debug mkdir -p /dev/mapper
-		if [ -c /dev/mapper/control ]; then debug rm -f /dev/device-mapper
-		else debug mv -f /dev/device-mapper /dev/mapper/control; fi
-	fi
-	if [ -n "$mod" ]; then local IFS="${IFS},"
-		for _m in $mod; do 
-			debug modprobe $_m
-		done
-	fi
 	[ -h /dev/fd     ] || debug ln -fs /proc/self/fd   /dev/fd
 	[ -n /dev/stderr ] || debug ln -fs /proc/self/fd/2 /dev/stderr
 	[ -n /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
