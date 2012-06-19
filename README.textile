@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.8.2 2012/06/17 15:10:01 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.8.2 2012/06/19 14:06:44 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -201,7 +201,7 @@ h3. 9. Optional user scripts
 
 Now one can add scripts to @/etc/local.d@ of the initramfs, or @$gitdir/misc@ if using mkinitramfs-ll 
 building script. Each script should have a @.sh@ sufix and a @${ishrl}?-*@ prefix as the follwing:
-* runlevel 1: boot and cmdline modules, initialization -> keymap -> font -> 1 -> print boot msg
+* runlevel 1:  initialization -> 1 -> splash -> keymap -> font -> print boot msg
 * runlevel 2?: before... swap: 2s -> resume: 2r -> rootfs
 * runlevel 3?: before... decrypt: 3d -> rootfs fsck: 3f -> rootfs mount: 3m ->
 * runlevel 4?: before... clean up: 4c -> mount /usr:/var...: 4m -> umount: 4u -> switch root: 4s ->
