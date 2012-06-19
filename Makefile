@@ -20,6 +20,10 @@ install:
 	for file in $(shell find usr -name '.keep'); do \
 		install -Dpm644 $${file} $(datadir)/$${file}; \
 	done
+	install -pm644 usr/etc/mdev.conf  $(datadir)/usr/etc
+	install -pm755 usr/lib/ide_links  $(datadir)/usr/lib
+	install -pm755 usr/lib/usbdev     $(datadir)/usr/lib
+	install -pm755 usr/lib/usbdisk_link $(datadir)/usr/lib
 
 install_bash:
 	sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
