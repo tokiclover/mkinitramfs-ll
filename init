@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.1 2012/06/19 13:25:02 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.1 2012/06/19 14:04:00 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -437,7 +437,6 @@ main() {
 		done
 	fi
 	debug imsg
-	shrl 1
 	debug _modprobe gpg
 	debug _modprobe remdev
 	if [ -n "$iswap" ]; then
@@ -505,9 +504,10 @@ _init() {
 	[ -n /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
 	[ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
 :	${console:=/dev/tty1}
-	[ -n "$splash" ] && debug spld_init
 	[ -n "$(echo $console | grep /dev)" ] || console="/dev/$tty"
 	exec 0<$console 1>$console 2>&1
+	shrl 1
+	[ -n "$splash" ] && debug spld_init
 	debug main
 }
 debug _init
