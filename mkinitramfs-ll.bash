@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.1 2012/06/19 12:48:19 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.1 2012/06/19 15:02:59 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -123,7 +123,7 @@ if [[ -n ${opts[-regen]} ]]; then
 	pushd ${opts[-initramfsdir]} || die
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 	echo -- ${opts[-gencmd]}
-	find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${opts[-initramfs]} && exit 0 || die
+	find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${opts[-initramfs]} && exit || die
 	echo ">>> regenerated ${opts[-initramfs]}..."
 fi
 echo ">>> building ${opts[-initramfs]}..."
@@ -236,7 +236,7 @@ bcp() {
 		if [[ -x ${bin} ]]; then cp -aH ${bin} .${bin/%.static}
 			if [[ "$(ldd ${bin})" != *"not a dynamic executable"* ]]; then
 				for lib in $(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g')
-				do cp -adH ${lib} lib/ || die "failed to copy ${lib} library"; done
+				do mkdir -p .${lib%/*} && cp -adH {,.}${lib} || die; done
 			else  info "${bin} is a static binary."; fi
 		else warn "${bin} binary doesn't exist"; fi
 	done

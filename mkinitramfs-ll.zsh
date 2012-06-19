@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.1 2012/06/19 12:48:17 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.1 2012/06/19 15:03:02 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -110,7 +110,6 @@ mkdir -p {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || 
 mkdir -p dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
 mkdir -p run lib${opts[-arc]}/{splash/cache,modules/${opts[-kversion]}} || die
 ln -sf lib{${opts[-arc]},} && pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
-[[ ${opts[-arc]} = 64 ]] && mkdir usr/lib32 || die
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[0-6],zero} dev/ || addnodes
 if [[ ${${(pws:.:)opts[-kversion]}[1]} -eq 3 ]] &&
 	[[ ${${(pws:.:)opts[-kversion]}[2]} -ge 1 ]] {
@@ -199,7 +198,7 @@ bcp() {
 		cp -aL ${bin} .${bin/%.static}
 		if [[ $(ldd ${bin}) != *"not a dynamic executable" ]] {
 			for lib ($(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g'))
-			cp -adH ${lib} lib/ || die "failed to copy $lib library" 
+			mkdir -p .${lib:h} && cp -adH {,.}${lib} || die 
 		} else { info "${bin} is a static binary." }
 	} else {  warn "${bin} binary doesn't exist" }
 }
