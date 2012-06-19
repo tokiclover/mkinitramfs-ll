@@ -1,24 +1,24 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.9.0 2012/06/17 18:27:11 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.9.1 2012/06/19 21:44:18 -tclover Exp $
 usage() {
   cat <<-EOF
-  usage: ${0##*/} [-m|--minimal] [OPTIONS]
+  usage: ${0##*/}[-m|--minimal] [--ucl=i386]
   -d, --usrdir [usr]     copy busybox binary file to usr/bin
   -n, --minimal          build busybox with minimal applets, default is full applets
-  -U, --ucl-arch i386    arch string needed to build busybox against uClibc	
-  -v, --version 1.20.0   use 1.20.0 instead of latest version
+      --ucl i386         arch string needed to build busybox against uClibc	
+  -v, --version 1.20.0   use 1.20.0 instead of latest version of busybox
   -u, --usage            print the usage/help and exit
 EOF
 exit $?
 }
-opt=$(getopt -l usrdir:,minimal,ucl-arch,usage,version: -o nud::U::v: \
+opt=$(getopt -l usrdir:,minimal,ucl:,usage,version: -o nud::v: \
 	-n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
 		-n|--minimal) opts[-minimal]=y; shift;;
-		-U|--ucl-arch) opts[-U]=${2}; shift 2;;
+		--ucl-arch) opts[-ucl]=${2}; shift 2;;
 		-d|--usrdir) opts[-usrdir]="${2}"; shift 2;;
 		-y|--keymap) opts[-keymap]="${2}"; shift 2;;
 		-v|--version) opts[-pkg]="=busybox-${2}"; shift 2;;
@@ -47,8 +47,8 @@ else
 		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
 		-i .config || die
 fi
-if [[ -n "${opts[-U]}" ]]; then
-	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[-U]}\"|" \
+if [[ -n "${opts[-ucl]}" ]]; then
+	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[-ucl]}\"|" \
 		-i .config || die "setting uClib ARCH failed"
 fi
 make || die "failed to build busybox"
@@ -56,5 +56,5 @@ cp -a busybox "${opts[-usrdir]}"/bin/ || die
 popd || die
 ebuild ${opts[bbt]}.ebuild clean || die
 popd || die
-unset -v opts[bbt] opts[-minimal] opts[-U]
+unset -v opts[bbt] opts[-minimal] opts[-ucl]
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
