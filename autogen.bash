@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/autogen.bash,v 0.9.1 2012/06/19 11:24:34 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.bash,v 0.9.1 2012/06/19 21:50:17 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -13,7 +13,6 @@ usage() {
   -d, --usrdir [usr]        use usr dir for user extra files, binaries, scripts, fonts...
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -n, --minimal             build a minimal busybox binary insead of including all applets
-  -U, --ucl-arch i386       use i386 arch to build busybox linked uClibc instead of glibc
   -p, --prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
   -W, --workdir [<dir>]     use <dir> as a work directory to create initramfs instead of \$PWD
   -m, --mdep [:<mod>]       include a colon separated list of kernel modules to the initramfs
@@ -38,9 +37,9 @@ EOF
 exit $?
 }
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev:: \
-	  -l mtuxonice::,sqfsd,toi,usage,usrdir::,version,confdir:,minimal,ucl-arch: \
+	  -l mtuxonice::,sqfsd,toi,usage,usrdir::,version,confdir:,minimal \
 	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,raid,regen \
-	  -o ab:c::d::f::gk::lLm::p::rRs::tuvy::W::C:nU: -n ${0##*/} -- "$@" || usage)
+	  -o ab:c::d::f::gk::lLm::p::rRs::tuvy::W::C:n -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
@@ -66,7 +65,6 @@ while [[ $# > 0 ]]; do
 		-C|--confdir) opts[-confdir]="${2}"; shift 2;;
 		-s|--splash) opts[-splash]+=":${2}"; shift 2;;
 		-W|--workdir) opts[-workdir]="${2}"; shift 2;;
-		-U|--ucl-arch) opts[-ucl-arch]=${2}; shift 2;;
 		-k|--kversion) opts[-kversion]=${2}; shift 2;;
 		-y|--keymap) opts[-keymap]="${2}"; shift 2;;
 		-p|--prefix) opts[-prefix]=${2}; shift 2;;

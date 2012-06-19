@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/autogen.zsh,v 0.9.1 2012/06/19 11:24:37 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.zsh,v 0.9.1 2012/06/19 21:50:57 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -13,7 +13,6 @@ usage() {
   -d|-usrdir [usr]        use usr dir for user extra files, binaries, scripts, fonts...
   -g|-gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -n|-minimal             build a minimal busybox binary insead of including all applets
-  -U|-ucl-arch i386       use i386 arch to build busybox linked uClibc instead of glibc
   -p|-prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
   -W|-workdir [<dir>]     use <dir> as a work directory to create initramfs instead of \$PWD
   -m|-mdep [:<mod>]       include a colon separated list of kernel modules to the initramfs
@@ -43,7 +42,7 @@ alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: r raid \
 	k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage C: confdir: n minimal \
-	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: U: ucl-arch: \
+	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: \
 	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks R regen || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
