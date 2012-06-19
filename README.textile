@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.8.2 2012/06/19 14:10:28 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.9.2 2012/06/19 22:25:37 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -12,21 +12,21 @@ media-fonts/terminus-font if you use the associated "ebuild":https://github.com/
 
 If you want GnuPG support, yo should have an app-crypt/gnupg-1.4*[static] binary along with its 
 options.skel file. Or if you run Gentoo you can run either gnupg.{ba,z}sh to generate one. 
-@gnupg.zsh -W/usr/local/share/mkinitramfs-ll@ if you installed the package or simply gnupg.zsh 
-will build a binary in the current directory (with a bin/gpg and misc/share/gnupg/options.skel).
+@gnupg.zsh -W/usr/local/share/mkinitramfs-ll@ if you installed the package or simply @gnupg.zsh@
+will build a binary in the current directory (with a usr/bin/gpg and usr/share/gnupg/options.skel).
 
 And then run @mkinitramfs-ll.zsh -font -keymap -gpg@ or the bash counterpart @mkinitramfs-ll.bash --font --keymap --gpg@
 
 Gentoo users can build everything with: @autogen.zsh -all -font -keymap@ or @autogen.bash --all --font --keymap@
 
-Of course, one can append extra fonts and keymaps with @-f ter-g12n -y fr-latin1@ etc. and the @-a@ option depend 
-on either @{/etc/,}mkinitramfs-ll.conf}@ so one can put many default values there.
+Of course, one can append extra fonts and keymaps with @-f ter-g12n -y fr-latin1@ etc. 
+and the @-a@ option depend on @mkinitramfs-ll.conf@ so one can put many default values there.
 
-One can get more info on the scripts by running @${script} -u@
+One can get more info on the scripts by running @$script -u@
 
 h3. 2. _Optional_ kernel cmdline option or arguments
 
-_ONLY_ @iroot@ _IS REQUIRED_ else nothing will happen but, maybe, a kernel panic. 
+*_Only_* @iroot@ _is required_ else nothing will happen but, maybe, a kernel panic. 
 And of course when using this script, one does not need @root=<arg>@ nor @resume=<arg>@ etc. options.
 
 init script supports the following specific arguments: 
@@ -84,6 +84,8 @@ keyfiles [because it'll be too troublesome to make it otherwise]. Of course, a d
 should use an UUID or a LABEL instead of @[/dev/]sd[a-z0-9]@ to avoid header mismatch!
 
 h3. About RAID array
+
+*Note*: raid array can be used as the underlaying pyshical device of unencrypted or not with LVM on top.
 
 iraid argument can take up to 3 comma separated list of RAID arrays: the 1st for root, 2nd for swap
 and the 3rd for resume.
@@ -183,7 +185,7 @@ h3. 7. Kernel parameters example
 
 h3. 8. Kernel module groups
 
-To load kernel modules, one could either create needed groups in @/etc/mkinitramfs-ll/module.$group@ 
+To load kernel modules, one could either create needed groups in @[usr/]etc/mkinitramfs-ll/module.$group@ 
 (IFS separated list of module). Or else, append a comma seperated list on cmdline using @imod=@ arg.
 
 Supported groups:
@@ -193,7 +195,7 @@ Supported groups:
 * @gpg@       -> modules required to access gpg crypted keyfile
 * @sqfsd@     -> modules required for squashfs+aufs, can be built into the kernel
 
-Modules should exist in @/lib/modules/$KERNEL_VERSION/@, the kernel should support modules [un]loading.
+Modules should exist in @/lib/modules/$KV/@, the kernel should support modules [un]loading.
 Just make sure to append the necessary modules to the right group in mkinitramfs-ll.conf for autoloading, 
 or else append to @opts[-mdep]@ variable to be able to append kernel mdoules to @imod=@ cmdline argument.
 
