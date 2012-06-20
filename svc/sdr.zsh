@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.9.1 2012/06/20 01:47:04 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.9.1 2012/06/20 12:04:21 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -18,12 +18,12 @@ usage() {
   -u|-usage               print this help/usage and exit
   -v|-version             print version string and exit
 	
-  usages: speed up your system with aufs+squahfs by squashing some 
+  usages: speed up your system with aufs+squahfs by squashing a few dirs:
   ${(%):-%1x} -remove -d var/db:var/cache/edb:\$PORTDIR
   squash system related directories and update the underlaying sources dir:
   ${(%):-%1x} -update -d bin:sbin:lib32:lib64
 EOF
-exit 0
+exit $?
 }
 if [[ $# = 0 ]] { usage
 } else { zmodload zsh/zutil
@@ -92,11 +92,11 @@ squashd() {
 		} || die "failed to mount $dir.sfs"
 	}
 	if [[ -n $mcdir ]] { 
-		mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul ||
+		mount --move /var/cache/splash /$dir/splash/cache &>/dev/nul ||
 			die "failed to move back cachedir"
 	}
 	if [[ -n $mrc ]] { 
-		mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null ||
+		mount --move /var/lib/init.d /$dir/rc/init.d &>/dev/null ||
 			die "failed to move back rc-svcdir"
 	}
 	print -P "%F{green}>>> ...squashed $dir sucessfully [re]build%f"

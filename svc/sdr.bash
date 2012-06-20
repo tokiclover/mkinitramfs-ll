@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.9.1 2012/06/20 01:46:57 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.9.1 2012/06/20 12:04:19 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -18,8 +18,8 @@ usage() {
   -u, --usage               print this help/usage and exit
   -v, --version             print version string and exit
 	
-  usages: speed up your system with aufs+squahfs by squashing some 
-  ${0##*/} -rm -d var/db:var/cache/edb:\$PORTDIR
+  usages: speed up your system with aufs+squahfs by squashing a few dirs: 
+  ${0##*/} --remove -d var/db:var/cache/edb:\$PORTDIR
   squash system related directories and update the underlaying sources dir:
   ${0##*/} --update -d bin:sbin:lib32:lib64
 EOF
@@ -101,11 +101,11 @@ squashd() {
 		} || die "failed to mount $dir.sfs"
 	fi
 	if [[ -n "$mcdir" ]]; then
-		mount --move /var/cache/splash "/$dir/splash/cache" &>/dev/nul ||
+		mount --move /var/cache/splash /$dir/splash/cache &>/dev/nul ||
 			die "failed to move back cachedir"
 	fi
 	if [[ -n "$mrc" ]]; then
-		mount --move /var/lib/init.d "/$dir/rc/init.d" &>/dev/null ||
+		mount --move /var/lib/init.d /$dir/rc/init.d &>/dev/null ||
 			die "failed to move back rc-svcdir"
 	fi
 	echo -ne "\e[1;32m>>> ...sucessfully build squashed $dir\e[0m\n"

@@ -1,8 +1,8 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/gnupg.bash,v 0.9.1 2012/06/19 21:54:34 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.bash,v 0.9.1 2012/06/20 12:03:46 -tclover Exp $
 usage() {
   cat <<-EOF
-  usage: ${0##*/} [-d|--usrdir=usr] [optins]
+  usage: ${0##*/} [-d|--usrdir=usr] [options]
   -d, --usrdir [usr]     copy binary and options.skel files to usr/
   -W, --wokdir [<dir>]   working directory where to create initramfs directory
   -U, --useflag flags    extra USE flags to append to USE="nls static"
@@ -32,15 +32,14 @@ mkdir -p "${opts[-usrdir]}"/{bin,share/gnupg}
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 die() { error "$@"; exit 1; }
 pushd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die
-opts[-gpg]=$(emerge -pvO =app-crypt/gnupg-${opts[-version]} | grep -o "gnupg-[-0-9.r]*")
-ebuild ${opts[-gpg]}.ebuild clean || die
-USE="nls static ${opts[-useflag]}" ebuild ${opts[-gpg]}.ebuild compile || die
-pushd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/app-crypt/${opts[-gpg]}/work/${opts[-gpg]} || die
+opts[gpg]=$(emerge -pvO =app-crypt/gnupg-${opts[-version]} | grep -o "gnupg-[-0-9.r]*")
+ebuild ${opts[gpg]}.ebuild clean || die
+USE="nls static ${opts[-useflag]}" ebuild ${opts[gpg]}.ebuild compile || die
+pushd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/app-crypt/${opts[gpg]}/work/${opts[gpg]} || die
 cp -a gpg "${opts[-usrdir]}"/bin/ || die
 cp g10/options.skel "${opts[-usrdir]}"/share/gnupg/ || die
 popd || die
-ebuild ${opts[-gpg]}.ebuild clean || die
+ebuild ${opts[gpg]}.ebuild clean || die
 popd || die
-opts[-gpg]=y
 unset -v opts[-useflag] opts[-version] opts[gpg]
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

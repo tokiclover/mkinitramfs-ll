@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.9.1 2012/06/19 21:44:18 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.9.1 2012/06/20 12:19:42 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/}[-m|--minimal] [--ucl=i386]
@@ -38,9 +38,9 @@ ebuild ${opts[bbt]}.ebuild clean || die "clean failed"
 ebuild ${opts[bbt]}.ebuild unpack || die "unpack failed"
 pushd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/${opts[bbt]}/work/${opts[bbt]} || die
 if [[ -n "${opts[-minimal]}" ]]; then make allnoconfig || die
-	for cfg in $(< "${opts[-workdir]}"/busybox.cfg); do
-		sed -e "s|# ${cfg%=y} is not set|${cfg}|" -i .config || die
-	done
+	while read cfg; do
+		sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
+	done < "${opts[-workdir]}"/busybox.cfg
 else
 	make defconfig || die "defconfig failed"
 	sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
