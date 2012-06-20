@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/autogen.zsh,v 0.9.1 2012/06/19 21:50:57 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.zsh,v 0.9.1 2012/06/20 19:32:17 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -50,7 +50,7 @@ if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 :	${opts[-usrdir]:=${opts[-d]:-${opts[-workdir]}/usr}}
 if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 mkdir -p ${opts[-workdir]}
-busybox.zsh
+which bb &>/dev/null busybox.zsh
 if [[ -n ${(k}opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { gnupg.zsh
 	if [[ -f ${opts[-confdir]:-${opts[-C]}}/gpg.conf ]] ]] { 
 		mkdir -pm700 ${opts[-usrdir]}/root/.gnupg/

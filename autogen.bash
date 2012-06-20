@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/autogen.bash,v 0.9.1 2012/06/19 21:50:17 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.bash,v 0.9.1 2012/06/20 19:32:15 -tclover Exp $
 usage() {
   cat <<-EOF
   usage: ${0##*/} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -79,7 +79,7 @@ done
 mkdir -p "${opts[-workdir]}"
 error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
-busybox.bash
+which bb &>/dev/null || busybox.bash
 if [[ -n "${opts[-gpg]}" ]]; then gnupg.bash
 	if [[ -f "${opts[-confdir]}"/gpg.conf ]]; then
 		mkdir -pm700 "${opts[-usrdir]}"/root/.gnupg/
