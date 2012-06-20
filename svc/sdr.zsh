@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.9.1 2012/06/20 12:04:21 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.9.1 2012/06/20 15:16:32 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -41,7 +41,7 @@ if [[ -n $(uname -m | grep 64) ]] { opts[-arc]=64 } else { opts[-arc]=32 }
 :	${opts[-comp]:=${opts[-c]:-gzip}}
 info() 	{ print -P " %B%F{green}*%b%f $@" }
 error() { print -P " %B%F{red}*%b%f $@" }
-die()   { error $@; exit 1 }
+die()   { error $@; break }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 setopt NULL_GLOB
 squashd() {
@@ -81,11 +81,11 @@ squashd() {
 		if [[ "$dir" = "bin" ]] { local cp=$bdir/ro/cp mv=$bdir/ro/mv rm=$bdir/ro/rm
 		} else { local cp=cp mv=mv rm=rm }
 		if [[ -n ${(k)opts[-R]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
-			${rm} -rf /$dir/* || die "failed to clean up $bdir"
+			$rm -rf /$dir/* || die "failed to clean up $bdir"
 		} 
 		if [[ -n ${(k)opts[-U]} ]] || [[ -n ${(k)opts[-update]} ]] { 
 			$cp -aru $bdir/ro /${dir}ro && mv /$dir{,rm}
-			$mv /$dir{ro,} && $rm -fr /${dir}rm || info "failed to update $dir"
+			$mv /$dir{ro,} && $rm -fr /${dir}rm || die "failed to update $dir"
 		}
 		mount -onodev,udba=reval,br:$bdir/rw:$bdir/ro -taufs $dir /$dir &>/dev/null ||
 			die "$dir: failed to mount aufs branch"

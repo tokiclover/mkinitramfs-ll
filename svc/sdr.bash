@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.9.1 2012/06/20 12:04:19 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.9.1 2012/06/20 15:16:35 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -49,7 +49,7 @@ while [[ $# > 0 ]]; do
 done
 info() 	{ echo -ne " \e[1;32m* \e[0m$@\n"; }
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
-die()   { error "$@"; exit 1; }
+die()   { error "$@"; break; }
 [[ -n "$(uname -m | grep 64)" ]] && opts[arc]=64 || opts[arc]=32
 [[ -n "${opts[sqfsdir]}" ]] || opts[sqfsdir]=/sqfsd
 [[ -n "${opts[bsize]}" ]] || opts[bsize]=131072
@@ -94,7 +94,7 @@ squashd() {
 		fi
 		if [[ -n "${opts[update]}" ]]; then
 			$cp -aru $bdir/ro /${dir}ro && $mv /$dir{,rm}
-			$mv /$dir{ro,} && $rm -fr /${dir}rm || error "$dir: failed to update"
+			$mv /$dir{ro,} && $rm -fr /${dir}rm || die "$dir: failed to update"
 		fi
 		mount -onodev,udba=reval,br:$bdir/rw:$bdir/ro -taufs $dir /$dir &>/dev/null ||
 			die "$dir: failed to mount aufs branch"
