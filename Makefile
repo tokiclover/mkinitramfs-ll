@@ -9,21 +9,21 @@ svc_initdir	= ${sys_confdir}/init.d
 datadir	    = ${DESTDIR}${prefix}/share/$(PACKAGE)
 docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
-DOCS=AUTHORS COPYING README.textile ChangeLog KnownIssue
+DOCS        = AUTHORS COPYING README.textile ChangeLog KnownIssue
 
-all: install_init install_sqfsd_svc install_scripts_bash install_scripts_zsh
+all: install install_svc install_bash install_zsh
 
 install:
 	install -pd $(datadir)
 	install -pm 644 busybox.cfg       $(datadir)
 	install -pm 755 init              $(datadir)
 	for file in $(shell find usr -name '.keep'); do \
-		install -Dpm644 $${file} $(datadir)/$${file}; \
+		install -Dpm 644 $${file}     $(datadir)/$${file}; \
 	done
-	install -pm644 usr/etc/mdev.conf  $(datadir)/usr/etc
-	install -pm755 usr/lib/ide_links  $(datadir)/usr/lib
-	install -pm755 usr/lib/usbdev     $(datadir)/usr/lib
-	install -pm755 usr/lib/usbdisk_link $(datadir)/usr/lib
+	install -pm 644 usr/etc/mdev.conf $(datadir)/usr/etc
+	install -pm 755 usr/lib/ide_links $(datadir)/usr/lib
+	install -pm 755 usr/lib/usbdev    $(datadir)/usr/lib
+	install -pm 755 usr/lib/usbdisk_link $(datadir)/usr/lib
 
 install_bash:
 	sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
