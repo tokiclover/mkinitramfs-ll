@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.1 2012/06/19 20:03:53 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.1 2012/06/23 12:22:01 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -16,7 +16,7 @@ debug() {
 	local _cmd _opt _ret
 	[ "$1" = "-d" ] || [ "$1" = "-e" ] || [ "$1" = "-i" ] && _opt=$1 && shift
 	_cmd="$@"; $_cmd; _ret=$?
-	echo "[$_ret]: ${_cmd:-$@}" >> /run/log/init.log
+	echo "[$_ret]: $_cmd" >> /run/log/init.log
 	if [ ! "$_ret" ]; then
 		case $_opt in
 			-d) die "d[$_ret]: $_cmd";;
@@ -89,7 +89,7 @@ spld_init() {
 	debug mkfifo $SPLASH_FIFO
 	debug $spl_util $_opt -d -t "$theme" && spld=0
 	debug spl_cmd "set event dev evdev"
-	[ "${spl_mode:-verbose}" = "verbose" ] && spl_verbose || spl_silent
+	[ "${spl_mode:-verbose}" = "verbose" ] && debug spl_verbose || debug spl_silent
 }
 
 shrl() {
@@ -418,8 +418,6 @@ switch() {
 	debug -d exec switch_root /newroot ${init:-/sbin/init} $rirl
 }
 
-imsg() { [ -e /etc/msg ] && info "$(cat /etc/msg)"; }
-
 main() {
 	local _font=$(echo "$ikmap" | cut -d':' -f2)
 	local _kmap=$(echo "$ikmap" | cut -d':' -f1)
@@ -437,7 +435,9 @@ main() {
 			fi
 		done
 	fi
-	debug imsg
+	debug test -f /etc/msg && clear && while read _line; do
+		info "$_line"; spl_msg "$_line"
+	done < /etc/msg
 	debug _modprobe gpg
 	debug _modprobe remdev
 	if [ -n "$iswap" ]; then
