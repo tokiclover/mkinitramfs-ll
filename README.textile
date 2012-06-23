@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.9.2 2012/06/19 22:25:37 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.9.3 2012/06/23 13:19:23 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -61,6 +61,7 @@ the 3rd for resume, hence one can append enough commas to asign a particular gro
 * @ikswap=<mode>:<device>:</path/to/file>@ -> iswap for swap keyfile or password.
 * @ikresume=<mode>:<device>:</path/to/key/file>@ -> same as above but for [i]resume.
 * @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@    -> squashed directories, see below for more info.    
+* @dmesg=emerg|alert|crit|err|..|debug@    -> optional dmesg log level priority.
 
 init script accept @single@ argument and will append single runlevel to real init, no special care 
 for @ro|rw@ because it can be appended as @imopt=ro@, @rw@ mode is the default behavior, for example.

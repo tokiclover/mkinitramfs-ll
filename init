@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.1 2012/06/23 12:22:01 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.3 2012/06/23 12:22:01 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -474,7 +474,7 @@ _getopts() {
 			*init=*)  export init=${arg#*=};;
 			ishrl=*)  shrl=$(echo ${arg#*=}|cut -d':' -f1)
 				      rirl=$(echo ${arg#*=}|cut -d':' -f2);;
-			ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export $arg;;
+			dmesg|ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export $arg;;
 	   	 esac
 	done
 }
@@ -489,6 +489,7 @@ _init() {
 	[ "$eck" ] && ack
 	debug -d mount -t sysfs sysfs /sys
 	debug _getopts
+	[ -n "$dmesg" ] && debug dmesg -n $dmesg
 	debug _modprobe boot
 	if grep devtmpfs /proc/filesystems &>/dev/null; then
 		debug -d mount -t devtmpfs devtmpfs /dev
