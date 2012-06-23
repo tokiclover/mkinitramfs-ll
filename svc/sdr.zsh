@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.9.1 2012/06/20 15:16:32 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.9.1 2012/06/23 02:50:46 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -41,13 +41,13 @@ if [[ -n $(uname -m | grep 64) ]] { opts[-arc]=64 } else { opts[-arc]=32 }
 :	${opts[-comp]:=${opts[-c]:-gzip}}
 info() 	{ print -P " %B%F{green}*%b%f $@" }
 error() { print -P " %B%F{red}*%b%f $@" }
-die()   { error $@; break }
+die()   { error $@; return 1 }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 setopt NULL_GLOB
 squashd() {
 	mkdir -p $bdir/{ro,rw} || die "failed to create $dir/{ro,rw} dirs"
 	mksquashfs /$dir $bdir.tmp.sfs -b ${opts[-bsize]} -comp ${=opts[-comp]} \
-		${=opts[-exclude]:+-e ${(pws,:,)opts[-exclude]}} > /dev/null \
+		${=opts[-exclude]:+-wildcards -regex -e ${(pws,:,)opts[-exclude]}} >/dev/null \
 		|| die "failed to build $dir.sfs img"
 	if [[ $dir = lib${opts[-arc]} ]] { # move rc-svcdir cachedir if mounted
 		mkdir -p /var/{lib/init.d,cache/splash}

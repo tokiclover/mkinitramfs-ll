@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.9.1 2012/06/20 15:16:35 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.9.1 2012/06/23 02:50:50 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -49,7 +49,7 @@ while [[ $# > 0 ]]; do
 done
 info() 	{ echo -ne " \e[1;32m* \e[0m$@\n"; }
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
-die()   { error "$@"; break; }
+die()   { error "$@"; return 1; }
 [[ -n "$(uname -m | grep 64)" ]] && opts[arc]=64 || opts[arc]=32
 [[ -n "${opts[sqfsdir]}" ]] || opts[sqfsdir]=/sqfsd
 [[ -n "${opts[bsize]}" ]] || opts[bsize]=131072
