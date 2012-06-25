@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.1 2012/06/19 15:03:02 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.1 2012/06/25 11:55:47 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -103,8 +103,8 @@ rm -rf ${opts[-initramfsdir]} || die "eek!"
 mkdir -p ${opts[-initramfsdir]} && pushd ${opts[-initramfsdir]} || die
 if [[ -d ${opts[-usrdir]} ]] {
 	cp -ar ${opts[-usrdir]} . && rm -f usr/README* || die
-	mv -f {usr/,}root &>/dev/null; mv -f {usr/,}etc &>/dev/null || die
-	mv -f usr/lib{,${opts[-arc]}} || die
+	mv -f {usr/,}root &>/dev/null && mv -f {usr/,}etc &>/dev/null &&
+	mv -f usr/lib lib${opts[-arc]} || die
 } else { mkdir -pm700 root; warn "${opts[-usrdir]} does not exist" }
 mkdir -p {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
 mkdir -p dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
