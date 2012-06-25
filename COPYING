@@ -1,20 +1,24 @@
-mkinitramfs-ll -
-an initramfs init script with building scripts 
-with LUKS+LVM2+AUFS2+SQUASHFS+crypted keyfiles (LUKS/GnuPG) support
-- by tokiclover -tclover <tokiclover{at}gmail{dot}com>
+mkinitramfs-ll
+- initramfs generation tool 
+with optional LUKS|LVM2|AUFS2|aufs+squashfs|crypted keyfiles (LUKS/GnuPG) support
+with a set of handy bash/zsh scripts
+- © tokiclover -tclover <tokiclover{at}gmail{dot}com>
+
 @COPYLEFT
 ALL WRONGS RESERVED
 
-License: 
-	* GNU General Public Licence, version 2 or 3 at your choice, as published 
-	  by the Free Software Foundation <http://www.gnu.org/licenses/>.
-	or 
-	* Creative Commons by ShareAlike, version 2.5 or 3.0 at your choice, 
-	 <https://creativecommons.org/licenses/by-sa/>.
-	or
-	* 2-clause (simplified) BSD:
+License(s) [at your choice]:
 
-Copyright 2011 T.Al. aka tokiclover. All rights reserved.
+	* GNU General Public Licence, version 2 or later at your choice, as published 
+	  by the Free Software Foundation <http://www.gnu.org/licenses/>.
+
+	* Creative Commons by ShareAlike, version 2.5 or later at your choice, 
+	 <https://creativecommons.org/licenses/by-sa/>.
+
+	* 2-clause (following simplified) BSD:
+
+---
+Copyright 2012 tokiclover/-tclover. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
@@ -26,9 +30,9 @@ permitted provided that the following conditions are met:
       of conditions and the following disclaimer in the documentation and/or other materials
       provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY T.Al. aka tokiclover ''AS IS'' AND ANY EXPRESS OR IMPLIED
+THIS SOFTWARE IS PROVIDED BY TOKICLOVER/-TCLOVER ''AS IS'' AND ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL T.Al. aka tokiclover OR
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL TOKICLOVER/-TCLOVER OR
 CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
 SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
@@ -38,4 +42,5 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The views and conclusions contained in the software and documentation are those of the
 authors and should not be interpreted as representing official policies, either expressed
-or implied, of T.Al. aka tokiclover.
+or implied, of tokiclover/-tclover.
+---
