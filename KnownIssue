@@ -1,25 +1,9 @@
-# $Header: mkinitramfs-ll/KnownIssue,v 0.6.0 2012/05/19 12:07:03 -tclover Exp $
+# $Header: mkinitramfs-ll/KnownIssue,v 0.9.3 2012/06/25 12:47:13 -tclover Exp $
 #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 # sqfsdmount.initd cannot manage mounting in time with newer udev[-182?]
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# *echo*ing return values is roblematic, minimize or eplace by global variables
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# a device list should have two and only two groups because the awk script that 
-# parse devices behaves strangely with three groups (>=init-0.4.0). And one 
-# group can be an empty group with the header `[root]', `[swap]' or `[toi]'.
-# resume group is called `[toi]' because resume is a reserved word for awk(?).
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# Now I have an unxpected issue when resuming from hibernation with my desktop. 
-# The script runs seamlessly on my laptop and I can resume in no time. However, 
-# this doesn't work on my desktop. After a hibernation to a swap file TuxOnIce 
-# fails to resume because if fails to lock the LV where the swapfile is located. 
-# I runned `cat /sys/power/tuxonice/resume' for sanity check and was stunned to 
-# notice this `file:/dev/<VG>/<LV>:<signature>' instead of 
-# `file:/dev/mapper/<VG>-<LV>:<signature>' as that value should be assigned 
-# before the previous one. And then went to check if in fact `/dev/<VG>' was 
-# available and IT WAS which is not on my laptop. Now I don't get why TOI fails 
-# to lock up the LV.
+# *echo*ing return values is problematic, minimize or eplace by global variables
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
