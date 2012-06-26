@@ -21,6 +21,7 @@ install:
 		install -Dpm 644 $${file}     $(datadir)/$${file}; \
 	done
 	install -pm 644 usr/etc/mdev.conf $(datadir)/usr/etc
+	install -pd $(datadir)/usr/lib/mdev
 	install -pm 755 usr/lib/mdev/ide_links    $(datadir)/usr/lib/mdev
 	install -pm 755 usr/lib/mdev/usbdev       $(datadir)/usr/lib/mdev
 	install -pm 755 usr/lib/mdev/usbdisk_link $(datadir)/usr/lib/mdev
