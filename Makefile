@@ -9,7 +9,7 @@ svc_initdir	= ${sys_confdir}/init.d
 datadir	    = ${DESTDIR}${prefix}/share/$(PACKAGE)
 docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
-DOCS        = AUTHORS COPYING README.textile ChangeLog KnownIssue
+DOCS        = AUTHORS COPYING README.textile KnownIssue
 
 all: install install_svc install_bash install_zsh
 

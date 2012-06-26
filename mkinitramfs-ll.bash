@@ -84,16 +84,10 @@ while [[ $# > 0 ]]; do
 		-m|--mdep) opts[-mdep]+=":${2}"; shift 2;;
 		-p|--prefix) opts[-prefix]=${2}; shift 2;;
 		-y|--keymap) 
-			if [[ -n "${2}" ]]; then opts[-keymap]+=:"${2}"
-			else opts[-keymap]+=:$(grep -E '^keymap' /etc/conf.d/keymaps \
-				| cut -d'"' -f2)
-			fi
+			opts[-keymap]+=:"${2:-$(grep -E '^keymap' /etc/conf.d/keymaps|cut -d'"' -f2)}"
 			shift 2;;
 		-f|--font) 
-			if [[ -n "${2}" ]] ;then opts[-font]+=":${2}"
-			else opts[-font]+=:$(grep -E '^consolefont' /etc/conf.d/consolefont \
-				| cut -d'"' -f2):ter-v14n:ter-g12n
-			fi
+			opts[-font]+=":${2:-$(grep -E '^consolefont' /etc/conf.d/consolefont|cut -d'"' -f2)}"
 			shift 2;;
 		--) shift; break;;
 		-u|--usage|*) usage;;
