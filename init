@@ -1,14 +1,13 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.3 2012/06/23 12:22:01 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.4 2012/06/23 12:22:01 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 #
-# user defined variables
 init=/sbin/init # real init to execute after switching to real root
 eck=1           # test if env binaries exist in PATH
 rmap=root       # root mapping for dmcrypt
-# functions
+
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
 error() { echo -ne "\033[1;31m * \033[0m$@\n"; }
 
@@ -16,7 +15,7 @@ debug() {
 	local _cmd _opt _ret
 	[ "$1" = "-d" ] || [ "$1" = "-e" ] || [ "$1" = "-i" ] && _opt=$1 && shift
 	_cmd="$@"; $_cmd; _ret=$?
-	echo "[$_ret]: $_cmd" >> /run/log/init.log
+	echo "[$_ret]: $_cmd" >> $logdir/init.log
 	if [ ! "$_ret" ]; then
 		case $_opt in
 			-d) die "d[$_ret]: $_cmd";;
@@ -480,13 +479,14 @@ _getopts() {
 }
 
 _init() {
-	export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
-	umask 0077
-	for dir in dev proc run sys newroot mnt/tok; do mkdir -p /$dir; done
-	mount -t proc proc /proc
-	mount -t tmpfs -o mode=755 tmpfs /run
-	mkdir /run/log
-	[ "$eck" ] && ack
+	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
+	debug umask 0077
+	debug -d mkdir -p dev proc run sys newroot mnt/tok
+	debug -d mount -t proc proc /proc
+	debug -d mount -t tmpfs -o mode=755 tmpfs /run
+	debug -d mkdir -p /run/log && logdir=/run/log
+	debug mv -f /init.log $logdir
+	[ "$eck" ] && debug ack
 	debug -d mount -t sysfs sysfs /sys
 	debug _getopts
 	[ -n "$dmesg" ] && debug dmesg -n $dmesg
@@ -495,7 +495,7 @@ _init() {
 		debug -d mount -t devtmpfs devtmpfs /dev
 	else debug -d mount -t tmpfs tmpfs /dev; fi
 	debug -d mdev -s
-	echo /sbin/mdev > /proc/sys/kernel/hotplug
+	debug -d 'echo /sbin/mdev > /proc/sys/kernel/hotplug'
 	if [ -n "$mod" ]; then local IFS="${IFS},"
 		for _m in $mod; do 
 			debug modprobe $_m
