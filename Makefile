@@ -17,9 +17,7 @@ install:
 	install -pd $(datadir)
 	install -pm 644 busybox.cfg       $(datadir)
 	install -pm 755 init              $(datadir)
-	for file in $(shell find usr -name '.keep'); do \
-		install -Dpm 644 $${file}     $(datadir)/$${file}; \
-	done
+	$(shell find usr -name '.keep' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;)
 	install -pm 644 usr/etc/mdev.conf $(datadir)/usr/etc
 	install -pd $(datadir)/usr/lib/mdev
 	install -pm 755 usr/lib/mdev/ide_links    $(datadir)/usr/lib/mdev
@@ -29,14 +27,11 @@ install:
 install_bash:
 	sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
 		-i autogen.zsh busybox.zsh gnupg.zsh $(PACKAGE).zsh
-	sed -e 's:busybox.bash:$(PACKAGE)-busybox.bash:' \
-		-e 's:gnupg.bash:$(PACKAGE)-gnupg.bash:' -e 's:\./::' \
-		-i autogen.bash
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
-	install -pm 755 autogen.bash      $(bindir)/$(PACKAGE)-autogen.bash
-	install -pm 755 busybox.bash      $(bindir)/$(PACKAGE)-busybox.bash
-	install -pm 755 gnupg.bash        $(bindir)/$(PACKAGE)-gnupg.bash
+	install -pm 755 autogen.bash      $(datadir)/autogen.bash
+	install -pm 755 busybox.bash      $(datadir)/busybox.bash
+	install -pm 755 gnupg.bash        $(datadir)/gnupg.bash
 	install -pm 644 $(PACKAGE).conf   $(sys_confdir)
 	install -pm 755 $(PACKAGE).bash   $(bindir)
 	install -pm 755 svc/sdr.bash      $(bindir)
@@ -44,14 +39,11 @@ install_bash:
 install_zsh:
 	sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
 		-i autogen.bash busybox.bash gnupg.bash $(PACKAGE).zsh
-	sed -e 's:busybox.zsh:$(PACKAGE)-busybox.zsh:' \
-		-e 's:gnupg.zsh:$(PACKAGE)-gnupg.zsh:' -e 's:\./::' \
-		-i autogen.zsh
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
-	install -pm 755 autogen.zsh       $(bindir)/$(PACKAGE)-autogen.zsh
-	install -pm 755 busybox.zsh       $(bindir)/$(PACKAGE)-busybox.zsh
-	install -pm 755 gnupg.zsh         $(bindir)/$(PACKAGE)-gnupg.zsh
+	install -pm 755 autogen.zsh       $(datadir)/autogen.zsh
+	install -pm 755 busybox.zsh       $(datadir)/busybox.zsh
+	install -pm 755 gnupg.zsh         $(datadir)/gnupg.zsh
 	install -pm 644 $(PACKAGE).conf   $(sys_confdir)
 	install -pm 755 $(PACKAGE).zsh    $(bindir)
 	install -pm 755 svc/sdr.zsh       $(bindir)
@@ -69,22 +61,20 @@ uall: unintsall uninstall_bash uninstall_zsh uninstall_svc
 uninstall:
 	rm -f $(datadir)/busybox.cfg
 	rm -f $(datadir)/init
-	for file in $(shell find ${datadir}/usr -name '.keep'); do \
-		rm -f $(datadir)/$${file}; \
-	done
+	$(shell find ${datadir}/usr -name '.keep' -exec rm -f '{}' \;)
 
 uninstall_bash:
 	rm -f $(bindir)/$(PACKAGE).bash
-	rm -f $(bindir)/$(PACKAGE)-busybox.bash
-	rm -f $(bindir)/$(PACKAGE)-autogen.bash
-	rm -f $(bindir)/$(PACKAGE)-gnupg.bash
+	rm -f $(datadir)/busybox.bash
+	rm -f $(datadir)/autogen.bash
+	rm -f $(datadir)/gnupg.bash
 	rm -f $(sys_confdir)/$(PACKAGE).conf
 
 uninstall_zsh:
 	rm -f $(bindir)/$(PACKAGE).zsh
-	rm -f $(bindir)/$(PACKAGE)-busybox.zsh
-	rm -f $(bindir)/$(PACKAGE)-autoen.zsh
-	rm -f $(bindir)/$(PACKAGE)-gnupg.zsh
+	rm -f $(datadir)/busybox.zsh
+	rm -f $(datadir)/autoen.zsh
+	rm -f $(datadir)/gnupg.zsh
 	rm -f $(sys_confdir)/$(PACKAGE).conf
 
 uninstall_svc:
