@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.4 2012/06/28 23:17:36 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.4 2012/06/28 23:30:25 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -273,7 +273,7 @@ mdopen() {
 squashd() {
 	local IFS="${IFS}:"
 	debug -d test -n $sqfsd
-	debug -d test -d /newroot$_rd
+	debug -d test -d /newroot$sqfsdir
 	debug _modprobe sqfsd
 	cd /newroot
 	for _dir in $sqfsd; do
