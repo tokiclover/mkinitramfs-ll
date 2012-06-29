@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.4 2012/06/28 23:30:25 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.4 2012/06/29 15:10:51 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -48,7 +48,8 @@ bck() { debug -d which $1 &>/dev/null; }
 ack() {
 	local _app _applets="$@"
 	[ -n "$_applets" ] || [ -f /etc/mkinitramfs-ll/busybox.app ] &&
-		_applets="$(cat /etc/mkinitramfs-ll/busybox.app)" || busybox --install -s
+		_applets="$(cat /etc/mkinitramfs-ll/busybox.app)" ||
+		debug -d busybox --install -s && return
 	for _app in $_applets; do 
 		[ -h "$_app" ] && [ "$(readlink $_app)" = "/bin/busybox" ] ||
 			debug -d busybox --install -s && break
@@ -312,7 +313,7 @@ rootfs() {
 	fi
 	shrl 3s
 	[ -n "$sqfsd" ] && debug -d squashd
-	_lvm=; imopt=; kmode=
+	imopt=; iroot=; ikroot=; kmode=; sqfsdir=; sqfsd=
 }
 
 swap() {
@@ -326,7 +327,7 @@ swap() {
 	elif [ -n "$kmode" ]; then debug -d dmopen "$_swp-$_dev" "_dev"
 	else debug -d _blkid "$_dev" "_dev"; fi
 	[ -n "$4" ] && eval $4=$_type:$_dev${_sign+:$_sign}
-	_lvm=; _raid=; kmode=
+	eval i$1= ik$1=; kmode=
 }
 
 resume() {
