@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.4 2012/06/30 11:08:17 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.4 2012/06/30 12:36:57 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -512,6 +512,6 @@ _init() {
 	exec 0<$console 1>$console 2>&1
 	[ -n "$splash" ] && debug spld_init
 }
-debug main
+main
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
