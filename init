@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.4 2012/06/29 15:10:51 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.4 2012/06/30 11:08:17 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -36,7 +36,7 @@ rsh() {
 
 die() {
 	local _msg="Dropping into a rescueshell..."
-	debug umount -fl /mnt/tok &>/dev/null
+	debug umount -f -l /mnt/tok &>/dev/null
 	[ -n "$@" ] && error "$@" && spl_msg "$@"
 	info "$_msg"; spl_msg "$_msg"
 	for _k in $ldk; do debug dmclose "$_k"; done
@@ -280,7 +280,7 @@ squashd() {
 	for _dir in $sqfsd; do
 		local _bdir="$sqfsdir"/$_dir
 		debug -d test -f .$_bdir.sfs
-		mkdir -p .$_bdir/rw; mkdir -p .$_bdir/ro
+		debug mkdir -p .$_bdir/rw .$_bdir/ro
 		debug -d mount -tsquashfs -onodev,loop,ro .$_bdir.sfs .$_bdir/ro &&
 		mount -taufs -onodev,udba=reval,br:.$_bdir/rw:.$_bdir/ro $_dir $_dir
 	done
@@ -418,6 +418,7 @@ switch() {
 }
 
 main() {
+	debug _init
 	local _font=$(echo "$ikmap" | cut -d':' -f2)
 	local _kmap=$(echo "$ikmap" | cut -d':' -f1)
 	if [ -n "$_kmap" ]; then
@@ -439,6 +440,7 @@ main() {
 	done < /etc/msg
 	debug _modprobe gpg
 	debug _modprobe remdev
+	shrl 1
 	if [ -n "$iswap" ]; then
 :		local ${_raid:=$(echo "$iraid" | cut -d',' -f2)}
 :		local ${_lvm:=$(echo "$ilvm" | cut -d',' -f2)}
@@ -508,10 +510,8 @@ _init() {
 :	${console:=/dev/tty1}
 	[ -n "$(echo $console | grep /dev)" ] || console="/dev/$tty"
 	exec 0<$console 1>$console 2>&1
-	shrl 1
 	[ -n "$splash" ] && debug spld_init
-	debug main
 }
-debug _init
+debug main
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
