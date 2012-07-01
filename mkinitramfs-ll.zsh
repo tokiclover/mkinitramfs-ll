@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.1 2012/06/25 11:55:47 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.1 2012/07/01 23:12:39 -tclover Exp $
 revision=0.9.1
 usage() {
   cat <<-EOF
@@ -43,13 +43,13 @@ die()   { error $@; exit 1; }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 addnodes() {
 	[[ -c dev/console ]] || mknod -m 600 dev/console c 5 1 || die
-	[[ -c dev/urandom ]] || mknod dev/urandom c 1 9 || die
-	[[ -c dev/random ]]  || mknod dev/random  c 1 8 || die
-	[[ -c dev/mem ]]     || mknod dev/mem     c 1 1 || die
+	[[ -c dev/urandom ]] || mknod -m 666 dev/urandom c 1 9 || die
+	[[ -c dev/random ]]  || mknod -m 666 dev/random  c 1 8 || die
+	[[ -c dev/mem ]]     || mknod -m 640 dev/mem     c 1 1 || die
 	[[ -c dev/null ]]    || mknod -m 666 dev/null    c 1 3 || die
 	[[ -c dev/tty ]]     || mknod -m 666 dev/tty     c 5 0 || die
-	[[ -c dev/zero ]]    || mknod dev/zero    c 1 5 || die
-	for nod ($(seq 0 6)) [[ -c dev/tty${nod} ]] || mknod -m 620 dev/tty${nod} c 4 ${nod} || die
+	[[ -c dev/zero ]]    || mknod -m 666 dev/zero    c 1 5 || die
+	for nod ($(seq 0 6)) [[ -c dev/tty${nod} ]] || mknod -m 600 dev/tty${nod} c 4 ${nod} || die
 }
 zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: r raid \
@@ -113,7 +113,7 @@ ln -sf lib{${opts[-arc]},} && pushd usr && ln -sf lib{${opts[-arc]},} && popd ||
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[0-6],zero} dev/ || addnodes
 if [[ ${${(pws:.:)opts[-kversion]}[1]} -eq 3 ]] &&
 	[[ ${${(pws:.:)opts[-kversion]}[2]} -ge 1 ]] {
-	cp -a {/,}dev/loop-control &>/dev/null || mknod dev/loop-control c 10 237 || die
+	cp -a {/,}dev/loop-control &>/dev/null || mknod -m 600 dev/loop-control c 10 237 || die
 }
 cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 cp -ar {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
