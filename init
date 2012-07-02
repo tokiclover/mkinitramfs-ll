@@ -83,16 +83,16 @@ msg() { [ $spld ] && debug cmd "set message $@" && debug cmd "repaint"; }
 _stop() { [ $spld ] && spld=1; debug cmd "exit"; }
 spld() {
 	[ -n "$(echo "$splash" | grep fadein)" ] && local _opt="-c set effects fadein"
-	mode=${splash%%,*} theme:=${splash#*:}
+	mode=${splash%%,*} theme=${splash#*:}
 	cachedir=/run/splash/cache
 	util=splash_util
 	export SPLASH_FIFO=$cachedir/.splash
-	[ "$eck" ] && debug bck $spl_uil
+	[ "$eck" ] && debug bck $util
 	[ -d "$cachedir" ] || mkdir -p $cachedir
 	debug mkfifo $SPLASH_FIFO
 	debug $util $_opt -d -t "$theme" && spld=0
 	debug cmd "set event dev evdev"
-	debug $(${mode:-verbose})
+	debug ${mode:-verbose}
 }
 
 shrl() {
