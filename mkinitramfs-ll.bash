@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.1 2012/07/01 23:10:56 -tclover Exp $
-revision=0.9.1
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.5 2012/07/01 23:10:56 -tclover Exp $
+revision=0.9.5
 usage() {
   cat <<-EOF
   usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
