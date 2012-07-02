@@ -40,8 +40,8 @@ rsh() {
 die() {
 	local _msg="Dropping into a rescueshell..."
 	debug umount -f -l /mnt/tok &>/dev/null
-	[ -n "$@" ] && error "$@" && spl_msg "$@"
-	info "$_msg"; spl_msg "$_msg"
+	[ -n "$@" ] && error "$@" && msg "$@"
+	info "$_msg"; msg "$_msg"
 	for _k in $ldk; do debug dmclose "$_k"; done
 	for _d in $ldv; do debug losetup -d "$_d"; done
 	debug rsh || debug exec $sh -i
@@ -75,29 +75,29 @@ _modprobe() {
 	fi
 }
 
-spl_cmd() { debug echo "$@" > $SPLASH_FIFO; }
-spl_verbose() { debug chvt ${console#*tty}; debug spl_cmd "set mode verbose"; }
-spl_silent() { debug chvt ${console#*tty}; debug spl_cmd "set mode silent"; }
-spl_msg() { [ $spld ] && debug spl_cmd "set message $@" && debug spl_cmd "repaint"; }
+cmd() { debug echo "$@" > $SPLASH_FIFO; }
+verbose() { debug chvt ${console#*tty}; debug cmd "set mode verbose"; }
+silent() { debug chvt ${console#*tty}; debug cmd "set mode silent"; }
+msg() { [ $spld ] && debug cmd "set message $@" && debug cmd "repaint"; }
 
-spld_stop() { [ $spld ] && spld=1; debug spl_cmd "exit"; }
-spld_init() {
+_stop() { [ $spld ] && spld=1; debug cmd "exit"; }
+spld() {
 	[ -n "$(echo "$splash" | grep fadein)" ] && local _opt="-c set effects fadein"
-	spl_mode=${splash%%,*} theme:=${splash#*:}
-	spl_cachedir=/run/splash/cache
-	spl_util=splash_util
-	export SPLASH_FIFO=$spl_cachedir/.splash
+	mode=${splash%%,*} theme:=${splash#*:}
+	cachedir=/run/splash/cache
+	util=splash_util
+	export SPLASH_FIFO=$cachedir/.splash
 	[ "$eck" ] && debug bck $spl_uil
-	[ -d "$spl_cachedir" ] || mkdir -p $spl_cachedir
+	[ -d "$cachedir" ] || mkdir -p $cachedir
 	debug mkfifo $SPLASH_FIFO
-	debug $spl_util $_opt -d -t "$theme" && spld=0
-	debug spl_cmd "set event dev evdev"
-	[ "${spl_mode:-verbose}" = "verbose" ] && debug spl_verbose || debug spl_silent
+	debug $util $_opt -d -t "$theme" && spld=0
+	debug cmd "set event dev evdev"
+	debug $(${mode:-verbose})
 }
 
 shrl() {
 	local _msg="Switching to init shell runlevel: $1"
-	info "$_msg"; spl_msg "$_msg"
+	info "$_msg"; msg "$_msg"
 	local _scr="$(ls /etc/local.d/${1}?-*.sh &> /dev/null)"
 	if [ -n "$_scr" ]; then
 		for _s in $_scr; do 
@@ -336,7 +336,7 @@ swap() {
 resume() {
 	local _asw _dev _img _msg _toi _spd
 	_msg="Resuming from hibernation..."
-	info "$_msg"; spl_msg "$_msg"
+	info "$_msg"; msg "$_msg"
 	if [ -n "$(echo "$iresume" | cut -d':' -s -f2)" ]; then
 :		local ${_raid:=$(echo "$iraid" | cut -d',' -f3)}
 :		local ${_lvm:=$(echo "$ilvm" | cut -d',' -f3)}
@@ -358,7 +358,7 @@ resume() {
 		if [ -n "$theme" ]; then
 			ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
 		fi
-		spld_stop
+		_stop
 		debug -d -- "echo $_toi > /sys/power/tuxonice/user_interface/program"
 		debug -d -- "echo > /sys/power/tuxonice/do_resume"
 		debug -d -- "echo > /sys/power/tuxonice/image_exists"
@@ -375,7 +375,7 @@ resume() {
 			read _asw
 			[ "${_asw:-no}" != "yes" ] && die "suspend: resume aborted"
 		else die "suspend: no image found at the pointed location"; fi
-		spld_stop
+		_stop
 		debug -d -- "echo disk > /sys/power/state"
 		debug _rmmod swsusp
 	else error "no suspend/hibernation support found"; fi
@@ -408,8 +408,8 @@ imount() {
 switch() {
 	debug 'echo > /proc/sys/kernel/hotplug'
 	local _msg="Switching / ..."
-	info "$_msg"; spl_msg "$_msg"
-	debug spld_stop
+	info "$_msg"; msg "$_msg"
+	debug _stop
 	sleep 1
 	shrl 4u
 	debug -d -- umount -l /proc
@@ -439,7 +439,7 @@ main() {
 		done
 	fi
 	debug test -f /etc/msg && clear && while read _line; do
-		info "$_line"; spl_msg "$_line"
+		info "$_line"; msg "$_line"
 	done < /etc/msg
 	debug _modprobe gpg
 	debug _modprobe remdev
@@ -513,7 +513,7 @@ _init() {
 :	${console:=/dev/tty1}
 	[ -n "$(echo $console | grep /dev)" ] || console="/dev/$tty"
 	exec 0<$console 1>$console 2>&1
-	[ -n "$splash" ] && debug spld_init
+	[ -n "$splash" ] && debug spld
 }
 
 main
