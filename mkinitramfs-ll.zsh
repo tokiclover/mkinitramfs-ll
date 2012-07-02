@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.5 2012/07/02 14:51:32 -tclover Exp $
-revision=0.9.5
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.6 2012/07/02 15:55:50 -tclover Exp $
+revision=0.9.6
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -107,7 +107,7 @@ if [[ -d ${opts[-usrdir]} ]] {
 	mv -f usr/lib lib${opts[-arc]} || die
 } else { mkdir -pm700 root; warn "${opts[-usrdir]} does not exist" }
 mkdir -p {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
-mkdir -p dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash,local.d} || die
+mkdir -p dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash} || die
 mkdir -p run lib${opts[-arc]}/{splash/cache,modules/${opts[-kversion]}} || die
 ln -sf lib{${opts[-arc]},} && pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[0-6],zero} dev/ || addnodes
