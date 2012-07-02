@@ -6,7 +6,7 @@
 #
 init=/sbin/init # real init to execute after switching to real root
 eck=1           # test if env binaries exist in PATH
-rmap=root       # root mapping for dmcrypt
+map=root        # root mapping for dmcrypt
 sh=/bin/sh
 
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
@@ -299,7 +299,7 @@ rootfs() {
 	shrl 3d
 	[ -n "$_raid" ] && mdopen "$_raid"
 	if [ -n "$_lvm" ]; then debug -d -- lvopen "$_dev" "$_lvm" "_dev"
-	elif [ -n "$kmode" ]; then debug -d -- dmopen "${rmap:-root}-$iroot" "_dev"
+	elif [ -n "$kmode" ]; then debug -d -- dmopen "${map:-root}-$iroot" "_dev"
 	else debug -d -- _blkid "$_dev" "_dev"; fi
 	shrl 3f
 	if [ -n "$_fsck" ]; then 
@@ -310,7 +310,7 @@ rootfs() {
 	debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot
 	if [ ! "$?" ]; then
 		if [ -n "$kmode" ]; then
-			debug -d -- dmclose "${_lvm:-${rmap:-root}}" "${_lvm:+${_dev##*/}}"
+			debug -d -- dmclose "${_lvm:-${map:-root}}" "${_lvm:+${_dev##*/}}"
 		fi
 		die "failed to mount rootfs"
 	fi
