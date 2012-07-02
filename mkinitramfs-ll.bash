@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.5 2012/07/01 23:10:56 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.5 2012/07/02 14:51:36 -tclover Exp $
 revision=0.9.5
 usage() {
   cat <<-EOF
@@ -111,13 +111,13 @@ case ${opts[-comp]%% *} in
 	lzip)	opts[-initramfs]+=.cpio.lz;;
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
+gen() { find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${opts[-initramfs]}; }
 if [[ -n ${opts[-regen]} ]]; then
 	[[ -d ${opts[-initramfsdir]} ]] || die "${opts[-initramfsdir]}: no old initramfs dir"
 	echo ">>> regenerating ${opts[-initramfs]}..."
 	pushd ${opts[-initramfsdir]} || die
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
-	echo -- ${opts[-gencmd]}
-	find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${opts[-initramfs]} && exit || die
+	gen && exit || die
 	echo ">>> regenerated ${opts[-initramfs]}..."
 fi
 echo ">>> building ${opts[-initramfs]}..."
@@ -241,7 +241,7 @@ for bin in ${opts[-bin]//:/ }; do
 	elif [[ -x ${bin} ]]; then bcp ${bin}
 	else bcp $(which ${bin##*/}); fi
 done
-find . -print0 | cpio --null -ov --format=newc | ${opts[-comp]} > "${opts[-initramfs]}" || die
+gen || die
 echo ">>> ${opts[-initramfs]} initramfs built"
 unset -v opt opts
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

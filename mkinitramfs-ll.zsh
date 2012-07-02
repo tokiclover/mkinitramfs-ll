@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.5 2012/07/02 14:33:46 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.5 2012/07/02 14:51:32 -tclover Exp $
 revision=0.9.5
 usage() {
   cat <<-EOF
@@ -89,12 +89,13 @@ case ${opts[-comp][(w)1]} in
 	lzip)	opts[-initramfs]+=.cpio.lz;;
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
+gen() { find . -print0 | cpio -0 -ov -Hnewc | ${=opts[-comp]} > ${opts[-initramfs]} }
 if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-R]} ]] {
 	[[ -d ${opts[-initramfsdir]} ]] || die "${opts[-initramfsdir]}: no old initramfs dir"
 	print -P "%F{green}>>> regenerating ${opts[-initramfs]}...%f"
 	pushd ${opts[-initramfsdir]} || die
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
-	find . -print0 | cpio -0 -ov -Hnewc | ${=opts[-comp]} > ${opts[-initramfs]} && exit || die
+	gen && exit || die
 	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f"
 }
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
@@ -206,7 +207,7 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 	[[ -x bin/${bin:t} ]] || [[ -x sbin/${bin:t} ]] { :;
 	} elif [[ -x ${bin} ]] { bcp ${bin}
 	} else { bcp $(which ${bin:t}) }
-find . -print0 | cpio --null -ov --format=newc | ${=opts[-comp]} > ${opts[-initramfs]} || die
+gen || die
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
 unset opts
 # vim:fenc=utf-8ft=zsh:ci:pi:sts=0:sw=4:ts=4:
