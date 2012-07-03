@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.9.6 2012/07/02 15:54:20 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.9.6 2012/07/03 12:36:55 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -202,8 +202,8 @@ or else append to @opts[-mdep]@ variable to be able to append kernel mdoules to 
 
 h3. 9. Optional user scripts
 
-Now one can add scripts to @/etc/mkinitramfs-ll@ of the initramfs root, or else in
-@$gitdir/usr/etc/mkinitramfs-ll@ if using mkinitramfs-ll.$shell generating script. 
+Now one can add scripts to @/etc/mkinitramfs-ll.d@ of the initramfs root, or else in
+@$gitdir/usr/etc/mkinitramfs-ll.d@ if using mkinitramfs-ll.$shell generating script. 
 Each script should have a @.sh@ sufix and a @${ishrl}?-*@ prefix as the follwing:
 * runlevel 1:  initialization -> splash -> keymap -> font -> print boot msg -> 1
 * runlevel 2?: 2s -> swap -> 2r -> resume -> rootfs ->

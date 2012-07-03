@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.6 2012/07/02 15:54:03 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.6 2012/07/03 12:38:15 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -98,7 +98,7 @@ spld() {
 shrl() {
 	local _msg="Switching to init shell runlevel: $1"
 	info "$_msg"; msg "$_msg"
-	local _scr="$(ls /etc/mkinitramfs-ll/${1}?-*.sh &>/dev/null)"
+	local _scr="$(ls /etc/mkinitramfs-ll.d/${1}?-*.sh &>/dev/null)"
 	if [ -n "$_scr" ]; then
 		for _s in $_scr; do 
 			info "exec: $sh -ex $_s..."
