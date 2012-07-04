@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.6 2012/07/03 12:38:15 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.7 2012/07/04 18:09:07 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -261,7 +261,7 @@ lvopen() {
 }
 
 mdopen() {
-	local _dev=${1%%-*} _prt=$(echo "$1" | cut -d'+' -f2)
+	local _conf _dev=${1%%-*} _prt=$(echo "$1" | cut -d'+' -f2)
 	[ -n "$(echo $_dev | grep /dev)" ] || _dev=/dev/$_dev
 	[ -b "$_dev" ] && return
 	if [ -n "$(echo $1 | grep UUID)" ]; then
@@ -270,8 +270,8 @@ mdopen() {
 		else echo 'DEVICE /dev/sd??*' >> /etc/mdadm.conf; fi
 		echo ARRAY $_dev $(echo "${1#*-}" | cut -d'+' -f1) >> /etc/mdadm.conf
 	fi
-	debug mdadm --assemble --scan "$_dev" || raidautorun
-	debug -d -- test -b "$_dev"
+	[ -f /etc/mdadm.conf ] && _conf="--config=/etc/mdadm.conf"
+	debug -d -- mdadm --assemble --scan "$_dev" $_conf
 }
 
 squashd() {
