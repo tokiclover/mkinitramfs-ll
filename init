@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/05 13:08:42 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/05 14:45:28 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -273,8 +273,9 @@ mdopen() {
 		fi
 		_conf="--scan --config=/etc/mdadm.conf"
 		debug -d -- mdadm --assemble ${_uuid:+--uuid=${_uuid#*=}} $_conf $_dev
-	else 
+	else
 		[ -n "$eck" ] && debug -d -- bck dmraid
+		_opt=$(echo "$_opt" | sed 's/:/,/g')
 		debug -d -- dmraid -ay -i -I ${_opt:+-f$_opt}
 	fi
 	debug -d -- test -b $_dev
