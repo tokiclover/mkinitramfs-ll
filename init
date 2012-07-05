@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.7 2012/07/04 18:09:07 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/05 13:08:42 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -202,7 +202,7 @@ dmcrypt() {
 
 dmopen() { 
 	[ "$eck" ] && bck "cryptsetup"
-	local _arg=luksFormat _asw dev
+	local _arg=luksFormat _asw
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
 	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
@@ -240,9 +240,9 @@ dmopen() {
 		debug cryptsetup "$_arg" "$_dev" "$_map" -d "$kfile" $_hdr ||
 		error "...there's still a pwd mode fallback..."
 	fi
-	dev=/dev/mapper/$_map
-	[ ! -b "$dev" ] || debug -d -- cryptsetup "$_arg" "$_dev" "$_map" "$_hdr"
-	debug -d -- test -b $dev && eval ${2:-ctxt}=$dev
+	ctxt=/dev/mapper/$_map
+	[ ! -b "$ctxt" ] || debug -d -- cryptsetup "$_arg" "$_dev" "$_map" "$_hdr"
+	debug -d -- test -b $ctxt && eval ${2:-ctxt}=$ctxt
 }
 
 lvopen() {
@@ -255,23 +255,30 @@ lvopen() {
 		for _p in $_pv; do debug dmopen "$_p"; done
 		debug vgchange -ay ${1%-*} || debug -d -- dmclose "$_pv" "$1"
 	else die "$1 require a valid crypted physical volume"; fi
-	if [ -b "/dev/mapper/$1" ]; then eval $3=/dev/mapper/$1
-	elif [ -b "/dev/$_lv" ]; then eval $3=/dev/$_lv
+	if [ -b "/dev/mapper/$1" ]; then eval ${3-lv}=/dev/mapper/$1
+	elif [ -b "/dev/$_lv" ]; then eval ${3-lv}=/dev/$_lv
 	else die "$_lv VG/LV do not exist."; fi
 }
 
 mdopen() {
-	local _conf _dev=${1%%-*} _prt=$(echo "$1" | cut -d'+' -f2)
-	[ -n "$(echo $_dev | grep /dev)" ] || _dev=/dev/$_dev
-	[ -b "$_dev" ] && return
-	if [ -n "$(echo $1 | grep UUID)" ]; then
-		if [ -n "$_prt" ]; then
-			echo DEVICE $(ls /dev/sd*$_prt) >> /etc/mdadm.conf
-		else echo 'DEVICE /dev/sd??*' >> /etc/mdadm.conf; fi
-		echo ARRAY $_dev $(echo "${1#*-}" | cut -d'+' -f1) >> /etc/mdadm.conf
+	local _dev=$(echo "${1%*+}" | cut -s -d- -f1) _opt=$(echo "$1" | cut -d+ -f2)
+	local _conf _device _uuid="$(echo "${1#*-}" | cut -d'+' -f2)"
+	debug _blkid "$_uuid" "${2-md}" && return
+	if [ -n "$(echo "$_opt" | egrep '^[0-9]')" ]; then
+		[ -n "$eck" ] && debug -d -- bck mdadm
+		if [ ! -f /etc/mdadm.conf ]; then
+			_device="$(ls /dev/sd*$_opt)" || _device='/dev/sd*??'
+			echo DEVICE $_device     >>/etc/mdadm.conf
+			echo ARRAY  $_dev $_uuid >>/etc/mdadm.conf
+		fi
+		_conf="--scan --config=/etc/mdadm.conf"
+		debug -d -- mdadm --assemble ${_uuid:+--uuid=${_uuid#*=}} $_conf $_dev
+	else 
+		[ -n "$eck" ] && debug -d -- bck dmraid
+		debug -d -- dmraid -ay -i -I ${_opt:+-f$_opt}
 	fi
-	[ -f /etc/mdadm.conf ] && _conf="--config=/etc/mdadm.conf"
-	debug -d -- mdadm --assemble --scan "$_dev" $_conf
+	debug -d -- test -b $_dev
+	eval ${2:-md}=$_dev
 }
 
 squashd() {
@@ -290,17 +297,17 @@ squashd() {
 }
 rootfs() {
 	debug -d "iroot=<PV|VG-LV>[:<c>:<fs>] argument is missing" test -n "$iroot"
-	local _fscf _dev=${iroot%%:*}
+	local _fscf _dev dev=${iroot%%:*}
 	local _fsck="$(echo "$iroot" | cut -d':' -f2)"
 	local _fs="$(echo "$iroot" | cut -d':' -f3)"
 :	local ${_lvm:=$(echo "$ilvm" | cut -d',' -f1)}
 :	local ${_raid:=$(echo "$iraid" | cut -d',' -f1)}
 	debug -d -- getkey "$ikroot" "root"
 	shrl 3d
-	[ -n "$_raid" ] && mdopen "$_raid"
-	if [ -n "$_lvm" ]; then debug -d -- lvopen "$_dev" "$_lvm" "_dev"
+	[ -n "$_raid" ] && mdopen "$_raid" "_dev"
+	if [ -n "$_lvm" ]; then debug -d -- lvopen "$dev" "$_lvm" "_dev"
 	elif [ -n "$kmode" ]; then debug -d -- dmopen "${map:-root}-$iroot" "_dev"
-	else debug -d -- _blkid "$_dev" "_dev"; fi
+	else debug -d -- _blkid "$dev" "_dev"; fi
 	shrl 3f
 	if [ -n "$_fsck" ]; then 
 		[ "$_fsck" = "n" ] || [ "$_fsck" = "no" ] && _fscf="-e" || _fscf="-d"
@@ -321,15 +328,15 @@ rootfs() {
 
 swap() {
 	debug -d "i$1=<type>:<PV|VG-LV>[:<sign>] argument is missing" test -n "$2"
-	local _swp="$3"  _type="${1%%:*}"
-	local _dev="$(echo "$1" | cut -d':' -s -f2)" 
+	local _swp="$3" _type="${1%%:*}" _dev
+	local dev="$(echo "$1" | cut -d':' -s -f2)" 
 	local _sign="$(echo "$1" | cut -d':' -s -f3)"
 	debug -d -- getkey "$2" "$_swp"
-	[ -n "$_raid" ] && debug -d -- mdopen "$_raid"
-	if [ -n "$_lvm" ]; then debug -d -- lvopen "$_hdev" "$_lvm" "_dev"
-	elif [ -n "$kmode" ]; then debug -d -- dmopen "$_swp-$_dev" "_dev"
-	else debug -d -- _blkid "$_dev" "_dev"; fi
-	[ -n "$4" ] && eval $4=$_type:$_dev${_sign+:$_sign}
+	[ -n "$_raid" ] && debug -d -- mdopen "$_raid" "_dev"
+	if [ -n "$_lvm" ]; then debug -d -- lvopen "$dev" "$_lvm" "_dev"
+	elif [ -n "$kmode" ]; then debug -d -- dmopen "$_swp-$dev" "_dev"
+	else debug -d -- _blkid "$dev" "_dev"; fi
+	[ -n "$4" ] && eval ${4:-swp}=$_type:$_dev${_sign+:$_sign}
 	eval i$1= ik$1=; kmode=
 }
 
