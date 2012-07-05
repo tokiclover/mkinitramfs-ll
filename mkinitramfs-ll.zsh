@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.6 2012/07/02 15:55:50 -tclover Exp $
-revision=0.9.6
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.8 2012/07/05 22:51:33 -tclover Exp $
+revision=0.9.8
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -26,7 +26,7 @@ usage() {
   -q|-sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -R|-regen               regenerate a new initramfs from an old dir with newer init
   -y|-keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
-  -r|-raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
+     -mdadm               add mdadm support, copy mdadm.conf and mdadm binary
   -u|-usage               print this help or usage message and exit
   -v|-version             print version string and exit
 
@@ -52,13 +52,13 @@ addnodes() {
 	for nod ($(seq 0 6)) [[ -c dev/tty${nod} ]] || mknod -m 600 dev/tty${nod} c 4 ${nod} || die
 }
 zmodload zsh/zutil
-zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: r raid \
+zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: mdadm \
 	k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage \
 	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: \
-	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks R regen || usage
+	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
-	print "${(%):-%1x}-$revision"; exit 0 }
+	print "${(%):-%1x}-$revision"; exit }
 if [[ -z ${opts[*]} ]] { typeset -A opts }
 setopt EXTENDED_GLOB NULL_GLOB
 :	${opts[-kversion]:=${opts[-k]:-$(uname -r)}}
@@ -149,9 +149,8 @@ if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] {
 	for fs ({au,squash}fs) 
 		[[ -n ${(pws,:,)opts[(rw)${fs},-msqfsd]} ]] || opts[-msqfsd]+=:${fs}
 }
-if [[ -n ${(k)opts[-raid]} ]] || [[ -n ${(k)opts[-r]} ]] { 
-	opts[-bin]+=:mdadm.static:mdadm
-	cp /etc/mdadm.conf etc/ &>/dev/null || warn "failed to copy /etc/mdadm.conf"
+if [[ -n ${(k)opts[-mdadm]} ]] { opts[-bin]+=:mdadm
+	cp {/,}etc/mdadm.conf &>/dev/null || warn "failed to copy /etc/mdadm.conf"
 }
 addmodule() {
 	local ret
