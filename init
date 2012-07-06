@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/06 09:32:40 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/06 09:49:13 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -262,7 +262,7 @@ lvopen() {
 
 mdopen() {
 	local _dev=$(echo "${1%*+}" | cut -s -d- -f1) _opt=$(echo "$1" | cut -d+ -f2)
-	local _conf _device _set _uuid="$(echo "${1#*-}" | cut -d'+' -f2)"
+	local _conf _device _set _uuid="$(echo "${1#*-}" | cut -s -d'+' -f1)"
 	if [ -n "$(echo "$_opt" | egrep '^[0-9]')" ]; then
 		[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
 		[ -b "$_dev" ] && return
