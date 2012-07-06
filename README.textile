@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.9.8 2012/07/06 08:18:39 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.9.8 2012/07/06 08:54:19 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -90,14 +90,16 @@ h3. About RAID array
 
 iraid argument can take up to 3 comma separated list of RAID arrays: the 1st for root, 2nd for swap
 and the 3rd for resume. Each argument is of  the forme @<array>-UUID=<uuid>+<opt>@. @<opt>@ is either
-a partition number for mdadm softare raid used to: @echo ARRAY <array> <uuid> >>/etc/mdadm.conf@ or
-@echo ARRAY <array> devices=/dev/sd?<opt> >> /etc/mdadm.conf@; or else, nothing for mdraid software raid.
+a partition number for mdadm softare raid used to: @echo ARRAY <array> <uuid> >>/etc/mdadm.conf@ or rather
+@echo ARRAY <array> devices=/dev/sd?<opt> >> /etc/mdadm.conf@; or else, an optional @<opt>@ can be software 
+(ata)raid metadata format used to scan raid set and subset (e.g. asr|..|isw|jmicron|..|dos see @mdraid -l@).
 
 Either, one can embed an optional @/etc/mdadm.conf@ in the initramfs, so one could use 
 @iraid=md0-UUID=<uuid>+1,md1-UUID=<uuid>+2,md2-UUID=<uuid>+3@ to enable 3 arrays for root, 
 swap and resume when using mdadm software raid. 
-Either way, one can omit to embed one and use either: @iraid=[md<n>-]UUID=<uuid>+<opt>@, @md<n>@ is optional.
-dmraid software raid can be passed like @iraid=UUID=<uuid>+isw:dos@, ':' as a seperator for metadata format.
+
+Either way, one can omit to embed one and use either: @iraid=md<n>-UUID=<uuid>+<opt>@, @md<n>@ is an array.
+dmraid software raid can be passed like @iraid=<array>-UUID=<uuid>+isw:dos@, ':' as a seperator for metadata.
 
 h3. 4. About LVM argument
 

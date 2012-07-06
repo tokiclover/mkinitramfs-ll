@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/06 08:28:17 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/06 08:54:23 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -262,7 +262,7 @@ lvopen() {
 
 mdopen() {
 	local _dev=$(echo "${1%*+}" | cut -s -d- -f1) _opt=$(echo "$1" | cut -d+ -f2)
-	local _conf _device _uuid="$(echo "${1#*-}" | cut -d'+' -f2)"
+	local _conf _device _set _uuid="$(echo "${1#*-}" | cut -d'+' -f2)"
 	if [ -n "$(echo "$_opt" | egrep '^[0-9]')" ]; then
 		[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
 		[ -b "$_dev" ] && return
@@ -277,7 +277,12 @@ mdopen() {
 		[ -n "$eck" ] && debug -d -- bck dmraid
 		[ -n "$(echo $_dev | grep /dev/mapper)" ] || _dev=/dev/mapper/$_dev
 		[ -b "$_dev" ] && return
-		debug -d -- dmraid -ay -i -I ${_dev##*/}
+		for _f in $(echo "$opt" | sed 's/:/ /g'); do
+			_set+=" $(dmraid -s -s $_f)"
+		done
+		for _s in ${_dev##*/} $_set; do
+			debug -d -- dmraid -ay -i -I $_s
+		done
 	fi
 	debug -d -- test -b $_dev
 	eval ${2:-md}=$_dev
