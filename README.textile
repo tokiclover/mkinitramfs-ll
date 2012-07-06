@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.9.10 2012/07/06 11:00:58 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.9.10 2012/07/06 11:33:36 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -54,7 +54,7 @@ booting from there.
 * @ilvm=<map-PV>,...,<map-PV>@   -> LVM argument @<mapping-PV>@ is collon ':' separated 
 list of PVs of a VG; and comma ',' separated list of VG: 1st for root, 2nd for swap and 
 the 3rd for resume, hence one can append enough commas to asign a particular group.
-* @iraid=mdN[-UUID=<uuid>+<N>]@  -> comma separated list of arrays for root, swap and resume.
+* @iraid=<array>+UUID=<uuid>[<p>|+<fmt>]@  -> comma separated list of arrays for root, swap and resume.
 * @iswap=<type>:<VG-LV>[:signature]@       -> e.g. @iswap=swap:sda2@ for a swap device.
 * @iresume=<type>:<VG-LV>[:signature]@     -> e.g. @iresume=file:<VG-LV>:0x4400@ for a swapfile.
 * @ikroot=<mode>:<device>:</path/to/file>@ -> ikroot for root keyfile or password.
