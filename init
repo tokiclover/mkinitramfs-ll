@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/06 09:02:14 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/06 09:32:40 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -267,10 +267,8 @@ mdopen() {
 		[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
 		[ -b "$_dev" ] && return
 		[ -n "$eck" ] && debug -d -- bck mdadm
-		if [ ! -f /etc/mdadm.conf ]; then
-			echo ARRAY $_dev $_uuid                     >>/etc/mdadm.conf
-			echo ARRAY $_dev devices=/dev/sd?${_opt:-*} >>/etc/mdadm.conf
-		fi
+		if [ -n "$_uuid" ]; then echo ARRAY $_dev $_uuid >>/etc/mdadm.conf
+		else echo ARRAY $_dev devices=/dev/sd?${_opt:-*} >>/etc/mdadm.conf;	fi
 		_conf="--config=/etc/mdadm.conf"
 		debug -d -- mdadm --assemble ${_uuid:+--uuid=${_uuid#*=}} $_conf $_dev
 	else
