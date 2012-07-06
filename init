@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/05 14:45:28 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.8 2012/07/06 00:23:48 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -263,18 +263,19 @@ lvopen() {
 mdopen() {
 	local _dev=$(echo "${1%*+}" | cut -s -d- -f1) _opt=$(echo "$1" | cut -d+ -f2)
 	local _conf _device _uuid="$(echo "${1#*-}" | cut -d'+' -f2)"
-	debug _blkid "$_uuid" "${2-md}" && return
+	[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
+	[ -b "$_dev" ] && return
 	if [ -n "$(echo "$_opt" | egrep '^[0-9]')" ]; then
 		[ -n "$eck" ] && debug -d -- bck mdadm
 		if [ ! -f /etc/mdadm.conf ]; then
-			_device="$(ls /dev/sd*$_opt)" || _device='/dev/sd*??'
-			echo DEVICE $_device     >>/etc/mdadm.conf
-			echo ARRAY  $_dev $_uuid >>/etc/mdadm.conf
+			echo ARRAY $_dev $_uuid                     >>/etc/mdadm.conf
+			echo ARRAY $_dev devices=/dev/sd?${_opt:-*} >>/etc/mdadm.conf
 		fi
-		_conf="--scan --config=/etc/mdadm.conf"
+		_conf="--config=/etc/mdadm.conf"
 		debug -d -- mdadm --assemble ${_uuid:+--uuid=${_uuid#*=}} $_conf $_dev
 	else
 		[ -n "$eck" ] && debug -d -- bck dmraid
+		[ -n "$(echo $_dev | grep mapper)" ] || _dev=${_dev/dev/dev\/mapper}
 		_opt=$(echo "$_opt" | sed 's/:/,/g')
 		debug -d -- dmraid -ay -i -I ${_opt:+-f$_opt}
 	fi

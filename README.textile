@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.9.8 2012/07/05 14:45:21 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.9.8 2012/07/06 00:49:42 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -89,10 +89,10 @@ h3. About RAID array
 *Note*: raid array can be used as the underlaying pyshical device of unencrypted or not with LVM on top.
 
 iraid argument can take up to 3 comma separated list of RAID arrays: the 1st for root, 2nd for swap
-and the 3rd for resume. Each argument is of  the forme @[array-]UUID=<uuid>+<opt>@. @<opt>@ is either
-a partition number for mdadm softare raid used to: @echo DEVICE $(ls /dev/sd*<opt>) >> /etc/mdadm.conf@;
-or else, @<opt>@ is a mdraid software (ata)raid metadata format used to scan raid arrays
-(e.g. asr|..|isw|jmicron|nvidia|sil|via|dos see @mdraid -l@): @mdraid -ay -f<opt> ...@.
+and the 3rd for resume. Each argument is of  the forme @<array>-UUID=<uuid>+<opt>@. @<opt>@ is either
+a partition number for mdadm softare raid used to: @echo ARRAY <array> <uuid> >>/etc/mdadm.conf@ or
+@echo ARRAY <array> devices=/dev/sd?<opt> >> /etc/mdadm.conf@; or else, @<opt>@ is a mdraid software 
+(ata)raid metadata format used to scan raid arrays (e.g. asr|..|isw|jmicron|..|dos see @mdraid -l@).
 
 Either, one can embed an optional @/etc/mdadm.conf@ in the initramfs, so one could use 
 @iraid=md0-UUID=<uuid>+1,md1-UUID=<uuid>+2,md2-UUID=<uuid>+3@ to enable 3 arrays for root, 
