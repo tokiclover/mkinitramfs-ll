@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.9.8 2012/07/06 10:20:20 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.9.10 2012/07/06 10:53:01 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -89,12 +89,13 @@ h3. About RAID array
 *Note*: raid array can be used as the underlaying pyshical device of unencrypted or not with LVM on top.
 
 iraid argument can take up to 3 comma separated list of RAID arrays: the 1st for root, 2nd for swap
-and the 3rd for resume. Each argument is of  the forme @<array>+UUID=<uuid>[|<format>]@. @<format>@ is a
-metadata format used to scan dmraid set and subset software (ata)raid.
+and the 3rd for resume. Each argument is of  the forme @<array>+UUID=<uuid>[|<part>|<format>]@. @<format>@ is a
+metadata format used to scan dmraid set and subset software (ata)raid and part a partiton number.
 
 Either way, one can use mdadm software raid like @iraid=md<n>+UUID=<uuid>@ and optionaly embed or not an config
 file @/etc/mdadm.conf@. Or else, @iraid@ is sufficient to enable arrays: 
-@echo ARRAY <array> <uuid> >> /etc/mdadm.conf@.
+@echo ARRAY <array> <uuid> >> /etc/mdadm.conf@; or else, @iraid=md<n>+<part>@ to enable:
+@echo ARRAY <array> devices=/dev/sd?<part> >> /etc/mdadm.conf@.
 
 Or else, an optional @<format>@ can be used to enable mdraid software (ata)raid e.g. @asr|..|isw|jmicron|..|dos@
 see @mdraid -l@. dmraid software raid can be passed like @iraid=<array>+isw:dos@, ':' as a metadata seperator.
