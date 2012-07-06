@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.8 2012/07/05 22:51:38 -tclover Exp $
-revision=0.9.8
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.10 2012/07/06 12:08:33 -tclover Exp $
+revision=0.9.10
 usage() {
   cat <<-EOF
   usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
@@ -26,7 +26,6 @@ usage() {
   -q, --sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -r, --regen               regenerate a new initramfs from an old dir with newer init
   -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
-      --mdadm               add mdadm support, copy mdadm.conf and mdadm binary
   -u, --usage               print this help or usage message and exit
   -v, --version             print version string and exit
 
@@ -54,7 +53,7 @@ addnodes() {
 }
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev:: \
 	  -l mtuxonice::,sqfsd,toi,usage,usrdir::,version \
-	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,mdadm,regen \
+	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,regen \
 	  -o ab:c::d::f::gk::lLm::p::rs::tuvy::W:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
@@ -63,7 +62,6 @@ while [[ $# > 0 ]]; do
 		-v|--version) echo "${0##*/}-$revision"; exit 0;;
 		-a|--all) opts[-sqfsd]=y; opts[-gpg]=y; opts[-toi]=y;
 			opts[-lvm]=y; opts[-luks]=y; shift;;
-		--mdadm) opts[-mdadm]=y; shift;;
 		-R|--regen) opts[-regen]=y; shift;;
 		-q|--sqfsd) opts[-sqfsd]=y; shift;;
 		-b|--bin) opts[-bin]+=:${2}; shift 2;;
@@ -173,9 +171,6 @@ if [[ -n "${opts[-lvm]}" ]]; then opts[-bin]+=:lvm.static
 		do ln -sf lvm ${lpv} || die
 	done
 	popd
-fi
-if [[ -n "${opts[-mdadm]}" ]]; then opts[-bin]+=:mdadm
-	cp {/,}etc/mdadm.conf &>/dev/null || warn "failed to copy /etc/mdadm.conf"
 fi
 addmodule() {
 	local ret

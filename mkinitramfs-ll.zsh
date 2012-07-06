@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.8 2012/07/05 22:51:33 -tclover Exp $
-revision=0.9.8
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.10 2012/07/06 12:08:36 -tclover Exp $
+revision=0.9.10
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -26,7 +26,6 @@ usage() {
   -q|-sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -R|-regen               regenerate a new initramfs from an old dir with newer init
   -y|-keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
-     -mdadm               add mdadm support, copy mdadm.conf and mdadm binary
   -u|-usage               print this help or usage message and exit
   -v|-version             print version string and exit
 
@@ -52,7 +51,7 @@ addnodes() {
 	for nod ($(seq 0 6)) [[ -c dev/tty${nod} ]] || mknod -m 600 dev/tty${nod} c 4 ${nod} || die
 }
 zmodload zsh/zutil
-zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: mdadm \
+zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
 	k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage \
 	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: \
 	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen || usage
@@ -148,9 +147,6 @@ if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] {
 	opts[-bin]+=:mount.aufs:umount.aufs
 	for fs ({au,squash}fs) 
 		[[ -n ${(pws,:,)opts[(rw)${fs},-msqfsd]} ]] || opts[-msqfsd]+=:${fs}
-}
-if [[ -n ${(k)opts[-mdadm]} ]] { opts[-bin]+=:mdadm
-	cp {/,}etc/mdadm.conf &>/dev/null || warn "failed to copy /etc/mdadm.conf"
 }
 addmodule() {
 	local ret
