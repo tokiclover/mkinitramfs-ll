@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.9 2012/07/06 10:02:07 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.9.9 2012/07/06 10:26:38 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -261,12 +261,12 @@ lvopen() {
 }
 
 mdopen() {
-	local _dev=${1%*+} _conf=-c/etc/mdadm.conf _device _opt=${1#*+} _set
+	local _dev=${1%*+} _device _opt=$(echo "${1}" | cut -d+ -f2) _set
 	if [ -n "$(echo "$_opt" | grep -i uuid)" ]; then
 		[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
 		[ -b "$_dev" ] && return
 		[ -n "$eck" ] && debug -d -- bck mdadm
-		echo ARRAY $_dev $_uuid >>/etc/mdadm.conf
+		echo ARRAY $_dev $_uuid >>/etc/mdadm.conf && _conf=-c/etc/mdadm.conf
 		debug -d -- mdadm --assemble -u${_opt#*=} $_conf $_dev
 	else
 		[ -n "$eck" ] && debug -d -- bck dmraid
