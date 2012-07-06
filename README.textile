@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.9.8 2012/07/06 10:18:51 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.9.8 2012/07/06 10:20:20 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -97,7 +97,7 @@ file @/etc/mdadm.conf@. Or else, @iraid@ is sufficient to enable arrays:
 @echo ARRAY <array> <uuid> >> /etc/mdadm.conf@.
 
 Or else, an optional @<format>@ can be used to enable mdraid software (ata)raid e.g. @asr|..|isw|jmicron|..|dos@
-see @mdraid -l@. dmraid software raid can be passed like @iraid=<array>+isw:dos@, ':' as a seperator.
+see @mdraid -l@. dmraid software raid can be passed like @iraid=<array>+isw:dos@, ':' as a metadata seperator.
 
 h3. 4. About LVM argument
 
