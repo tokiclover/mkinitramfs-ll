@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.9.10 2012/07/06 12:08:36 -tclover Exp $
-revision=0.9.10
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.0 2012/07/07 15:03:38 -tclover Exp $
+revision=0.10.0
 usage() {
   cat <<-EOF
   usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -78,7 +78,7 @@ if [[ -n ${(k)opts[-f]} ]] || [[ -n ${(k)opts[-font]} ]] {
 if [[ -n $(uname -m | grep 64) ]] { opts[-arc]=64 } else { opts[-arc]=32 }
 if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] { 
-	opts[-g]=; opts[-l]=; opts[-s]=; opts[-t]=; opts[-q]=; opts[-L]=;
+	opts[-g]=; opts[-l]=; opts[-q]=; opts[-L]=;
 }
 case ${opts[-comp][(w)1]} in
 	bzip2)	opts[-initramfs]+=.cpio.bz2;;
@@ -180,7 +180,7 @@ for font (${(pws,:,)opts[-font]} ${(pws,:,)opts[-f]}) {
 	}
 }
 if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] { opts[-bin]+=:splash_util.static
-	if [[ -n ${(k)opts[-tuxonice]} ]] || [[ -n ${(k)opts[-t]} ]] { opts[-bin]+=:tuxoniceui_text }
+	if [[ -n ${(k)opts[-toi]} ]] || [[ -n ${(k)opts[-t]} ]] { opts[-bin]+=:tuxoniceui_text }
 	for theme (${(pws,:,)opts[-splash]} ${(pws,:,)opts[-s]})
 		if [[ -d etc/splash/${theme} ]] { :;  
 		} elif [[ -d /etc/splash/${theme} ]] { cp -ar {/,}etc/splash/${theme}
@@ -201,7 +201,9 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 	if [[ -x usr/bin/${bin:t} ]] || [[ -x usr/sbin/${bin:t} ]] ||
 	[[ -x bin/${bin:t} ]] || [[ -x sbin/${bin:t} ]] { :;
 	} elif [[ -x ${bin} ]] { bcp ${bin}
-	} else { bcp $(which ${bin:t}) }
+	} else { which ${bin:t} &>/dev/null && bcp $(which ${bin:t}) ||
+		warn "no ${bin} binary found"
+	}
 gen || die
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
 unset opts

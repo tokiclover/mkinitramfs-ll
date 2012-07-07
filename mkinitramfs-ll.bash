@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.9.10 2012/07/06 12:08:33 -tclover Exp $
-revision=0.9.10
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.0 2012/07/07 15:03:36 -tclover Exp $
+revision=0.10.0
 usage() {
   cat <<-EOF
   usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
@@ -60,7 +60,7 @@ eval set -- "$opt"
 while [[ $# > 0 ]]; do
 	case $1 in
 		-v|--version) echo "${0##*/}-$revision"; exit 0;;
-		-a|--all) opts[-sqfsd]=y; opts[-gpg]=y; opts[-toi]=y;
+		-a|--all) opts[-sqfsd]=y; opts[-gpg]=y;
 			opts[-lvm]=y; opts[-luks]=y; shift;;
 		-R|--regen) opts[-regen]=y; shift;;
 		-q|--sqfsd) opts[-sqfsd]=y; shift;;
@@ -234,7 +234,9 @@ for bin in ${opts[-bin]//:/ }; do
 	if [[ -x usr/bin/${bin##*/} ]] || [[ -x usr/sbin/${bin##*/} ]] ||
 	[[ -x bin/${bin##*/} ]] || [[ -x sbin/${bin##*/} ]]; then :;
 	elif [[ -x ${bin} ]]; then bcp ${bin}
-	else bcp $(which ${bin##*/}); fi
+	else which ${bin##*/} &>/dev/null && bcp $(which ${bin##*/}) ||
+		warn "no ${bin} binary found"
+	fi
 done
 gen || die
 echo ">>> ${opts[-initramfs]} initramfs built"
