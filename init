@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.0 2012/07/08 03:59:19 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.0 2012/07/08 15:59:11 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -444,7 +444,7 @@ switch() {
 	debug -d -- umount -l /dev
 	debug -e -- umount -l /run
 	shrl 4s
-	debug -d -- $sh -c exec switch_root /newroot ${init:-/sbin/init} $rirl
+	debug -d -- exec switch_root /newroot ${init:-/sbin/init} $rirl
 }
 
 main() {
