@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/usr/README.textile,v 0.9.6 2012/07/03 12:41:02 -tclover Exp $@
+@$Header: mkinitramfs-ll/usr/README.textile,v 0.10.0 2012/07/08 02:55:28 -tclover Exp $@
 
 This where user extra files (binaries, man pages, info and scripts (to [usr/]etc/mkinitramfs-ll.d))
 files are stored relatively from this dir,just like in @/usr@.
@@ -8,5 +8,7 @@ a init runlevel and a `.sh' suffix to be correctly executed in the right run lev
 
 *Note*: [usr/bin/]busybox and its optional applets--@[usr/etc/mkinitramfs-ll/]busybox.app@--
 and @[usr/etc/]mdev.conf@ are stored in this directory as well.
+
+*Note*: a [usr/]etc/profile can be used to set up global env variables or a profile in other words.
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
