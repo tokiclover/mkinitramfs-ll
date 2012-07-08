@@ -1,8 +1,9 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/autogen.bash,v 0.9.1 2012/06/20 19:32:15 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.bash,v 0.10.0 2012/07/08 11:45:19 -tclover Exp $
 usage() {
   cat <<-EOF
-  usage: ${0##*/} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
+ usage: ${0##*/} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
+
   -a, --all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
   -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
   -k, --kversion 3.3.2-git  build an initramfs for kernel 3.4.3-git or else \$(uname -r)
@@ -24,29 +25,28 @@ usage() {
   -s, --splash [:<theme>]   include a colon separated list of splash themes to the initramfs
   -t, --toi                 add tuxonice support for splash, require tuxoniceui_text binary
   -q, --sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
-  -R, --regen               regenerate a new initramfs from an old dir with newer init
+  -r, --regen               regenerate a new initramfs from an old dir with newer init
   -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
-  -r, --raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
   -C, --confdir <dir>       use <dir> copy gpg.conf, GnuPG configuration file
   -u, --usage               print this help or usage message and exit
 
-  usage: runned without arguments, build an initramfs for kernel \$(uname -r)
-  build an initramfs after building gnupg/busybox binaries with AUFS/LVM/GPG support:
-  ${0##*/} --all --font --keymap --gpg
+ usage: without additional arguments, generate an initramfs for kernel \$(uname -r)
+ usgae: generate an initramfs with LUKS, GnuPG, LVM2 and aufs+squashfs support
+ ${0##*/} --all --font --keymap --gpg
 EOF
 exit $?
 }
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev:: \
 	  -l mtuxonice::,sqfsd,toi,usage,usrdir::,version,confdir:,minimal \
-	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,raid,regen \
-	  -o ab:c::d::f::gk::lLm::p::rRs::tuvy::W::C:n -n ${0##*/} -- "$@" || usage)
+	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,regen \
+	  -o ab:c::d::f::gk::lLm::p::rs::tuvy::W::C:n -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
 		-t|--toi) opts[-toi]=y; shift;;
 		-g|--gpg) opts[-gpg]=y; shift;;
-		-r|--raid) opts[-raid]=y; shift;;
+		-r|--regen) opts[-regen]=y; shift;;
 		-q|--sqfsd) opts[-sqfsd]=y; shift;;
 		-a|--all) opts[-sqfsd]=y; opts[-gpg]=y; 
 		 opts[-lvm]=y; opts[-toi]=y; shift;;

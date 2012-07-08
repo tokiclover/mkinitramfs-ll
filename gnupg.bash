@@ -1,8 +1,9 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/gnupg.bash,v 0.9.1 2012/06/20 12:03:46 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.bash,v 0.10.0 2012/07/08 11:45:24 -tclover Exp $
 usage() {
   cat <<-EOF
-  usage: ${0##*/} [-d|--usrdir=usr] [options]
+ usage: ${0##*/} [-d|--usrdir=usr] [options]
+
   -d, --usrdir [usr]     copy binary and options.skel files to usr/
   -W, --wokdir [<dir>]   working directory where to create initramfs directory
   -U, --useflag flags    extra USE flags to append to USE="nls static"

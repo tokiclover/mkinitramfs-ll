@@ -1,8 +1,9 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.9.1 2012/06/19 21:44:15 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.10.0 2012/07/08 11:45:31 -tclover Exp $
 usage() {
   cat <<-EOF
-  usage: ${(%):-%1x} [-m|-minimal] [-ucl i386]
+ usage: ${(%):-%1x} [-m|-minimal] [-ucl i386]
+
   -d|-usrdir [usr]        copy busybox binary file to usr/bin
   -n|-minimal             build busybox with minimal applets, default is full applets
      -ucl i386            arch string needed to build busybox against uClibc	

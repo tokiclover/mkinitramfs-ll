@@ -1,8 +1,9 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/gnupg.zsh,v 0.9.0 2012/06/20 12:03:49 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.zsh,v 0.10.0 2012/07/08 11:45:26 -tclover Exp $
 usage() {
   cat <<-EOF
-  usage: ${(%):-%1x} [-d|--usrdir=usr] [options]
+ usage: ${(%):-%1x} [-d|--usrdir=usr] [options]
+
   -d|-usrdir [usr]       copy binary and options.skel files to usr/
   -C|-confdir <dir>      copy gpg.conf, GnuPG configuration file, from dir
   -W|-wokdir  [<dir>]    working directory where to create initramfs directory

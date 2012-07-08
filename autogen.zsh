@@ -1,8 +1,9 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/autogen.zsh,v 0.9.1 2012/06/20 19:32:17 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.zsh,v 0.10.0 2012/07/08 11:45:17 -tclover Exp $
 usage() {
   cat <<-EOF
-  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
+ usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
+
   -a|-all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
   -f|-font [:ter-v14n]    include a colon separated list of fonts to the initramfs
   -k|-kversion 3.3.2-git  build an initramfs for kernel 3.4.3-git or else \$(uname -r)
@@ -26,13 +27,12 @@ usage() {
   -q|-sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -R|-regen               regenerate a new initramfs from an old dir with newer init
   -y|-keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
-  -r|-raid                add RAID support, copy /etc/mdadm.conf and mdadm binary
   -C|-confdir <dir>       use <dir> copy gpg.conf, GnuPG configuration file
   -u|-usage               print this help or usage message and exit
 
-  usage: runned without arguments, build an initramfs for kernel \$(uname -r)
-  build an initramfs after building gnupg/busybox binaries with AUFS/LVM/GPG support:
-  ${(%):-%1x} -all -font -keymap -gpg
+ usage: runned without arguments, build an initramfs for kernel \$(uname -r)
+ usgae: generate an initramfs with LUKS, GnuPG, LVM2 and aufs+squashfs support
+ ${(%):-%1x} -all -font -keymap -gpg
 EOF
 exit 0
 }
@@ -40,10 +40,10 @@ error() { print -P "%B%F{red}*%b%f $@"; }
 die()   { error $@; exit 1; }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 zmodload zsh/zutil
-zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: r raid \
+zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
 	k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage C: confdir: n minimal \
 	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: \
-	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks R regen || usage
+	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
