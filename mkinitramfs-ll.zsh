@@ -1,12 +1,13 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.0 2012/07/08 02:08:19 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.0 2012/07/08 11:45:44 -tclover Exp $
 revision=0.10.0
 usage() {
   cat <<-EOF
-  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
+ usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
+
   -a|-all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
   -f|-font [:ter-v14n]    include a colon separated list of fonts to the initramfs
-  -k|-kversion 3.3.2-git  build an initramfs for kernel 3.4.3-git or else \$(uname -r)
+  -k|-kversion 3.4.4-git  build an initramfs for kernel 3.4.4-git or else \$(uname -r)
   -c|-comp ['gzip -9']    use 'gzip -9' command instead default compression command
   -L|-luks                add LUKS support, require a sys-fs/cryptsetup[static] binary
   -l|-lvm                 add LVM support, require a static sys-fs/lvm2[static] binary
@@ -29,9 +30,9 @@ usage() {
   -u|-usage               print this help or usage message and exit
   -v|-version             print version string and exit
 
-  usage: without an argument, build an initramfs for kernel \$(uname -r)
-  build with LUKS/GPG/LVM2/AUFS2 support for 3.4.3-git kernel with font and keymap:
-  ${(%):-%1x} -a -f -y -k3.4.3-git
+ usage: without an argument, generate an default initramfs for kernel \$(uname -r)
+ usgae: generate an initramfs with LUKS, GnuPG, LVM2 and aufs+squashfs support
+ ${(%):-%1x} -a -f -y -k$(uname -r)
 EOF
 exit 0
 }
@@ -89,7 +90,7 @@ case ${opts[-comp][(w)1]} in
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
 gen() { find . -print0 | cpio -0 -ov -Hnewc | ${=opts[-comp]} > ${opts[-initramfs]} }
-if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-R]} ]] {
+if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
 	[[ -d ${opts[-initramfsdir]} ]] || die "${opts[-initramfsdir]}: no old initramfs dir"
 	print -P "%F{green}>>> regenerating ${opts[-initramfs]}...%f"
 	pushd ${opts[-initramfsdir]} || die
