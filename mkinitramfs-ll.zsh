@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.0 2012/07/07 15:03:38 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.0 2012/07/08 02:08:19 -tclover Exp $
 revision=0.10.0
 usage() {
   cat <<-EOF
@@ -179,7 +179,8 @@ for font (${(pws,:,)opts[-font]} ${(pws,:,)opts[-f]}) {
 		mv ${font}* usr/share/consolefonts/
 	}
 }
-if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] { opts[-bin]+=:splash_util.static
+if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] { 
+	opts[-bin]+=:splash_util.static:fbcondecor_helper
 	if [[ -n ${(k)opts[-toi]} ]] || [[ -n ${(k)opts[-t]} ]] { opts[-bin]+=:tuxoniceui_text }
 	for theme (${(pws,:,)opts[-splash]} ${(pws,:,)opts[-s]})
 		if [[ -d etc/splash/${theme} ]] { :;  

@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.0 2012/07/07 15:03:36 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.0 2012/07/08 02:08:16 -tclover Exp $
 revision=0.10.0
 usage() {
   cat <<-EOF
@@ -211,7 +211,8 @@ for font in ${opts[-font]//:/ }; do
 		mv ${font}* usr/share/consolefonts/
 	fi
 done
-if [[ -n "${opts[-splash]}" ]]; then opts[-bin]+=:splash_util.static
+if [[ -n "${opts[-splash]}" ]]; then
+	opts[-bin]+=:splash_util.static:fbcondecor_helper
 	[[ -n "${opts[-toi]}" ]] && opts[-bin]+=:tuxoniceui_text
 	for theme in ${opts[-splash]//:/ }; do 
 		if [[ -d etc/splash/${theme} ]]; then :; 
