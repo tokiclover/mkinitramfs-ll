@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.0 2012/07/08 02:49:25 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.0 2012/07/08 03:59:19 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -432,7 +432,7 @@ imount() {
 }
 
 switch() {
-	debug 'echo > /proc/sys/kernel/hotplug'
+	debug 'echo >/proc/sys/kernel/hotplug'
 	local _msg="Switching / ..."
 	info "$_msg"; msg "$_msg"
 	debug _stop
@@ -440,6 +440,7 @@ switch() {
 	shrl 4u
 	debug -d -- umount -l /proc
 	debug -d -- umount -l /sys
+	debug -d -- umount -l /dev/pts
 	debug -d -- umount -l /dev
 	debug -e -- umount -l /run
 	shrl 4s
@@ -513,7 +514,7 @@ _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
 	[ -f /etc/profile ] && . /etc/profile
-	debug -d -- mkdir -p dev proc run sys newroot mnt/tok
+	debug -d -- mkdir -p dev/pts proc run sys newroot mnt/tok
 	debug -d -- mount -t proc proc /proc
 	debug -d -- mount -t tmpfs -o mode=755 tmpfs /run
 	debug -d -- mkdir -p /run/log && logdir=/run/log
@@ -526,6 +527,8 @@ _init() {
 	if grep devtmpfs /proc/filesystems &>/dev/null; then
 		debug -d -- mount -t devtmpfs devtmpfs /dev
 	else debug -d -- mount -t tmpfs tmpfs /dev; fi
+	debug mount -t devpts -o gid=5,mode=0620 devpts /dev/pts
+	debug 'echo >/dev/mdev.seq'
 	debug -d -- mdev -s
 	debug -d -- 'echo /sbin/mdev > /proc/sys/kernel/hotplug'
 	if [ -n "$mod" ]; then local IFS="${IFS},"
