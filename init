@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.9.10 2012/07/06 10:50:13 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.0 2012/07/08 02:33:42 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -41,7 +41,7 @@ die() {
 	local _msg="Dropping into a rescueshell..."
 	debug umount -f -l /mnt/tok &>/dev/null
 	[ -n "$@" ] && error "$@" && msg "$@"
-	info "$_msg"; msg "$_msg"
+	info "$_msg"; msg "$_msg"; _stop
 	for _k in $ldk; do debug dmclose "$_k"; done
 	for _d in $ldv; do debug losetup -d "$_d"; done
 	debug rsh || debug exec $sh -i
@@ -82,16 +82,30 @@ msg() { [ $spld ] && debug cmd "set message $@" && debug cmd "repaint"; }
 
 _stop() { [ $spld ] && spld=1; debug cmd "exit"; }
 spld() {
-	[ -n "$(echo "$splash" | grep fadein)" ] && local _opt="-c set effects fadein"
-	mode=${splash%%,*} theme=${splash#*:}
+	[ "$eck" ] && for bin in fbcondecor_helper splash_util; do 
+		debug -d -- bck $bin
+	done
+	local IFS="${IFS}," _opt _opts cachedir event mode msg theme util
+	event="$(grep -Hsi keyboard /sys/class/input/input*/name | \
+		sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"
+	for _opt in $splash; do
+	case ${_opt%:*} in
+			fad*) _opts="set effects $_opt";;
+			silent|verbose) mode=$_opt     ;;
+			tty)  console=/dev/${_opt/:/\/};;
+			theme) theme=${_opt#*:}        ;;
+		esac
+	done
 	cachedir=/run/splash/cache
-	util=splash_util
-	export SPLASH_FIFO=$cachedir/.splash
-	[ "$eck" ] && debug bck $util
+	util=$(which splash_util)
+:	${BOOT_MSG:="Booting the system (\$progress%)... Press F2 for verbose mode."}
+	export BOOT_MSG SPLASH_FIFO=$cachedir/.splash
 	[ -d "$cachedir" ] || mkdir -p $cachedir
 	debug mkfifo $SPLASH_FIFO
-	debug $util $_opt -d -t "$theme" && spld=0
-	debug cmd "set event dev evdev"
+	debug $util -d -ms -t$theme && spld=0
+	[ -n "$_opts" ] && debug cmd $_opts
+	debug cmd "set event dev /dev/input/$event"
+	debug cmd "set autoverbose 0"
 	debug ${mode:-verbose}
 }
 
@@ -160,7 +174,7 @@ getkey() {
 		debug -d -- test -f "/mnt/tok/$_fp"
 	fi
 	case $_km in
-		gpg) [ "$eck" ] && bck "gpg"; kfile="/mnt/tok/$_fp"; kmode=gpg;;
+		gpg) [ "$eck" ] && debug -d -- bck "gpg"; kfile="/mnt/tok/$_fp"; kmode=gpg;;
 		reg) kfile="/mnt/tok/$_fp"; kmode=reg;;
 		ldk) [ -e "/dev/mapper/$_fn" ] || getldk "/mnt/tok/$_fp"; kmode=ldk;;
 		pwd) kmode=pwd;;
@@ -201,7 +215,7 @@ dmcrypt() {
 }
 
 dmopen() { 
-	[ "$eck" ] && bck "cryptsetup"
+	[ "$eck" ] && debug -d -- bck cryptsetup
 	local _arg=luksFormat _asw
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
@@ -246,7 +260,7 @@ dmopen() {
 }
 
 lvopen() {
-	[ "$eck" ] && bck "lvm"
+	[ "$eck" ] && debug -d -- bck lvm
 	local _lv=${1/-//}
 	if debug lvchange -ay $_lv; then :;
 	elif [ -n "$2" ]; then
@@ -498,6 +512,7 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
+	[ -f /etc/profile ] && . /etc/profile
 	debug -d -- mkdir -p dev proc run sys newroot mnt/tok
 	debug -d -- mount -t proc proc /proc
 	debug -d -- mount -t tmpfs -o mode=755 tmpfs /run

@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.9.10 2012/07/06 11:43:05 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.10.0 2012/07/08 02:43:46 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -173,7 +173,7 @@ h3. 7. Kernel parameters example
 
 *Note*: one can append any character or word like `ilvm=lvr` when using LVM on unencrypted PVs.
 * Root--key regular passphrase--and fbsplash: @iroot=sda3 ikroot=pwd video=1280x800-24 \@
-	@imod=drm,drm_kms_helper,ttm,i915 splash=verbose,theme:livecd-20007.0 console=tty1@
+	@imod=drm,drm_kms_helper,ttm,i915 splash=verbose,theme:livecd-20007.0,tty:1@
 * Root--regular keyfile--on usb stick: @iroot=sda3 ikroot=reg:sdb1:/path/to/keyfile@
 * Root--gpg encrypted key on usb stick: @iroot=sda3 ikroot=gpg:sdb1:/path/to/file@
 * Swap and root--ldk encrypted--keyfiles: @iroot=sda3 iswap=swap[|file]:sda2[:signature] \@
