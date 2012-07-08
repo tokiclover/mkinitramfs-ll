@@ -1,9 +1,9 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.9.1 2012/06/23 02:50:50 -tclover Exp $
-revision=0.9.1
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.10.0 2012/06/23 02:50:50 -tclover Exp $
+revision=0.10.0
 usage() {
   cat <<-EOF
-  usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d|--sqfsd=<dir>:<dir>
+ usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d|--sqfsd=<dir>:<dir>
 
   -r, --sqfsdir <dir>       overide default value of squashed rootdir 'sqfsdir=/sqfsd'
   -d, --sqfsd <dir>         squash colon seperated list of dir without the leading '/'
@@ -18,10 +18,10 @@ usage() {
   -u, --usage               print this help/usage and exit
   -v, --version             print version string and exit
 	
-  usages: speed up your system with aufs+squahfs by squashing a few dirs: 
-  ${0##*/} --remove -d var/db:var/cache/edb:\$PORTDIR
-  squash system related directories and update the underlaying sources dir:
-  ${0##*/} --update -d bin:sbin:lib32:lib64
+ usage: speed up your system with aufs+squahfs by squashing a few dirs: 
+ ${0##*/} --remove -d var/db:var/cache/edb:\$PORTDIR
+ usage: squash system related directories and update the underlaying sources dir:
+ ${0##*/} --update -d bin:sbin:lib32:lib64
 EOF
 exit $?
 }
