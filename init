@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.0 2012/07/08 02:33:42 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.0 2012/07/08 02:49:25 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -174,9 +174,9 @@ getkey() {
 		debug -d -- test -f "/mnt/tok/$_fp"
 	fi
 	case $_km in
-		gpg) [ "$eck" ] && debug -d -- bck "gpg"; kfile="/mnt/tok/$_fp"; kmode=gpg;;
+		gpg) [ "$eck" ] && debug -d -- bck gpg; kfile=/mnt/tok/$_fp; kmode=gpg;;
 		reg) kfile="/mnt/tok/$_fp"; kmode=reg;;
-		ldk) [ -e "/dev/mapper/$_fn" ] || getldk "/mnt/tok/$_fp"; kmode=ldk;;
+		ldk) [ -b "/dev/mapper/$_fn" ] || getldk "/mnt/tok/$_fp"; kmode=ldk;;
 		pwd) kmode=pwd;;
 		*)   die "$_km: keymode is invalid";; 
 	esac
