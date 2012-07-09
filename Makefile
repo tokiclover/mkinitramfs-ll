@@ -25,7 +25,7 @@ install:
 	install -pm 755 usr/lib/mdev/usbdisk_link $(datadir)/usr/lib/mdev
 
 install_bash:
-	sed -e "s:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g" \
+	sed -e "s:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g" -e 's,\./,,g' \
 		-i autogen.bash busybox.bash gnupg.bash $(PACKAGE).bash
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
@@ -35,7 +35,7 @@ install_bash:
 	install -pm 755 svc/sdr.bash      $(bindir)
 
 install_zsh:
-	sed -e "s:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g" \
+	sed -e "s:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g" -e 's,\./,,g' \ \
 		-i autogen.bash busybox.bash gnupg.bash $(PACKAGE).zsh
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
