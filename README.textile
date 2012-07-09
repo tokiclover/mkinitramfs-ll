@@ -92,7 +92,7 @@ metadata format used to scan dmraid set and subset software (ata)raid and @<part
 
 Either way, one can use mdadm software raid like @iraid=md<n>+UUID=<uuid>@ and optionaly 
 embed or not an config file @/etc/mdadm.conf@. Or else, @iraid@ is sufficient to enable arrays: 
-@echo ARRAY <array> <uuid> >> /etc/mdadm.conf@; or else, @iraid=md<n>+<part>@ to enable:
+@echo ARRAY <array> <uuid> >> /etc/mdadm.conf@; or else, @iraid=md<n>+<part>@ to enable arrays like:
 @echo ARRAY <array> devices=/dev/sd?<part> >> /etc/mdadm.conf@.
 
 Or else, an optional @<format>@ can be used to enable mdraid software (ata)raid e.g. @asr|..|isw|jmicron|..|dos@
@@ -110,14 +110,14 @@ mapping being a mapping name for cryptsetup and a block device|partition without
 * LV, PV, VG: Logical Volume, Physical Volume, Volume Group.
 * @map-PV@: colon separated list @<mapping-PV>@ e.g. @<pv1-sda1:pv2-sdb1:...>@ for a Volume Group,
 the 1st being for root, the 2nd for swap and the 3rd for resume;
-so this @ilvm=,swp-sdc1,@ asign a VG for swap VG only.
+so this @ilvm=,swp-sdc1,@ asign only a VG for swap.
 
 *NOTE*: for unencrypted PVs, there's no need to provide a list of PVs in ilvm argument. A single 
 character or word is enough to activate LVM like @ilvm=y@ for root.
 
 * PV list: now @<map-PV>@ [list] can be replaced with @</path/to/list>@ file, this require the 
 use of keyfile to decrypt PV, which means that a removable media or @/boot@ device is mounted. 
-List can be a line separated list insted of a collon @:@ list of the forme 
+List can be a line separated list insted of a collon @:@ of the forme:
 @<mapping-UUID=<uid>[+UUID=<uuid>]@ for an UUID list. One can mix UUID, LABEL and [h|s]d??* 
 in a list. However, it's best to use UUID only for detached header from cyphertext device which 
 prevent header mismatch. One can use multiple lists up to three, one for each group.
@@ -148,7 +148,7 @@ For partitions or PVs that are encrypted with a key, setting @ikroot@ and/or @ik
 *Notes on key modes*
 
 * @gpg@   : GnuPG encrypted keyfile support only gnupg-1.4*, passed as @gpg -qd /path/to/keyfile |@ 
-one can add a @/.gnupg/gpg.conf@ in the initramfs root to avoid its creattion on each boot 
+one can add a @/root/.gnupg/gpg.conf@ in the initramfs root to avoid its creattion on each boot 
 * @ldk@   : encrypted keyfile passed to cryptsetup as @-d /dev/mapper/$(basename /path/to/keyfile)@ after decryption 
 * @reg@   : regular keyfile passed to cryptsetup as @-d /path/to/keyfile@
 * @pwd@   : regular passphrase: it's not mandatory to append any @ikroot[|swap|resume]=pwd@ (fallback keymode)
@@ -183,7 +183,7 @@ h3. 7. Kernel parameters example
 * Swap file--resuming from hibernation--ldk protected keyfile on usb stick:
 	@iswap=file:sda3:0x4400 iresume=toi[|CHAR|WORD] ikswap=ldk:sdb1:/path/to/swapkey@
 * crypted LVs [root,swap] using LVM--ldk crypted keyfile and--_and_ mount options for rootfs:
-	@iroot=vgr-lvr iswap=file:vgs-lvs:0x4400 imopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier \@
+	@iroot=vgr-lvr:c:xfs iswap=file:vgs-lvs:0x4400 imopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier \@
 	@ilvm=pva1-UUID=<uuid>:pvb2-UUID=<uuid>,pvc1-UID=<uuid> \@
 	@ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile@
 
