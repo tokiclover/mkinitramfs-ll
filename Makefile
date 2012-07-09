@@ -26,7 +26,7 @@ install:
 
 install_bash:
 	sed -e "s:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g" \
-		-i autogen.zsh busybox.zsh gnupg.zsh $(PACKAGE).zsh
+		-i autogen.bash busybox.bash gnupg.bash $(PACKAGE).bash
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	$(shell install -pm 755 {autogen,busybox,gnupg}.bash -t $(datadir))
