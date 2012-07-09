@@ -255,7 +255,7 @@ dmopen() {
 		error "...there's still a pwd mode fallback..."
 	fi
 	ctxt=/dev/mapper/$_map
-	[ ! -b "$ctxt" ] || debug -d -- cryptsetup "$_arg" "$_dev" "$_map" "$_hdr"
+	[ -b "$ctxt" ] || debug -d -- cryptsetup "$_arg" "$_dev" "$_map" "$_hdr"
 	debug -d -- test -b $ctxt && eval ${2:-ctxt}=$ctxt
 }
 
@@ -527,10 +527,11 @@ _init() {
 	if grep devtmpfs /proc/filesystems &>/dev/null; then
 		debug -d -- mount -t devtmpfs devtmpfs /dev
 	else debug -d -- mount -t tmpfs tmpfs /dev; fi
+	debug mkdir /dev/pts
 	debug mount -t devpts -o gid=5,mode=0620 devpts /dev/pts
 	debug 'echo >/dev/mdev.seq'
 	debug -d -- mdev -s
-	debug -d -- 'echo /sbin/mdev > /proc/sys/kernel/hotplug'
+	debug -d -- 'echo /sbin/mdev >/proc/sys/kernel/hotplug'
 	if [ -n "$mod" ]; then local IFS="${IFS},"
 		for _m in $mod; do 
 			debug modprobe $_m
