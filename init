@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.0 2012/07/08 15:59:11 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/08 15:59:11 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -142,16 +142,14 @@ getkey() {
 	local _kd="$(echo "$1" | cut -d':' -s -f2)"
 	local _km="$(echo "$1" | cut -d':' -s -f1)"
 	local _dv _fn=${_fp##*/}
-	if [ -n "$_km" ]; then 
-		if [ "$_km" != "none" ];then
-			if [ -z "$cld" ]; then
-				local _v=$(cryptsetup --version | awk '{print $2}')
-				[ $(echo "$_v" | cut -d'.' -f2) -ge 3 ] && cld=0
-				[ $(echo "$_v" | cut -d'.' -f2) -ge 4 ] && cdh=0
-				[ "$cdh" ] && [ $(echo "$_v" | cut -d'.' -f3) -ge 2 ] && cid=0
-			fi
-		else return; fi
-	else return; fi
+	if [ "$_km" != "none" ];then
+		if [ -z "$cld" ]; then
+			local _v=$(cryptsetup --version | awk '{print $2}')
+			[ $(echo "$_v" | cut -d'.' -f2) -ge 3 ] && cld=0
+			[ $(echo "$_v" | cut -d'.' -f2) -ge 4 ] && cdh=0
+			[ "$cdh" ] && [ $(echo "$_v" | cut -d'.' -f3) -ge 2 ] && cid=0
+		fi
+	else kmode=none; return; fi
 	if [ "$_km" != "pwd" ]; then
 		[ -n "$_kd" ] || die "ik$2=$_km:$_kd:$_fp device field empty"
 		[ -n "$_fp" ] || die "ik$2=$_km:$_kd:$_fp filepath field empty"
@@ -263,7 +261,7 @@ lvopen() {
 	[ "$eck" ] && debug -d -- bck lvm
 	local _lv=${1/-//}
 	if debug lvchange -ay $_lv; then :;
-	elif [ -n "$2" ]; then
+	elif [ -n "$2" ] && [ "$kmode" != "none" ]; then
 		local _pv="$2" IFS="${IFS}:"
 		[ -e "/mnt/tok/$_pv" ] && _pv="$(cat /mnt/tok/$_pv)"
 		for _p in $_pv; do debug dmopen "$_p"; done
@@ -321,12 +319,12 @@ rootfs() {
 	local _fs="$(echo "$iroot" | cut -d':' -f3)"
 :	local ${_lvm:=$(echo "$ilvm" | cut -d',' -f1)}
 :	local ${_raid:=$(echo "$iraid" | cut -d',' -f1)}
-	debug -d -- getkey "$ikroot" "root"
+	debug -d -- getkey "${ikroot:-pwd}" "root"
 	shrl 3d
 	[ -n "$_raid" ] && mdopen "$_raid" "_dev"
 	if [ -n "$_lvm" ]; then debug -d -- lvopen "$dev" "$_lvm" "_dev"
-	elif [ -n "$kmode" ]; then debug -d -- dmopen "${map:-root}-$iroot" "_dev"
-	else debug -d -- _blkid "$dev" "_dev"; fi
+	elif [ "$kmode" != "none" ]; then debug -d -- dmopen "${map:-root}-$iroot" "_dev"
+	elif [ "$kmode" == "none" ]; then debug -d -- _blkid "$dev" "_dev"; fi
 	shrl 3f
 	if [ -n "$_fsck" ]; then 
 		[ "$_fsck" = "n" ] || [ "$_fsck" = "no" ] && _fscf="-e" || _fscf="-d"
@@ -350,11 +348,11 @@ swap() {
 	local _swp="$3" _type="${1%%:*}" _dev
 	local dev="$(echo "$1" | cut -d':' -s -f2)" 
 	local _sign="$(echo "$1" | cut -d':' -s -f3)"
-	debug -d -- getkey "$2" "$_swp"
+	debug -d -- getkey "${2:-pwd}" "$_swp"
 	[ -n "$_raid" ] && debug -d -- mdopen "$_raid" "_dev"
 	if [ -n "$_lvm" ]; then debug -d -- lvopen "$dev" "$_lvm" "_dev"
-	elif [ -n "$kmode" ]; then debug -d -- dmopen "$_swp-$dev" "_dev"
-	else debug -d -- _blkid "$dev" "_dev"; fi
+	elif [ "$kmode" != "none" ]; then debug -d -- dmopen "$_swp-$dev" "_dev"
+	elif [ "$kmode" == "none" ]; then debug -d -- _blkid "$dev" "_dev"; fi
 	[ -n "$4" ] && eval ${4:-swp}=$_type:$_dev${_sign+:$_sign}
 	eval i$1= ik$1=; kmode=
 }
