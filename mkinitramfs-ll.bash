@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.1 2012/07/08 11:45:42 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.1 2012/07/10 20:45:30 -tclover Exp $
 revision=0.10.1
 usage() {
   cat <<-EOF
@@ -141,7 +141,7 @@ fi
 cp -a "${opts[-workdir]}"/init . && chmod 775 init && mkdir -pm700 root || die
 cp -af {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
 for mod in ${opts[-module]//:/ }; do
-	cp -a [0-4]*-$mod* etc/mkinitramfs-ll.d/
+	cp -a ${opts[-usrdir]}/../mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
 done
 if [[ -x usr/bin/busybox ]]; then mv -f {usr/,}bin/busybox
 elif which busybox &> /dev/null &&

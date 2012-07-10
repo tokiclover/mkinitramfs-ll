@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.1 2012/07/08 11:45:44 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.1 2012/07/10 20:45:33 -tclover Exp $
 revision=0.10.1
 usage() {
   cat <<-EOF
@@ -117,7 +117,8 @@ if [[ ${${(pws:.:)opts[-kversion]}[1]} -eq 3 ]] &&
 	cp -a {/,}dev/loop-control &>/dev/null || mknod -m 600 dev/loop-control c 10 237 || die
 }
 cp -af ${opts[-workdir]}/init . && chmod 775 init || die
-for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]}) cp -a [0-4]*-$mod* etc/mkinitramfs-ll.d/
+for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]})
+	cp -a ${opts[-usrdir]:h}/mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
 cp -ar {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
 if [[ -x usr/bin/busybox ]] { mv -f {usr/,}bin/busybox
 } elif [[ $(which busybox) != "busybox not found" &&
