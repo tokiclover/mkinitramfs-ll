@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/08 15:59:11 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/10 21:12:55 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -112,7 +112,7 @@ spld() {
 shrl() {
 	local _msg="Switching to init shell runlevel: $1"
 	info "$_msg"; msg "$_msg"
-	local _scr="$(ls /etc/mkinitramfs-ll.d/${1}?-*.sh &>/dev/null)"
+	local _scr="$(ls /etc/mkinitramfs-ll.d/${1}*.sh &>/dev/null)"
 	if [ -n "$_scr" ]; then
 		for _s in $_scr; do 
 			info "exec: $sh -ex $_s..."
@@ -331,7 +331,7 @@ rootfs() {
 		debug $_fscf fsck ${_fs:+-t$_fs} $_dev 
 	fi
 	shrl 3m
-	debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot
+	[ -n "$rootfs" ] || debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot
 	if [ ! "$?" ]; then
 		if [ -n "$kmode" ]; then
 			debug -d -- dmclose "${_lvm:-${map:-root}}" "${_lvm:+${_dev##*/}}"
