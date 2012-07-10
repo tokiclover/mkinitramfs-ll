@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.0 2012/07/08 11:45:42 -tclover Exp $
-revision=0.10.0
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.1 2012/07/08 11:45:42 -tclover Exp $
+revision=0.10.1
 usage() {
   cat <<-EOF
  usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
@@ -16,6 +16,7 @@ usage() {
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p, --prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
   -W, --workdir [<dir>]     use <dir> as a work directory to create initramfs instead of \$PWD
+  -M, --module <name>       include <name> module from [../]mkinitramfs-ll.d module directory
   -m, --mdep [:<mod>]       include a colon separated list of kernel modules to the initramfs
       --mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
       --mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
@@ -53,9 +54,9 @@ addnodes() {
 	done
 }
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev:: \
-	  -l mtuxonice::,sqfsd,toi,usage,usrdir::,version \
+	  -l module:,mtuxonice::,sqfsd,toi,usage,usrdir::,version \
 	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,regen \
-	  -o ab:c::d::f::gk::lLm::p::rs::tuvy::W:: -n ${0##*/} -- "$@" || usage)
+	  -o ab:c::d::f::gk::lLM:m::p::rs::tuvy::W:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 [[ -z "${opts[*]}" ]] && declare -A opts
 while [[ $# > 0 ]]; do
@@ -80,6 +81,7 @@ while [[ $# > 0 ]]; do
 		--mtuxonice) opts[-tuxonice]+=:${2}; shift 2;;
 		-s|--splash) opts[-splash]+=":${2}"; shift 2;;
 		-W|--workdir) opts[-workdir]="${2}"; shift 2;;
+		-M|--module) opts[-module]+=":${2}"; shift 2;;
 		-m|--mdep) opts[-mdep]+=":${2}"; shift 2;;
 		-p|--prefix) opts[-prefix]=${2}; shift 2;;
 		-y|--keymap) 
@@ -138,6 +140,9 @@ if [[ $(echo ${opts[-kversion]} | cut -d'.' -f1 ) -eq 3 ]] && \
 fi
 cp -a "${opts[-workdir]}"/init . && chmod 775 init && mkdir -pm700 root || die
 cp -af {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
+for mod in ${opts[-module]//:/ }; do
+	cp -a [0-4]*-$mod* etc/mkinitramfs-ll.d/
+done
 if [[ -x usr/bin/busybox ]]; then mv -f {usr/,}bin/busybox
 elif which busybox &> /dev/null &&
 	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]]; then

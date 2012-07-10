@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.0 2012/07/08 11:45:44 -tclover Exp $
-revision=0.10.0
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.1 2012/07/08 11:45:44 -tclover Exp $
+revision=0.10.1
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -16,6 +16,7 @@ usage() {
   -g|-gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p|-prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
   -W|-workdir [<dir>]     use <dir> as a work directory to create initramfs instead of \$PWD
+  -M|-module <name>       include <name> module from [../]mkinitramfs-ll.d module directory
   -m|-mdep [:<mod>]       include a colon separated list of kernel modules to the initramfs
      -mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
      -mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
@@ -34,7 +35,7 @@ usage() {
  usgae: generate an initramfs with LUKS, GnuPG, LVM2 and aufs+squashfs support
  ${(%):-%1x} -a -f -y -k$(uname -r)
 EOF
-exit 0
+exit $?
 }
 error() { print -P " %B%F{red}*%b%f $@"; }
 info()  { print -P " %B%F{green}*%b%f $@"; }
@@ -53,7 +54,7 @@ addnodes() {
 }
 zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
-	k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage \
+	k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage M: module: \
 	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: \
 	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
@@ -116,6 +117,7 @@ if [[ ${${(pws:.:)opts[-kversion]}[1]} -eq 3 ]] &&
 	cp -a {/,}dev/loop-control &>/dev/null || mknod -m 600 dev/loop-control c 10 237 || die
 }
 cp -af ${opts[-workdir]}/init . && chmod 775 init || die
+for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]}) cp -a [0-4]*-$mod* etc/mkinitramfs-ll.d/
 cp -ar {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
 if [[ -x usr/bin/busybox ]] { mv -f {usr/,}bin/busybox
 } elif [[ $(which busybox) != "busybox not found" &&
