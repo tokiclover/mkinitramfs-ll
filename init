@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/10 21:12:55 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/11 02:42:31 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -60,22 +60,20 @@ ack() {
 }
 
 _rmmod() {
-	if [ -f "/etc/mkinitramfs-ll/module.$1" ]; then
-		for _m in $(cat /etc/mkinitramfs-ll/module.$1); do 
-			debug rmmod $_m
-		done
-	fi
+	[ -f "/etc/mkinitramfs-ll/module.$1" ] &&
+		local _module="$(cat /etc/mkinitramfs-ll/module.$1)" ||
+		local _module="$*"
+	for _m in $_module; do debug rmmod $_m; done
 }
 
 _modprobe() {
-	if [ -f "/etc/mkinitramfs-ll/module.$1" ]; then
-		for _m in $(cat /etc/mkinitramfs-ll/module.$1); do 
-			debug modprobe $_m
-		done
-	fi
+	[ -f "/etc/mkinitramfs-ll/module.$1" ] &&
+		local _module="$(cat /etc/mkinitramfs-ll/module.$1)" ||
+		local _module="$*"
+	for _m in $_module; do debug modprobe $_m; done
 }
 
-cmd() { debug echo "$@" > $SPLASH_FIFO; }
+cmd() { debug echo "$@" >$SPLASH_FIFO; }
 verbose() { debug chvt ${console#*tty}; debug cmd "set mode verbose"; }
 silent() { debug chvt ${console#*tty}; debug cmd "set mode silent"; }
 msg() { [ $spld ] && debug cmd "set message $@" && debug cmd "repaint"; }
