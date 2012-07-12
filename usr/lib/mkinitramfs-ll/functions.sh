@@ -1,4 +1,6 @@
-# $Id: /lib/mkinitramfs-ll/functions.sh, 2012/07/10 20:24:02 -tclover Exp $
+# $Id: /lib/mkinitramfs-ll/functions.sh, 2012/07/12 11:48:11 -tclover Exp $
+
+. /lib/mkinitramfs-ll/fbase.sh
 
 _getopt() {
 	for arg in $*; do
