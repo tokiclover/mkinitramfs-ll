@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.10.0 2012/07/08 11:45:33 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.10.0 2012/07/12 22:45:47 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${0##*/}[-m|--minimal] [--ucl=i386]
@@ -28,7 +28,7 @@ while [[ $# > 0 ]]; do
 	esac
 done
 [[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
-[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/bin
+[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/usr
 [[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf
 mkdir -p "${opts[-usrdir]}"/bin
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
