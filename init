@@ -1,13 +1,10 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/11 02:42:31 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/12 14:25:15 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
-#
-init=/sbin/init # real init to execute after switching to real root
-eck=1           # test if env binaries exist in PATH
-map=root        # root mapping for dmcrypt
-sh=/bin/sh
+
+export eck=0 init=/sbin/init map=root sh=/bin/sh
 
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
 error() { echo -ne "\033[1;31m * \033[0m$@\n"; }
@@ -38,12 +35,9 @@ rsh() {
 }
 
 die() {
-	local _msg="Dropping into a rescueshell..."
-	debug umount -f -l /mnt/tok &>/dev/null
-	[ -n "$@" ] && error "$@" && msg "$@"
+	local _ret=$? _msg="Dropping into a rescueshell..."
+	[ -n "$@" ] && error "[$_ret]: $@" && msg "[$_ret]: $@"
 	info "$_msg"; msg "$_msg"; _stop
-	for _k in $ldk; do debug dmclose "$_k"; done
-	for _d in $ldv; do debug losetup -d "$_d"; done
 	debug rsh || debug exec $sh -i
 }
 
@@ -109,12 +103,13 @@ spld() {
 
 shrl() {
 	local _msg="Switching to init shell runlevel: $1"
-	info "$_msg"; msg "$_msg"
-	local _scr="$(ls /etc/mkinitramfs-ll.d/${1}*.sh &>/dev/null)"
+	info "$_msg"; msg "$_msg"; export shl=$1
+	local _scr="$(ls /etc/mkinitramfs-ll.d/$1*-*.sh 2>/dev/null)"
 	if [ -n "$_scr" ]; then
-		for _s in $_scr; do 
+		for _s in $_scr; do
 			info "exec: $sh -ex $_s..."
 			debug -d -- $sh -ex $_s
+			[ -f /run/env ] && debug source /run/env
 		done
 	fi
 	[ "$shrl" = "$1" ] && debug die
@@ -147,7 +142,7 @@ getkey() {
 			[ $(echo "$_v" | cut -d'.' -f2) -ge 4 ] && cdh=0
 			[ "$cdh" ] && [ $(echo "$_v" | cut -d'.' -f3) -ge 2 ] && cid=0
 		fi
-	else kmode=none; return; fi
+	else export kmode=none; return; fi
 	if [ "$_km" != "pwd" ]; then
 		[ -n "$_kd" ] || die "ik$2=$_km:$_kd:$_fp device field empty"
 		[ -n "$_fp" ] || die "ik$2=$_km:$_kd:$_fp filepath field empty"
@@ -176,6 +171,7 @@ getkey() {
 		pwd) kmode=pwd;;
 		*)   die "$_km: keymode is invalid";; 
 	esac
+	export ${kfile:+kfile} kmode
 }
 
 dmclose() { 
@@ -204,7 +200,7 @@ dmcrypt() {
 		if [ "${_asw:-no}" = "yes" ]; then info "Enter a valid aligh-payload offset,"
 			info "this option is taken as absolute sector alignment and can be zero"
 			read _apd; _apd="--align-payload $_apd"
-		else _hdr=; fi
+		else unset _hdr; fi
 	fi
 	debug -d -- cryptsetup $_arg $_dev -c${_cpr:-aes-xts-plain:sha256} \
 		-s${_ksz:-256} $_use $_hdr $_apd
@@ -238,7 +234,7 @@ dmopen() {
 			done
 		elif [ "$_asw" = "cre" ]; then debug dmcrypt; fi
 	fi
-	debug -d -- test -b "$_dev" && _arg=luksOpen
+	debug -d -- test -n "$_dev" && debug test -b "$_dev" && _arg=luksOpen
 	if [ "$kmode" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
 		for _i in 1 2 3; do
@@ -310,6 +306,7 @@ squashd() {
 		mount -taufs -onodev,udba=reval,br:.$_bdir/rw:.$_bdir/ro $_dir $_dir
 	done
 }
+
 rootfs() {
 	debug -d "iroot=<PV|VG-LV>[:<c>:<fs>] argument is missing" test -n "$iroot"
 	local _fscf _dev dev=${iroot%%:*}
@@ -321,24 +318,24 @@ rootfs() {
 	shrl 3d
 	[ -n "$_raid" ] && mdopen "$_raid" "_dev"
 	if [ -n "$_lvm" ]; then debug -d -- lvopen "$dev" "$_lvm" "_dev"
-	elif [ "$kmode" != "none" ]; then debug -d -- dmopen "${map:-root}-$iroot" "_dev"
-	elif [ "$kmode" == "none" ]; then debug -d -- _blkid "$dev" "_dev"; fi
+	elif [ -n "$kmode" ]; then
+		[ "$kmode" != "none" ] && debug -d -- dmopen "${map:-root}-$iroot" "_dev"
+		[ "$kmode" == "none" ] && debug -d -- _blkid "$dev" "_dev"
+	fi
 	shrl 3f
 	if [ -n "$_fsck" ]; then 
 		[ "$_fsck" = "n" ] || [ "$_fsck" = "no" ] && _fscf="-e" || _fscf="-d"
 		debug $_fscf fsck ${_fs:+-t$_fs} $_dev 
 	fi
 	shrl 3m
-	[ -n "$rootfs" ] || debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot
-	if [ ! "$?" ]; then
-		if [ -n "$kmode" ]; then
-			debug -d -- dmclose "${_lvm:-${map:-root}}" "${_lvm:+${_dev##*/}}"
-		fi
+	if [ -z "$rootfs" ]; then
+		debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot ||
+		[ -n "$kmode" ] && debug -d -- dmclose "${_lvm:-${map:-root}}" "${_lvm:+${_dev##*/}}"
 		die "failed to mount rootfs"
 	fi
 	shrl 3s
 	[ -n "$sqfsd" ] && debug -d -- squashd
-	imopt=; iroot=; ikroot=; kmode=; sqfsdir=; sqfsd=
+	unset imopt iroot ikroot kmode sqfsdir sqfsd
 }
 
 swap() {
@@ -352,7 +349,7 @@ swap() {
 	elif [ "$kmode" != "none" ]; then debug -d -- dmopen "$_swp-$dev" "_dev"
 	elif [ "$kmode" == "none" ]; then debug -d -- _blkid "$dev" "_dev"; fi
 	[ -n "$4" ] && eval ${4:-swp}=$_type:$_dev${_sign+:$_sign}
-	eval i$1= ik$1=; kmode=
+	unset i$1 ik$1 kmode
 }
 
 resume() {
@@ -369,7 +366,7 @@ resume() {
 		_toi="$(which tuxoniceui_text)"
 :		${_toi:=$(which tuxoniceui_fbsplash)}
 		debug _modprobe tuxonice
-		debug -d -- echo $_dev > /sys/power/tuxonice/resume
+		debug -d -- "echo $_dev >/sys/power/tuxonice/resume"
 		_i="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
 		if [ "$_img" = "1" ]; then 
 			error "toi: no recognizable signature at the pointed location"
@@ -378,18 +375,18 @@ resume() {
 			[ "${_asw:-no}" != "yes" ] && die "toi: resume aborted"
 		else die "toi: no image found at the pointed location"; fi
 		if [ -n "$theme" ]; then
-			ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
+			debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
 		fi
 		_stop
-		debug -d -- "echo $_toi > /sys/power/tuxonice/user_interface/program"
-		debug -d -- "echo > /sys/power/tuxonice/do_resume"
-		debug -d -- "echo > /sys/power/tuxonice/image_exists"
+		debug -d -- "echo $_toi >/sys/power/tuxonice/user_interface/program"
+		debug -d -- "echo >/sys/power/tuxonice/do_resume"
+		debug -d -- "echo >/sys/power/tuxonice/image_exists"
 		debug _rmmod tuxonice
 	elif [ -f /sys/power/resume ]; then
 		_spd="$(which suspendui_text)"
 :		${_spd:=$(which suspendui_fbsplash)}
 		debug _modprobe swsusp
-		debug -d -- "echo $_dev > /sys/power/disk/resume"
+		debug -d -- "echo $_dev >/sys/power/disk/resume"
 		_img="$(cat /sys/power/image_exists | head -n 1)"
 		if [ "$_img" = "1" ]; then 
 			error "suspend: no recognizable signature at the pointed location"
@@ -398,7 +395,7 @@ resume() {
 			[ "${_asw:-no}" != "yes" ] && die "suspend: resume aborted"
 		else die "suspend: no image found at the pointed location"; fi
 		_stop
-		debug -d -- "echo disk > /sys/power/state"
+		debug -d -- "echo disk >/sys/power/state"
 		debug _rmmod swsusp
 	else error "no suspend/hibernation support found"; fi
 	debug -d -- mount -n -o remount,rw /newroot
@@ -501,7 +498,7 @@ _getopts() {
 			*init=*)  export init=${arg#*=};;
 			ishrl=*)  shrl=$(echo ${arg#*=}|cut -d':' -f1)
 				      rirl=$(echo ${arg#*=}|cut -d':' -f2);;
-			dmesg|ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export $arg;;
+			dmesg|*hks|ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export $arg;;
 	   	 esac
 	done
 }
@@ -509,11 +506,13 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
+	cat </init|sed '/^#.*$/d'|tail -n+4|head -n300  >>/lib/mkinitramfs-ll/fbase.sh
+	sed 's/debug\ rsh/exit\ \$_ret\n\tdebug\ rsh/' -i /lib/mkinitramfs-ll/fbase.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d -- mkdir -p dev/pts proc run sys newroot mnt/tok
 	debug -d -- mount -t proc proc /proc
 	debug -d -- mount -t tmpfs -o mode=755 tmpfs /run
-	debug -d -- mkdir -p /run/log && logdir=/run/log
+	debug -d -- mkdir -p /run/log && export logdir=/run/log
 	debug mv -f /init.log $logdir
 	[ "$eck" ] && debug ack
 	debug -d -- mount -t sysfs sysfs /sys
@@ -525,9 +524,9 @@ _init() {
 	else debug -d -- mount -t tmpfs tmpfs /dev; fi
 	debug mkdir /dev/pts
 	debug mount -t devpts -o gid=5,mode=0620 devpts /dev/pts
-	debug 'echo >/dev/mdev.seq'
+	echo >/dev/mdev.seq
 	debug -d -- mdev -s
-	debug -d -- 'echo /sbin/mdev >/proc/sys/kernel/hotplug'
+	echo /sbin/mdev >/proc/sys/kernel/hotplug
 	if [ -n "$mod" ]; then local IFS="${IFS},"
 		for _m in $mod; do 
 			debug modprobe $_m
