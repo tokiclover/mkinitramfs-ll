@@ -1,5 +1,7 @@
-# $Header: mkinitramfs-ll/KnownIssue,v 0.9.3 2012/06/25 12:47:13 -tclover Exp $
+# $Header: mkinitramfs-ll/KnownIssue,v 0.10.1 2012/07/12 15:18:01 -tclover Exp $
 #
+#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+# a die do not work properly in a script/module (rsh is ignored)
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 # sqfsdmount.initd cannot manage mounting in time with newer udev[-182?]
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
