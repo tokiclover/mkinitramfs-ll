@@ -19,6 +19,7 @@ install:
 	install -pm 755 init              $(datadir)
 	install -pm 755 xcpio             $(datadir)
 	$(shell) find usr -name '.keep' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
+	$(shell) find $(PACKAGE).d -type f -exec install -Dp '{}' $(datadir)/'{}' \;
 	install -pm 644 usr/etc/mdev.conf $(datadir)/usr/etc
 	install -pm 755 usr/lib/mdev/ide_links    $(datadir)/usr/lib/mdev
 	install -pm 755 usr/lib/mdev/usbdev       $(datadir)/usr/lib/mdev
