@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/12 14:25:15 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/12 17:43:48 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -498,7 +498,7 @@ _getopts() {
 			*init=*)  export init=${arg#*=};;
 			ishrl=*)  shrl=$(echo ${arg#*=}|cut -d':' -f1)
 				      rirl=$(echo ${arg#*=}|cut -d':' -f2);;
-			dmesg|*hks|ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export $arg;;
+			dmesg|ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export $arg;;
 	   	 esac
 	done
 }
