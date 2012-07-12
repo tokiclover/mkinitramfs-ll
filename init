@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/12 17:43:48 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/12 23:17:14 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -507,7 +507,7 @@ _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
 	cat </init|sed '/^#.*$/d'|tail -n+4|head -n300  >>/lib/mkinitramfs-ll/fbase.sh
-	sed 's/debug\ rsh/exit\ \$_ret\n\tdebug\ rsh/' -i /lib/mkinitramfs-ll/fbase.sh
+	sed 's/debug\ rsh/debug\ rsh\n\texit\ \$_ret/' -i /lib/mkinitramfs-ll/fbase.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d -- mkdir -p dev/pts proc run sys newroot mnt/tok
 	debug -d -- mount -t proc proc /proc
