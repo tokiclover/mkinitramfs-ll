@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.1 2012/07/12 22:46:00 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.1 2012/07/13 14:02:28 -tclover Exp $
 revision=0.10.1
 usage() {
   cat <<-EOF
@@ -138,7 +138,8 @@ if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
 	} elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
 		opts[-bin]+=:$(which gpg)
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
-	if [[ -f root/.gnupg/gpg.conf ]] { ln -sf {root/,}.gnupg
+	if [[ -f root/.gnupg/gpg.conf ]] {
+		ln -sf {root/,}.gnupg && chmod 700 root/.gnupg/gpg.conf
 	} else { warn "no gpg.conf was found" }
 }
 if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] { opts[-bin]+=:lvm.static

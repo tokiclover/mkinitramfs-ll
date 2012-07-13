@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.1 2012/07/12 21:42:43 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.1 2012/07/13 14:02:25 -tclover Exp $
 revision=0.10.1
 usage() {
   cat <<-EOF
@@ -167,7 +167,8 @@ if [[ -n "${opts[-gpg]}" ]]; then
 	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
 		opts[-bin]+=":$(which gpg)"
 	else die "there's no usable gpg/gnupg-1.4.x binary"; fi
-	[[ -f root/.gnupg/gpg.conf ]] && ln -sf {root/,}.gnupg ||
+	[[ -f root/.gnupg/gpg.conf ]] &&
+		ln -sf {root/,}.gnupg && chmod 700 root/.gnupg/gpg.conf ||
 		warn "no gpg.conf was found"
 fi
 if [[ -n "${opts[-lvm]}" ]]; then opts[-bin]+=:lvm.static
