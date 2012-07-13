@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.10.2 2012/07/13 16:08:27 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.10.2 2012/07/13 16:16:00 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -218,6 +218,11 @@ Each script should have a @.sh@ sufix and a @${ishrl}?-*@ prefix as the follwing
 * runlevel 2?: 2s -> swap -> 2r -> resume -> rootfs ->
 * runlevel 3?: 3d -> decrypt -> 3f -> rootfs fsck -> 3m -> root mount ->
 * runlevel 4?: 4c -> clean up -> 4m -> mount /usr:/var... -> 4u -> umount -> 4s -> switch root
+
+h3. 10. ZFS support
+One can use something like @iroot=pool/root::zfs izfs=zpva-sda:zpvb-sdb@. Notice that @izfs=@ argument
+is required for crypted vdev(s). Do not forget to include zfs module or build an initramfs with something
+like: @mkinitramfs-ll.$shell -a -f -y -Mzfs -mspl:znvpair:zcommon:zavl:zunicode:zfs -b:zpool:zfs@.
 
 *WARNING*: Back up your data! else... you may lose a few of... them by carelessness.
 
