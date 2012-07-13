@@ -19,7 +19,9 @@ install:
 	install -pm 755 init              $(datadir)
 	install -pm 755 xcpio             $(datadir)
 	$(shell) find usr -name '.keep' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
-	$(shell) find $(PACKAGE).d -type f -exec install -Dp '{}' $(datadir)/'{}' \;
+	$(shell) for file in 3d-zfs.sh; do \
+		install -Dp $(PACKAGE).d/$${file} $(datadir)/$${file}; \
+	done
 	install -pm 644 usr/etc/mdev.conf $(datadir)/usr/etc
 	install -pm 755 usr/lib/mdev/ide_links    $(datadir)/usr/lib/mdev
 	install -pm 755 usr/lib/mdev/usbdev       $(datadir)/usr/lib/mdev
@@ -62,10 +64,17 @@ postinstall:
 uall: unintsall uninstall_bash uninstall_zsh uninstall_svc
 
 uninstall:
-	rm -f $(datadir)/busybox.cfg
+	$(shell) rm -f $(datadir)/{busybox.cfg,usr/etc/mdev/conf}
+	$(shell) rm -f $(datadir)/usr/{root/.gnupg/gpg.conf,share/gnupg/options.skel}
 	rm -f $(datadir)/init
 	$(shell) find ${datadir}/usr -name '.keep' -exec rm -f '{}' \;
-	$(shell) rm -f usr/lib/mdev/{ide_links,usbdev,usbdisk_link}
+	$(shell) for file in 3d-zfs.sh; do \
+		rm -f $(datadir)/$(PACKAGE)/$${file}; \
+	done
+	$(shell) rm -f $(datadir)/usr/lib/mdev/{ide_links,usbdev,usbdisk_link}
+	$(shell) rmdir $(datadir)/usr/{lib/mdev,etc/{$(PACKAGE){,.d},splash}}
+	$(shell) rmdir $(datadir)/usr/{lib,{,s}bin,root/{.gnupg,}}
+	$(shell) rmdir $(datadir)/usr/share/{consolefonts,keymaps,gnupg}
 
 uninstall_bash:
 	rm -f $(bindir)/$(PACKAGE).bash
