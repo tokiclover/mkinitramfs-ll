@@ -30,9 +30,7 @@ install:
 install_bash:
 	install -pd $(datadir)
 	$(shell) sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
-		-e 's,\"\$${opts\[-workdir\]}\"/usr,\"$(datadir)\"/usr,' \
-		-e 's,\./,,g' -e 's,-\$$(pwd),-$(datadir),' \
-		-i autogen.bash busybox.bash gnupg.bash $(PACKAGE).bash
+		-e 's,\./,,g' -i autogen.bash busybox.bash gnupg.bash $(PACKAGE).bash
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	$(shell) install -pm 755 {autogen,busybox,gnupg}.bash -t $(datadir)
@@ -43,9 +41,7 @@ install_bash:
 install_zsh:
 	install -pd $(datadir)
 	$(shell) sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
-		-e 's,\$${opts\[-workdir\]}/usr,$(datadir)/usr,' \
-		-e 's,\./,,g' -e 's,-\$$(pwd),-$(datadir),' \
-		-i autogen.zsh busybox.zsh gnupg.zsh $(PACKAGE).zsh
+		-e 's,\./,,g' -i autogen.zsh busybox.zsh gnupg.zsh $(PACKAGE).zsh
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	$(shell) install -pm 755 {autogen,busybox,gnupg}.zsh -t $(datadir)
