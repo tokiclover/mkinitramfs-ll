@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.1 2012/07/13 14:02:28 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.1 2012/07/13 15:23:42 -tclover Exp $
 revision=0.10.1
 usage() {
   cat <<-EOF
@@ -65,7 +65,7 @@ setopt EXTENDED_GLOB NULL_GLOB
 :	${opts[-kversion]:=${opts[-k]:-$(uname -r)}}
 :	${opts[-prefix]:=${opts[-p]:-initramfs-}}
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
-:	${opts[-usrdir]:=${opts[-d]:-${opts[-workdir]/usr}}}
+:	${opts[-usrdir]:=${opts[-d]:-${opts[-workdir]}/usr}}
 :	${opts[-comp]:=${opts[-c]:-xz -9 --check=crc32}}
 :	${opts[-initramfsdir]:=${opts[-workdir]}/${opts[-prefix]}${opts[-kversion]}}
 :	${opts[-initramfs]:=/boot/${opts[-prefix]}${opts[-kversion]}}
