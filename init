@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/13 14:15:17 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.2 2012/07/13 15:01:02 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -210,6 +210,7 @@ dmcrypt() {
 
 dmopen() { 
 	$eck && debug -d -- bck cryptsetup
+	debug _modprobe crypt
 	local _arg=luksFormat _asw
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
@@ -255,6 +256,7 @@ dmopen() {
 
 lvopen() {
 	$eck && debug -d -- bck lvm
+	debug _modprobe lvm
 	local _lv=${1/-//}
 	if debug lvchange -ay $_lv; then :;
 	elif [ -n "$2" ] && [ "$kmode" != "none" ]; then
@@ -275,12 +277,14 @@ mdopen() {
 		[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
 		[ -b "$_dev" ] && return
 		$eck && debug -d -- bck mdadm
+		debug _modprobe mdadm
 		if [ -n "$_uuid" ]; then echo ARRAY $_dev $_uuid >>/etc/mdadm.conf
 		else echo ARRAY $_dev devices=/dev/sd?${_opt:-*} >>/etc/mdadm.conf;fi
 		_conf=-c/etc/mdadm.conf
 		debug -d -- mdadm --assemble ${_uuid:+-u${_uuid#*=}} $_conf $_dev
 	else
 		$eck && debug -d -- bck dmraid
+		debug _modprobe dmraid
 		_dev=$(dmraid -r | grep "$_dev" | cut -d':' -f1)
 		[ -b "$_dev" ] && return
 		for _f in $(echo "$opt" | sed 's/:/ /g'); do
