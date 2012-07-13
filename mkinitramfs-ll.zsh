@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.1 2012/07/13 15:23:42 -tclover Exp $
-revision=0.10.1
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.2 2012/07/13 15:32:16 -tclover Exp $
+revision=0.10.2
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -67,7 +67,7 @@ setopt EXTENDED_GLOB NULL_GLOB
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-usrdir]:=${opts[-d]:-${opts[-workdir]}/usr}}
 :	${opts[-comp]:=${opts[-c]:-xz -9 --check=crc32}}
-:	${opts[-initramfsdir]:=${opts[-workdir]}/${opts[-prefix]}${opts[-kversion]}}
+:	${opts[-initdir]:=${opts[-workdir]}/${opts[-prefix]}${opts[-kversion]}}
 :	${opts[-initramfs]:=/boot/${opts[-prefix]}${opts[-kversion]}}
 :	${opts[-arch]:=$(uname -m)}
 if [[ -n ${(k)opts[-y]} ]] || [[ -n ${(k)opts[-keymap]} ]] {
@@ -92,16 +92,16 @@ case ${opts[-comp][(w)1]} in
 esac
 gen() { find . -print0 | cpio -0 -ov -Hnewc | ${=opts[-comp]} > ${opts[-initramfs]} }
 if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
-	[[ -d ${opts[-initramfsdir]} ]] || die "${opts[-initramfsdir]}: no old initramfs dir"
+	[[ -d ${opts[-initdir]} ]] || die "${opts[-initdir]}: no old initramfs dir"
 	print -P "%F{green}>>> regenerating ${opts[-initramfs]}...%f"
-	pushd ${opts[-initramfsdir]} || die
+	pushd ${opts[-initdir]} || die
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 	gen && exit || die
 	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f"
 }
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
-rm -rf ${opts[-initramfsdir]} || die "eek!"
-mkdir -p ${opts[-initramfsdir]} && pushd ${opts[-initramfsdir]} || die
+rm -rf ${opts[-initdir]} || die "eek!"
+mkdir -p ${opts[-initdir]} && pushd ${opts[-initdir]} || die
 if [[ -d ${opts[-usrdir]} ]] {
 	cp -ar ${opts[-usrdir]} . && rm -f usr/README* || die
 	mv -f {usr/,}root &>/dev/null && mv -f {usr/,}etc &>/dev/null &&
@@ -132,6 +132,7 @@ if [[ -f etc/mkinitramfs-ll/busybox.app ]] { :;
 for app ($(< etc/mkinitramfs-ll/busybox.app)) ln -fs /bin/busybox ${app}
 if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] {
 	[[ -n ${(pws,:,)opts[(rw)cryptsetup,-bin]} ]] || opts[-bin]+=:cryptsetup
+	opts[-mcrypt]+=:dm-crypt
 }
 if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { 
 	if [[ -x usr/bin/gpg ]] { :;
@@ -143,6 +144,7 @@ if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
 	} else { warn "no gpg.conf was found" }
 }
 if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] { opts[-bin]+=:lvm.static
+	opts[-mlvm]+=:dm-snapshot:dm-uevent
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge) ln -sf lvm ${lpv} || die
@@ -161,8 +163,12 @@ addmodule() {
 		} else { warn "${mod} does not exist"; ((ret=${ret}+1)) }
 	return ${ret}
 }
+for bin (dmraid mdadm) if [[ -n $(echo ${opts[-b]} | grep $bin) ]] ||
+	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-m$bin]='' }
+if [[ -n ${(k)opts[-mdmraid]} ]] { opts[-mdmraid]+=:dm-snapshot:dm-mirror:dm-raid:dm-uevent }
+if [[ -n ${(k)opts[-mmdadm]} ]] { opts[-mmdadm]+=:linear:raid0:raid10:raid1:raid456 }
 for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) addmodule ${module}
-for grp (boot gpg remdev sqfsd tuxonice)
+for grp (boot crypt dmraid gpg lvm mdadm remdev sqfsd tuxonice)
 	for module (${(pws,:,)opts[-m${grp}]}) 
 		addmodule ${module} && echo ${module} >> etc/mkinitramfs-ll/module.${grp}
 for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {

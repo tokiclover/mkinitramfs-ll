@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.1 2012/07/13 14:02:25 -tclover Exp $
-revision=0.10.1
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.2 2012/07/13 15:32:19 -tclover Exp $
+revision=0.10.2
 usage() {
   cat <<-EOF
  usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
@@ -114,16 +114,16 @@ case ${opts[-comp]%% *} in
 esac
 gen() { find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${opts[-initramfs]}; }
 if [[ -n ${opts[-regen]} ]]; then
-	[[ -d ${opts[-initramfsdir]} ]] || die "${opts[-initramfsdir]}: no old initramfs dir"
+	[[ -d ${opts[-initdir]} ]] || die "${opts[-initdir]}: no old initramfs dir"
 	echo ">>> regenerating ${opts[-initramfs]}..."
-	pushd ${opts[-initramfsdir]} || die
+	pushd ${opts[-initdir]} || die
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 	gen && exit || die
 	echo ">>> regenerated ${opts[-initramfs]}..."
 fi
 echo ">>> building ${opts[-initramfs]}..."
-rm -rf "${opts[-initramfsdir]}" || die
-mkdir -p "${opts[-initramfsdir]}" && pushd "${opts[-initramfsdir]}" || die
+rm -rf "${opts[-initdir]}" || die
+mkdir -p "${opts[-initdir]}" && pushd "${opts[-initdir]}" || die
 if [[ -d "${opts[-usrdir]}" ]]; then
 	cp -ar "${opts[-usrdir]}" . && rm -f usr/README* || die
 	mv -f {usr/,}root &>/dev/null && mv -f {usr/,}etc &>/dev/null &&
@@ -156,6 +156,7 @@ for app in $(< etc/mkinitramfs-ll/busybox.app); do
 done
 if [[ -n "${opts[-luks]}" ]]; then
 	[[ -n "$(echo ${opts[-bin]} | grep cryptsetup)" ]] || opts[-bin]+=:cryptsetup
+	opts[-mcrypt]+=:dm-crypt
 fi
 if [[ -n "${opts[-sqfsd]}" ]]; then opts[-bin]+=:umount.aufs:mount.aufs
 	for fs in {au,squash}fs; do 
@@ -172,6 +173,7 @@ if [[ -n "${opts[-gpg]}" ]]; then
 		warn "no gpg.conf was found"
 fi
 if [[ -n "${opts[-lvm]}" ]]; then opts[-bin]+=:lvm.static
+	opts[-mlvm]+=:dm-snapshot:dm-uevent
 	pushd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge
@@ -189,8 +191,13 @@ addmodule() {
 	done
 	return ${ret}
 }
+for bin in dmraid mdadm; do
+	[[ -n "$(echo ${opts[-bin]} | grep ${bin})" ]] && opts[-$bin]=y
+done
+[[ -n "${opts[-dmraid]}" ]] && opts[-mdmraid]+=:dm-snapshot:dm-mirror:dm-raid:dm-uevent
+[[ -n "${opts[-mdadm]}" ]] && opts[-mmdadm]+=:linear:raid0:raid10:raid1:raid456
 addmodule ${opts[-mdep]//:/ }
-for grp in boot gpg sqfsd remdev tuxonice; do
+for grp in boot crypt dmraid gpg lvm mdadm sqfsd remdev tuxonice; do
 	if [[ -n "${opts[-m${grp}]}" ]]; then
 		for mod in ${opts[-m${grp}]//:/ }; do 
 			addmodule ${mod} && echo ${mod} >> etc/mkinitramfs-ll/module.${grp}
