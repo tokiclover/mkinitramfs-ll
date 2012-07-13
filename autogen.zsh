@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/autogen.zsh,v 0.10.0 2012/07/08 11:45:17 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.zsh,v 0.10.2 2012/07/13 19:20:35 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -46,9 +46,9 @@ zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
 	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
+if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-usrdir]:=${opts[-d]:-${opts[-workdir]}/usr}}
-if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 mkdir -p ${opts[-workdir]}
 which bb &>/dev/null busybox.zsh
 if [[ -n ${(k}opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { gnupg.zsh

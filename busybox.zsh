@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.10.0 2012/07/08 11:45:31 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.10.2 2012/07/13 19:20:39 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-m|-minimal] [-ucl i386]
@@ -19,9 +19,9 @@ zmodload zsh/zutil
 zparseopts -E -D -K -A opts n minimal d:: usrdir:: ucl: u usage v: version: || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
+if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-usrdir]:=${opts[-d]:-$opts[-workdir]/usr}}
-if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 mkdir -p ${opts[-usrdir]}/bin
 pushd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] { 

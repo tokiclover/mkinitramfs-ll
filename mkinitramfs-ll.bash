@@ -94,6 +94,7 @@ while [[ $# > 0 ]]; do
 		-u|--usage|*) usage;;
 	esac
 done
+[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf
 [[ -n "${opts[-kversion]}" ]] || opts[-kversion]="$(uname -r)"
 [[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
 [[ -n "${opts[-prefix]}" ]] || opts[-prefix]=initramfs-
@@ -103,7 +104,6 @@ opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kversion]}
 [[ -n "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
 [[ -n "$(uname -m | grep 64)" ]] && opts[-arc]=64 || opts[-arc]=32
 [[ -n "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
-[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf
 case ${opts[-comp]%% *} in
 	bzip2)	opts[-initramfs]+=.cpio.bz2;;
 	gzip) 	opts[-initramfs]+=.cpio.gz;;

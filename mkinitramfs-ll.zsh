@@ -62,6 +62,7 @@ if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
 	print "${(%):-%1x}-$revision"; exit }
 if [[ -z ${opts[*]} ]] { typeset -A opts }
 setopt EXTENDED_GLOB NULL_GLOB
+if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 :	${opts[-kversion]:=${opts[-k]:-$(uname -r)}}
 :	${opts[-prefix]:=${opts[-p]:-initramfs-}}
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
@@ -78,7 +79,6 @@ if [[ -n ${(k)opts[-f]} ]] || [[ -n ${(k)opts[-font]} ]] {
 		| cut -d'"' -f2):ter-v14n:ter-g12n}}
 }
 if [[ -n $(uname -m | grep 64) ]] { opts[-arc]=64 } else { opts[-arc]=32 }
-if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
 if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] { 
 	opts[-g]=; opts[-l]=; opts[-q]=; opts[-L]=;
 }

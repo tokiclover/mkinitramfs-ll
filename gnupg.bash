@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/gnupg.bash,v 0.10.0 2012/07/08 11:45:24 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.bash,v 0.10.2 2012/07/13 19:20:49 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${0##*/} [-d|--usrdir=usr] [options]
@@ -25,10 +25,10 @@ while [[ $# > 0 ]]; do
 		-u|--usage|*) usage;;
 	esac
 done
+[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf
 [[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
 [[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/usr
 [[ -n "${opts[-version]}" ]] || opts[-version]='1.4*'
-[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf
 mkdir -p "${opts[-usrdir]}"/{bin,share/gnupg}
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 die() { error "$@"; exit 1; }

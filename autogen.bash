@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/autogen.bash,v 0.10.0 2012/07/08 11:45:19 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.bash,v 0.10.2 2012/07/13 19:20:32 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${0##*/} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -73,9 +73,9 @@ while [[ $# > 0 ]]; do
 		-u|--usage|*) usage;;
 	esac
 done
+[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf
 [[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
 [[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/usr
-[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf
 mkdir -p "${opts[-workdir]}"
 error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
