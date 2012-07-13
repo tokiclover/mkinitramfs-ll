@@ -1,10 +1,10 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/12 23:28:58 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.1 2012/07/13 11:34:11 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
-export eck=0 init=/sbin/init map=root sh=/bin/sh
+export eck=true init=/sbin/init map=root sh=/bin/sh
 
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
 error() { echo -ne "\033[1;31m * \033[0m$@\n"; }
@@ -74,7 +74,7 @@ msg() { [ $spld ] && debug cmd "set message $@" && debug cmd "repaint"; }
 
 _stop() { [ $spld ] && spld=1; debug cmd "exit"; }
 spld() {
-	[ "$eck" ] && for bin in fbcondecor_helper splash_util; do 
+	$eck && for bin in fbcondecor_helper splash_util; do 
 		debug -d -- bck $bin
 	done
 	local IFS="${IFS}," _opt _opts cachedir event mode msg theme util
@@ -108,8 +108,10 @@ shrl() {
 	if [ -n "$_scr" ]; then
 		for _s in $_scr; do
 			info "exec: $sh -ex $_s..."
-			debug -d -- $sh -ex $_s
+			debug $sh -ex $_s
 			[ -f /run/env ] && debug source /run/env
+			[ -f /run/${_s##*/}.pid ] && rm -f /run/${_s##*/}.pid && debug die
+			exec 0<$console 1>$console 2>&1	
 		done
 	fi
 	[ "$shrl" = "$1" ] && debug die
@@ -117,7 +119,7 @@ shrl() {
 
 _blkid() { eval $2=$(blkid | grep "${1#*=}" | cut -d':' -f1); }
 
-getldk() {
+glk() {
 	if [ ! "$cld" ]; then
 		local _ld="$(debug -d -- losetup -f)"
 		debug -d -- losetup "$_ld" "$1"
@@ -165,9 +167,9 @@ getkey() {
 		debug -d -- test -f "/mnt/tok/$_fp"
 	fi
 	case $_km in
-		gpg) [ "$eck" ] && debug -d -- bck gpg; kfile=/mnt/tok/$_fp; kmode=gpg;;
+		gpg) $eck && debug -d -- bck gpg; kfile=/mnt/tok/$_fp; kmode=gpg;;
 		reg) kfile="/mnt/tok/$_fp"; kmode=reg;;
-		ldk) [ -b "/dev/mapper/$_fn" ] || getldk "/mnt/tok/$_fp"; kmode=ldk;;
+		ldk) [ -b "/dev/mapper/$_fn" ] || glk "/mnt/tok/$_fp"; kmode=ldk;;
 		pwd) kmode=pwd;;
 		*)   die "$_km: keymode is invalid";; 
 	esac
@@ -207,7 +209,7 @@ dmcrypt() {
 }
 
 dmopen() { 
-	[ "$eck" ] && debug -d -- bck cryptsetup
+	$eck && debug -d -- bck cryptsetup
 	local _arg=luksFormat _asw
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
@@ -252,7 +254,7 @@ dmopen() {
 }
 
 lvopen() {
-	[ "$eck" ] && debug -d -- bck lvm
+	$eck && debug -d -- bck lvm
 	local _lv=${1/-//}
 	if debug lvchange -ay $_lv; then :;
 	elif [ -n "$2" ] && [ "$kmode" != "none" ]; then
@@ -272,13 +274,13 @@ mdopen() {
 	if [ -n "$_uuid" ] || [ -n "$(echo "$_opt" | egrep '^[0-9]')" ]; then
 		[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
 		[ -b "$_dev" ] && return
-		[ -n "$eck" ] && debug -d -- bck mdadm
+		$eck && debug -d -- bck mdadm
 		if [ -n "$_uuid" ]; then echo ARRAY $_dev $_uuid >>/etc/mdadm.conf
 		else echo ARRAY $_dev devices=/dev/sd?${_opt:-*} >>/etc/mdadm.conf;fi
 		_conf=-c/etc/mdadm.conf
 		debug -d -- mdadm --assemble ${_uuid:+-u${_uuid#*=}} $_conf $_dev
 	else
-		[ -n "$eck" ] && debug -d -- bck dmraid
+		$eck && debug -d -- bck dmraid
 		_dev=$(dmraid -r | grep "$_dev" | cut -d':' -f1)
 		[ -b "$_dev" ] && return
 		for _f in $(echo "$opt" | sed 's/:/ /g'); do
@@ -506,15 +508,15 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
-	cat </init|sed '/^#.*$/d'|tail -n+4|head -n300  >>/lib/mkinitramfs-ll/fbase.sh
-	sed 's/exec\ \$sh\ -i/exec\ \$sh\ -i\n\texit\ \$_ret/' -i /lib/mkinitramfs-ll/fbase.sh
+	cat </init|sed '/^#.*$/d'|tail -n+4|head -n302  >>/lib/mkinitramfs-ll/fbase.sh
+	sed -e 's/debug\ rsh.*debug/exit\ \$_ret/'     -i /lib/mkinitramfs-ll/fbase.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d -- mkdir -p dev/pts proc run sys newroot mnt/tok
 	debug -d -- mount -t proc proc /proc
 	debug -d -- mount -t tmpfs -o mode=755 tmpfs /run
 	debug -d -- mkdir -p /run/log && export logdir=/run/log
 	debug mv -f /init.log $logdir
-	[ "$eck" ] && debug ack
+	$eck && debug ack
 	debug -d -- mount -t sysfs sysfs /sys
 	debug _getopts
 	[ -n "$dmesg" ] && debug dmesg -n $dmesg
@@ -539,6 +541,7 @@ _init() {
 :	${console:=/dev/tty1}
 	[ -n "$(echo $console | grep /dev)" ] || console="/dev/$tty"
 	exec 0<$console 1>$console 2>&1
+	export console
 	[ -n "$splash" ] && debug spld
 }
 
