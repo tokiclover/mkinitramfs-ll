@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.2 2012/07/14 18:53:03 -tclover Exp $
-revision=0.10.2
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.3 2012/07/14 19:19:51 -tclover Exp $
+revision=0.10.3
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]

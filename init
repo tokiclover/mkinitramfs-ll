@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.2 2012/07/14 18:34:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.3 2012/07/14 19:19:41 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.

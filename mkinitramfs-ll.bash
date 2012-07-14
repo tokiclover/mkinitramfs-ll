@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.2 2012/07/14 18:53:01 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.2 2012/07/14 19:19:47 -tclover Exp $
 revision=0.10.2
 usage() {
   cat <<-EOF
