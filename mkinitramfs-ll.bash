@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.2 2012/07/14 19:19:47 -tclover Exp $
-revision=0.10.2
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.3 2012/07/14 21:36:25 -tclover Exp $
+revision=0.10.3
 usage() {
   cat <<-EOF
  usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
@@ -99,7 +99,7 @@ done
 [[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
 [[ -n "${opts[-prefix]}" ]] || opts[-prefix]=initramfs-
 [[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/usr
-opts[-initramfsdir]="${opts[-workdir]}"/${opts[-prefix]}${opts[-kversion]}
+opts[-initdir]="${opts[-workdir]}"/${opts[-prefix]}${opts[-kversion]}
 opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kversion]}
 [[ -n "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
 [[ -n "$(uname -m | grep 64)" ]] && opts[-arc]=64 || opts[-arc]=32
@@ -187,7 +187,7 @@ addmodule() {
 		module=$(find /lib/modules/${opts[-kversion]} -name ${mod}.ko -or -name ${mod}.o)
 		if [ -n "${module}" ]; then mkdir -p .${module%/*}
 			cp -ar ${module} .${module} || die "failed to copy ${module} module"
-		else warn "${mod} does not exist"; let ret=((${ret}+1)); fi
+		else warn "${mod} does not exist"; ((ret=${ret}+1)); fi
 	done
 	return ${ret}
 }
