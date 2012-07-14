@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.10.2 2012/07/13 16:20:36 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.10.2 2012/07/14 18:42:51 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -196,10 +196,10 @@ To load kernel modules, one could either create needed groups in @[usr/]etc/mkin
 
 Supported groups:
 * @boot@      -> boot up modules, loaded but not removed
-* @crypt@     -> automaticaly generated with mkinitramfs-ll.$shell (dm-crypt module group)
-* @lvm@       -> automaticaly generated with mkinitramfs-ll.$shell (device-mapper module group)
-* @dmraid@    -> automaticaly generated with mkinitramfs-ll.$shell (dmraid module group)
-* @mdadm@     -> automaticaly generated with mkinitramfs-ll.$shell (mdadm module group)
+* @dm-crypt@  -> automaticaly generated with mkinitramfs-ll.$shell (dm-crypt module group)
+* @devide-mapper@ -> automaticaly generated with mkinitramfs-ll.$shell (device-mapper module group)
+* @dm-raid@   -> automaticaly generated with mkinitramfs-ll.$shell (dmraid module group)
+* @raid@      -> automaticaly generated with mkinitramfs-ll.$shell (mdadm/raid module group)
 * @tuxonice@  -> tuxonice module, wich aren't removed
 * @remdev@    -> modules required to access removable device
 * @gpg@       -> modules required to access gpg crypted keyfile

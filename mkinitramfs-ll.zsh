@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.2 2012/07/13 15:32:16 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.2 2012/07/14 18:53:03 -tclover Exp $
 revision=0.10.2
 usage() {
   cat <<-EOF
@@ -144,7 +144,7 @@ if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
 	} else { warn "no gpg.conf was found" }
 }
 if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] { opts[-bin]+=:lvm.static
-	opts[-mlvm]+=:dm-snapshot:dm-uevent
+	opts[-mdevice-mapper]+=:dm-mirror:dm-snapshot:dm-uevent
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge) ln -sf lvm ${lpv} || die
@@ -153,22 +153,27 @@ if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] { opts[-bin]+=:lvm.stati
 if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] { 
 	opts[-bin]+=:mount.aufs:umount.aufs
 	for fs ({au,squash}fs) 
-		[[ -n ${(pws,:,)opts[(rw)${fs},-msqfsd]} ]] || opts[-msqfsd]+=:${fs}
+		[[ -n $(echo ${opts[-b]}   | grep ${fs}) ]] ||
+		[[ -n $(echo ${opts[-bin]} | grep ${fs}) ]] || opts[-msqfsd]+=:${fs}
 }
 addmodule() {
-	local ret
-	for mod (/lib/modules/${opts[-kversion]}/**/$@.(ko|o))
-		if [[ -e ${mod} ]] { mkdir -p .${mod:h} 
+	local mod module ret
+	for module in $*; do
+		mod=(/lib/modules/${opts[-kversion]}/**/$module.(ko|o))
+		if [[ -n ${mod} ]] { mkdir -p .${mod:h} 
 			cp -ar ${mod} .${mod} || die "failed to copy ${mod} module" 
-		} else { warn "${mod} does not exist"; ((ret=${ret}+1)) }
+		} else { warn "${module} does not exist"; ((ret=${ret}+1)) }
+	done
 	return ${ret}
 }
 for bin (dmraid mdadm) if [[ -n $(echo ${opts[-b]} | grep $bin) ]] ||
 	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-m$bin]='' }
-if [[ -n ${(k)opts[-mdmraid]} ]] { opts[-mdmraid]+=:dm-snapshot:dm-mirror:dm-raid:dm-uevent }
-if [[ -n ${(k)opts[-mmdadm]} ]] { opts[-mmdadm]+=:linear:raid0:raid10:raid1:raid456 }
+if [[ -n ${(k)opts[-mdmraid]} ]] {
+	opts[-mdm-raid]+=:dm-mirror:dm-multipath:dm-snapshot:dm-raid:dm-uevent
+}
+if [[ -n ${(k)opts[-mmdadm]} ]] { opts[-mraid]+=:md-mod:linear:raid0:raid10:raid1:raid456 }
 for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) addmodule ${module}
-for grp (boot crypt dmraid gpg lvm mdadm remdev sqfsd tuxonice)
+for grp (boot device-mapper dm-crypt dm-raid gpg raid remdev sqfsd tuxonice)
 	for module (${(pws,:,)opts[-m${grp}]}) 
 		addmodule ${module} && echo ${module} >> etc/mkinitramfs-ll/module.${grp}
 for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {

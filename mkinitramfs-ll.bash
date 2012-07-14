@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.2 2012/07/13 15:32:19 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.2 2012/07/14 18:53:01 -tclover Exp $
 revision=0.10.2
 usage() {
   cat <<-EOF
@@ -156,7 +156,7 @@ for app in $(< etc/mkinitramfs-ll/busybox.app); do
 done
 if [[ -n "${opts[-luks]}" ]]; then
 	[[ -n "$(echo ${opts[-bin]} | grep cryptsetup)" ]] || opts[-bin]+=:cryptsetup
-	opts[-mcrypt]+=:dm-crypt
+	opts[-mdm-crypt]+=:dm-crypt
 fi
 if [[ -n "${opts[-sqfsd]}" ]]; then opts[-bin]+=:umount.aufs:mount.aufs
 	for fs in {au,squash}fs; do 
@@ -173,7 +173,7 @@ if [[ -n "${opts[-gpg]}" ]]; then
 		warn "no gpg.conf was found"
 fi
 if [[ -n "${opts[-lvm]}" ]]; then opts[-bin]+=:lvm.static
-	opts[-mlvm]+=:dm-snapshot:dm-uevent
+	opts[-mdevice-mapper]+=:dm-mirror:dm-snapshot:dm-uevent
 	pushd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge
@@ -182,22 +182,22 @@ if [[ -n "${opts[-lvm]}" ]]; then opts[-bin]+=:lvm.static
 	popd
 fi
 addmodule() {
-	local ret
-	for mod in $@; do
-		local module=$(find /lib/modules/${opts[-kversion]} -name ${mod}.ko -or -name ${mod}.o)
+	local mod module ret
+	for mod in $*; do
+		module=$(find /lib/modules/${opts[-kversion]} -name ${mod}.ko -or -name ${mod}.o)
 		if [ -n "${module}" ]; then mkdir -p .${module%/*}
 			cp -ar ${module} .${module} || die "failed to copy ${module} module"
-		else warn "${mod} does not exist"; ((ret=${ret}+1)); fi
+		else warn "${mod} does not exist"; let ret=((${ret}+1)); fi
 	done
 	return ${ret}
 }
 for bin in dmraid mdadm; do
 	[[ -n "$(echo ${opts[-bin]} | grep ${bin})" ]] && opts[-$bin]=y
 done
-[[ -n "${opts[-dmraid]}" ]] && opts[-mdmraid]+=:dm-snapshot:dm-mirror:dm-raid:dm-uevent
-[[ -n "${opts[-mdadm]}" ]] && opts[-mmdadm]+=:linear:raid0:raid10:raid1:raid456
+[[ -n "${opts[-dmraid]}" ]] && opts[-mdm-raid]+=:dm-mirror:dm-multipath:dm-snapshot:dm-raid:dm-uevent
+[[ -n "${opts[-mdadm]}" ]] && opts[-mraid]+=:md-mod:linear:raid0:raid10:raid1:raid456
 addmodule ${opts[-mdep]//:/ }
-for grp in boot crypt dmraid gpg lvm mdadm sqfsd remdev tuxonice; do
+for grp in boot device-mapper dm-crypt dm-raid gpg raid remdev sqfsd tuxonice; do
 	if [[ -n "${opts[-m${grp}]}" ]]; then
 		for mod in ${opts[-m${grp}]//:/ }; do 
 			addmodule ${mod} && echo ${mod} >> etc/mkinitramfs-ll/module.${grp}
