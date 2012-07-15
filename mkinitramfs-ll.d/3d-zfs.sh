@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: mkinitramfs-ll.d/3d-zfs.sh, 2012/07/15 14:06:49 -tclover Exp $
+# $Id: mkinitramfs-ll.d/3d-zfs.sh, 2012/07/15 16:37:20 -tclover Exp $
 # to use zfs module one should build an initramfs with `mkinitramfs-ll.$shell ...
 # -mdep spl:znvpair:zcommon:zavl:zunicode:zfs -b zpool:zfs and `-b :mount.zfs 
 # for legacy support. and don't forget to append izfs=<arg>[,-f,...] cmdline arg.
@@ -10,7 +10,7 @@ echo $$ >/run/${0##*/}.pid
 $eck && for bin in zfs zpool; do 
 	debug -d -- bck $bin
 done
-debug -d -- _modprobe spl znvpair zcommon zavl zunicode zfs
+debug -d -- _modprobe zfs
 dev=${iroot%%:*}
 debug -d -- _getopt izfs
 if [ -n "$kmode" ]; then
