@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/gnupg.zsh,v 0.10.2 2012/07/13 19:20:51 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.zsh,v 0.10.4 2012/07/15 19:56:04 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-d|--usrdir=usr] [options]
@@ -21,7 +21,8 @@ zparseopts -E -D -K -A opts U:: useflag:: v:: version:: d:: usrdir:: C: confdir:
 	u usage W:: workdir:: || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
-if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
+if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
+} else { die "no mkinitramfs-ll.conf found" }
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-usrdir]:=${opts[-B]:-${opts[-workdir]}/usr}}
 mkdir -p ${opts[-usrdir]}/{bin,share/gnupg}

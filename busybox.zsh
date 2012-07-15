@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.10.2 2012/07/13 19:20:39 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.10.2 2012/07/15 19:56:09 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-m|-minimal] [-ucl i386]
@@ -19,13 +19,14 @@ zmodload zsh/zutil
 zparseopts -E -D -K -A opts n minimal d:: usrdir:: ucl: u usage v: version: || usage
 if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -z ${(k)opts[*]} ]] { typeset -A opts }
-if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
+if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
+} else { die "no mkinitramfs-ll.conf found" }
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-usrdir]:=${opts[-d]:-$opts[-workdir]/usr}}
 mkdir -p ${opts[-usrdir]}/bin
 pushd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] { 
-	opts[-pkg]="=busybox-${opts[-version]:-${opts[-v]}}"
+:	opts[-pkg]="=busybox-${opts[-version]:-${opts[-v]}}"
 } else { opts[-pkg]=busybox }
 opts[bbt]=$(emerge -pvO ${opts[-pkg]} | grep -o "busybox-[-0-9.r]*")
 ebuild ${opts[bbt]}.ebuild clean || die "clean failed"
