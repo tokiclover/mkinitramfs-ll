@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.3 2012/07/14 19:19:51 -tclover Exp $
-revision=0.10.3
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/15 12:50:30 -tclover Exp $
+revision=0.10.4
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -62,7 +62,8 @@ if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
 	print "${(%):-%1x}-$revision"; exit }
 if [[ -z ${opts[*]} ]] { typeset -A opts }
 setopt EXTENDED_GLOB NULL_GLOB
-if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf }
+if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
+} else { die "no mkinitramfs-ll.conf found" }
 :	${opts[-kversion]:=${opts[-k]:-$(uname -r)}}
 :	${opts[-prefix]:=${opts[-p]:-initramfs-}}
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
@@ -130,11 +131,10 @@ if [[ -x usr/bin/busybox ]] { mv -f {usr/,}bin/busybox
 if [[ -f etc/mkinitramfs-ll/busybox.app ]] { :;
 } else { bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die }
 for app ($(< etc/mkinitramfs-ll/busybox.app)) ln -fs /bin/busybox ${app}
-if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] {
-	[[ -n ${(pws,:,)opts[(rw)cryptsetup,-bin]} ]] || opts[-bin]+=:cryptsetup
-	opts[-mcrypt]+=:dm-crypt
+if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] { 
+:	opts[-bin]+=:cryptsetup opts[-kmodule]+=:dm-crypt
 }
-if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { 
+if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { opts[-kmodule]+=:gpg
 	if [[ -x usr/bin/gpg ]] { :;
 	} elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
 		opts[-bin]+=:$(which gpg)
@@ -143,39 +143,30 @@ if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
 		ln -sf {root/,}.gnupg && chmod 700 root/.gnupg/gpg.conf
 	} else { warn "no gpg.conf was found" }
 }
-if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] { opts[-bin]+=:lvm.static
-	opts[-mdevice-mapper]+=:dm-mirror:dm-snapshot:dm-uevent
+if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
+:	opts[-bin]+=:lvm.static opts[-kmodule]+=:device-mapper
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge) ln -sf lvm ${lpv} || die
 	popd
 }
 if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] { 
-	opts[-bin]+=:mount.aufs:umount.aufs
-	for fs ({au,squash}fs) 
-		[[ -n $(echo ${opts[-b]}   | grep ${fs}) ]] ||
-		[[ -n $(echo ${opts[-bin]} | grep ${fs}) ]] || opts[-msqfsd]+=:${fs}
+:	opts[-bin]+=:mount.aufs:umount.aufs opts[-kmodule]+=:sqfsd
 }
 addmodule() {
 	local mod module ret
-	for module in $*; do
-		mod=(/lib/modules/${opts[-kversion]}/**/$module.(ko|o))
-		if [[ -n ${mod} ]] { mkdir -p .${mod:h} 
-			cp -ar ${mod} .${mod} || die "failed to copy ${mod} module" 
-		} else { warn "${module} does not exist"; ((ret=${ret}+1)) }
-	done
+	for mod ($*) {
+		module=(/lib/modules/${opts[-kversion]}/**/${mod}.(ko|o))
+		if [[ -n ${module} ]] { 
+			mkdir -p .${module:h} && cp -ar {,.}${module} ||
+				die "failed to copy ${module} module"
+		} else { warn "${mod} does not exist"; ((ret=${ret}+1)) }
+	}
 	return ${ret}
 }
-for bin (dmraid mdadm) if [[ -n $(echo ${opts[-b]} | grep $bin) ]] ||
-	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-m$bin]='' }
-if [[ -n ${(k)opts[-mdmraid]} ]] {
-	opts[-mdm-raid]+=:dm-mirror:dm-multipath:dm-snapshot:dm-raid:dm-uevent
-}
-if [[ -n ${(k)opts[-mmdadm]} ]] { opts[-mraid]+=:md-mod:linear:raid0:raid10:raid1:raid456 }
-for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) addmodule ${module}
-for grp (boot device-mapper dm-crypt dm-raid gpg raid remdev sqfsd tuxonice)
-	for module (${(pws,:,)opts[-m${grp}]}) 
-		addmodule ${module} && echo ${module} >> etc/mkinitramfs-ll/module.${grp}
+for bin (dmraid mdadm zfs) if [[ -n $(echo ${opts[-b]} | grep $bin) ]] ||
+	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-kmodule]+=:$bin }
+:	opts[-kmodule]=${opts[-kmodue]/mdadm/raid}
 for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] { :;
 	} elif [[ -f ${keymap} ]] { cp -a ${keymap} usr/share/keymaps/
@@ -221,6 +212,10 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 	} else { which ${bin:t} &>/dev/null && bcp $(which ${bin:t}) ||
 		warn "no ${bin} binary found"
 	}
+for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) addmodule ${module}
+for grp (${(pws,:,)opts[-kmodule]})
+	for mod (${(pws,:,)opts[-m${grp}]}) 
+		addmodule ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
 gen || die
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
 unset opts

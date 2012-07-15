@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.3 2012/07/14 19:19:41 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.4 2012/07/14 23:37:23 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -27,18 +27,18 @@ debug() {
 }
 
 rsh() {
-	export PS1='rsh:$(tty | cut -c6-):$PWD # '
+	export PS1='rsh:$(tty | cut -c6-):$PWD # ' PS2='> '
 	if [ $spld ]; then
-		debug openvt -c${console#*tty} $sh -i 0<$console 1>$console 2>&1
-	elif ack setsid; then debug setsid $sh -i 0<$console 1>$console 2>&1
-	else debug $sh -i 0<$console 1>$console 2>&1; fi
+		debug openvt -c${console#*tty} $sh -i -m 0<$console 1>$console 2>&1
+	elif ack setsid; then debug setsid $sh -i -m 0<$console 1>$console 2>&1
+	else debug $sh -i -m 0<$console 1>$console 2>&1; fi
 }
 
 die() {
 	local _ret=$? _msg="Dropping into a rescueshell..."
 	[ -n "$@" ] && error "[$_ret]: $@" && msg "[$_ret]: $@"
 	info "$_msg"; msg "$_msg"; _stop
-	debug rsh || debug exec $sh -i
+	debug rsh || debug exec $sh -i -m
 }
 
 bck() { debug -d -- which $1 &>/dev/null; }

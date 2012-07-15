@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.3 2012/07/14 21:36:25 -tclover Exp $
-revision=0.10.3
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.4 2012/07/15 12:50:25 -tclover Exp $
+revision=0.10.4
 usage() {
   cat <<-EOF
  usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
@@ -94,7 +94,8 @@ while [[ $# > 0 ]]; do
 		-u|--usage|*) usage;;
 	esac
 done
-[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf
+[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf ||
+	die "no mkinitramfs-ll.conf found"
 [[ -n "${opts[-kversion]}" ]] || opts[-kversion]="$(uname -r)"
 [[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
 [[ -n "${opts[-prefix]}" ]] || opts[-prefix]=initramfs-
@@ -155,15 +156,12 @@ for app in $(< etc/mkinitramfs-ll/busybox.app); do
 	ln -fs /bin/busybox ${app}
 done
 if [[ -n "${opts[-luks]}" ]]; then
-	[[ -n "$(echo ${opts[-bin]} | grep cryptsetup)" ]] || opts[-bin]+=:cryptsetup
-	opts[-mdm-crypt]+=:dm-crypt
+:	opts[-bin]+=:cryptsetup opts[-kmodule]+=:dm-crypt
 fi
-if [[ -n "${opts[-sqfsd]}" ]]; then opts[-bin]+=:umount.aufs:mount.aufs
-	for fs in {au,squash}fs; do 
-		[[ -n "$(echo ${opts[-msqfsd]} | grep ${fs})" ]] || opts[-msqfsd]+=:${fs}
-	done
+if [[ -n "${opts[-sqfsd]}" ]]; then
+:	opts[-bin]+=:umount.aufs:mount.aufs opts[-kmodule]+=:sqfsd
 fi
-if [[ -n "${opts[-gpg]}" ]]; then
+if [[ -n "${opts[-gpg]}" ]]; then opts[-kmodule]+=:gpg
 	if [[ -x usr/bin/gpg ]]; then :;
 	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
 		opts[-bin]+=":$(which gpg)"
@@ -172,8 +170,8 @@ if [[ -n "${opts[-gpg]}" ]]; then
 		ln -sf {root/,}.gnupg && chmod 700 root/.gnupg/gpg.conf ||
 		warn "no gpg.conf was found"
 fi
-if [[ -n "${opts[-lvm]}" ]]; then opts[-bin]+=:lvm.static
-	opts[-mdevice-mapper]+=:dm-mirror:dm-snapshot:dm-uevent
+if [[ -n "${opts[-lvm]}" ]]; then
+:	opts[-bin]+=:lvm.static opts[-kmodule]+=:device-mapper
 	pushd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge
@@ -183,27 +181,19 @@ if [[ -n "${opts[-lvm]}" ]]; then opts[-bin]+=:lvm.static
 fi
 addmodule() {
 	local mod module ret
-	for mod in $*; do
+	for mod in "$@"; do
 		module=$(find /lib/modules/${opts[-kversion]} -name ${mod}.ko -or -name ${mod}.o)
-		if [ -n "${module}" ]; then mkdir -p .${module%/*}
-			cp -ar ${module} .${module} || die "failed to copy ${module} module"
+		if [ -n "${module}" ]; then
+			mkdir -p .${module%/*} && cp -ar {,.}${module} ||
+				die "failed to copy ${odulem} module"
 		else warn "${mod} does not exist"; ((ret=${ret}+1)); fi
 	done
 	return ${ret}
 }
-for bin in dmraid mdadm; do
-	[[ -n "$(echo ${opts[-bin]} | grep ${bin})" ]] && opts[-$bin]=y
+for bin in dmraid mdadm zfs; do
+	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] && opts[-kmodule]+=:$bin
 done
-[[ -n "${opts[-dmraid]}" ]] && opts[-mdm-raid]+=:dm-mirror:dm-multipath:dm-snapshot:dm-raid:dm-uevent
-[[ -n "${opts[-mdadm]}" ]] && opts[-mraid]+=:md-mod:linear:raid0:raid10:raid1:raid456
-addmodule ${opts[-mdep]//:/ }
-for grp in boot device-mapper dm-crypt dm-raid gpg raid remdev sqfsd tuxonice; do
-	if [[ -n "${opts[-m${grp}]}" ]]; then
-		for mod in ${opts[-m${grp}]//:/ }; do 
-			addmodule ${mod} && echo ${mod} >> etc/mkinitramfs-ll/module.${grp}
-		done
-	fi
-done
+:	opts[-kmodule]=${opts[-kmodue]/mdadm/raid}
 for keymap in ${opts[-keymap]//:/ }; do
 	if [[ -f usr/share/keymaps/"${keymap}" ]]; then :;
 	elif [[ -f "${keymap}" ]]; then cp -a "${keymap}" usr/share/keymaps/
@@ -227,7 +217,7 @@ for font in ${opts[-font]//:/ }; do
 done
 if [[ -n "${opts[-splash]}" ]]; then
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
-	[[ -n "${opts[-toi]}" ]] && opts[-bin]+=:tuxoniceui_text
+	[[ -n "${opts[-toi]}" ]] && opts[-bin]+=:tuxoniceui_text && opts[-kmodule]+=:tuxonice
 	for theme in ${opts[-splash]//:/ }; do 
 		if [[ -d etc/splash/${theme} ]]; then :; 
 		elif [[ -d /etc/splash/${theme} ]]; then cp -r {/,}etc/splash/${theme}
@@ -251,6 +241,14 @@ for bin in ${opts[-bin]//:/ }; do
 	elif [[ -x ${bin} ]]; then bcp ${bin}
 	else which ${bin##*/} &>/dev/null && bcp $(which ${bin##*/}) ||
 		warn "no ${bin} binary found"
+	fi
+done
+addmodule ${opts[-mdep]//:/ }
+for grp in ${opts[-kmodule]//:/ }; do
+	if [[ -n "${opts[-m${grp}]}" ]]; then
+		for mod in ${opts[-m${grp}]//:/ }; do 
+			addmodule ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
+		done
 	fi
 done
 gen || die
