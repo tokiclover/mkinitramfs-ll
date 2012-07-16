@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.4 2012/07/15 12:50:25 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.4 2012/07/16 16:20:53 -tclover Exp $
 revision=0.10.4
 usage() {
   cat <<-EOF
@@ -127,7 +127,7 @@ rm -rf "${opts[-initdir]}" || die
 mkdir -p "${opts[-initdir]}" && pushd "${opts[-initdir]}" || die
 if [[ -d "${opts[-usrdir]}" ]]; then
 	cp -ar "${opts[-usrdir]}" . && rm -f usr/README* || die
-	mv -f {usr/,}root &>/dev/null && mv -f {usr/,}etc &>/dev/null &&
+	mv -f {usr/,}root 1>/dev/null 2>&1 && mv -f {usr/,}etc 1>/dev/null 2>&1 &&
 	mv -f usr/lib lib${opts[-arc]} || die
 else mkdir -pm700 root; warn "${opts[-usrdir]} does not exist"; fi
 mkdir -p {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
@@ -137,7 +137,8 @@ ln -sf lib{${opts[-arc]},} && pushd usr && ln -sf lib{${opts[-arc]},} && popd ||
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[0-6],zero} dev/ || addnodes
 if [[ $(echo ${opts[-kversion]} | cut -d'.' -f1 ) -eq 3 ]] && \
 	[[ $(echo ${opts[-kversion]} | cut -d'.' -f2) -ge 1 ]]; then
-	cp -a {/,}dev/loop-control &>/dev/null || mknod -m 600 dev/loop-control c 10 237 || die
+	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
+		mknod -m 600 dev/loop-control c 10 237 || die
 fi
 cp -a "${opts[-workdir]}"/init . && chmod 775 init && mkdir -pm700 root || die
 cp -af {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
@@ -145,11 +146,11 @@ for mod in ${opts[-module]//:/ }; do
 	cp -a ${opts[-usrdir]}/../mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
 done
 if [[ -x usr/bin/busybox ]]; then mv -f {usr/,}bin/busybox
-elif which busybox &> /dev/null &&
+elif which busybox 1>/dev/null 2>&1 &&
 	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]]; then
 	cp -a $(which busybox) bin/
-elif which bb &>/dev/null; then cp -a $(which bb) bin/busybox
-else die "there's no busybox nor bb binary"; fi
+elif which bb 1>/dev/null 2>&1; then cp -a $(which bb) bin/busybox
+else die "there's no suitable busybox/bb binary"; fi
 if [[ -f etc/mkinitramfs-ll/busybox.app ]]; then :;
 else bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die; fi
 for app in $(< etc/mkinitramfs-ll/busybox.app); do	
@@ -239,7 +240,7 @@ for bin in ${opts[-bin]//:/ }; do
 	if [[ -x usr/bin/${bin##*/} ]] || [[ -x usr/sbin/${bin##*/} ]] ||
 	[[ -x bin/${bin##*/} ]] || [[ -x sbin/${bin##*/} ]]; then :;
 	elif [[ -x ${bin} ]]; then bcp ${bin}
-	else which ${bin##*/} &>/dev/null && bcp $(which ${bin##*/}) ||
+	else which ${bin##*/} 1>/dev/null 2>&1 && bcp $(which ${bin##*/}) ||
 		warn "no ${bin} binary found"
 	fi
 done

@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/15 12:50:30 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/16 16:20:57 -tclover Exp $
 revision=0.10.4
 usage() {
   cat <<-EOF
@@ -81,7 +81,7 @@ if [[ -n ${(k)opts[-f]} ]] || [[ -n ${(k)opts[-font]} ]] {
 }
 if [[ -n $(uname -m | grep 64) ]] { opts[-arc]=64 } else { opts[-arc]=32 }
 if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] { 
-	opts[-g]=; opts[-l]=; opts[-q]=; opts[-L]=;
+:	opts[-g]= opts[-l]= opts[-q]= opts[-L]=
 }
 case ${opts[-comp][(w)1]} in
 	bzip2)	opts[-initramfs]+=.cpio.bz2;;
@@ -105,7 +105,7 @@ rm -rf ${opts[-initdir]} || die "eek!"
 mkdir -p ${opts[-initdir]} && pushd ${opts[-initdir]} || die
 if [[ -d ${opts[-usrdir]} ]] {
 	cp -ar ${opts[-usrdir]} . && rm -f usr/README* || die
-	mv -f {usr/,}root &>/dev/null && mv -f {usr/,}etc &>/dev/null &&
+	mv -f {usr/,}root 1>/dev/null 2>&1 && mv -f {usr/,}etc 1>/dev/null 2>&1 &&
 	mv -f usr/lib lib${opts[-arc]} || die
 } else { mkdir -pm700 root; warn "${opts[-usrdir]} does not exist" }
 mkdir -p {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
@@ -115,19 +115,19 @@ ln -sf lib{${opts[-arc]},} && pushd usr && ln -sf lib{${opts[-arc]},} && popd ||
 cp -a /dev/{console,random,urandom,mem,null,tty,tty[0-6],zero} dev/ || addnodes
 if [[ ${${(pws:.:)opts[-kversion]}[1]} -eq 3 ]] &&
 	[[ ${${(pws:.:)opts[-kversion]}[2]} -ge 1 ]] {
-	cp -a {/,}dev/loop-control &>/dev/null || mknod -m 600 dev/loop-control c 10 237 || die
+	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
+		mknod -m 600 dev/loop-control c 10 237 || die
 }
 cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]})
 	cp -a ${opts[-usrdir]:h}/mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
 cp -ar {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
 if [[ -x usr/bin/busybox ]] { mv -f {usr/,}bin/busybox
-} elif [[ $(which busybox) != "busybox not found" &&
-	$(ldd $(which busybox)) == *"not a dynamic executable" ]] {
+} elif [[ $(which busybox) != "busybox not found" ]] &&
+	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]] {
 	cp -a $(which busybox) bin/
-} elif [[ $(which bb) != "bb not found" ]] { 
-	cp -a $(which bb) bin/busybox
-} else { die "no busybox/bb binary found" }
+} elif [[ $(which bb) != "bb not found" ]] { cp -a $(which bb) bin/busybox
+} else { die "no suitable busybox/bb binary found" }
 if [[ -f etc/mkinitramfs-ll/busybox.app ]] { :;
 } else { bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die }
 for app ($(< etc/mkinitramfs-ll/busybox.app)) ln -fs /bin/busybox ${app}
@@ -209,7 +209,7 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 	if [[ -x usr/bin/${bin:t} ]] || [[ -x usr/sbin/${bin:t} ]] ||
 	[[ -x bin/${bin:t} ]] || [[ -x sbin/${bin:t} ]] { :;
 	} elif [[ -x ${bin} ]] { bcp ${bin}
-	} else { which ${bin:t} &>/dev/null && bcp $(which ${bin:t}) ||
+	} else { which ${bin:t} 1>/dev/null 2>&1 && bcp $(which ${bin:t}) ||
 		warn "no ${bin} binary found"
 	}
 for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) addmodule ${module}
