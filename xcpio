@@ -1,13 +1,9 @@
 #!/bin/sh
-# $Id: mkinitramfs-ll/xcpio, 2012/06/18 14:33:19 -tclover Exp $
-[[ -z "$@" ]] && echo "usage: ${0##*/} -l|-x files" && exit 1
-case $1 in
-	-l|-ls|-list) opt=-t; shift;;
-	-x|-*xtract)  opt='-d -i'; shift;;
-	*) opt=-t;;
-esac
-for file in $@; do
-	case ${file##*.} in
+# $Id: mkinitramfs-ll/xcpio, 2012/07/16 01:19:03 -tclover Exp $
+[[ -z "$@" ]] && echo "usage: ${0##*/} [{-l|-list}|{-x|-extract}] files" && exit 1
+comp() {
+	local comp
+	case ${1##*.} in
 		bz*2)	comp=bzcat;;
 		gz*) 	comp=zcat;;
 		xz) 	comp=xzcat;;
@@ -16,7 +12,15 @@ for file in $@; do
 		lz*)	comp=lzip -cd;;
 		*) echo "unsupported compression format"; exit 1;;
 	esac
-	$comp $file | cpio $opt
+	$comp $1
+}
+case $1 in
+	-l|-ls|-list)   opt='-t -v'; shift;;
+	-x|-*xtract) opt='-d -i'; shift;;
+	*) opt=-t;;
+esac
+for file in $*; do
+	comp $file | cpio $opt
 done
-unset -v opt comp
+unset -v opt
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
