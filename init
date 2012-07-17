@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.4 2012/07/16 16:20:47 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.4 2012/07/17 21:35:40 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -421,9 +421,7 @@ imount() {
 			error "$_x not found in fstab"
 			break
 		fi
-		for _z in 0 1 2 3 4; do
-			[ "$_opt" = "$_z" ] && _opt=
-		done
+		debug _blkid "$_dev" "_dev"
 		debug -d -- test -b $_dev
 		debug -d -- test -d $_mpt
 		debug -d -- mount -t$_fs ${_opt:+-o$_opt} $_dev /newroot/$_mpt
@@ -512,7 +510,7 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
-	cat </init|sed '/^#.*$/d'|tail -n+4|head -n302  >>/lib/mkinitramfs-ll/fbase.sh
+	cat </init|sed '/^#.*$/d'|tail -n+4|head -n306  >>/lib/mkinitramfs-ll/fbase.sh
 	sed -e 's/debug\ rsh.*$/exit\ \$_ret/'         -i /lib/mkinitramfs-ll/fbase.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d -- mkdir -p dev/pts proc run sys newroot mnt/tok
