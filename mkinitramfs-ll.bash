@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.4 2012/07/16 16:20:53 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.4 2012/07/18 12:40:43 -tclover Exp $
 revision=0.10.4
 usage() {
   cat <<-EOF
@@ -157,10 +157,10 @@ for app in $(< etc/mkinitramfs-ll/busybox.app); do
 	ln -fs /bin/busybox ${app}
 done
 if [[ -n "${opts[-luks]}" ]]; then
-:	opts[-bin]+=:cryptsetup opts[-kmodule]+=:dm-crypt
+	opts[-bin]+=:cryptsetup opts[-kmodule]+=:dm-crypt
 fi
 if [[ -n "${opts[-sqfsd]}" ]]; then
-:	opts[-bin]+=:umount.aufs:mount.aufs opts[-kmodule]+=:sqfsd
+	opts[-bin]+=:umount.aufs:mount.aufs opts[-kmodule]+=:sqfsd
 fi
 if [[ -n "${opts[-gpg]}" ]]; then opts[-kmodule]+=:gpg
 	if [[ -x usr/bin/gpg ]]; then :;
@@ -172,7 +172,7 @@ if [[ -n "${opts[-gpg]}" ]]; then opts[-kmodule]+=:gpg
 		warn "no gpg.conf was found"
 fi
 if [[ -n "${opts[-lvm]}" ]]; then
-:	opts[-bin]+=:lvm.static opts[-kmodule]+=:device-mapper
+	opts[-bin]+=:lvm.static opts[-kmodule]+=:device-mapper
 	pushd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge
@@ -194,7 +194,7 @@ addmodule() {
 for bin in dmraid mdadm zfs; do
 	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] && opts[-kmodule]+=:$bin
 done
-:	opts[-kmodule]=${opts[-kmodue]/mdadm/raid}
+	opts[-kmodule]=${opts[-kmodue]/mdadm/raid}
 for keymap in ${opts[-keymap]//:/ }; do
 	if [[ -f usr/share/keymaps/"${keymap}" ]]; then :;
 	elif [[ -f "${keymap}" ]]; then cp -a "${keymap}" usr/share/keymaps/

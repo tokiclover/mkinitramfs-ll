@@ -1,11 +1,11 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/16 16:20:57 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/18 12:40:45 -tclover Exp $
 revision=0.10.4
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
 
-  -a|-all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
+  -a|-all                 short hand or forme of '-q -l -luks -ggp -font -keymap'
   -f|-font [:ter-v14n]    include a colon separated list of fonts to the initramfs
   -k|-kversion 3.4.4-git  build an initramfs for kernel 3.4.4-git or else \$(uname -r)
   -c|-comp ['gzip -9']    use 'gzip -9' command instead default compression command
@@ -33,7 +33,7 @@ usage() {
 
  usage: without an argument, generate an default initramfs for kernel \$(uname -r)
  usgae: generate an initramfs with LUKS, GnuPG, LVM2 and aufs+squashfs support
- ${(%):-%1x} -a -f -y -k$(uname -r)
+ ${(%):-%1x} -a -k$(uname -r)
 EOF
 exit $?
 }
@@ -72,17 +72,17 @@ if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf
 :	${opts[-initdir]:=${opts[-workdir]}/${opts[-prefix]}${opts[-kversion]}}
 :	${opts[-initramfs]:=/boot/${opts[-prefix]}${opts[-kversion]}}
 :	${opts[-arch]:=$(uname -m)}
+if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] { 
+	opts[-f]=; opts[-g]=; opts[-l]=; opts[-q]=; opts[-L]=; opts[-y]=;
+}
 if [[ -n ${(k)opts[-y]} ]] || [[ -n ${(k)opts[-keymap]} ]] {
-: 	${opts[-keymap]:=${opts[-y]:-:$(grep -E '^keymap' /etc/conf.d/keymaps | cut -d'"' -f2)}}
+	opts[-y]+=:$(grep -E '^keymap' /etc/conf.d/keymaps | cut -d'"' -f2)
 }
 if [[ -n ${(k)opts[-f]} ]] || [[ -n ${(k)opts[-font]} ]] {
-:	${opts[-font]:=${opts[-f]:-:$(grep -E '^consolefont' /etc/conf.d/consolefont \
-		| cut -d'"' -f2):ter-v14n:ter-g12n}}
+	opts[-f]+=:$(grep -E '^consolefont' /etc/conf.d/consolefont | cut -d'"' -f2)
+	opts[-f]+=:ter-v14n:ter-g12n
 }
 if [[ -n $(uname -m | grep 64) ]] { opts[-arc]=64 } else { opts[-arc]=32 }
-if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] { 
-:	opts[-g]= opts[-l]= opts[-q]= opts[-L]=
-}
 case ${opts[-comp][(w)1]} in
 	bzip2)	opts[-initramfs]+=.cpio.bz2;;
 	gzip) 	opts[-initramfs]+=.cpio.gz;;
@@ -132,7 +132,7 @@ if [[ -f etc/mkinitramfs-ll/busybox.app ]] { :;
 } else { bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die }
 for app ($(< etc/mkinitramfs-ll/busybox.app)) ln -fs /bin/busybox ${app}
 if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] { 
-:	opts[-bin]+=:cryptsetup opts[-kmodule]+=:dm-crypt
+	opts[-bin]+=:cryptsetup opts[-kmodule]+=:dm-crypt
 }
 if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { opts[-kmodule]+=:gpg
 	if [[ -x usr/bin/gpg ]] { :;
@@ -144,14 +144,14 @@ if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { opts[-kmodule]+=:gpg
 	} else { warn "no gpg.conf was found" }
 }
 if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
-:	opts[-bin]+=:lvm.static opts[-kmodule]+=:device-mapper
+	opts[-bin]+=:lvm.static opts[-kmodule]+=:device-mapper
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge) ln -sf lvm ${lpv} || die
 	popd
 }
 if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] { 
-:	opts[-bin]+=:mount.aufs:umount.aufs opts[-kmodule]+=:sqfsd
+	opts[-bin]+=:mount.aufs:umount.aufs opts[-kmodule]+=:sqfsd
 }
 addmodule() {
 	local mod module ret
@@ -166,7 +166,7 @@ addmodule() {
 }
 for bin (dmraid mdadm zfs) if [[ -n $(echo ${opts[-b]} | grep $bin) ]] ||
 	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-kmodule]+=:$bin }
-:	opts[-kmodule]=${opts[-kmodue]/mdadm/raid}
+	opts[-kmodule]=${opts[-kmodue]/mdadm/raid}
 for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] { :;
 	} elif [[ -f ${keymap} ]] { cp -a ${keymap} usr/share/keymaps/
