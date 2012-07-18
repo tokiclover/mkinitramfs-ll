@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.4 2012/07/18 21:18:36 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/18 21:20:28 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -171,9 +171,9 @@ getkey() {
 		debug -d -- test -f "/mnt/tok/$_fp"
 	fi
 	case $_km in
-		gpg) $eck && debug -d -- bck gpg; kfile=/mnt/tok/$_fp; kmode=gpg;;
-		reg) kfile="/mnt/tok/$_fp"; kmode=reg;;
-		ldk) [ -b "/dev/mapper/$_fn" ] || glk "/mnt/tok/$_fp"; kmode=ldk;;
+		gpg) $eck && debug -d -- bck gpg; kfile=/mnt/tok$_fp; kmode=gpg;;
+		reg) kfile="/mnt/tok$_fp";                            kmode=reg;;
+		ldk) [ -b "/dev/mapper/$_fn" ] || glk "/mnt/tok$_fp"; kmode=ldk;;
 		pwd) kmode=pwd;;
 		*)   die "$_km: keymode is invalid";; 
 	esac
@@ -201,60 +201,70 @@ dmcrypt() {
 		read _use
 		[ "${_use:-no}" = "yes" ] && _use="-d $_use" || _use=
 	fi
-	if [ -b "$_hdr" ]; then info "use $_hdr detached header [NO|yes]?"
+	if [ -e "$_hdr" ]; then info "use $_hdr detached header [NO|yes]?"
 		read _asw
 		if [ "${_asw:-no}" = "yes" ]; then info "Enter a valid aligh-payload offset,"
 			info "this option is taken as absolute sector alignment and can be zero"
-			read _apd; _apd="--align-payload $_apd"
-		else unset _hdr; fi
+			read _apd; _apd="--align-payload ${_apd:-0}"
+		else unset _header; fi
 	fi
 	debug -d -- cryptsetup $_arg $_dev -c${_cpr:-aes-xts-plain:sha256} \
-		-s${_ksz:-256} $_use $_hdr $_apd
+		-s${_ksz:-256} $_use $_header $_apd
+}
+
+gld() {
+	if [ ! -e "$1" ]; then
+		[ "$cid" ] && [ -n "$(echo "$1" | grep -i UUID)" ] ||
+			debug -d -- _blkid "$1" "dev"
+	fi
+	eval dev=${dev:-$1}
+	[ "$2" = "-i" ] || return
+	local _ldv=$dev
+	debug cryptsetup isLuks "$_ldv" ||
+	{
+ 		info "for[mate] $1 or dec[rypt] another cyphertext or header? [for|DEC|hdr]"
+		_msg="Type in a valid LUKS cyphertext e.g. sda5|UUID=<uuid>|LABEL=<label>"
+		read _asw
+		if [ "${_asw:-dec}" = "dec" ]; then info "$_msg"
+		elif [ "$_asw" = "hdr" ]; then info "$_msg|path/to/file"
+		elif [ "$_asw" = "for" ]; then debug dmcrypt; fi
+		_msg="type in a valide file:"
+		while true; do
+			info "$_msg"
+			read _ldv; debug _blkid "$_ldv" "dev"
+			debug cryptsetup isLuks "$dev" && break
+		done
+	}
 }
 
 dmopen() { 
 	$eck && debug -d -- bck cryptsetup
 	debug _modprobe dm-crypt
-	local _arg=luksFormat _asw
+	local _arg=luksFormat _asw _decrypt _header _msg dev
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
 	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
-	if [ "$cid" ] && [ -n "$(echo "$_dev" | grep -i UUID)" ]; then :;
-	else debug -d -- _blkid "$_dev" "_dev"; fi
 	if [ -n "$_hdr" ]; then
-		if [ -n "$(echo "$_hdr" | grep -E '(UUID|LABEL|sd[a-z][0-9])')" ]; then 
-			if [ "$cid" ] && [ -n "$(echo "$_hdr" | grep -i UUID)" ]; then :;
-			else debug _blkid "$_hdr" "_hdr"; fi
-			debug -d -- test -b "$_hdr" && header="$_hdr" _hdr="--header $_hdr"
-		elif [ -e "/mnt/tok/$_hdr" ]; then header="$_hdr" _hdr="--header /mnt/tok/$_hdr"
+		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
+			debug gld "$_hdr" -i
+		elif [ -e "/mnt/tok/$_hdr" ]; then debug gld "/mnt/tok/$_hdr" -i
 		else die "$_hdr detached header doesn't exist."; fi
-	fi
-	debug cryptsetup isLuks "$_dev" "$header"
-	if [ ! "$?" ]; then
- 		info "cre[ate] $_dev or dec[rypt] another LUKS PV? [cre|DEC]"
-		read _asw
-		if [ "${_asw:-dec}" = "dec" ]; then
-			while true; do
-				info "Type in valid LUKS PV e.g. sda5|UUID=<uuid>|LABEL=<label>"
-				read _dev; debug _blkid "$_dev" "_dev"
-				debug cryptsetup isLuks "$_dev" "$header" && break
-			done
-		elif [ "$_asw" = "cre" ]; then debug dmcrypt; fi
-	fi
-	debug -d -- test -n "$_dev" && debug test -b "$_dev" && _arg=luksOpen
+		_hdr=$dev && _header="--header $_hdr"
+	else debug gld "$_dev" -i; fi
+	_arg=luksOpen && _dev=$dev
+	debug -d -- cryptsetup isLuks "$_dev" "$_header" 
+	_decrypt="cryptsetup $_arg $_dev $_map $_header"
+	_msg="there are still 3 pwd mode attempts"
 	if [ "$kmode" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
-		for _i in 1 2 3; do
-			debug gpg -qd "$kfile" | cryptsetup "$_arg" "$_dev" "$_map" $_hdr && break
-			[ $_i -eq 3 ] && error "...there's still a pwd mode fallback..."
-		done
-		rm /dev/tty && mv /dev/bak /dev/tty
-	elif [ "$kmode" = "ldk" ] || [ "$kmode" = "reg" ]; then 
-		debug cryptsetup "$_arg" "$_dev" "$_map" -d "$kfile" $_hdr ||
-		error "...there's still a pwd mode fallback..."
+		echo "[?]: gpg -qd "$kfile" | $_decrypt" >>$logdir/init.log
+		gpg -qd "$kfile" | $_decrypt || info "$_msg"
+		rm /dev/tty && mv -f /dev/bak /dev/tty
+	elif [ "$kmode" = "ldk" ] || [ "$kmode" = "reg" ]; then
+		debug $_decrypt -d "$kfile" || info "$_msg"
 	fi
 	ctxt=/dev/mapper/$_map
-	[ -b "$ctxt" ] || debug -d -- cryptsetup "$_arg" "$_dev" "$_map" "$_hdr"
+	[ -b "$ctxt" ] || debug -d -- $_decrypt
 	debug -d -- test -b $ctxt && eval ${2:-ctxt}=$ctxt
 }
 
@@ -514,7 +524,7 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
-	cat </init|sed '/^#.*$/d'|tail -n+4|head -n310  >>/lib/mkinitramfs-ll/fbase.sh
+	cat </init|sed '/^#.*$/d'|tail -n+4|head -n320  >>/lib/mkinitramfs-ll/fbase.sh
 	sed -e 's/debug\ rsh.*$/exit\ \$_ret/'         -i /lib/mkinitramfs-ll/fbase.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d -- mkdir -p dev/pts proc run sys newroot mnt/tok
