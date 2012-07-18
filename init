@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/18 22:16:33 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/18 22:55:56 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -346,7 +346,7 @@ rootfs() {
 	shrl 3f
 	if [ -n "$_fsck" ]; then 
 		[ "$_fsck" = "n" ] || [ "$_fsck" = "no" ] && _fscf="-e" || _fscf="-d"
-		debug fsck ${_fs:+-t$_fs} $_dev 
+		debug $_fscf -- fsck ${_fs:+-t$_fs} $_dev 
 	fi
 	shrl 3m
 	if [ -z "$rootfs" ]; then
