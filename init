@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.4 2012/07/17 21:35:40 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.4 2012/07/18 12:43:23 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -57,14 +57,18 @@ _rmmod() {
 	[ -f "/etc/mkinitramfs-ll/module.$1" ] &&
 		local _module="$(cat /etc/mkinitramfs-ll/module.$1)" ||
 		local _module="$*"
-	for _m in $_module; do debug rmmod $_m; done
+	for _m in $_module; do 
+		debug rmmod $_m 1>/dev/null 2>&1
+	done
 }
 
 _modprobe() {
 	[ -f "/etc/mkinitramfs-ll/module.$1" ] &&
 		local _module="$(cat /etc/mkinitramfs-ll/module.$1)" ||
 		local _module="$*"
-	for _m in $_module; do debug modprobe $_m; done
+	for _m in $_module; do 
+		debug modprobe $_m 1>/dev/null 2>&1
+	done
 }
 
 cmd() { debug echo "$@" >$SPLASH_FIFO; }
@@ -510,7 +514,7 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
-	cat </init|sed '/^#.*$/d'|tail -n+4|head -n306  >>/lib/mkinitramfs-ll/fbase.sh
+	cat </init|sed '/^#.*$/d'|tail -n+4|head -n310  >>/lib/mkinitramfs-ll/fbase.sh
 	sed -e 's/debug\ rsh.*$/exit\ \$_ret/'         -i /lib/mkinitramfs-ll/fbase.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d -- mkdir -p dev/pts proc run sys newroot mnt/tok
@@ -533,7 +537,7 @@ _init() {
 	echo /sbin/mdev >/proc/sys/kernel/hotplug
 	if [ -n "$mod" ]; then local IFS="${IFS},"
 		for _m in $mod; do 
-			debug modprobe $_m
+			debug modprobe $_m 1>/dev/null 2>&1
 		done
 	fi
 	[ -h /dev/fd     ] || debug ln -fs /proc/self/fd   /dev/fd
