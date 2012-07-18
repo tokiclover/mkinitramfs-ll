@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/18 21:20:28 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/18 22:16:33 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -250,6 +250,7 @@ dmopen() {
 		elif [ -e "/mnt/tok/$_hdr" ]; then debug gld "/mnt/tok/$_hdr" -i
 		else die "$_hdr detached header doesn't exist."; fi
 		_hdr=$dev && _header="--header $_hdr"
+		debug gld "$_dev"
 	else debug gld "$_dev" -i; fi
 	_arg=luksOpen && _dev=$dev
 	debug -d -- cryptsetup isLuks "$_dev" "$_header" 
