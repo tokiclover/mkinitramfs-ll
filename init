@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/19 03:02:31 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/19 14:07:51 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -207,7 +207,7 @@ dmcrypt() {
 			read _apd; _apd="--align-payload ${_apd:-0}"
 		else unset _header; fi
 	fi
-	debug -d -- cryptsetup $_arg $_dev -c${_cpr:-aes-ecb-benbi:sha256} \
+	debug -d -- $_cmd luksFormat $_dev -c${_cpr:-aes-ecb-benbi:sha256} \
 		-s${_ksz:-256} $_use $_header $_apd
 }
 
@@ -219,9 +219,9 @@ gld() {
 	eval dev=${dev:-$1}
 	[ "$2" = "-i" ] || return
 	local _ldv=$dev
-	debug cryptsetup isLuks "$_ldv" ||
+	debug $_cmd isLuks "$_ldv" ||
 	{
- 		info "for[mate] $1 or dec[rypt] another cyphertext or header? [for|DEC|hdr]"
+ 		info "for[mat] $1 or dec[rypt] another cyphertext or header? [for|DEC|hdr]"
 		_msg="Type in a valid LUKS cyphertext e.g. sda5|UUID=<uuid>|LABEL=<label>"
 		read _asw
 		if [ "${_asw:-dec}" = "dec" ]; then info "$_msg"
@@ -231,7 +231,7 @@ gld() {
 		while true; do
 			info "$_msg"
 			read _ldv; debug _blkid "$_ldv" "dev"
-			debug cryptsetup isLuks "$dev" && break
+			debug $_cmd isLuks "$dev" && break
 		done
 	}
 }
@@ -239,7 +239,7 @@ gld() {
 dmopen() { 
 	$eck && debug -d -- bck cryptsetup
 	debug _modprobe dm-crypt
-	local _arg=luksFormat _asw _decrypt _header _msg dev
+	local _asw _cmd=cryptsetup _header _msg dev
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
 	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
@@ -251,20 +251,22 @@ dmopen() {
 		_hdr=$dev && _header="--header $_hdr"
 		debug gld "$_dev"
 	else debug gld "$_dev" -i; fi
-	_arg=luksOpen && _dev=$dev
-	debug -d -- cryptsetup isLuks "$_dev" "$_header" 
-	_decrypt="cryptsetup $_arg $_dev $_map $_header"
+	_dev=$dev
+	debug -d -- $_cmd isLuks "$_dev" "$_header" 
+	_cmd="$_cmd luksFormat $_dev $_map $_header"
 	_msg="there are still 3 pwd mode attempts"
 	if [ "$kmode" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
-		echo "[?]: gpg -qd "$kfile" | $_decrypt" >>$logdir/init.log
-		gpg -qd "$kfile" | $_decrypt || info "$_msg"
+		echo "[?]: gpg -qd "$kfile" | $_cmd" >>$logdir/init.log
+		for _i in 1 2 3; do
+			gpg -qd "$kfile" | $_cmd && break || info "$_msg"
+		done
 		rm /dev/tty && mv -f /dev/bak /dev/tty
 	elif [ "$kmode" = "ldk" ] || [ "$kmode" = "reg" ]; then
-		debug $_decrypt -d "$kfile" || info "$_msg"
+		debug $_cmd -d "$kfile" || info "$_msg"
 	fi
 	ctxt=/dev/mapper/$_map
-	[ -b "$ctxt" ] || debug -d -- $_decrypt
+	[ -b "$ctxt" ] || debug -d -- $_cmd
 	debug -d -- test -b $ctxt && eval ${2:-ctxt}=$ctxt
 }
 
@@ -350,8 +352,11 @@ rootfs() {
 	shrl 3m
 	if [ -z "$rootfs" ]; then
 		debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot ||
-		[ -n "$kmode" ] && debug -d -- dmclose "${_lvm:-${map:-root}}" "${_lvm:+${_dev##*/}}"
-		die "failed to mount rootfs"
+		{
+			[ -n "$kmode" ] &&
+				debug -d -- dmclose "${_lvm:-${map:-root}}" "${_lvm:+${_dev##*/}}"
+			die "failed to mount rootfs"
+		}
 	fi
 	shrl 3s
 	[ -n "$sqfsd" ] && debug -d -- squashd
@@ -525,7 +530,7 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
-	cat </init|sed '/^#.*$/d'|tail -n+4|head -n320  >>/lib/mkinitramfs-ll/fbase.sh
+	cat </init|sed '/^#.*$/d'|tail -n+4|head -n322  >>/lib/mkinitramfs-ll/fbase.sh
 	sed -e 's/debug\ rsh.*$/exit\ \$_ret/'         -i /lib/mkinitramfs-ll/fbase.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d -- mkdir -p dev/pts proc run sys newroot mnt/tok
