@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/18 12:40:45 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/19 13:12:13 -tclover Exp $
 revision=0.10.4
 usage() {
   cat <<-EOF
@@ -166,7 +166,7 @@ addmodule() {
 }
 for bin (dmraid mdadm zfs) if [[ -n $(echo ${opts[-b]} | grep $bin) ]] ||
 	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-kmodule]+=:$bin }
-	opts[-kmodule]=${opts[-kmodue]/mdadm/raid}
+opts[-kmodule]=${opts[-kmodule]/mdadm/raid}
 for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] { :;
 	} elif [[ -f ${keymap} ]] { cp -a ${keymap} usr/share/keymaps/
@@ -214,7 +214,7 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 	}
 for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) addmodule ${module}
 for grp (${(pws,:,)opts[-kmodule]})
-	for mod (${(pws,:,)opts[-m${grp}]}) 
+	for mod (${(pws,:,)opts[-m${grp}]})
 		addmodule ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
 gen || die
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"

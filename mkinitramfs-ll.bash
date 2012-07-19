@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.4 2012/07/18 12:40:43 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.4 2012/07/19 13:12:17 -tclover Exp $
 revision=0.10.4
 usage() {
   cat <<-EOF
@@ -194,7 +194,7 @@ addmodule() {
 for bin in dmraid mdadm zfs; do
 	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] && opts[-kmodule]+=:$bin
 done
-	opts[-kmodule]=${opts[-kmodue]/mdadm/raid}
+opts[-kmodule]=${opts[-kmodule]/mdadm/raid}
 for keymap in ${opts[-keymap]//:/ }; do
 	if [[ -f usr/share/keymaps/"${keymap}" ]]; then :;
 	elif [[ -f "${keymap}" ]]; then cp -a "${keymap}" usr/share/keymaps/
