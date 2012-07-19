@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/18 22:55:56 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/19 03:02:31 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -85,10 +85,10 @@ spld() {
 	event="$(grep -Hsi keyboard /sys/class/input/input*/name | \
 		sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"
 	for _opt in $splash; do
-	case ${_opt%:*} in
+		case ${_opt%:*} in
 			fad*) _opts="set effects $_opt";;
 			silent|verbose) mode=$_opt     ;;
-			tty)  console=/dev/${_opt/:/\/};;
+			tty)  console=/dev/${_opt/:/}  ;;
 			theme) theme=${_opt#*:}        ;;
 		esac
 	done
@@ -169,13 +169,12 @@ getkey() {
 			debug -d -- mount -n -r "$_dv" /mnt/tok
 		fi
 		debug -d -- test -f "/mnt/tok/$_fp"
-	fi
+	else export kmode=pwd; return; fi
 	case $_km in
 		gpg) $eck && debug -d -- bck gpg; kfile=/mnt/tok$_fp; kmode=gpg;;
 		reg) kfile="/mnt/tok$_fp";                            kmode=reg;;
 		ldk) [ -b "/dev/mapper/$_fn" ] || glk "/mnt/tok$_fp"; kmode=ldk;;
-		pwd) kmode=pwd;;
-		*)   die "$_km: keymode is invalid";; 
+		*)   die "$_km: invalid key mode"                              ;; 
 	esac
 	export ${kfile:+kfile} kmode
 }
@@ -191,7 +190,7 @@ dmclose() {
 
 dmcrypt() {
 	local _apd _asw _cpr _ksz _use
-	info "Type a valid LUKS cipher:hash, default is 'aes-xts-plain:sha256'"
+	info "Type a valid LUKS cipher:hash, default is 'aes-ecb-benbi:sha256'"
 	info "you can take something safer like 'aes-cbc-essiv:sha256'"
 	read _cpr
 	info "Type a valide key-size [256|512], default is 256 bits:"
@@ -199,7 +198,7 @@ dmcrypt() {
 	if [ -e "$kfile" ]; then 
 		info "use the existing $kfile keyfile? [NO|yes]"
 		read _use
-		[ "${_use:-no}" = "yes" ] && _use="-d $_use" || _use=
+		[ "${_use:-no}" = "yes" ] && _use="$kfile" || _use=
 	fi
 	if [ -e "$_hdr" ]; then info "use $_hdr detached header [NO|yes]?"
 		read _asw
@@ -208,7 +207,7 @@ dmcrypt() {
 			read _apd; _apd="--align-payload ${_apd:-0}"
 		else unset _header; fi
 	fi
-	debug -d -- cryptsetup $_arg $_dev -c${_cpr:-aes-xts-plain:sha256} \
+	debug -d -- cryptsetup $_arg $_dev -c${_cpr:-aes-ecb-benbi:sha256} \
 		-s${_ksz:-256} $_use $_header $_apd
 }
 
@@ -506,10 +505,11 @@ _getopts() {
 	for arg in $(cat /proc/cmdline); do
     		case $arg in
 			rescue*)  shrl=1;;
+			ro|rw)    [ -n "$imtop" ] && itopt=$arg,$imtopt || imtopt=$arg;;
 			single)   rirl=2;;
 			isqfsd=*) export $arg
-				if [ "${isqfsd%,*}" = "y" ]; then sqfsdir=${sqfsdir:-/sqfsd}
-				else sqfsdir=${isqfsd%,*}; fi
+				[ "${isqfsd%,*}" = "y" ] && sqfsdir=${sqfsdir:-/sqfsd} ||
+					sqfsdir=${isqfsd%,*}
 				if [ "${isqfsd#*,}" = "y" ]; then sqfsd=${sqfsd:-usr:opt:bin:sbin}
 				elif [ "$(echo ${isqfsd#*,}|cut -d':' -f1)" = "a" ]; then
 					sqfsd=${sqfsd:-usr:opt:bin:sbin}:$(echo ${isqfsd#*,} | cut -c3-)
