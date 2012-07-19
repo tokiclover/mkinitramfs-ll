@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.10.4 2012/07/15 12:54:39 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.10.5 2012/07/19 03:43:44 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -63,8 +63,7 @@ the 3rd for resume, hence one can append enough commas to asign a particular gro
 * @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@    -> squashed directories, see below for more info.    
 * @dmesg=emerg|alert|crit|err|..|debug@    -> optional dmesg log level priority.
 
-init script accept @single@ argument and will append single runlevel to real init, no special care 
-for @ro|rw@ because it can be appended as @imopt=ro@, @rw@ mode is the default behavior, for example.
+init script accept @single,ro,rw@ argument and will append single runlevel to real init. 
 It also support @splash=silent,fadein,theme:emergence console=[/dev/]tty1@ splash cmdline arguments.
 
 h3. 3. About device, /dev/ prefix and detached LUKS header
