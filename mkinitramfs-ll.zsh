@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/21 00:26:46 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/21 00:49:59 -tclover Exp $
 revision=0.10.4
 usage() {
   cat <<-EOF
@@ -200,12 +200,11 @@ bcp() {
 	if [[ -x ${bin}  ]] { 
 		cp -a ${bin} .${bin/%.static}
 		if [[ -L ${bin} ]] { cp -a {,.}$(which $(readlink ${bin})) || die }
-		[[ -e .${bin} ]] || cp -a ${bin} .${bin}
 		if [[ $(ldd ${bin}) != *"not a dynamic executable" ]] {
 			for lib ($(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g'))
 			mkdir -p .${lib:h} && cp -adH {,.}${lib} || die 
 		} else { info "${bin} is a static binary." }
-	} else {  warn "${bin} binary doesn't exist" }
+	} else { warn "${bin} binary doesn't exist" }
 }
 for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 	if [[ -x usr/bin/${bin:t} ]] || [[ -x usr/sbin/${bin:t} ]] ||
