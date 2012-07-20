@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.10.0 2012/06/23 02:50:50 -tclover Exp $
-revision=0.10.0
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.10.5 2012/06/23 02:50:50 -tclover Exp $
+revision=0.10.5
 usage() {
   cat <<-EOF
  usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d|--sqfsd=<dir>:<dir>
@@ -61,19 +61,19 @@ squashd() {
 		${opts[exclude]} >/dev/null || die "failed to build $dir.sfs img"
 	if [[ "$dir" = lib${opts[arc]} ]]; then # move rc-svcdir and cachedir if mounted
 		if [[ -n "$(mount -ttmpfs | grep /$dir/splash/cache)" ]]; then
-			mount --move /$dir/splash/cache /var/cache/splash &>/dev/null &&
+			mount --move /$dir/splash/cache /var/cache/splash 1>/dev/null 2>&1 &&
 				local mcdir=yes || die "failed to move cachedir"
 		fi
 		if [[ -n "$(mount -ttmpfs | grep /$dir/rc/init.d)" ]]; then
-			mount --move /$dir/rc/init.d /var/lib/init.d &>/dev/null &&
+			mount --move /$dir/rc/init.d /var/lib/init.d 1>/dev/null 2>&1 &&
 				local mrc=yes || die "failed to move rc-svcdir"
 		fi
 	fi
 	if [[ -n "$(mount -taufs | grep -w $dir)" ]]; then 
-		umount -l /$dir &>/dev/null || die "$dir: failed to umount aufs branch"
+		umount -l /$dir 1>/dev/null 2>&1 || die "$dir: failed to umount aufs branch"
 	fi
 	if [[ -n "$(mount -tsquashfs | grep $bdir/ro)" ]]; then 
-		umount -l $bdir/ro &>/dev/null || die "$dir: failed to umount sfs img"
+		umount -l $bdir/ro 1>/dev/null 2>&1 || die "$dir: failed to umount sfs img"
 	fi
 	rm -fr "$bdir"/rw/* || die "failed to clean up $bdir/rw"
 	[[ -e $bdir.sfs ]] && rm -f $bdir.sfs 
@@ -85,7 +85,7 @@ squashd() {
 			die "$dir: failed to write aufs line"
 	fi
 	if [[ -z "${opts[nomount]}" ]]; then
-		mount $bdir.sfs $bdir/ro -tsquashfs -onodev,loop,ro &>/dev/null &&
+		mount $bdir.sfs $bdir/ro -tsquashfs -onodev,loop,ro 1>/dev/null 2>&1 &&
 		{
 		if [[ "$dir" = "bin" ]]; then local cp=$bdir/ro/cp mv=$bdir/ro/mv rm=$bdir/ro/rm
 		else local cp=cp mv=mv rm=rm; fi
@@ -96,7 +96,7 @@ squashd() {
 			$cp -aru $bdir/ro /${dir}ro && $mv /$dir{,rm}
 			$mv /$dir{ro,} && $rm -fr /${dir}rm || die "$dir: failed to update"
 		fi
-		mount -onodev,udba=reval,br:$bdir/rw:$bdir/ro -taufs $dir /$dir &>/dev/null ||
+		mount -onodev,udba=reval,br:$bdir/rw:$bdir/ro -taufs $dir /$dir 1>/dev/null 2>&1 ||
 			die "$dir: failed to mount aufs branch"
 		} || die "failed to mount $dir.sfs"
 	fi
@@ -105,7 +105,7 @@ squashd() {
 			die "failed to move back cachedir"
 	fi
 	if [[ -n "$mrc" ]]; then
-		mount --move /var/lib/init.d /$dir/rc/init.d &>/dev/null ||
+		mount --move /var/lib/init.d /$dir/rc/init.d 1>/dev/null 2>&1 ||
 			die "failed to move back rc-svcdir"
 	fi
 	echo -ne "\e[1;32m>>> ...sucessfully build squashed $dir\e[0m\n"
