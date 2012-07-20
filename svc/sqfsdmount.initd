@@ -5,6 +5,7 @@
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="manage (aufs+squashfs) squashed directories"
+extra_started_command="ro rw"
 
 depend() {
 	need fsck localmount
@@ -17,78 +18,88 @@ depend() {
 start() {
 	local IFS="${IFS}:"
 	einfo "mounting system wide squashed dirs"
-	for dir in ${sqfsd_sys}; do 
-		smount ${sqfsdir} ${dir}
+	for dir in $sqfsd_sys; do 
+		smount $sqfsdir $dir
 	done
 	einfo "mounting local wide squashed dirs"
-	for dir in ${sqfsd_local} ${sqfsd_rebuild}; do 
-		smount ${sqfsdir} ${dir}
+	for dir in $sqfsd_local $sqfsd_rebuild; do 
+		smount $sqfsdir $dir
 	done
 	return 0
 }
 
 stop() {
-	if [[ -n "${sqfsd_sdr}" ]]; then
-		eeinfo "sdr: rebuilding ${sqfsd_sdr} squashed directories"
+	if [[ -n "$sqfsd_sdr" ]]; then
+		eeinfo "sdr: rebuilding $sqfsd_sdr squashed directories"
 		if which sdr 1>/dev/null 2>&1; then
-			sdr -o0 -nd${sqfsd_sdr} 1>/dev/null 2>&1
+			sdr -o0 -nd$sqfsd_sdr 1>/dev/null 2>&1
 		else eerror "sdr: there is not a sdr script in PATH"; fi
 	fi
 	einfo "umounting local wide squashed dirs"
 	local IFS="${IFS}:"
 	sync; sync
-	for dir in ${sqfsd_local}; do 
-		sumount ${dir}
+	for dir in $sqfsd_local; do 
+		sumount $dir
 	done
 	einfo "remounting in ro mode system squashed dirs"
-	if [[ "${umount_sys}" == "yes" ]]; then
-		for dir in ${sqfsd_sys}; do sremountro ${dir}; done
+	if [[ "$umount_sys" == "yes" ]]; then
+		for dir in $sqfsd_sys; do sremount $dir ro; done
 	fi
 	return 0
 }
 
 restart() {
 	stop; start
-	for dir in $(mount -t aufs | grep ro | awk '{ print $3 }'); do
-		mount -o remount,rw ${dir}
+	for dir in $sqfsd_sys; do
+		sremount $dir rw
 		eend "$?" "failed to remount $dir in rw mode"
 	done
 	return 0
 }
 
+ro() {
+	for dir in $sqfsd_sys $sqfsd_local $sqfsd_sdr; do
+		sremount $dir ro
+	done
+}
+
+rw() {
+	for dir in $sqfsd_sys $sqfsd_local $sqfsd_sdr; do
+		sremount $dir rw
+	done
+}
+
 smount() {
-	local dir=${2} sqfsdir=${1}
-	if [[ -n "$(mount -t aufs | grep /${dir})" ]]; then 
-		einfo "squashed ${dir} already mounted"
-	else ebegin "mounting squashed ${dir}"
-		if [[ -n "$(mount -t squashfs | grep ${sqfsdir}/${dir}/ro)" ]]; then 
-			einfo "squashed ${dir}.sfs image already mounted"
+	local d=$2 b=$1/$2
+	if [[ -n "$(mount -t aufs | grep /$d)" ]]; then 
+		einfo "squashed $d already mounted"
+	else ebegin "mounting squashed $d"
+		if [[ -n "$(mount -t squashfs | grep $b/ro)" ]]; then 
+			einfo "squashed $b.sfs image already mounted"
 		else
-			mount -t squashfs ${sqfsdir}/${dir}.sfs ${sqfsdir}/${dir}/ro \
-			-o nodev,loop,ro 1>/dev/null 2>&1
-       		eend "$?" "failed to mount ${dir}.sfs image" || return
+			mount -t squashfs $b.sfs $b/ro -o nodev,loop,ro 1>/dev/null 2>&1
+       		eend "$?" "failed to mount $b.sfs image" || return
        	fi
-		mount -t aufs ${dir} /${dir} \
-		-o nodev,udba=reval,br:${sqfsdir}/${dir}/rw:${sqfsdir}/${dir}/ro 1>/dev/null 2>&1
-		eend "$?" "failed to mount ${dir} aufs branch"
+		mount -t aufs $d /$d -o nodev,udba=reval,br:$b/rw:$b/ro 1>/dev/null 2>&1
+		eend "$?" "failed to mount $d aufs branch"
 	fi
 }
 
 sumount() {
+	local d=$2 b=$1/$2 no_netdev
 	[[ "${RC_UNAME}" == "Linux" ]] && no_netdev="-O no_netdev"
-	local dir=${2} sqfsdir=${1}
 	ebegin "umounting squashed ${dir}"
-	umount -lt aufs /${dir} ${no_netdev} 1>/dev/null 2>&1
-	eend "$?" "failed to umount squashed ${dir}" || return
-	umount -lt squashfs ${sqfsdir}/${dir}/ro ${no_netdev} 1>/dev/null 2>&1
-	eend "$?" "failed to umount ${dir}.sfs image"
+	umount -lt aufs /$d $no_netdev 1>/dev/null 2>&1
+	eend "$?" "failed to umount squashed $d" || return
+	umount -lt squashfs $b/ro $no_netdev 1>/dev/null 2>&1
+	eend "$?" "failed to umount $b.sfs image"
 }
 
-sremountro() {
-	local dir=${1} 
+sremount() {
+	local d=$1 o=${2:-ro}
 	ebegin "ro mode remounting ${dir} aufs branch"
-	mount -o remount,ro /${dir} 1>/dev/null 2>&1
-	eend "$?" "failed to remount ${dir} aufs branch in ro mode"
+	mount -o remount,$o /$d 1>/dev/null 2>&1
+	eend "$?" "failed to remount $d aufs branch in ro mode"
 }
 
 # vim:fenc=utf-8:ft=gentoo-init-d:ci:pi:sts=0:sw=4:ts=4:
