@@ -207,7 +207,7 @@ dmcrypt() {
 			read _apd; _apd="--align-payload ${_apd:-0}"
 		else unset _header; fi
 	fi
-	debug -d -- $_cmd luksFormat $_dev -c${_cpr:-aes-ecb-benbi:sha256} \
+	debug -d -- cryptsetup luksFormat $_dev -c${_cpr:-aes-ecb-benbi:sha256} \
 		-s${_ksz:-256} $_use $_header $_apd
 }
 
