@@ -5,7 +5,6 @@
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="manage (aufs+squashfs) squashed directories"
-extra_started_command="ro rw"
 
 depend() {
 	need fsck localmount
@@ -55,18 +54,6 @@ restart() {
 		eend "$?" "failed to remount $dir in rw mode"
 	done
 	return 0
-}
-
-ro() {
-	for dir in $sqfsd_sys $sqfsd_local $sqfsd_sdr; do
-		sremount $dir ro
-	done
-}
-
-rw() {
-	for dir in $sqfsd_sys $sqfsd_local $sqfsd_sdr; do
-		sremount $dir rw
-	done
 }
 
 smount() {
