@@ -1,10 +1,10 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/20 20:23:09 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/20 20:41:43 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
-export eck=true init=/sbin/init map=root sh=/bin/sh
+export eck=true init=/sbin/init map=root sh=/bin/sh logfile=$0.log
 
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
 error() { echo -ne "\033[1;31m * \033[0m$@\n"; }
@@ -14,7 +14,7 @@ debug() {
 	[ "$1" = "-d" ] || [ "$1" = "-e" ] || [ "$1" = "-i" ] &&
 		_opt=$1 _msg="$2" && shift 2
 	_cmd="$@"; $_cmd; _ret=$?
-	echo "[$_ret]: $_cmd" >> $logdir/init.log
+	echo "[$_ret]: $_cmd" >> $logdir/$logfile
 	if [ ! "$_ret" ]; then
 		[ "$_msg" = "--" ] && _msg=
 		case $_opt in
@@ -27,7 +27,7 @@ debug() {
 }
 
 rsh() {
-	export PS1='rsh:$(tty | cut -c6-):$PWD # ' PS2='> '
+	export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-> '
 	if [ $spld ]; then
 		debug openvt -c${console#*tty} $sh -i -m 0<$console 1>$console 2>&1
 	elif ack setsid; then debug setsid $sh -i -m 0<$console 1>$console 2>&1
@@ -257,7 +257,7 @@ dmopen() {
 	_msg="there are still 3 pwd mode attempts"
 	if [ "$kmode" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
-		echo "[?]: gpg -qd "$kfile" | cryptsetup $_arg" >>$logdir/init.log
+		echo "[?]: gpg -qd "$kfile" | cryptsetup $_arg" >>$logdir/$logfile
 		for _i in 1 2 3; do
 			gpg -qd "$kfile" | cryptsetup $_arg && break || info "$_msg"
 		done
@@ -537,7 +537,7 @@ _init() {
 	debug -d -- mount -t proc proc /proc
 	debug -d -- mount -t tmpfs -o mode=755 tmpfs /run
 	debug -d -- mkdir -p /run/log && export logdir=/run/log
-	debug mv -f /init.log $logdir
+	debug mv -f /$logfile $logdir
 	$eck && debug ack
 	debug -d -- mount -t sysfs sysfs /sys
 	debug _getopts
