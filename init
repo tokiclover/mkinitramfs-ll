@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/19 14:07:51 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/20 20:23:09 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -219,7 +219,7 @@ gld() {
 	eval dev=${dev:-$1}
 	[ "$2" = "-i" ] || return
 	local _ldv=$dev
-	debug $_cmd isLuks "$_ldv" ||
+	debug cryptsetup $_arg "$_ldv" ||
 	{
  		info "for[mat] $1 or dec[rypt] another cyphertext or header? [for|DEC|hdr]"
 		_msg="Type in a valid LUKS cyphertext e.g. sda5|UUID=<uuid>|LABEL=<label>"
@@ -231,7 +231,7 @@ gld() {
 		while true; do
 			info "$_msg"
 			read _ldv; debug _blkid "$_ldv" "dev"
-			debug $_cmd isLuks "$dev" && break
+			debug cryptsetup $_arg "$dev" && break
 		done
 	}
 }
@@ -239,7 +239,7 @@ gld() {
 dmopen() { 
 	$eck && debug -d -- bck cryptsetup
 	debug _modprobe dm-crypt
-	local _asw _cmd=cryptsetup _header _msg dev
+	local _asw _arg=isLuks _header _msg dev
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
 	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
@@ -252,21 +252,21 @@ dmopen() {
 		debug gld "$_dev"
 	else debug gld "$_dev" -i; fi
 	_dev=$dev
-	debug -d -- $_cmd isLuks "$_dev" "$_header" 
-	_cmd="$_cmd luksFormat $_dev $_map $_header"
+	debug -d -- cryptsetup $_arg "$_dev" "$_header" 
+	_arg="luksOpen $_dev $_map $_header"
 	_msg="there are still 3 pwd mode attempts"
 	if [ "$kmode" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
-		echo "[?]: gpg -qd "$kfile" | $_cmd" >>$logdir/init.log
+		echo "[?]: gpg -qd "$kfile" | cryptsetup $_arg" >>$logdir/init.log
 		for _i in 1 2 3; do
-			gpg -qd "$kfile" | $_cmd && break || info "$_msg"
+			gpg -qd "$kfile" | cryptsetup $_arg && break || info "$_msg"
 		done
 		rm /dev/tty && mv -f /dev/bak /dev/tty
 	elif [ "$kmode" = "ldk" ] || [ "$kmode" = "reg" ]; then
-		debug $_cmd -d "$kfile" || info "$_msg"
+		debug cryptsetup $_arg -d "$kfile" || info "$_msg"
 	fi
 	ctxt=/dev/mapper/$_map
-	[ -b "$ctxt" ] || debug -d -- $_cmd
+	[ -b "$ctxt" ] || debug -d -- cryptsetup $_arg
 	debug -d -- test -b $ctxt && eval ${2:-ctxt}=$ctxt
 }
 
