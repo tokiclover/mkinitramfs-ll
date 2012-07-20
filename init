@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/20 20:41:43 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/21 00:39:08 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -391,7 +391,7 @@ resume() {
 		_toi="$(which tuxoniceui_text)"
 :		${_toi:=$(which tuxoniceui_fbsplash)}
 		debug _modprobe tuxonice
-		debug -d -- "echo $_dev >/sys/power/tuxonice/resume"
+		echo $_dev >/sys/power/tuxonice/resume
 		_i="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
 		if [ "$_img" = "1" ]; then 
 			error "toi: no recognizable signature at the pointed location"
@@ -403,15 +403,15 @@ resume() {
 			debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
 		fi
 		_stop
-		debug -d -- "echo $_toi >/sys/power/tuxonice/user_interface/program"
-		debug -d -- "echo >/sys/power/tuxonice/do_resume"
-		debug -d -- "echo >/sys/power/tuxonice/image_exists"
+		echo $_toi >/sys/power/tuxonice/user_interface/program
+		echo >/sys/power/tuxonice/do_resume
+		echo >/sys/power/tuxonice/image_exists
 		debug _rmmod tuxonice
 	elif [ -f /sys/power/resume ]; then
 		_spd="$(which suspendui_text)"
 :		${_spd:=$(which suspendui_fbsplash)}
 		debug _modprobe swsusp
-		debug -d -- "echo $_dev >/sys/power/disk/resume"
+		echo $_dev >/sys/power/disk/resume
 		_img="$(cat /sys/power/image_exists | head -n 1)"
 		if [ "$_img" = "1" ]; then 
 			error "suspend: no recognizable signature at the pointed location"
@@ -420,7 +420,7 @@ resume() {
 			[ "${_asw:-no}" != "yes" ] && die "suspend: resume aborted"
 		else die "suspend: no image found at the pointed location"; fi
 		_stop
-		debug -d -- "echo disk >/sys/power/state"
+		echo disk >/sys/power/state
 		debug _rmmod swsusp
 	else error "no suspend/hibernation support found"; fi
 	debug -d -- mount -n -o remount,rw /newroot
@@ -448,7 +448,7 @@ imount() {
 }
 
 switch() {
-	debug 'echo >/proc/sys/kernel/hotplug'
+	echo >/proc/sys/kernel/hotplug
 	local _msg="Switching / ..."
 	info "$_msg"; msg "$_msg"
 	debug _stop
