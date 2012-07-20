@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/19 13:12:13 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/21 00:26:46 -tclover Exp $
 revision=0.10.4
 usage() {
   cat <<-EOF
@@ -198,7 +198,9 @@ if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] {
 bcp() {
 	for bin ($@)
 	if [[ -x ${bin}  ]] { 
-		cp -aL ${bin} .${bin/%.static}
+		cp -a ${bin} .${bin/%.static}
+		if [[ -L ${bin} ]] { cp -a {,.}$(which $(readlink ${bin})) || die }
+		[[ -e .${bin} ]] || cp -a ${bin} .${bin}
 		if [[ $(ldd ${bin}) != *"not a dynamic executable" ]] {
 			for lib ($(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g'))
 			mkdir -p .${lib:h} && cp -adH {,.}${lib} || die 
