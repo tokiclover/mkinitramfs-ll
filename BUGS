@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/KnownIssue,v 0.10.5 2012/07/19 13:48:10 -tclover Exp $
+# $Header: mkinitramfs-ll/BUGS,v 0.10.5 2012/07/20 17:49:56 -tclover Exp $
 #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 # when dropped ito a minimal shell, if trying to do the remaining task manually
