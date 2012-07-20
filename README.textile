@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.10.5 2012/07/19 03:43:44 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.10.5 2012/07/20 23:32:13 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -19,7 +19,7 @@ And then run @mkinitramfs-ll.zsh -font -keymap -gpg@ or the bash counterpart @mk
 
 Gentoo users can build everything with: @autogen.zsh -all -font -keymap@ or @autogen.bash --all --font --keymap@
 
-Of course, one can append extra fonts and keymaps with @-f ter-g12n -y fr-latin1@ etc. 
+Of course, one can append extra fonts and keymaps with @-fter-g12n -yfr-latin1@ etc. 
 and the @-a@ option depend on @mkinitramfs-ll.conf@ so one can put many default values there.
 
 One can get more info on the scripts by running @$script -u@
