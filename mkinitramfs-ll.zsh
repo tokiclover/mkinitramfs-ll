@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.4 2012/07/21 02:24:00 -tclover Exp $
-revision=0.10.4
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.5 2012/07/21 02:48:22 -tclover Exp $
+revision=0.10.5
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -91,13 +91,13 @@ case ${opts[-comp][(w)1]} in
 	lzip)	opts[-initramfs]+=.cpio.lz;;
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
-gen() { find . -print0 | cpio -0 -ov -Hnewc | ${=opts[-comp]} > ${opts[-initramfs]} }
+docpio() { find . -print0 | cpio -0 -ov -Hnewc | ${=opts[-comp]} > ${opts[-initramfs]} }
 if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
 	[[ -d ${opts[-initdir]} ]] || die "${opts[-initdir]}: no old initramfs dir"
 	print -P "%F{green}>>> regenerating ${opts[-initramfs]}...%f"
 	pushd ${opts[-initdir]} || die
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
-	gen && exit || die
+	docpio && exit || die
 	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f"
 }
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
@@ -153,7 +153,7 @@ if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
 if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] { 
 	opts[-bin]+=:mount.aufs:umount.aufs opts[-kmodule]+=:sqfsd
 }
-addmodule() {
+domod() {
 	local mod module ret
 	for mod ($*) {
 		module=(/lib/modules/${opts[-kversion]}/**/${mod}.(ko|o))
@@ -195,7 +195,7 @@ if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] {
 		} elif [[ -d ${theme} ]] { cp -r ${theme} etc/splash/ 
 		} else { warn "splash themes does not exist" }
 }
-bcp() {
+dobin() {
 	for bin ($@)
 	if [[ -x ${bin}  ]] { 
 		cp -a ${bin} .${bin/%.static}
@@ -209,15 +209,15 @@ bcp() {
 for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 	if [[ -x usr/bin/${bin:t} ]] || [[ -x usr/sbin/${bin:t} ]] ||
 	[[ -x bin/${bin:t} ]] || [[ -x sbin/${bin:t} ]] { :;
-	} elif [[ -x ${bin} ]] { bcp ${bin}
-	} else { which ${bin:t} 1>/dev/null 2>&1 && bcp $(which ${bin:t}) ||
+	} elif [[ -x ${bin} ]] { dobin ${bin}
+	} else { which ${bin:t} 1>/dev/null 2>&1 && dobin $(which ${bin:t}) ||
 		warn "no ${bin} binary found"
 	}
-for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) addmodule ${module}
+for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) domod ${module}
 for grp (${(pws,:,)opts[-kmodule]})
 	for mod (${(pws,:,)opts[-m${grp}]})
-		addmodule ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
-gen || die
+		domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
+docpio || die
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
 unset opts
 # vim:fenc=utf-8ft=zsh:ci:pi:sts=0:sw=4:ts=4:

@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.4 2012/07/21 02:39:40 -tclover Exp $
-revision=0.10.4
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.5 2012/07/21 02:48:18 -tclover Exp $
+revision=0.10.5
 usage() {
   cat <<-EOF
  usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
@@ -113,13 +113,13 @@ case ${opts[-comp]%% *} in
 	lzip)	opts[-initramfs]+=.cpio.lz;;
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
 esac
-gen() { find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${opts[-initramfs]}; }
+docpio() { find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${opts[-initramfs]}; }
 if [[ -n ${opts[-regen]} ]]; then
 	[[ -d ${opts[-initdir]} ]] || die "${opts[-initdir]}: no old initramfs dir"
 	echo ">>> regenerating ${opts[-initramfs]}..."
 	pushd ${opts[-initdir]} || die
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
-	gen && exit || die
+	docpio && exit || die
 	echo ">>> regenerated ${opts[-initramfs]}..."
 fi
 echo ">>> building ${opts[-initramfs]}..."
@@ -180,7 +180,7 @@ if [[ -n "${opts[-lvm]}" ]]; then
 	done
 	popd
 fi
-addmodule() {
+domod() {
 	local mod module ret
 	for mod in "$@"; do
 		module=$(find /lib/modules/${opts[-kversion]} -name ${mod}.ko -or -name ${mod}.o)
@@ -226,7 +226,7 @@ if [[ -n "${opts[-splash]}" ]]; then
 		else warn "failed to copy ${theme} theme"; fi
 	done
 fi
-bcp() {
+dobin() {
 	for bin in $@; do
 		if [[ -x ${bin} ]]; then cp -a ${bin} .${bin/%.static}
 			if [[ -L ${bin} ]]; then
@@ -242,20 +242,20 @@ bcp() {
 for bin in ${opts[-bin]//:/ }; do
 	if [[ -x usr/bin/${bin##*/} ]] || [[ -x usr/sbin/${bin##*/} ]] ||
 	[[ -x bin/${bin##*/} ]] || [[ -x sbin/${bin##*/} ]]; then :;
-	elif [[ -x ${bin} ]]; then bcp ${bin}
-	else which ${bin##*/} 1>/dev/null 2>&1 && bcp $(which ${bin##*/}) ||
+	elif [[ -x ${bin} ]]; then dobin ${bin}
+	else which ${bin##*/} 1>/dev/null 2>&1 && dobin $(which ${bin##*/}) ||
 		warn "no ${bin} binary found"
 	fi
 done
-addmodule ${opts[-mdep]//:/ }
+domod ${opts[-mdep]//:/ }
 for grp in ${opts[-kmodule]//:/ }; do
 	if [[ -n "${opts[-m${grp}]}" ]]; then
 		for mod in ${opts[-m${grp}]//:/ }; do 
-			addmodule ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
+			domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
 		done
 	fi
 done
-gen || die
+docpio || die
 echo ">>> ${opts[-initramfs]} initramfs built"
 unset -v opt opts
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
