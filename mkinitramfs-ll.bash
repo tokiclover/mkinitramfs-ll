@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.4 2012/07/21 00:26:42 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.4 2012/07/21 02:23:56 -tclover Exp $
 revision=0.10.4
 usage() {
   cat <<-EOF
@@ -229,7 +229,7 @@ fi
 bcp() {
 	for bin in $@; do
 		if [[ -x ${bin} ]]; then cp -a ${bin} .${bin/%.static}
-			[[ -L ${bin} ]] && cp -a {,.}$(which $(readlink ${bin}))
+			[[ -L ${bin} ]] && bin=$(which $(readlink ${bin})) && cp -a {,.}${bin} || die
 			if [[ "$(ldd ${bin})" != *"not a dynamic executable"* ]]; then
 				for lib in $(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g')
 				do mkdir -p .${lib%/*} && cp -adH {,.}${lib} || die; done
