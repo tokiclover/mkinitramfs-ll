@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/21 02:59:22 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/21 03:05:09 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -123,7 +123,7 @@ shrl() {
 
 _blkid() { eval $2=$(blkid | grep "${1#*=}" | cut -d':' -f1); }
 
-get_ldk() {
+getldk() {
 	if [ ! "$cld" ]; then
 		local _ld="$(debug -d -- losetup -f)"
 		debug -d -- losetup "$_ld" "$1"
@@ -136,7 +136,7 @@ get_ldk() {
 	fi
 }
 
-get_key() {
+getkey() {
 	local _fp="$(echo "$1" | cut -d':' -s -f3)"
 	local _kd="$(echo "$1" | cut -d':' -s -f2)"
 	local _km="$(echo "$1" | cut -d':' -s -f1)"
@@ -173,7 +173,7 @@ get_key() {
 	case $_km in
 		gpg) $eck && debug -d -- bck gpg; kfile=/mnt/tok$_fp; kmode=gpg;;
 		reg) kfile="/mnt/tok$_fp";                            kmode=reg;;
-		ldk) [ -b "/dev/mapper/$_fn" ] || get_ldk "/mnt/tok$_fp"; kmode=ldk;;
+		ldk) [ -b "/dev/mapper/$_fn" ] || getldk "/mnt/tok$_fp"; kmode=ldk;;
 		*)   die "$_km: invalid key mode"                              ;; 
 	esac
 	export ${kfile:+kfile} kmode
@@ -211,7 +211,7 @@ dmcrypt() {
 		-s${_ksz:-256} $_use $_header $_apd
 }
 
-get_ctxt() {
+getctx() {
 	if [ ! -e "$1" ]; then
 		[ "$cid" ] && [ -n "$(echo "$1" | grep -i UUID)" ] ||
 			debug -d -- _blkid "$1" "dev"
@@ -245,12 +245,12 @@ dmopen() {
 	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
-			debug get_ctxt "$_hdr" -i
-		elif [ -e "/mnt/tok/$_hdr" ]; then debug get_ctxt "/mnt/tok/$_hdr" -i
+			debug getctx "$_hdr" -i
+		elif [ -e "/mnt/tok/$_hdr" ]; then debug getctx "/mnt/tok/$_hdr" -i
 		else die "$_hdr detached header doesn't exist."; fi
 		_hdr=$dev && _header="--header $_hdr"
-		debug get_ctxt "$_dev"
-	else debug get_ctxt "$_dev" -i; fi
+		debug getctx "$_dev"
+	else debug getctx "$_dev" -i; fi
 	_dev=$dev
 	debug -d -- cryptsetup $_arg "$_dev" "$_header" 
 	_arg="luksOpen $_dev $_map $_header"
@@ -338,7 +338,7 @@ rootfs() {
 	local _fs="$(echo "$iroot" | cut -d':' -f3)"
 :	local ${_lvm:=$(echo "$ilvm" | cut -d',' -f1)}
 :	local ${_raid:=$(echo "$iraid" | cut -d',' -f1)}
-	debug -d -- get_key "${ikroot:-pwd}" "root"
+	debug -d -- getkey "${ikroot:-pwd}" "root"
 	shrl 3d
 	[ -n "$_raid" ] && mdopen "$_raid" "_dev"
 	if [ -n "$_lvm" ]; then debug -d -- lvopen "$dev" "$_lvm" "_dev"
@@ -370,7 +370,7 @@ swap() {
 	local _swp="$3" _type="${1%%:*}" _dev
 	local dev="$(echo "$1" | cut -d':' -s -f2)" 
 	local _sign="$(echo "$1" | cut -d':' -s -f3)"
-	debug -d -- get_key "${2:-pwd}" "$_swp"
+	debug -d -- getkey "${2:-pwd}" "$_swp"
 	[ -n "$_raid" ] && debug -d -- mdopen "$_raid" "_dev"
 	if [ -n "$_lvm" ]; then debug -d -- lvopen "$dev" "$_lvm" "_dev"
 	elif [ "$kmode" != "none" ]; then debug -d -- dmopen "$_swp-$dev" "_dev"
