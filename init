@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/21 00:39:08 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.5 2012/07/21 02:59:22 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -14,7 +14,7 @@ debug() {
 	[ "$1" = "-d" ] || [ "$1" = "-e" ] || [ "$1" = "-i" ] &&
 		_opt=$1 _msg="$2" && shift 2
 	_cmd="$@"; $_cmd; _ret=$?
-	echo "[$_ret]: $_cmd" >> $logdir/$logfile
+	echo "[$_ret]: $_cmd" >>$logdir$logfile
 	if [ ! "$_ret" ]; then
 		[ "$_msg" = "--" ] && _msg=
 		case $_opt in
@@ -123,7 +123,7 @@ shrl() {
 
 _blkid() { eval $2=$(blkid | grep "${1#*=}" | cut -d':' -f1); }
 
-glk() {
+get_ldk() {
 	if [ ! "$cld" ]; then
 		local _ld="$(debug -d -- losetup -f)"
 		debug -d -- losetup "$_ld" "$1"
@@ -136,7 +136,7 @@ glk() {
 	fi
 }
 
-getkey() {
+get_key() {
 	local _fp="$(echo "$1" | cut -d':' -s -f3)"
 	local _kd="$(echo "$1" | cut -d':' -s -f2)"
 	local _km="$(echo "$1" | cut -d':' -s -f1)"
@@ -173,7 +173,7 @@ getkey() {
 	case $_km in
 		gpg) $eck && debug -d -- bck gpg; kfile=/mnt/tok$_fp; kmode=gpg;;
 		reg) kfile="/mnt/tok$_fp";                            kmode=reg;;
-		ldk) [ -b "/dev/mapper/$_fn" ] || glk "/mnt/tok$_fp"; kmode=ldk;;
+		ldk) [ -b "/dev/mapper/$_fn" ] || get_ldk "/mnt/tok$_fp"; kmode=ldk;;
 		*)   die "$_km: invalid key mode"                              ;; 
 	esac
 	export ${kfile:+kfile} kmode
@@ -211,7 +211,7 @@ dmcrypt() {
 		-s${_ksz:-256} $_use $_header $_apd
 }
 
-gld() {
+get_ctxt() {
 	if [ ! -e "$1" ]; then
 		[ "$cid" ] && [ -n "$(echo "$1" | grep -i UUID)" ] ||
 			debug -d -- _blkid "$1" "dev"
@@ -245,19 +245,19 @@ dmopen() {
 	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
-			debug gld "$_hdr" -i
-		elif [ -e "/mnt/tok/$_hdr" ]; then debug gld "/mnt/tok/$_hdr" -i
+			debug get_ctxt "$_hdr" -i
+		elif [ -e "/mnt/tok/$_hdr" ]; then debug get_ctxt "/mnt/tok/$_hdr" -i
 		else die "$_hdr detached header doesn't exist."; fi
 		_hdr=$dev && _header="--header $_hdr"
-		debug gld "$_dev"
-	else debug gld "$_dev" -i; fi
+		debug get_ctxt "$_dev"
+	else debug get_ctxt "$_dev" -i; fi
 	_dev=$dev
 	debug -d -- cryptsetup $_arg "$_dev" "$_header" 
 	_arg="luksOpen $_dev $_map $_header"
 	_msg="there are still 3 pwd mode attempts"
 	if [ "$kmode" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
-		echo "[?]: gpg -qd "$kfile" | cryptsetup $_arg" >>$logdir/$logfile
+		echo "[?]: gpg -qd "$kfile" | cryptsetup $_arg" >>$logdir$logfile
 		for _i in 1 2 3; do
 			gpg -qd "$kfile" | cryptsetup $_arg && break || info "$_msg"
 		done
@@ -274,13 +274,15 @@ lvopen() {
 	$eck && debug -d -- bck lvm
 	debug _modprobe device-mapper
 	local _lv=${1/-//}
-	if debug lvchange -ay $_lv; then :;
-	elif [ -n "$2" ] && [ "$kmode" != "none" ]; then
-		local _pv="$2" IFS="${IFS}:"
-		[ -e "/mnt/tok/$_pv" ] && _pv="$(cat /mnt/tok/$_pv)"
-		for _p in $_pv; do debug dmopen "$_p"; done
-		debug vgchange -ay ${1%-*} || debug -d -- dmclose "$_pv" "$1"
-	else die "$1 require a valid crypted physical volume"; fi
+	debug lvchange -ay $_lv ||
+	{
+		if [ -n "$2" ] && [ "$kmode" != "none" ]; then
+			local _pv="$2" IFS="${IFS}:"
+			[ -e "/mnt/tok/$_pv" ] && _pv="$(cat /mnt/tok/$_pv)"
+			for _p in $_pv; do debug dmopen "$_p"; done
+			debug vgchange -ay ${1%-*} || debug -d -- dmclose "$_pv" "$1"
+		else die "$1 require a valid crypted physical volume"; fi
+	}
 	if [ -b "/dev/mapper/$1" ]; then eval ${3-lv}=/dev/mapper/$1
 	elif [ -b "/dev/$_lv" ]; then eval ${3-lv}=/dev/$_lv
 	else die "$_lv VG/LV do not exist."; fi
@@ -336,7 +338,7 @@ rootfs() {
 	local _fs="$(echo "$iroot" | cut -d':' -f3)"
 :	local ${_lvm:=$(echo "$ilvm" | cut -d',' -f1)}
 :	local ${_raid:=$(echo "$iraid" | cut -d',' -f1)}
-	debug -d -- getkey "${ikroot:-pwd}" "root"
+	debug -d -- get_key "${ikroot:-pwd}" "root"
 	shrl 3d
 	[ -n "$_raid" ] && mdopen "$_raid" "_dev"
 	if [ -n "$_lvm" ]; then debug -d -- lvopen "$dev" "$_lvm" "_dev"
@@ -368,7 +370,7 @@ swap() {
 	local _swp="$3" _type="${1%%:*}" _dev
 	local dev="$(echo "$1" | cut -d':' -s -f2)" 
 	local _sign="$(echo "$1" | cut -d':' -s -f3)"
-	debug -d -- getkey "${2:-pwd}" "$_swp"
+	debug -d -- get_key "${2:-pwd}" "$_swp"
 	[ -n "$_raid" ] && debug -d -- mdopen "$_raid" "_dev"
 	if [ -n "$_lvm" ]; then debug -d -- lvopen "$dev" "$_lvm" "_dev"
 	elif [ "$kmode" != "none" ]; then debug -d -- dmopen "$_swp-$dev" "_dev"
@@ -530,14 +532,14 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
-	cat </init|sed '/^#.*$/d'|tail -n+4|head -n322  >>/lib/mkinitramfs-ll/fbase.sh
+	cat </init|sed '/^#.*$/d'|tail -n+4|head -n324  >>/lib/mkinitramfs-ll/fbase.sh
 	sed -e 's/debug\ rsh.*$/exit\ \$_ret/'         -i /lib/mkinitramfs-ll/fbase.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d -- mkdir -p dev/pts proc run sys newroot mnt/tok
 	debug -d -- mount -t proc proc /proc
 	debug -d -- mount -t tmpfs -o mode=755 tmpfs /run
 	debug -d -- mkdir -p /run/log && export logdir=/run/log
-	debug mv -f /$logfile $logdir
+	debug mv -f $logfile $logdir
 	$eck && debug ack
 	debug -d -- mount -t sysfs sysfs /sys
 	debug _getopts
