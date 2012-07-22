@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.6 2012/07/22 14:09:15 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.6 2012/07/22 15:46:13 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -110,9 +110,9 @@ spld() {
 	debug ${mode:-verbose}
 }
 
-shrl() {
+dolevel() {
 	local _msg="Switching to init shell runlevel: $1"
-	info "$_msg"; msg "$_msg"; export shl=$1
+	info "$_msg"; msg "$_msg"; export level=$1
 	local _scr="$(ls /etc/mkinitramfs-ll.d/$1*-*.sh 2>/dev/null)"
 	if [ -n "$_scr" ]; then
 		for _s in $_scr; do
@@ -123,12 +123,12 @@ shrl() {
 			exec 0<$console 1>$console 2>&1	
 		done
 	fi
-	[ "$shrl" = "$1" ] && debug die
+	[ "$shlevel" = "$1" ] && debug die
 }
 
 _blkid() { eval $2=$(blkid | grep "${1#*=}" | cut -d':' -f1); }
 
-getldk() {
+glk() {
 	if [ ! "$cld" ]; then
 		local _ld="$(debug -d losetup -f)"
 		debug -d losetup "$_ld" "$1"
@@ -176,10 +176,10 @@ getkey() {
 		debug -d test -f "/mnt/tok/$_fp"
 	else export kmode=pwd; return; fi
 	case $_km in
-		gpg) $eck && debug -d bck gpg; kfile=/mnt/tok$_fp;       kmode=gpg;;
-		reg) kfile="/mnt/tok$_fp";                               kmode=reg;;
-		ldk) [ -b "/dev/mapper/$_fn" ] || getldk "/mnt/tok$_fp"; kmode=ldk;;
-		*)   die "$_km: invalid key mode"                                 ;;
+		gpg) $eck && debug -d bck gpg; kfile="/mnt/tok$_fp"; kmode=gpg;;
+		reg) kfile="/mnt/tok$_fp";                           kmode=reg;;
+		ldk) [ -b "/dev/mapper/$_fn" ] || glk "/mnt/tok$_fp" kmode=ldk;;
+		*)   die "$_km: invalid key mode"                             ;;
 	esac
 	export ${kfile:+kfile} kmode
 }
@@ -216,7 +216,7 @@ dmcrypt() {
 		-s${_ksz:-256} $_use $_header $_apd
 }
 
-getctx() {
+gld() {
 	if [ ! -e "$1" ]; then
 		[ "$cid" ] && [ -n "$(echo "$1" | grep -i UUID)" ] ||
 			debug -d _blkid "$1" "dev"
@@ -250,12 +250,12 @@ dmopen() {
 	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
-			debug getctx "$_hdr" -i
-		elif [ -e "/mnt/tok/$_hdr" ]; then debug getctx "/mnt/tok/$_hdr" -i
+			debug gld "$_hdr" -i
+		elif [ -e "/mnt/tok/$_hdr" ]; then debug gld "/mnt/tok/$_hdr" -i
 		else die "$_hdr detached header doesn't exist."; fi
 		_hdr=$dev && _header="--header $_hdr"
-		debug getctx "$_dev"
-	else debug getctx "$_dev" -i; fi
+		debug gld "$_dev"
+	else debug gld "$_dev" -i; fi
 	_dev=$dev
 	debug -d cryptsetup $_arg "$_dev" "$_header" 
 	_arg="luksOpen $_dev $_map $_header"
@@ -344,19 +344,19 @@ dorootfs() {
 :	local ${_lvm:=$(echo "$ilvm" | cut -d',' -f1)}
 :	local ${_raid:=$(echo "$iraid" | cut -d',' -f1)}
 	debug -d getkey "${ikroot:-pwd}" "root"
-	shrl 3d
+	dolevel 3d
 	[ -n "$_raid" ] && mdopen "$_raid" "_dev"
 	if [ -n "$_lvm" ]; then debug -d lvopen "$dev" "$_lvm" "_dev"
 	elif [ -n "$kmode" ]; then
 		[ "$kmode" != "none" ] && debug -d dmopen "${map:-root}-$iroot" "_dev"
 		[ "$kmode" == "none" ] && debug -d _blkid "$dev" "_dev"
 	fi
-	shrl 3f
+	dolevel 3f
 	if [ -n "$_fsck" ]; then 
 		[ "$_fsck" = "n" ] || [ "$_fsck" = "no" ] && _fscf="-e" || _fscf="-d"
 		debug $_fscf fsck ${_fs:+-t$_fs} $_dev 
 	fi
-	shrl 3m
+	dolevel 3m
 	if [ -z "$rootfs" ]; then
 		debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot ||
 		{
@@ -365,7 +365,7 @@ dorootfs() {
 			die "failed to mount rootfs"
 		}
 	fi
-	shrl 3s
+	dolevel 3s
 	[ -n "$sqfsd" ] && debug -d squashd
 	unset imopt iroot ikroot kmode sqfsdir sqfsd
 }
@@ -460,14 +460,14 @@ doswitch() {
 	info "$_msg"; msg "$_msg"
 	debug _stop
 	sleep 1
-	shrl 4u
+	dolevel 4u
 	debug -d umount -l /proc
 	debug -d umount -l /sys
 	debug -d umount -l /dev/pts
 	debug -d umount -l /dev
 	debug -d umount -l /run
-	shrl 4s
-	debug -d exec switch_root /newroot ${init:-/sbin/init} $rirl
+	dolevel 4s
+	debug -d exec switch_root /newroot ${init:-/sbin/init} $runlevel
 }
 
 main() {
@@ -493,32 +493,32 @@ main() {
 	done </etc/msg
 	debug _modprobe gpg
 	debug _modprobe remdev
-	shrl 1
+	dolevel 1
 	if [ -n "$iswap" ]; then
 :		local ${_raid:=$(echo "$iraid" | cut -d',' -f2)}
 :		local ${_lvm:=$(echo "$ilvm" | cut -d',' -f2)}
-		shrl 2s
+		dolevel 2s
 		doswap "$iswap" "$ikswap" "swap"
 	fi
-	[ -n "$iresume" ] && shrl 2r && debug doresume
+	[ -n "$iresume" ] && dolevel 2r && debug doresume
 	debug dorootfs
-	shrl 4c
+	dolevel 4c
 	local IFS="${IFS}:"
 	for _k in $ldk; do debug dmclose "$_k"; done
 	for _d in $ldv; do debug losetup -d $_d; done
 	debug _rmmod gpg
 	debug -d umount -f -l /mnt/tok
 	debug _rmmod remdev
-	[ -n "$imount" ] && shrl 4m && debug domount
+	[ -n "$imount" ] && dolevel 4m && debug domount
 	debug doswitch
 }
 
 _getopts() {
 	for arg in $(cat /proc/cmdline); do
     		case $arg in
-			rescue*)  shrl=1;;
+			rescue*)  shlevel=1;;
 			ro|rw)    [ -n "$imtop" ] && itopt=$arg,$imtopt || imtopt=$arg;;
-			single)   rirl=2;;
+			single)   runlevel=2;;
 			isqfsd=*) export $arg
 				[ "${isqfsd%,*}" = "y" ] && sqfsdir=${sqfsdir:-/sqfsd} ||
 					sqfsdir=${isqfsd%,*}
@@ -527,8 +527,8 @@ _getopts() {
 					sqfsd=${sqfsd:-usr:opt:bin:sbin}:$(echo ${isqfsd#*,} | cut -c3-)
 				else sqfsd=$(echo ${isqfsd#*,} | cut -c3-); fi;;
 			*init=*)  export init=${arg#*=};;
-			ishrl=*)  shrl=$(echo ${arg#*=}|cut -d':' -f1)
-				      rirl=$(echo ${arg#*=}|cut -d':' -f2);;
+			ishrl=*)  shlevel=$(echo ${arg#*=}|cut -d':' -f1)
+				     runlevel=$(echo ${arg#*=}|cut -d':' -f2);;
 			dmesg|ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export $arg;;
 	   	 esac
 	done
