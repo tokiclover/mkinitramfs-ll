@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.6 2012/07/21 12:44:08 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.6 2012/07/22 14:09:15 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -354,7 +354,7 @@ dorootfs() {
 	shrl 3f
 	if [ -n "$_fsck" ]; then 
 		[ "$_fsck" = "n" ] || [ "$_fsck" = "no" ] && _fscf="-e" || _fscf="-d"
-		debug $_fscf -- fsck ${_fs:+-t$_fs} $_dev 
+		debug $_fscf fsck ${_fs:+-t$_fs} $_dev 
 	fi
 	shrl 3m
 	if [ -z "$rootfs" ]; then
@@ -449,7 +449,7 @@ domount() {
 		fi
 		debug _blkid "$_dev" "_dev"
 		debug -d test -b $_dev
-		debug -d test -d $_mpt
+		[ -d /newroot/"$_mpt" ] || mkdir -p /newroot/"$_mpt"
 		debug -d mount -t$_fs ${_opt:+-o$_opt} $_dev /newroot/$_mpt
 	done
 }
