@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.5 2012/07/21 02:48:22 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.5 2012/07/25 10:19:37 -tclover Exp $
 revision=0.10.5
 usage() {
   cat <<-EOF
@@ -144,7 +144,7 @@ if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { opts[-kmodule]+=:gpg
 	} else { warn "no gpg.conf was found" }
 }
 if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
-	opts[-bin]+=:lvm.static opts[-kmodule]+=:device-mapper
+	opts[-bin]+=:lvm:lvm.static opts[-kmodule]+=:device-mapper
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge) ln -sf lvm ${lpv} || die
@@ -203,7 +203,8 @@ dobin() {
 		if [[ $(ldd ${bin}) != *"not a dynamic executable" ]] {
 			for lib ($(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g'))
 			mkdir -p .${lib:h} && cp -adH {,.}${lib} || die 
-		} else { info "${bin} is a static binary." }
+			warn "${bin} is not a static binary."
+		}
 	} else { warn "${bin} binary doesn't exist" }
 }
 for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})

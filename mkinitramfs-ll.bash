@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.5 2012/07/21 02:48:18 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.5 2012/07/25 10:19:34 -tclover Exp $
 revision=0.10.5
 usage() {
   cat <<-EOF
@@ -172,7 +172,7 @@ if [[ -n "${opts[-gpg]}" ]]; then opts[-kmodule]+=:gpg
 		warn "no gpg.conf was found"
 fi
 if [[ -n "${opts[-lvm]}" ]]; then
-	opts[-bin]+=:lvm.static opts[-kmodule]+=:device-mapper
+	opts[-bin]+=:lvm:lvm.static opts[-kmodule]+=:device-mapper
 	pushd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge
@@ -235,7 +235,8 @@ dobin() {
 			if [[ "$(ldd ${bin})" != *"not a dynamic executable"* ]]; then
 				for lib in $(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g')
 				do mkdir -p .${lib%/*} && cp -adH {,.}${lib} || die; done
-			else  info "${bin} is a static binary."; fi
+				warn "${bin} is not a static binary."
+			fi
 		else warn "${bin} binary doesn't exist"; fi
 	done
 }
