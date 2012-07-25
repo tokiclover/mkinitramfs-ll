@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.6 2012/07/22 15:49:27 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.6 2012/07/25 10:06:35 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -21,7 +21,6 @@ debug() {
 	$_cmd; _ret=$?
 	echo "[$_ret]: $_cmd" >>$logdir$logfile
 	if [ ! "$_ret" ]; then
-		[ "$_msg" = "--" ] && _msg=
 		case $_opt in
 			-d) die   "${_msg:-cmd: $_cmd}";;
 			-e) error "${_msg:-cmd: $_cmd}";;
@@ -537,7 +536,7 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
-	cat </init|sed '/^#.*$/d'|tail -n+4|head -n330  >>/lib/mkinitramfs-ll/fbase.sh
+	cat </init|sed '/^#.*$/d'|tail -n+4|head -n328  >>/lib/mkinitramfs-ll/fbase.sh
 	sed -e 's/debug\ rsh.*$/exit\ \$_ret/'         -i /lib/mkinitramfs-ll/fbase.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d mkdir -p dev/pts proc run sys newroot mnt/tok
