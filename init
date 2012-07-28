@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.6 2012/07/25 10:06:35 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.6 2012/07/28 23:27:32 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -516,7 +516,7 @@ _getopts() {
 	for arg in $(cat /proc/cmdline); do
     		case $arg in
 			rescue*)  shlevel=1;;
-			ro|rw)    [ -n "$imtop" ] && itopt=$arg,$imtopt || imtopt=$arg;;
+			ro|rw)    [ -n "$imtop" ] && imtopt=$arg,$imtopt || imtopt=$arg;;
 			single)   runlevel=2;;
 			isqfsd=*) export $arg
 				[ "${isqfsd%,*}" = "y" ] && sqfsdir=${sqfsdir:-/sqfsd} ||
