@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.5 2012/07/25 10:19:37 -tclover Exp $
-revision=0.10.5
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.6 2012/07/29 21:40:18 -tclover Exp $
+revision=0.10.6
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -199,7 +199,7 @@ dobin() {
 	for bin ($@)
 	if [[ -x ${bin}  ]] { 
 		cp -a ${bin} .${bin/%.static}
-		if [[ -L ${bin} ]] { bin=$(which $(readlink ${bin})) && cp -a {,.}${bin} || die }
+		if [[ -L ${bin} ]] { bin=$(which $(readlink ${bin})) && cp -au {,.}${bin} || die }
 		if [[ $(ldd ${bin}) != *"not a dynamic executable" ]] {
 			for lib ($(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g'))
 			mkdir -p .${lib:h} && cp -adH {,.}${lib} || die 
