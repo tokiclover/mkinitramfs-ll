@@ -1,10 +1,10 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.8 2012/07/30 13:45:08 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.8 2012/07/30 19:04:59 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
-export eck=true init=/sbin/init map=root sh=/bin/sh logfile=$0.log
+export eck=true init=/sbin/init map=root sh=/bin/sh logfile=$0.log spld=false
 
 info() 	{ echo -ne "\033[1;32m * \033[0m$@\n"; }
 error() { echo -ne "\033[1;31m * \033[0m$@\n"; }
