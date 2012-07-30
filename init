@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.6 2012/07/28 23:27:32 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.7 2012/07/30 02:52:44 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -14,8 +14,8 @@ debug() {
 	while [ $# > 0 ]; do
 		case $1 in
 			-d*|-e*|-i*) _opt=${1:0:2} _msg="${1#$_opt}"; shift;;
-			--) shift;   _cmd="$@"; shift $#; break            ;;
-			*) _cmd="$@"; shift $#; break                      ;;
+			--)   shift; _cmd="$@"; shift $#; break            ;;
+			*)           _cmd="$@"; shift $#; break            ;;
 		esac
 	done
 	$_cmd; _ret=$?
@@ -127,6 +127,29 @@ dolevel() {
 
 _blkid() { eval $2=$(blkid | grep "${1#*=}" | cut -d':' -f1); }
 
+getdev() {
+	local _asw _opt msg
+	msg="Type in a valid dev e.g. sda5|UUID=<uuid>|LABEL=<label>"
+	case $1 in
+		-r|-remd) _opt=remd; shift;;
+		-l|-luks) _opt=luks; shift;;
+	esac
+	debug _blkid "$1" "$2"
+	if [ "$_opt" = "remd" ]; then
+		info "Insert removable device and press Enter"
+		while true; do
+			info "${msg/dev/removable device}"
+			read _asw; sleep 1; debug _blkid "${_asw:-$1}" "_dv"
+			[ -n "$_dv" ] && [ -b "$_dv" ] && break
+		done
+	elif [ "$_opt" = "luks" ]; then
+		while ! debug cryptsetup $_arg "$dev"; do
+			info "${msg/dev/cyphertext\/header}"
+			read _asw; debug _blkid "${_asw:-$1}" "dev"
+		done
+	fi
+}
+
 glk() {
 	if [ ! "$cld" ]; then
 		local _ld="$(debug -d losetup -f)"
@@ -158,18 +181,7 @@ getkey() {
 		[ -n "$_fp" ] || die "ik$2=$_km:$_kd:$_fp filepath field empty"
 		debug _blkid "$_kd" "_dv"
 		if [ -z "$(mount | grep /mnt/tok)" ]; then
-			if [ ! -b "$_dv" ]; then
-				sleep 2; debug _blkid "$_kd" "_dv"
-				if [ ! -b "$_dv" ]; then
-					info "Insert removable device and press Enter."
-					read; sleep 2; debug _blkid "$_kd" "_dv"
-				fi
-				while [ ! -b "$_dv" ]; do
-					info "$_dv does not exist, input a valid dev name"
-					info "e.g. '[/dev/]sdb1', 'LABEL=<label>' 'UUID=<uuid>'"
-					read _dv; sleep 2; debug _blkid "$_dv" "_dv"
-				done
-			fi
+			[ -b "$_dv" ] || debug -d getdev -r "$_kd" "_dv"
 			debug -d mount -n -r "$_dv" /mnt/tok
 		fi
 		debug -d test -f "/mnt/tok/$_fp"
@@ -192,69 +204,28 @@ dmclose() {
 	done
 }
 
-dmcrypt() {
-	local _apd _asw _cpr _ksz _use
-	info "Type a valid LUKS cipher:hash, default is 'aes-ecb-benbi:sha256'"
-	info "you can take something safer like 'aes-cbc-essiv:sha256'"
-	read _cpr
-	info "Type a valide key-size [256|512], default is 256 bits:"
-	read _ksz
-	if [ -e "$kfile" ]; then 
-		info "use the existing $kfile keyfile? [NO|yes]"
-		read _use
-		[ "${_use:-no}" = "yes" ] && _use="$kfile" || _use=
-	fi
-	if [ -e "$_hdr" ]; then info "use $_hdr detached header [NO|yes]?"
-		read _asw
-		if [ "${_asw:-no}" = "yes" ]; then info "Enter a valid aligh-payload offset,"
-			info "this option is taken as absolute sector alignment and can be zero"
-			read _apd; _apd="--align-payload ${_apd:-0}"
-		else unset _header; fi
-	fi
-	debug -d cryptsetup luksFormat $_dev -c${_cpr:-aes-ecb-benbi:sha256} \
-		-s${_ksz:-256} $_use $_header $_apd
-}
-
 gld() {
-	if [ ! -e "$1" ]; then
-		[ "$cid" ] && [ -n "$(echo "$1" | grep -i UUID)" ] ||
-			debug -d _blkid "$1" "dev"
+	if [ -e "$1" ]; then dev=$1
+	else [ "$cid" ] && [ -n "$(echo "$1" | grep -i UUID)" ] ||
+			debug -d getdev $2 "$1" "dev"
 	fi
-	eval dev=${dev:-$1}
-	[ "$2" = "-i" ] || return
-	local _ldv=$dev
-	debug cryptsetup $_arg "$_ldv" ||
-	{
- 		info "for[mat] $1 or dec[rypt] another cyphertext or header? [for|DEC|hdr]"
-		_msg="Type in a valid LUKS cyphertext e.g. sda5|UUID=<uuid>|LABEL=<label>"
-		read _asw
-		if [ "${_asw:-dec}" = "dec" ]; then info "$_msg"
-		elif [ "$_asw" = "hdr" ]; then info "$_msg|path/to/file"
-		elif [ "$_asw" = "for" ]; then debug dmcrypt; fi
-		_msg="type in a valide file:"
-		while true; do
-			info "$_msg"
-			read _ldv; debug _blkid "$_ldv" "dev"
-			debug cryptsetup $_arg "$dev" && break
-		done
-	}
 }
 
 dmopen() { 
 	$eck && debug -d bck cryptsetup
 	debug _modprobe dm-crypt
-	local _asw _arg=isLuks _header _msg dev
+	local _arg=isLuks _header _msg dev
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
 	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
-			debug gld "$_hdr" -i
-		elif [ -e "/mnt/tok/$_hdr" ]; then debug gld "/mnt/tok/$_hdr" -i
+			debug gld "$_hdr" -l
+		elif [ -e "/mnt/tok/$_hdr" ]; then debug gld "/mnt/tok/$_hdr" -l
 		else die "$_hdr detached header doesn't exist."; fi
 		_hdr=$dev && _header="--header $_hdr"
 		debug gld "$_dev"
-	else debug gld "$_dev" -i; fi
+	else debug gld "$_dev" -l; fi
 	_dev=$dev
 	debug -d cryptsetup $_arg "$_dev" "$_header" 
 	_arg="luksOpen $_dev $_map $_header"
@@ -536,7 +507,7 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
-	cat </init|sed '/^#.*$/d'|tail -n+4|head -n328  >>/lib/mkinitramfs-ll/fbase.sh
+	cat </init|sed '/^#.*$/d'|tail -n+4|head -n300  >>/lib/mkinitramfs-ll/fbase.sh
 	sed -e 's/debug\ rsh.*$/exit\ \$_ret/'         -i /lib/mkinitramfs-ll/fbase.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d mkdir -p dev/pts proc run sys newroot mnt/tok
