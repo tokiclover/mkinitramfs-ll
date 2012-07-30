@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.7 2012/07/30 02:52:44 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.8 2012/07/30 13:45:08 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -32,7 +32,7 @@ debug() {
 
 rsh() {
 	export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-> '
-	if [ $spld ]; then
+	if $spld; then
 		debug openvt -c${console#*tty} $sh -i -m 0<$console 1>$console 2>&1
 	elif ack setsid; then debug setsid $sh -i -m 0<$console 1>$console 2>&1
 	else debug $sh -i -m 0<$console 1>$console 2>&1; fi
@@ -76,11 +76,11 @@ _modprobe() {
 }
 
 cmd() { debug echo "$@" >$SPLASH_FIFO; }
-verbose() { debug chvt ${console#*tty}; debug cmd "set mode verbose"; }
-silent() { debug chvt ${console#*tty}; debug cmd "set mode silent"; }
-msg() { [ $spld ] && debug cmd "set message $@" && debug cmd "repaint"; }
+verbose() { debug chvt ${console:8:1}; debug cmd "set mode verbose"; }
+silent() { debug chvt ${console:8:1}; debug cmd "set mode silent"; }
+msg() { $spld && debug cmd "set message $@" && debug cmd "repaint"; }
 
-_stop() { [ $spld ] && spld=1; debug cmd "exit"; }
+_stop() { $spld && spld=false; debug cmd "exit"; }
 spld() {
 	$eck && for bin in fbcondecor_helper splash_util; do 
 		debug -d bck $bin
@@ -102,7 +102,7 @@ spld() {
 	export BOOT_MSG SPLASH_FIFO=$cachedir/.splash
 	[ -d "$cachedir" ] || mkdir -p $cachedir
 	debug mkfifo $SPLASH_FIFO
-	debug $util -d -ms -t$theme && spld=0
+	debug $util -d -ms -t$theme && spld=true
 	[ -n "$_opts" ] && debug cmd $_opts
 	debug cmd "set event dev /dev/input/$event"
 	debug cmd "set autoverbose 0"
@@ -135,8 +135,8 @@ getdev() {
 		-l|-luks) _opt=luks; shift;;
 	esac
 	debug _blkid "$1" "$2"
+	info "Insert $1 device and press Enter, or else"
 	if [ "$_opt" = "remd" ]; then
-		info "Insert removable device and press Enter"
 		while true; do
 			info "${msg/dev/removable device}"
 			read _asw; sleep 1; debug _blkid "${_asw:-$1}" "_dv"
@@ -232,9 +232,9 @@ dmopen() {
 	_msg="there are still 3 pwd mode attempts"
 	if [ "$kmode" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
-		echo "[?]: gpg -qd "$kfile" | cryptsetup $_arg" >>$logdir$logfile
 		for _i in 1 2 3; do
 			gpg -qd "$kfile" | cryptsetup $_arg && break || info "$_msg"
+			echo "[$?]: gpg -qd "$kfile" | cryptsetup $_arg" >>$logdir$logfile
 		done
 		rm /dev/tty && mv -f /dev/bak /dev/tty
 	elif [ "$kmode" = "ldk" ] || [ "$kmode" = "reg" ]; then
@@ -260,7 +260,7 @@ lvopen() {
 	}
 	if [ -b "/dev/mapper/$1" ]; then eval ${3-lv}=/dev/mapper/$1
 	elif [ -b "/dev/$_lv" ]; then eval ${3-lv}=/dev/$_lv
-	else die "$_lv VG/LV do not exist."; fi
+	else die "$_lv VG/LV not found"; fi
 }
 
 mdopen() {
@@ -272,7 +272,7 @@ mdopen() {
 		$eck && debug -d bck mdadm
 		debug _modprobe raid
 		if [ -n "$_uuid" ]; then echo ARRAY $_dev $_uuid >>/etc/mdadm.conf
-		else echo ARRAY $_dev devices=/dev/sd?${_opt:-*} >>/etc/mdadm.conf;fi
+		else echo ARRAY $_dev devices=/dev/sd*${_opt:-*} >>/etc/mdadm.conf;fi
 		_conf=-c/etc/mdadm.conf
 		debug -d mdadm --assemble ${_uuid:+-u${_uuid#*=}} $_conf $_dev
 	else
@@ -308,7 +308,7 @@ squashd() {
 
 dorootfs() {
 	debug -d"iroot=<PV|VG-LV>[:<c>:<fs>] argument is missing" test -n "$iroot"
-	local _fscf _dev dev=${iroot%%:*}
+	local _dev dev=${iroot%%:*}
 	local _fsck="$(echo "$iroot" | cut -d':' -f2)"
 	local _fs="$(echo "$iroot" | cut -d':' -f3)"
 :	local ${_lvm:=$(echo "$ilvm" | cut -d',' -f1)}
@@ -323,8 +323,12 @@ dorootfs() {
 	fi
 	dolevel 3f
 	if [ -n "$_fsck" ]; then 
-		[ "$_fsck" = "n" ] || [ "$_fsck" = "no" ] && _fscf="-e" || _fscf="-d"
-		debug $_fscf fsck ${_fs:+-t$_fs} $_dev 
+		case $_fsck in
+			n*|N*)    _fsck=-e;;
+			c*|y*|Y*) _fsck=-d;;
+			*)        _fsck=  ;;
+		esac
+		debug $_fsck fsck ${_fs:+-t$_fs} $_dev 
 	fi
 	dolevel 3m
 	if [ -z "$rootfs" ]; then
@@ -499,7 +503,7 @@ _getopts() {
 			*init=*)  export init=${arg#*=};;
 			ishrl=*)  shlevel=$(echo ${arg#*=}|cut -d':' -f1)
 				     runlevel=$(echo ${arg#*=}|cut -d':' -f2);;
-			dmesg|ikmap*|ilvm*|imo*|*root*|*resume*|*swap*|splash*) export $arg;;
+			dmesg|i[klm]*|*root*|*resume*|*swap*|splash*|console*) export $arg;;
 	   	 esac
 	done
 }
@@ -507,8 +511,7 @@ _getopts() {
 _init() {
 	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
 	debug umask 0077
-	cat </init|sed '/^#.*$/d'|tail -n+4|head -n300  >>/lib/mkinitramfs-ll/fbase.sh
-	sed -e 's/debug\ rsh.*$/exit\ \$_ret/'         -i /lib/mkinitramfs-ll/fbase.sh
+	debug /lib/mkinitramfs-ll/init.sh
 	[ -f /etc/profile ] && . /etc/profile
 	debug -d mkdir -p dev/pts proc run sys newroot mnt/tok
 	debug -d mount -t proc proc /proc
