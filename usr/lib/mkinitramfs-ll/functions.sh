@@ -1,6 +1,5 @@
-# $Id: /lib/mkinitramfs-ll/functions.sh, 2012/07/12 11:48:11 -tclover Exp $
-
-. /lib/mkinitramfs-ll/fbase.sh
+# $Id: /lib/mkinitramfs-ll/functions.sh,v 0.10.8 2012/07/30 13:59:49 -tclover Exp $
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
 
 _getopt() {
 	for arg in $*; do
@@ -10,4 +9,3 @@ _getopt() {
 	done
 }
 
-# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
