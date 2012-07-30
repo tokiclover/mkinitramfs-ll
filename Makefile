@@ -14,7 +14,7 @@ DOCS        = AUTHORS COPYING README.textile KnownIssue
 all: install install_svc install_bash install_zsh
 
 install:
-	install -pd $(datadir)/usr/lib/mdev
+	$(shell) install -pd $(datadir)/usr/lib/{mdev,$(PACKAGE)}
 	install -pm 644 busybox.cfg       $(datadir)
 	install -pm 755 init              $(datadir)
 	install -pm 755 xcpio             $(datadir)
@@ -22,10 +22,12 @@ install:
 	$(shell) for file in 3d-zfs.sh; do \
 		install -Dpm644 $(PACKAGE).d/$${file} $(datadir)/$(PACKAGE).d/$${file}; \
 	done
-	install -pm 644 usr/etc/mdev.conf $(datadir)/usr/etc
-	install -pm 755 usr/lib/mdev/ide_links    $(datadir)/usr/lib/mdev
-	install -pm 755 usr/lib/mdev/usbdev       $(datadir)/usr/lib/mdev
-	install -pm 755 usr/lib/mdev/usbdisk_link $(datadir)/usr/lib/mdev
+	$(shell) install -pm 644 {,$(datadir)/}usr/lib/$(PACKAGE)/functions.sh
+	$(shell) install -pm 755 {,$(datadir)/}usr/lib/$(PACKAGE)/init.sh
+	$(shell) install -pm 644 {,$(datadir)/}usr/etc/mdev.conf
+	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/ide_links
+	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/usbdev
+	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/usbdisk_link
 
 install_bash:
 	install -pd $(datadir)
