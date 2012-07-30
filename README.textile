@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.10.5 2012/07/20 23:32:13 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.10.7 2012/07/30 12:08:04 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -31,9 +31,9 @@ And of course when using this script, one does not need @root=<arg>@ nor @resume
 
 init script supports the following specific arguments: 
 
-* @iroot=<PV|VG-LV>[:c:<fs>]@    -> required root device, recommanded optional @:c:ext4@ 
+* @iroot=<PV|VG-LV>[:c:<fs>]@    -> required root device, recommanded optional @:c[|chk|y|..]:ext4@ 
 
-*Note*: @:n:ext4@ or @:no:ext4@ will disable a die if fsck fails to check rootfs.
+*Note*: @:n[|no|N|NO]:ext4@ (instead of @c[|chk|check|y|yes])@ will disable a die after fsck failure.
 
 * @imopt=<ro,inode64,...>@       -> optional mount options for rootfs.
 * @imount=</usr:/var:...>@       -> mount /usr:/var using /etc/fstab
@@ -92,7 +92,7 @@ metadata format used to scan dmraid set and subset software (ata)raid and @<part
 Either way, one can use mdadm software raid like @iraid=md<n>+UUID=<uuid>@ and optionaly 
 embed or not an config file @/etc/mdadm.conf@. Or else, @iraid@ is sufficient to enable arrays: 
 @echo ARRAY <array> <uuid> >> /etc/mdadm.conf@; or else, @iraid=md<n>+<part>@ to enable arrays like:
-@echo ARRAY <array> devices=/dev/sd?<part> >> /etc/mdadm.conf@.
+@echo ARRAY <array> devices=/dev/sd*<part> >> /etc/mdadm.conf@, @<part>@ could be something like @[a-d]2@.
 
 Or else, an optional @<format>@ can be used to enable mdraid software (ata)raid e.g. @asr|..|isw|jmicron|..|dos@
 see @mdraid -l@. dmraid software raid can be passed like @iraid=<array>+isw:dos@, ':' as a metadata seperator.
