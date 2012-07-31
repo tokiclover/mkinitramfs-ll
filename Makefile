@@ -11,7 +11,9 @@ docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
 DOCS        = AUTHORS COPYING README.textile KnownIssue
 
-all: install install_svc install_bash install_zsh
+all:
+
+instal_all: install install_svc install_bash install_zsh
 
 install:
 	$(shell) install -pd $(datadir)/usr/lib/{mdev,$(PACKAGE)}
@@ -24,6 +26,7 @@ install:
 	done
 	$(shell) install -pm 644 {,$(datadir)/}usr/lib/$(PACKAGE)/functions.sh
 	$(shell) install -pm 755 {,$(datadir)/}usr/lib/$(PACKAGE)/init.sh
+	$(shell) install -Dpm644 {,$(datadir)/}usr/root/.gnupg/gpg.conf
 	$(shell) install -pm 644 {,$(datadir)/}usr/etc/mdev.conf
 	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/ide_links
 	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/usbdev
@@ -59,33 +62,33 @@ install_svc:
 
 postinstall:
 
-uall: unintsall uninstall_bash uninstall_zsh uninstall_svc
+clean_all: unintsall uninstall_bash uninstall_zsh uninstall_svc
 
-uninstall:
-	$(shell) rm -f $(datadir)/{busybox.cfg,usr/etc/mdev/conf}
+clean:
+	$(shell) rm -f $(datadir)/{busybox.cfg,init,usr/etc/mdev.conf,xcpio}
 	$(shell) rm -f $(datadir)/usr/{root/.gnupg/gpg.conf,share/gnupg/options.skel}
-	rm -f $(datadir)/init
 	$(shell) find ${datadir}/usr -name '.keep' -exec rm -f '{}' \;
 	$(shell) for file in 3d-zfs.sh; do \
-		rm -f $(datadir)/$(PACKAGE)/$${file}; \
+		rm -f $(datadir)/$(PACKAGE).d/$${file}; \
 	done
 	$(shell) rm -f $(datadir)/usr/lib/mdev/{ide_links,usbdev,usbdisk_link}
-	$(shell) rmdir $(datadir)/usr/{lib/mdev,etc/{$(PACKAGE){,.d},splash}}
-	$(shell) rmdir $(datadir)/usr/{lib,{,s}bin,root/{.gnupg,}}
-	$(shell) rmdir $(datadir)/usr/share/{consolefonts,keymaps,gnupg}
+	$(shell) rm -f $(datadir)/usr/lib/$(PACKAGE)/{functions,init}.sh
+	$(shell) rmdir $(datadir)/usr/{lib/{mdev,$(PACKAGE)},etc/$(PACKAGE){,.d}}
+	$(shell) rmdir $(datadir)/usr/{lib,{,s}bin,root/{.gnupg,},etc/{splash,}}
+	$(shell) rmdir $(datadir)/usr/{share/{consolefonts,keymaps,gnupg,},}
 
-uninstall_bash:
+clean_bash:
 	rm -f $(bindir)/$(PACKAGE).bash
 	$(shell) rm -f $(datadir)/{autogen,busybox,gnupg}.bash
 	rm -f $(sys_confdir)/$(PACKAGE).conf
 
-uninstall_zsh:
+clean_zsh:
 	rm -f $(bindir)/$(PACKAGE).zsh
 	$(shell) rm -f $(datadir)/{autogen,busybox,gnupg}.zsh
 	rm -f $(sys_confdir)/$(PACKAGE).conf
 
-uninstall_svc:
+clean_svc:
 	rm -f $(svc_confdir)/sqfsdmount
 	rm -f $(svc_initdir)/sqfsdmount
 
-postuninstall:
+postclean:
