@@ -1,8 +1,8 @@
 mkinitramfs-ll
 - initramfs generation tool 
-with optional LUKS|LVM2|AUFS2|aufs+squashfs|crypted keyfiles (LUKS/GnuPG) support
+with optional LUKS|LVM|aufs+squashfs|crypted key-files (LUKS/GnuPG) support
 with a set of handy bash/zsh scripts
-- © tokiclover -tclover <tokiclover{at}gmail{dot}com>
+- © 2011-2012 tokiclover -tclover <tokiclover{at}gmail{dot}com>
 
 @COPYLEFT
 ALL WRONGS RESERVED
@@ -15,10 +15,10 @@ License(s) [at your choice]:
 	* Creative Commons by ShareAlike, version 2.5 or later at your choice, 
 	 <https://creativecommons.org/licenses/by-sa/>.
 
-	* 2-clause (following simplified) BSD:
+	* 2-clause (simplified) BSD:
 
 ---
-Copyright 2012 tokiclover/-tclover. All rights reserved.
+Copyright 2011-2012 tokiclover/-tclover <tokiclover{at}gmail{dot}com>
 
 Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
