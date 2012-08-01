@@ -1,5 +1,5 @@
 PACKAGE     = mkinitramfs-ll
-VERSION     = $(shell grep Header init | awk '{print $4}')
+VERSION     = $(shell grep Header init | awk '{print $$4}')
 
 prefix      = /usr/local
 bindir      = ${DESTDIR}${prefix}/sbin
@@ -9,7 +9,7 @@ svc_initdir	= ${sys_confdir}/init.d
 datadir	    = ${DESTDIR}${prefix}/share/$(PACKAGE)
 docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
-DOCS        = AUTHORS COPYING README.textile KnownIssue
+DOCS        = AUTHORS BUGS COPYING README.textile
 
 all:
 
