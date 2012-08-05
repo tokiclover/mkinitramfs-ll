@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.6 2012/07/29 21:40:21 -tclover Exp $
-revision=0.10.6
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.9 2012/08/05 02:53:29 -tclover Exp $
+revision=0.10.9
 usage() {
   cat <<-EOF
  usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
@@ -145,6 +145,7 @@ cp -af {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy mod
 for mod in ${opts[-module]//:/ }; do
 	cp -a ${opts[-usrdir]}/../mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
 done
+[ -f /etc/issue.logo ] && cp {/,}etc/issue.logo
 if [[ -x usr/bin/busybox ]]; then mv -f {usr/,}bin/busybox
 elif which busybox 1>/dev/null 2>&1 &&
 	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]]; then

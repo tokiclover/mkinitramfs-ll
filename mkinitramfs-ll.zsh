@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.6 2012/07/29 21:40:18 -tclover Exp $
-revision=0.10.6
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.9 2012/08/05 02:53:32 -tclover Exp $
+revision=0.10.9
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -122,6 +122,7 @@ cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]})
 	cp -a ${opts[-usrdir]:h}/mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
 cp -ar {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
+[ -f /etc/issue.logo ] && cp {/,}etc/issue.logo
 if [[ -x usr/bin/busybox ]] { mv -f {usr/,}bin/busybox
 } elif [[ $(which busybox) != "busybox not found" ]] &&
 	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]] {
