@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.9 2012/08/05 02:47:07 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.9 2012/08/06 09:10:56 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -462,7 +462,7 @@ main() {
 			fi
 		done
 	fi
-	[ -f /etc/issue.log ] && cat /etc/issue.logo
+	[ -f /etc/issue.logo ] && cat /etc/issue.logo
 	debug test -f /etc/msg && clear && while read _line; do
 		info "$_line"; msg "$_line"
 	done </etc/msg
