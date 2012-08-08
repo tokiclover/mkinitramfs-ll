@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.10.5 2012/06/23 02:50:46 -tclover Exp $
-revision=0.10.5
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.10.9 2012/08/08 10:03:42 -tclover Exp $
+revision=0.10.9
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-update|-remove] [-r|-sqfsdir<dir>] -d|-sqfsd:<dir>:<dir>
@@ -84,8 +84,16 @@ squashd() {
 			$rm -rf /$dir/* || die "failed to clean up $bdir"
 		} 
 		if [[ -n ${(k)opts[-U]} ]] || [[ -n ${(k)opts[-update]} ]] { 
-			$cp -aru $bdir/ro /${dir}ro && mv /$dir{,rm}
-			$mv /$dir{ro,} && $rm -fr /${dir}rm || die "failed to update $dir"
+			$cp -aru $bdir/ro /${dir}ro 
+			if [[ "$dir" = lib${opts[arc]} ]] {
+				info "you have to reboot and drop to a rescue shell using \`ishrl=3s'"
+				info "kernel cmdline for example, and then execute the following commands:"
+				info "\`rm -fr /newroot/lib64 && mv /newroot/lib64ro /newroot/lib64 && exit'"
+				info "to update the underlaying file system"
+			} else {
+				$mv /$dir{,rm} && $mv /$dir{ro,} && $rm -fr /${dir}rm ||
+				die "$dir: failed to update"
+			}
 		}
 		mount -onodev,udba=reval,br:$bdir/rw:$bdir/ro -taufs $dir /$dir 1>/dev/null 2>&1 ||
 			die "$dir: failed to mount aufs branch"

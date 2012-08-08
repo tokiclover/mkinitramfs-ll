@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.10.5 2012/06/23 02:50:50 -tclover Exp $
-revision=0.10.5
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.10.9 2012/08/08 10:03:38 -tclover Exp $
+revision=0.10.9
 usage() {
   cat <<-EOF
  usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d|--sqfsd=<dir>:<dir>
@@ -84,17 +84,25 @@ squashd() {
 		echo "$dir /$dir aufs nodev,udba=reval,br:$bdir/rw:$bdir/ro 0 0" >>/etc/fstab ||
 			die "$dir: failed to write aufs line"
 	fi
-	if [[ -z "${opts[nomount]}" ]]; then
+	if [[ -z "${opts[nomount]}" ]]; then local cp mv rm
 		mount $bdir.sfs $bdir/ro -tsquashfs -onodev,loop,ro 1>/dev/null 2>&1 &&
 		{
-		if [[ "$dir" = "bin" ]]; then local cp=$bdir/ro/cp mv=$bdir/ro/mv rm=$bdir/ro/rm
-		else local cp=cp mv=mv rm=rm; fi
+		[[ "$dir" = "bin" ]] && cp=$bdir/ro/cp mv=$bdir/ro/mv rm=$bdir/ro/ro ||
+			cp=cp mv=mv rm=rm
 		if [[ -n "${opts[remove]}" ]]; then
 			$rm -rf /$dir/* || die "$dir:failed to clean up"
 		fi
 		if [[ -n "${opts[update]}" ]]; then
-			$cp -aru $bdir/ro /${dir}ro && $mv /$dir{,rm}
-			$mv /$dir{ro,} && $rm -fr /${dir}rm || die "$dir: failed to update"
+			$cp -aru $bdir/ro /${dir}ro 
+			if [[ "$dir" = lib${opts[arc]} ]]; then
+				info "you have to reboot and drop to a rescue shell using \`ishrl=3s'"
+				info "kernel cmdline for example, and then execute the following commands:"
+				info "\'rm -fr /newroot/lib64 && mv /newroot/lib64ro /newroot/lib64 && exit'"
+				info "to update the underlaying file system"
+			else 
+				$mv /$dir{,rm} && $mv /$dir{ro,} && $rm -fr /${dir}rm ||
+					die "$dir: failed to update"
+			fi
 		fi
 		mount -onodev,udba=reval,br:$bdir/rw:$bdir/ro -taufs $dir /$dir 1>/dev/null 2>&1 ||
 			die "$dir: failed to mount aufs branch"
