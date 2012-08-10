@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.9 2012/08/06 09:10:56 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.9 2012/08/10 10:23:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -111,7 +111,7 @@ spld() {
 
 dolevel() {
 	local _msg="Switching to init shell run level: $1"
-	info "$_msg"; msg "$_msg"; export level=$1
+	echo -ne ">>> $_msg\n"; msg ">>> $_msg"; export level=$1
 	local _scr="$(ls /etc/mkinitramfs-ll.d/$1*-*.sh 2>/dev/null)"
 	if [ -n "$_scr" ]; then
 		for _s in $_scr; do
@@ -135,7 +135,7 @@ getdev() {
 		-l|-luks) _opt=luks; shift;;
 	esac
 	debug _blkid "$1" "$2"
-	info "Insert $1 device and press Enter, or else"
+	info "Insert $1 removable device and press Enter, or else"
 	if [ "$_opt" = "remd" ]; then
 		while true; do
 			info "${msg/dev/removable device}"
