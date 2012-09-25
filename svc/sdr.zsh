@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.10.9 2012/08/08 10:03:42 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.10.9 2012/09/25 08:23:20 -tclover Exp $
 revision=0.10.9
 usage() {
   cat <<-EOF
@@ -78,22 +78,19 @@ squashd() {
 	if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-nomount]} ]] { :; } else {
 		mount $bdir.sfs $bdir/ro -tsquashfs -onodev,loop,ro 1>/dev/null 2>&1 &&
 		{	
-		if [[ "$dir" = "bin" ]] { local cp=$bdir/ro/cp mv=$bdir/ro/mv rm=$bdir/ro/rm
-		} else { local cp=cp mv=mv rm=rm }
+		for d (bin sbin lib${opts[-arc]}) {
+			if [[ $dir = $d ]] {
+				bb=$(which bb) && busybox=/tmp/busybox
+				ln -fs ${opts[-sqfsdir]}${bb:h}/ro${bb:t} $busybox
+				cp="$busybox cp" rm="$busybox rm"
+			} else { cp=cp rm=rm }
+		}
 		if [[ -n ${(k)opts[-R]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
-			$rm -rf /$dir/* || die "failed to clean up $bdir"
+			${=rm} -rf /$dir/* || die "failed to clean up $bdir"
 		} 
 		if [[ -n ${(k)opts[-U]} ]] || [[ -n ${(k)opts[-update]} ]] { 
-			$cp -aru $bdir/ro /${dir}ro 
-			if [[ "$dir" = lib${opts[arc]} ]] {
-				info "you have to reboot and drop to a rescue shell using \`ishrl=3s'"
-				info "kernel cmdline for example, and then execute the following commands:"
-				info "\`rm -fr /newroot/lib64 && mv /newroot/lib64ro /newroot/lib64 && exit'"
-				info "to update the underlaying file system"
-			} else {
-				$mv /$dir{,rm} && $mv /$dir{ro,} && $rm -fr /${dir}rm ||
+			${=rm} -fr /$dir && ${=cp} -aru $bdir/ro /${dir} ||
 				die "$dir: failed to update"
-			}
 		}
 		mount -onodev,udba=reval,br:$bdir/rw:$bdir/ro -taufs $dir /$dir 1>/dev/null 2>&1 ||
 			die "$dir: failed to mount aufs branch"
