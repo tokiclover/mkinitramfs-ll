@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.10.9 2012/08/10 10:23:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.10.9 2012/09/26 15:42:33 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -300,9 +300,9 @@ squashd() {
 	for _dir in $sqfsd; do
 		local _bdir="$sqfsdir"/$_dir
 		debug -d test -f .$_bdir.sfs
-		debug mkdir -p .$_bdir/rw .$_bdir/ro
-		debug -d mount -tsquashfs -onodev,loop,ro .$_bdir.sfs .$_bdir/ro &&
-		mount -taufs -onodev,udba=reval,br:.$_bdir/rw:.$_bdir/ro $_dir $_dir
+		debug mkdir -p .$_bdir/rw .$_bdir/rr
+		debug -d mount -tsquashfs -onodev,loop,ro .$_bdir.sfs .$_bdir/rr &&
+		mount -taufs -onodev,udba=reval,br:.$_bdir/rw:.$_bdir/rr $_dir $_dir
 	done
 }
 

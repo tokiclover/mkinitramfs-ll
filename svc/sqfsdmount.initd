@@ -1,7 +1,7 @@
 #!/sbin/runscript
 # Copyright 1999-2012 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/sqfsdmount.initd,v 1.2 2012/06/19 13:38:08 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/sqfsdmount.initd,v 1.2 2012/09/26 15:40:30 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="manage (aufs+squashfs) squashed directories"
@@ -61,13 +61,13 @@ smount() {
 	if [[ -n "$(mount -t aufs | grep /$d)" ]]; then 
 		einfo "squashed $d already mounted"
 	else ebegin "mounting squashed $d"
-		if [[ -n "$(mount -t squashfs | grep $b/ro)" ]]; then 
+		if [[ -n "$(mount -t squashfs | grep $b/rr)" ]]; then 
 			einfo "squashed $b.sfs image already mounted"
 		else
-			mount -t squashfs $b.sfs $b/ro -o nodev,loop,ro 1>/dev/null 2>&1
+			mount -t squashfs $b.sfs $b/rr -o nodev,loop,ro 1>/dev/null 2>&1
        		eend "$?" "failed to mount $b.sfs image" || return
        	fi
-		mount -t aufs $d /$d -o nodev,udba=reval,br:$b/rw:$b/ro 1>/dev/null 2>&1
+		mount -t aufs $d /$d -o nodev,udba=reval,br:$b/rw:$b/rr 1>/dev/null 2>&1
 		eend "$?" "failed to mount $d aufs branch"
 	fi
 }
@@ -78,7 +78,7 @@ sumount() {
 	ebegin "umounting squashed ${dir}"
 	umount -lt aufs /$d $no_netdev 1>/dev/null 2>&1
 	eend "$?" "failed to umount squashed $d" || return
-	umount -lt squashfs $b/ro $no_netdev 1>/dev/null 2>&1
+	umount -lt squashfs $b/rr $no_netdev 1>/dev/null 2>&1
 	eend "$?" "failed to umount $b.sfs image"
 }
 
