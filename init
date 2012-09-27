@@ -300,7 +300,7 @@ squashd() {
 	for _dir in $sqfsd; do
 		local _bdir="$sqfsdir"/$_dir
 		debug -d test -f .$_bdir.sfs
-		debug mkdir -p .$_bdir/rw .$_bdir/rr
+		debug mkdir -p -m 0755 .$_bdir/rw .$_bdir/rr
 		debug -d mount -tsquashfs -onodev,loop,ro .$_bdir.sfs .$_bdir/rr &&
 		mount -taufs -onodev,udba=reval,br:.$_bdir/rw:.$_bdir/rr $_dir $_dir
 	done

@@ -56,7 +56,7 @@ die()   { error "$@"; return 1; }
 [[ -n "${opts[comp]}" ]] || opts[comp]=gzip
 [[ -n "${opts[exclude]}" ]] && opts[exclude]="-wildcards -regex -e ${opts[exclude]//:/ }"
 squashd() {
-	mkdir -p "$bdir"/{ro,rw} || die "failed to create $bdir/{ro,rw} dirs"
+	mkdir -p -m 0755 "$bdir"/{ro,rw} || die "failed to create $bdir/{ro,rw} dirs"
 	mksquashfs /$dir $bdir.tmp.sfs -b ${opts[bsize]} -comp ${opts[comp]} \
 		${opts[exclude]} >/dev/null || die "failed to build $dir.sfs img"
 	if [[ "$dir" = lib${opts[arc]} ]]; then # move rc-svcdir and cachedir if mounted

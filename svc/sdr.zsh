@@ -45,7 +45,7 @@ die()   { error $@; return 1 }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 setopt NULL_GLOB
 squashd() {
-	mkdir -p $bdir/{ro,rw} || die "failed to create $dir/{ro,rw} dirs"
+	mkdir -p -m 0755 $bdir/{ro,rw} || die "failed to create $dir/{ro,rw} dirs"
 	mksquashfs /$dir $bdir.tmp.sfs -b ${opts[-bsize]} -comp ${=opts[-comp]} \
 		${=opts[-exclude]:+-wildcards -regex -e ${(pws,:,)opts[-exclude]}} >/dev/null \
 		|| die "failed to build $dir.sfs img"
