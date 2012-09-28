@@ -112,11 +112,11 @@ for dir (${(pws,:,)opts[-sqfsd]} ${(pws,:,)opts[-d]}) {
 		if [[ ${opts[-offset]:-10} != 0 ]] {
 			rr=${$(du -sk $bdir/rr)[1]}
 			rw=${$(du -sk $bdir/rw)[1]}
-			if (( ($rw*100/$ro) < ${opts[-offset]:-10} )) { 
+			if (( ($rw*100/$rr) < ${opts[-offset]:-10} )) { 
 				info "$dir: skiping... there's \`-o' options to change the offset"
 			} else { print -P "%F{green}>>> updating squashed $dir...%f"; squashd }
 		} else { print -P "%F{green}>>> updating squashed $dir...%f"; squashd }
 	} else { print -P "%F{green}>>> building squashed $dir...%f"; squashd }
 }
-unset bdir opts ros rws
+unset bdir opts rr rw
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
