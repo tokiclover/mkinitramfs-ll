@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.10.9 2012/09/25 08:23:20 -tclover Exp $
-revision=0.10.9
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.11.0 2012/09/28 10:24:37 -tclover Exp $
+revision=0.11.0
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-update|-remove] [-r|-sqfsdir<dir>] -d|-sqfsd:<dir>:<dir>
