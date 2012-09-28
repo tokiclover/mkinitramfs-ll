@@ -110,9 +110,9 @@ for dir (${(pws,:,)opts[-sqfsd]} ${(pws,:,)opts[-d]}) {
 	bdir=${opts[-sqfsdir]}/$dir
 	if [[ -e /sqfsd/$dir.sfs ]] { 
 		if [[ ${opts[-offset]:-10} != 0 ]] {
-			ros=${$(du -sk $bdir/ro)[1]}
-			rws=${$(du -sk $bdir/rw)[1]}
-			if (( ($rws*100/$ros) < ${opts[-offset]:-10} )) { 
+			rr=${$(du -sk $bdir/rr)[1]}
+			rw=${$(du -sk $bdir/rw)[1]}
+			if (( ($rw*100/$ro) < ${opts[-offset]:-10} )) { 
 				info "$dir: skiping... there's \`-o' options to change the offset"
 			} else { print -P "%F{green}>>> updating squashed $dir...%f"; squashd }
 		} else { print -P "%F{green}>>> updating squashed $dir...%f"; squashd }
