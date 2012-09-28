@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.0 2012/09/28 10:23:47 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.0 2012/09/28 10:33:42 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -264,7 +264,7 @@ lvopen() {
 }
 
 mdopen() {
-	local _dev=${1%*+} _device _opt=$(echo "${1}" | cut -d+ -f2) _set _uuid
+	local _dev=${1%*+} _device _opt=$(echo "$1" | cut -d+ -f2) _set _uuid
 	[ -n "$(echo "$_opt" | grep -i uuid)" ] && _uuid=$_opt
 	if [ -n "$_uuid" ] || [ -n "$(echo "$_opt" | egrep '^[0-9]')" ]; then
 		[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
@@ -280,7 +280,7 @@ mdopen() {
 		debug _modprobe dm-raid
 		_dev=$(dmraid -r | grep "$_dev" | cut -d':' -f1)
 		[ -b "$_dev" ] && return
-		for _f in $(echo "$opt" | sed 's/:/ /g'); do
+		for _f in $(echo "$_opt" | sed 's/:/ /g'); do
 			_set+=" $(dmraid -s -s -c $_f)"
 		done
 		for _s in ${_dev##*/} $_set; do
