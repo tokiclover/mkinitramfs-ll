@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.10.7 2012/07/30 12:08:04 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.11.0 2012/09/28 12:30:00 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -12,7 +12,7 @@ media-fonts/terminus-font if you use the associated "ebuild":https://github.com/
 
 If you want GnuPG support, yo should have an app-crypt/gnupg-1.4*[static] binary along with its 
 options.skel file. Or if you run Gentoo you can run either gnupg.{ba,z}sh to generate one. 
-@gnupg.zsh -W/usr/local/share/mkinitramfs-ll@ if you installed the package or simply @gnupg.zsh@
+@gnupg.zsh -W/usr/share/mkinitramfs-ll@ if you installed the package or simply @gnupg.zsh@
 will build a binary in the current directory (with a usr/bin/gpg and usr/share/gnupg/options.skel).
 
 And then run @mkinitramfs-ll.zsh -font -keymap -gpg@ or the bash counterpart @mkinitramfs-ll.bash --font --keymap --gpg@
@@ -23,6 +23,10 @@ Of course, one can append extra fonts and keymaps with @-fter-g12n -yfr-latin1@ 
 and the @-a@ option depend on @mkinitramfs-ll.conf@ so one can put many default values there.
 
 One can get more info on the scripts by running @$script -u@
+
+*Warn*: mkinitramfs-ll-0.10.8 or later need, not required, the associated usr directory.
+There's no support building at hand without the associated generating scripts! becasue there are a few
+handy files in usr.
 
 h3. 2. _Optional_ kernel cmdline option or arguments
 
