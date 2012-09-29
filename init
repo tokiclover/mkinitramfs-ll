@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.0 2012/09/28 10:33:42 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.0 2012/09/29 22:32:13 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -164,9 +164,9 @@ glk() {
 }
 
 getkey() {
-	local _fp="$(echo "$1" | cut -d':' -s -f3)"
-	local _kd="$(echo "$1" | cut -d':' -s -f2)"
-	local _km="$(echo "$1" | cut -d':' -s -f1)"
+	local _fp="$(echo "$1" | cut -d':' -f3)"
+	local _kd="$(echo "$1" | cut -d':' -f2)"
+	local _km="$(echo "$1" | cut -d':' -f1)"
 	local _dv _fn=${_fp##*/}
 	if [ "$_km" != "none" ];then
 		if [ -z "$cld" ]; then
@@ -217,7 +217,7 @@ dmopen() {
 	local _arg=isLuks _header _msg dev
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "${1#*-}" | cut -d'+' -f1)
-	local _hdr=$(echo "$1" | cut -d'+' -s -f2)
+	local _hdr=$(echo "$1" | cut -d'+' -f2)
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
 			debug gld "$_hdr" -l
@@ -281,7 +281,7 @@ mdopen() {
 		_dev=$(dmraid -r | grep "$_dev" | cut -d':' -f1)
 		[ -b "$_dev" ] && return
 		for _f in $(echo "$_opt" | sed 's/:/ /g'); do
-			_set+=" $(dmraid -s -s -c $_f)"
+			_set+=" $(dmraid -s -c $_f)"
 		done
 		for _s in ${_dev##*/} $_set; do
 			debug -d dmraid -ay -i -I $_s
@@ -347,8 +347,8 @@ dorootfs() {
 doswap() {
 	debug -d"i$1=<type>:<PV|VG-LV>[:<sign>] argument is missing" test -n "$2"
 	local _swp="$3" _type="${1%%:*}" _dev
-	local dev="$(echo "$1" | cut -d':' -s -f2)" 
-	local _sign="$(echo "$1" | cut -d':' -s -f3)"
+	local dev="$(echo "$1" | cut -d':' -f2)" 
+	local _sign="$(echo "$1" | cut -d':' -f3)"
 	debug -d getkey "${2:-pwd}" "$_swp"
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_dev"
 	if [ -n "$_lvm" ]; then debug -d lvopen "$dev" "$_lvm" "_dev"
@@ -362,7 +362,7 @@ doresume() {
 	local _asw _dev _img _msg _toi _spd
 	_msg="Resuming from hibernation..."
 	info "$_msg"; msg "$_msg"
-	if [ -n "$(echo "$iresume" | cut -d':' -s -f2)" ]; then
+	if [ -n "$(echo "$iresume" | cut -d':' -f2)" ]; then
 :		local ${_raid:=$(echo "$iraid" | cut -d',' -f3)}
 :		local ${_lvm:=$(echo "$ilvm" | cut -d',' -f3)}
 		debug -d doswap "$iresume" "$ikresume" "resume" "_dev"
