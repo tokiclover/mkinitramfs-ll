@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.0 2012/10/01 12:43:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.0 2012/10/01 14:14:26 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -193,7 +193,7 @@ getkey() {
 		pwd) kmode=pwd                                                ;;
 		*)   die "$_km: invalid key mode"                             ;;
 	esac
-	export ${kfile:+kfile} kmode
+	export kfile kmode
 }
 
 dmclose() { 
