@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.0 2012/09/29 22:32:13 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.0 2012/10/01 12:43:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -176,7 +176,7 @@ getkey() {
 			[ "$cdh" ] && [ $(echo "$_v" | cut -d'.' -f3) -ge 2 ] && cid=0
 		fi
 	else export kmode=none; return; fi
-	if [ "$_km" != "pwd" ]; then
+	if [ "$_km" != "pwd" ] || [ -n "$_km" ]; then
 		[ -n "$_kd" ] || die "ik$2=$_km:$_kd:$_fp device field empty"
 		[ -n "$_fp" ] || die "ik$2=$_km:$_kd:$_fp filepath field empty"
 		debug _blkid "$_kd" "_dv"
@@ -185,11 +185,12 @@ getkey() {
 			debug -d mount -n -r "$_dv" /mnt/tok
 		fi
 		debug -d test -f "/mnt/tok/$_fp"
-	else export kmode=pwd; return; fi
-	case $_km in
+	fi
+	case ${_km:-pwd} in
 		gpg) $eck && debug -d bck gpg; kfile="/mnt/tok$_fp"; kmode=gpg;;
 		reg) kfile="/mnt/tok$_fp";                           kmode=reg;;
 		ldk) [ -b "/dev/mapper/$_fn" ] || glk "/mnt/tok$_fp" kmode=ldk;;
+		pwd) kmode=pwd                                                ;;
 		*)   die "$_km: invalid key mode"                             ;;
 	esac
 	export ${kfile:+kfile} kmode
