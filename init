@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.0 2012/10/01 14:14:26 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.0 2012/10/02 10:14:05 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -176,7 +176,7 @@ getkey() {
 			[ "$cdh" ] && [ $(echo "$_v" | cut -d'.' -f3) -ge 2 ] && cid=0
 		fi
 	else export kmode=none; return; fi
-	if [ "$_km" != "pwd" ] || [ -n "$_km" ]; then
+	if [ "${_km:-pwd}" != "pwd" ]; then
 		[ -n "$_kd" ] || die "ik$2=$_km:$_kd:$_fp device field empty"
 		[ -n "$_fp" ] || die "ik$2=$_km:$_kd:$_fp filepath field empty"
 		debug _blkid "$_kd" "_dv"
