@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/autogen.bash,v 0.10.4 2012/07/15 19:58:00 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.bash,v 0.11.1 2012/10/15 10:47:48 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${0##*/} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -41,7 +41,7 @@ opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremd
 	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,regen \
 	  -o ab:c::d::f::gk::lLm::p::rs::tuvy::W::C:n -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
-[[ -z "${opts[*]}" ]] && declare -A opts
+declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
 		-t|--toi) opts[-toi]=y; shift;;

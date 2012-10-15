@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.10.4 2012/07/15 19:58:07 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.11.1 2012/10/15 10:47:53 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${0##*/}[-m|--minimal] [--ucl=i386]
@@ -15,7 +15,7 @@ exit $?
 opt=$(getopt -l usrdir:,minimal,ucl:,usage,version: -o nud::v: \
 	-n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
-[[ -z "${opts[*]}" ]] && declare -A opts
+declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
 		-n|--minimal) opts[-minimal]=y; shift;;
