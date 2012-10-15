@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/gnupg.bash,v 0.10.4 2012/07/15 19:58:14 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.bash,v 0.11.0 2012/10/15 10:18:02 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${0##*/} [-d|--usrdir=usr] [options]
@@ -12,11 +12,11 @@ usage() {
 EOF
 exit $?
 }
-opt=$(getopt -l usage,useflag::,usrdir::,workdir::,version:: -o ud::U::v::W:: \
-	-n ${0##*/} -- "$@" || usage)
+opt=$(getopt -l usage,useflag::,usrdir::,workdir::,version:: \
+	  -o ud::U::v::W:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
-[[ -z "${opts[*]}" ]] && declare -A opts
-while [[ $# > 0 ]]; do
+declare -A opts
+while [[ $# > 1 ]]; do
 	case $1 in 
 		-d|--usrdir)  opts[-usrdir]=${2}; shift 2;;
 		-U|--useflag) opts[-useflag]=${2}; shift 2;;
