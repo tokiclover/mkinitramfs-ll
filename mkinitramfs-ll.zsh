@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.10.9 2012/08/05 02:53:32 -tclover Exp $
-revision=0.10.9
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.11.1 2012/10/15 10:56:54 -tclover Exp $
+revision=0.11.1
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -57,10 +57,10 @@ zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
 	k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage M: module: \
 	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: \
 	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen || usage
-if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
+if [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
 	print "${(%):-%1x}-$revision"; exit }
-if [[ -z ${opts[*]} ]] { typeset -A opts }
+if [[ $# < 1 ]] { typeset -A opts }
 setopt EXTENDED_GLOB NULL_GLOB
 if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
 } else { die "no mkinitramfs-ll.conf found" }

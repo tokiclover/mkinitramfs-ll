@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.10.9 2012/08/05 02:53:29 -tclover Exp $
-revision=0.10.9
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.11.1 2012/10/15 10:55:48 -tclover Exp $
+revision=0.11.1
 usage() {
   cat <<-EOF
  usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
@@ -58,7 +58,7 @@ opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremd
 	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,regen \
 	  -o ab:c::d::f::gk::lLM:m::p::rs::tuvy::W:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
-[[ -z "${opts[*]}" ]] && declare -A opts
+declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
 		-v|--version) echo "${0##*/}-$revision"; exit 0;;
