@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.11.1 2012/10/15 10:56:54 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.11.1 2012/10/16 22:10:16 -tclover Exp $
 revision=0.11.1
 usage() {
   cat <<-EOF
@@ -97,8 +97,8 @@ if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
 	print -P "%F{green}>>> regenerating ${opts[-initramfs]}...%f"
 	pushd ${opts[-initdir]} || die
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
-	docpio && exit || die
-	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f"
+	docpio || die
+	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f" && exit
 }
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 rm -rf ${opts[-initdir]} || die "eek!"

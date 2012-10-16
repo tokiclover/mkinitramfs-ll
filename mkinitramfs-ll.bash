@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.11.1 2012/10/15 10:55:48 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.11.1 2012/10/16 22:10:22 -tclover Exp $
 revision=0.11.1
 usage() {
   cat <<-EOF
@@ -119,8 +119,8 @@ if [[ -n ${opts[-regen]} ]]; then
 	echo ">>> regenerating ${opts[-initramfs]}..."
 	pushd ${opts[-initdir]} || die
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
-	docpio && exit || die
-	echo ">>> regenerated ${opts[-initramfs]}..."
+	docpio || die
+	echo ">>> regenerated ${opts[-initramfs]}..." && exit
 fi
 echo ">>> building ${opts[-initramfs]}..."
 rm -rf "${opts[-initdir]}" || die
