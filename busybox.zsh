@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.11.1 2012/07/15 19:56:09 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.11.1 2012/10/16 21:54:49 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-m|-minimal] [-ucl i386]
@@ -28,10 +28,10 @@ pushd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] { 
 :	opts[-pkg]="=busybox-${opts[-version]:-${opts[-v]}}"
 } else { opts[-pkg]=busybox }
-opts[bbt]=$(emerge -pvO ${opts[-pkg]} | grep -o "busybox-[-0-9.r]*")
-ebuild ${opts[bbt]}.ebuild clean || die "clean failed"
-ebuild ${opts[bbt]}.ebuild unpack || die "unpack failed"
-pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/${opts[bbt]}/work/${opts[bbt]} || die
+opts[-pkg]=$(emerge -pvO ${opts[-pkg]} | grep -o "busybox-[-0-9.r]*")
+ebuild ${opts[-pkg]}.ebuild clean || die "clean failed"
+ebuild ${opts[-pkg]}.ebuild unpack || die "unpack failed"
+pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/${opts[-pkg]}/work/${opts[-pkg]} || die
 if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-minimal]} ]] { make allnoconfig || die
 	for cfg ($(< ${opts[-workdir]}/busybox.cfg))
 	sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
@@ -48,7 +48,7 @@ sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opt
 make || die "failed to build busybox"
 cp -a busybox ${opts[-usrdir]}/bin || die
 popd || die
-ebuild ${opts[bbt]}.ebuild clean || die
+ebuild ${opts[-pkg]}.ebuild clean || die
 popd || die
-unset opts[bbt] opts[-n] opts[-minimal] opts[-ucl]
+unset opts[-pkg] opts[-n] opts[-minimal] opts[-ucl]
 # vim:fenc=utf-8ft=zsh:ci:pi:sts=0:sw=4:ts=4:

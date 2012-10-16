@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.11.1 2012/10/15 10:47:53 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.11.1 2012/10/16 21:54:55 -tclover Exp $
 usage() {
   cat <<-EOF
  usage: ${0##*/}[-m|--minimal] [--ucl=i386]
@@ -19,7 +19,7 @@ declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in
 		-n|--minimal) opts[-minimal]=y; shift;;
-		--ucl-arch) opts[-ucl]=${2}; shift 2;;
+		--ucl) opts[-ucl]=${2}; shift 2;;
 		-d|--usrdir) opts[-usrdir]="${2}"; shift 2;;
 		-y|--keymap) opts[-keymap]="${2}"; shift 2;;
 		-v|--version) opts[-pkg]="=busybox-${2}"; shift 2;;
@@ -35,10 +35,10 @@ mkdir -p "${opts[-usrdir]}"/bin
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
 die()   { error "$@"; exit 1; }
 pushd "${PORTDIR:-/usr/portage}"/sys-apps/busybox || die
-opts[bbt]=$(emerge -pvO "${opts[-pkg]:-busybox}" | grep -o "busybox-[-0-9.r]*")
-ebuild ${opts[bbt]}.ebuild clean || die "clean failed"
-ebuild ${opts[bbt]}.ebuild unpack || die "unpack failed"
-pushd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/${opts[bbt]}/work/${opts[bbt]} || die
+opts[-pkg]=$(emerge -pvO "${opts[-pkg]:-busybox}" | grep -o "busybox-[-0-9.r]*")
+ebuild ${opts[-pkg]}.ebuild clean || die "clean failed"
+ebuild ${opts[-pkg]}.ebuild unpack || die "unpack failed"
+pushd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/${opts[-pkg]}/work/${opts[-pkg]} || die
 if [[ -n "${opts[-minimal]}" ]]; then make allnoconfig || die
 	while read cfg; do
 		sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
@@ -56,7 +56,7 @@ fi
 make || die "failed to build busybox"
 cp -a busybox "${opts[-usrdir]}"/bin/ || die
 popd || die
-ebuild ${opts[bbt]}.ebuild clean || die
+ebuild ${opts[-pkg]}.ebuild clean || die
 popd || die
-unset -v opts[bbt] opts[-minimal] opts[-ucl]
+unset -v opts[-pkg] opts[-minimal] opts[-ucl]
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
