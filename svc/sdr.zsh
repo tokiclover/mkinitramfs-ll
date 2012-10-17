@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.11.0 2012/09/28 10:24:37 -tclover Exp $
-revision=0.11.0
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.11.1 2012/10/17 10:21:52 -tclover Exp $
+revision=0.11.1
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-update|-remove] [-r|-sqfsdir<dir>] -d|-sqfsd:<dir>:<dir>
@@ -45,7 +45,14 @@ die()   { error $@; return 1 }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 setopt NULL_GLOB
 squashd() {
-	mkdir -p -m 0755 $bdir/{ro,rw} || die "failed to create $dir/{ro,rw} dirs"
+	local cp mv rm mcdir mrc
+	if [[ -n ${(k)opts[-fstab]} || -n ${(k)opts[-fstab]} ]] {
+		echo "$bdir.sfs $bdir/rr squashfs nodev,loop,rr 0 0" >>/etc/fstab ||
+			die "$dir: failed to write squasshfs line"
+		echo "$dir /$dir aufs nodev,udba=reval,br:$bdir/rw:$bdir/rr 0 0" >>/etc/fstab ||
+			die "$dir: failed to write aufs line" 
+	}
+	mkdir -p -m 0755 $bdir/{rr,rw} || die "failed to create $dir/{rr,rw} dirs"
 	mksquashfs /$dir $bdir.tmp.sfs -b ${opts[-bsize]} -comp ${=opts[-comp]} \
 		${=opts[-exclude]:+-wildcards -regex -e ${(pws,:,)opts[-exclude]}} >/dev/null \
 		|| die "failed to build $dir.sfs img"
@@ -53,46 +60,36 @@ squashd() {
 		mkdir -p /var/{lib/init.d,cache/splash}
 		if [[ -n $(mount -ttmpfs | grep /$dir/splash/cache) ]] { 
 			mount --move /$dir/splash/cache /var/cache/splash 1>/dev/null 2>&1 &&
-				local mcdir=yes || die "failed to move cachedir"
+				mcdir=yes || die "failed to move cachedir"
 		}
 		if [[ -n $(mount -ttmpfs | grep /$dir/rc/init.d) ]] { 
 			mount --move /$dir/rc/init.d /var/lib/init.d 1>/dev/null 2>&1 &&
-				local mrc=yes || die "failed to move rc-svcdir"
+				mrc=yes || die "failed to move rc-svcdir"
 		}
 	}
 	if [[ -n $(mount -t aufs | grep -w $dir) ]] {
 		umount -l /$dir 1>/dev/null 2>&1 || die "$dir: failed to umount aufs branch"
 	}
-	if [[ -n $(mount -t squashfs | grep $bdir/ro) ]] {
-		umount -l $bdir/ro 1>/dev/null 2>&1 || die "failed to umount $bdir.sfs" 
+	if [[ -n $(mount -t squashfs | grep $bdir/rr) ]] {
+		umount -l $bdir/rr 1>/dev/null 2>&1 || die "failed to umount $bdir.sfs" 
 	}
-	rm -fr $bdir/rw/* || die "failed to clean up $bdir/rw"
-	[[ -e $bdir.sfs ]] && rm -f $bdir.sfs 
-	mv $bdir.tmp.sfs $bdir.sfs || die "failed to move $dir.tmp.sfs"
-	if [[ -n ${(k)opts[-fstab]} || -n ${(k)opts[-fstab]} ]] {
-		echo "$bdir.sfs $bdir/ro squashfs nodev,loop,ro 0 0" >>/etc/fstab ||
-			die "$dir: failed to write squasshfs line"
-		echo "$dir /$dir aufs nodev,udba=reval,br:$bdir/rw:$bdir/ro 0 0" >>/etc/fstab ||
-			die "$dir: failed to write aufs line" 
-	}
+	if [[ $dir = *bin ]] || [[ $dir = lib* ]] {
+		bbox=/tmp/busybox; cp $(which bb) /tmp/busybox
+		cp="$bbox cp -ar"; mv="$bbox mv"; rm="$bbox rm -fr"
+	} else { cp=cp; mv=mv; rm=rm }
+	${=rm} $bdir/rw/* || die "failed to clean up $bdir/rw"
+	[[ -e $bdir.sfs ]] && ${=rm} $bdir.sfs 
+	${=mv} $bdir.tmp.sfs $bdir.sfs || die "failed to move $dir.tmp.sfs"
 	if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-nomount]} ]] { :; } else {
-		mount $bdir.sfs $bdir/ro -tsquashfs -onodev,loop,ro 1>/dev/null 2>&1 &&
+		mount $bdir.sfs $bdir/rr -tsquashfs -onodev,loop,ro 1>/dev/null 2>&1 &&
 		{	
-		for d (bin sbin lib${opts[-arc]}) {
-			if [[ $dir = $d ]] {
-				bb=$(which bb) && busybox=/tmp/busybox
-				ln -fs ${opts[-sqfsdir]}${bb:h}/ro${bb:t} $busybox
-				cp="$busybox cp" rm="$busybox rm"
-			} else { cp=cp rm=rm }
-		}
 		if [[ -n ${(k)opts[-R]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
-			${=rm} -rf /$dir/* || die "failed to clean up $bdir"
+			${=rm} /$dir/* || die "failed to clean up $bdir"
 		} 
 		if [[ -n ${(k)opts[-U]} ]] || [[ -n ${(k)opts[-update]} ]] { 
-			${=rm} -fr /$dir && ${=cp} -aru $bdir/ro /${dir} ||
-				die "$dir: failed to update"
+			${=rm} /$dir && ${=cp} $bdir/rr /$dir || die "$dir: failed to update"
 		}
-		mount -onodev,udba=reval,br:$bdir/rw:$bdir/ro -taufs $dir /$dir 1>/dev/null 2>&1 ||
+		mount -onodev,udba=reval,br:$bdir/rw:$bdir/rr -taufs $dir /$dir 1>/dev/null 2>&1 ||
 			die "$dir: failed to mount aufs branch"
 		} || die "failed to mount $dir.sfs"
 	}
@@ -118,5 +115,6 @@ for dir (${(pws,:,)opts[-sqfsd]} ${(pws,:,)opts[-d]}) {
 		} else { print -P "%F{green}>>> updating squashed $dir...%f"; squashd }
 	} else { print -P "%F{green}>>> building squashed $dir...%f"; squashd }
 }
+rm -f $bbox
 unset bdir opts rr rw
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
