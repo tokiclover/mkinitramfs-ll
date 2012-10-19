@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.11.1 2012/10/17 10:21:52 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.11.1 2012/10/19 03:20:21 -tclover Exp $
 revision=0.11.1
 usage() {
   cat <<-EOF
@@ -76,7 +76,7 @@ squashd() {
 	if [[ $dir = *bin ]] || [[ $dir = lib* ]] {
 		bbox=/tmp/busybox; cp $(which bb) /tmp/busybox
 		cp="$bbox cp -ar"; mv="$bbox mv"; rm="$bbox rm -fr"
-	} else { cp=cp; mv=mv; rm=rm }
+	} else { cp="cp -ar"; mv=mv; rm="rm -fr" }
 	${=rm} $bdir/rw/* || die "failed to clean up $bdir/rw"
 	[[ -e $bdir.sfs ]] && ${=rm} $bdir.sfs 
 	${=mv} $bdir.tmp.sfs $bdir.sfs || die "failed to move $dir.tmp.sfs"
