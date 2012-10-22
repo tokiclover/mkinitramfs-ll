@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.11.1 2012/10/19 03:20:21 -tclover Exp $
-revision=0.11.1
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.11.2 2012/10/21 13:06:36 -tclover Exp $
+revision=0.11.2
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-update|-remove] [-r|-sqfsdir<dir>] -d|-sqfsd:<dir>:<dir>
@@ -9,6 +9,7 @@ usage() {
   -d|-sqfsd <dir>         squash colon seperated list of dir without the leading '/'
   -f|-fstab               whether to write the necessary mount lines to '/etc/fstab'
   -b|-bsize 131072        use [128k] 131072 bytes block size, which is the default
+  -B|-busybox busybox     path to a static busybox binary, default is \$(which bb)
   -c|-comp 'xz -Xbjc x86' use xz compressor, with optional optimization arguments
   -e|-exclude :<dir>      collon separated list of directories to exlude from image
   -o|-offset 0            overide default [10%] offset used to rebuild squashed dir
@@ -27,8 +28,8 @@ exit $?
 }
 if [[ $# = 0 ]] { usage
 } else { zmodload zsh/zutil
-	zparseopts -E -D -K -A opts r: sqfsdir: d: sqfsd: f fstab b: bsize: n nomount \
-		c: comp: e: excl: o: offset: U update R remove u usage v version || usage
+	zparseopts -E -D -K -A opts r: sqfsdir: d: sqfsd: f fstab B:: b: bsize: n nomount \
+		busybox:: c: comp: e: excl: o: offset: U update R remove u usage v version || usage
 	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 	if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
 		print "${(%):-%1x}-$revision"; exit }
@@ -39,6 +40,7 @@ if [[ -n $(uname -m | grep 64) ]] { opts[-arc]=64 } else { opts[-arc]=32 }
 :	${opts[-exclude]:=$opts[-e]}
 :	${opts[-bsize]:=${opts[-b]:-131072}}
 :	${opts[-comp]:=${opts[-c]:-gzip}}
+:	${opt[-busybox]:-${opts[-B]:-$(which bb)}}
 info() 	{ print -P " %B%F{green}*%b%f $@" }
 error() { print -P " %B%F{red}*%b%f $@" }
 die()   { error $@; return 1 }
@@ -74,8 +76,9 @@ squashd() {
 		umount -l $bdir/rr 1>/dev/null 2>&1 || die "failed to umount $bdir.sfs" 
 	}
 	if [[ $dir = *bin ]] || [[ $dir = lib* ]] {
-		bbox=/tmp/busybox; cp $(which bb) /tmp/busybox
-		cp="$bbox cp -ar"; mv="$bbox mv"; rm="$bbox rm -fr"
+		busybox=/tmp/busybox; cp ${opts[-busybox]} /tmp/busybox ||
+			die "no static busybox binary found"
+		cp="$busybox cp -ar"; mv="$busybox mv"; rm="$busybox rm -fr"
 	} else { cp="cp -ar"; mv=mv; rm="rm -fr" }
 	${=rm} $bdir/rw/* || die "failed to clean up $bdir/rw"
 	[[ -e $bdir.sfs ]] && ${=rm} $bdir.sfs 
@@ -115,6 +118,6 @@ for dir (${(pws,:,)opts[-sqfsd]} ${(pws,:,)opts[-d]}) {
 		} else { print -P "%F{green}>>> updating squashed $dir...%f"; squashd }
 	} else { print -P "%F{green}>>> building squashed $dir...%f"; squashd }
 }
-rm -f $bbox
+rm -f $busybox
 unset bdir opts rr rw
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
