@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.11.2 2012/11/01 14:44:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.11.2 2012/11/01 19:32:47 -tclover Exp $@
 
 bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
 
@@ -216,11 +216,13 @@ h3. 9. Optional user scripts
 
 Now one can add scripts to @/etc/mkinitramfs-ll.d@ of the initramfs root, or else in
 @$gitdir/usr/etc/mkinitramfs-ll.d@ if using mkinitramfs-ll.$shell generating script. 
-Each script should have a @.sh@ sufix and a @${ishrl}?-*@ prefix as the follwing:
+Each script should not have the executable bit set and should have a @.level@ sufix as the follwing:
 * runlevel 1:  initialization -> splash -> keymap -> font -> print boot msg -> 1
 * runlevel 2?: 2s -> swap -> 2r -> resume -> rootfs ->
 * runlevel 3?: 3d -> decrypt -> 3f -> rootfs fsck -> 3m -> root mount ->
 * runlevel 4?: 4c -> clean up -> 4m -> mount /usr:/var... -> 4u -> umount -> 4s -> switch root
+
+*Info*: See zfs module for more info and a praticable example.
 
 h3. 10. ZFS support
 
