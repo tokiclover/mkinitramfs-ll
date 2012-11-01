@@ -11,7 +11,7 @@ docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
 DOCS        = AUTHORS BUGS COPYING README.textile
 
-MODULES     = zfs zfs.2r zfs.2r zfs.3d
+MODULES     = zfs
 
 all:
 
@@ -23,9 +23,9 @@ install:
 	install -pm 755 init              $(datadir)
 	install -pm 755 xcpio             $(datadir)
 	$(shell) find usr -name '.keep' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
-	$(shell) for file in $(MODULES); do \
-		install -Dpm644 $(PACKAGE).d/$${file} $(datadir)/$(PACKAGE).d/$${file}; \
-	done
+	$(shell) for module in $(MODULES); do \
+		for file in $(PACKAGE).d/$${module}*; do \
+			install -Dpm644 $${file} $(datadir)/$${file}; done; done
 	$(shell) install -pm 644 {,$(datadir)/}usr/lib/$(PACKAGE)/functions.sh
 	$(shell) install -pm 755 {,$(datadir)/}usr/lib/$(PACKAGE)/init.sh
 	$(shell) install -Dpm644 {,$(datadir)/}usr/root/.gnupg/gpg.conf
