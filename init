@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.1 2012/10/16 08:20:57 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.2 2012/10/31 23:34:10 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -75,6 +75,14 @@ _modprobe() {
 	done
 }
 
+_getopt() {
+	for arg in $*; do
+		for _opt in $(cat /proc/cmdline); do
+			[ "$arg" = "${_opt%%=*}" ] && export $_opt && break
+		done
+	done
+}
+
 cmd() { debug echo "$@" >$SPLASH_FIFO; }
 verbose() { debug chvt ${console:8:1}; debug cmd "set mode verbose"; }
 silent() { debug chvt ${console:8:1}; debug cmd "set mode silent"; }
@@ -112,13 +120,11 @@ spld() {
 dolevel() {
 	local _msg="Switching to init shell run level: $1"
 	echo -ne ">>> $_msg\n"; msg ">>> $_msg"; export level=$1
-	local _scr="$(ls /etc/mkinitramfs-ll.d/$1*-*.sh 2>/dev/null)"
-	if [ -n "$_scr" ]; then
-		for _s in $_scr; do
-			info "exec: $sh -ex $_s..."
-			debug $sh -ex $_s
-			[ -f /run/env ] && debug source /run/env
-			[ -f /run/${_s##*/}.pid ] && rm -f /run/${_s##*/}.pid && debug die
+	local _file="$(ls $moddir/*.$1 2>/dev/null)"
+	if [ -n "$_file" ]; then
+		for _f in $_file; do
+			info "exec: source $_f..."
+			debug -d source $_f
 			exec 0<$console 1>$console 2>&1	
 		done
 	fi
@@ -317,6 +323,7 @@ dorootfs() {
 	debug -d getkey "${ikroot:-pwd}" "root"
 	dolevel 3d
 	[ -n "$_raid" ] && mdopen "$_raid" "_dev"
+	if [ -z "$rootfs" ]; then
 	if [ -n "$_lvm" ]; then debug -d lvopen "$dev" "$_lvm" "_dev"
 	elif [ -n "$kmode" ]; then
 		[ "$kmode" != "none" ] && debug -d dmopen "${map:-root}-$iroot" "_dev"
@@ -332,13 +339,12 @@ dorootfs() {
 		debug $_fsck fsck ${_fs:+-t$_fs} $_dev 
 	fi
 	dolevel 3m
-	if [ -z "$rootfs" ]; then
-		debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot ||
-		{
-			[ -n "$kmode" ] &&
-				debug -d dmclose "${_lvm:-${map:-root}}" "${_lvm:+${_dev##*/}}"
+	debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot ||
+	{
+		[ -n "$kmode" ] &&
+			debug -d dmclose "${_lvm:-${map:-root}}" "${_lvm:+${_dev##*/}}" ||
 			die "failed to mount rootfs"
-		}
+	}
 	fi
 	dolevel 3s
 	[ -n "$sqfsd" ] && debug -d squashd
@@ -352,9 +358,11 @@ doswap() {
 	local _sign="$(echo "$1" | cut -d':' -f3)"
 	debug -d getkey "${2:-pwd}" "$_swp"
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_dev"
+	if [ "$swap" != "$3" ]; then
 	if [ -n "$_lvm" ]; then debug -d lvopen "$dev" "$_lvm" "_dev"
 	elif [ "$kmode" != "none" ]; then debug -d dmopen "$_swp-$dev" "_dev"
 	elif [ "$kmode" == "none" ]; then debug -d _blkid "$dev" "_dev"; fi
+	fi
 	[ -n "$4" ] && eval ${4:-swp}=$_type:$_dev${_sign+:$_sign}
 	unset i$1 ik$1 kmode
 }
@@ -493,25 +501,26 @@ _getopts() {
 	for arg in $(cat /proc/cmdline); do
     		case $arg in
 			rescue*)  shlevel=1;;
-			ro|rw)    [ -n "$imtop" ] && imtopt=$arg,$imtopt || imtopt=$arg;;
+			ro|rw)    [ -n "$imtop" ] && imtopt="$arg,$imtopt" || imtopt="$arg";;
 			single)   runlevel=2;;
-			isqfsd=*) export $arg
-				[ "${isqfsd%,*}" = "y" ] && sqfsdir=${sqfsdir:-/sqfsd} ||
+			isqfsd=*) export "$arg"
+				[ "${isqfsd%,*}" = "y" ] && sqfsdir="${sqfsdir:-/sqfsd}" ||
 					sqfsdir=${isqfsd%,*}
-				if [ "${isqfsd#*,}" = "y" ]; then sqfsd=${sqfsd:-usr:opt:bin:sbin}
+				if [ "${isqfsd#*,}" = "y" ]; then sqfsd="${sqfsd:-usr:opt:bin:sbin}"
 				elif [ "$(echo ${isqfsd#*,}|cut -d':' -f1)" = "a" ]; then
-					sqfsd=${sqfsd:-usr:opt:bin:sbin}:$(echo ${isqfsd#*,} | cut -c3-)
-				else sqfsd=$(echo ${isqfsd#*,} | cut -c3-); fi;;
-			*init=*)  export init=${arg#*=};;
+					sqfsd="${sqfsd:-usr:opt:bin:sbin}:$(echo ${isqfsd#*,} | cut -c3-)"
+				else sqfsd="$(echo ${isqfsd#*,} | cut -c3-)"; fi;;
+			*init=*)  export init="${arg#*=}";;
 			ishrl=*)  shlevel=$(echo ${arg#*=}|cut -d':' -f1)
 				     runlevel=$(echo ${arg#*=}|cut -d':' -f2);;
-			dmesg|i[klm]*|*root*|*resume*|*swap*|splash*|console*) export $arg;;
+			dmesg|i[klm]*|*root*|*resume*|*swap*|splash*|console*) export "$arg";;
 	   	 esac
 	done
 }
 
 _init() {
-	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root
+	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root \
+		moddir=/etc/mkinitramfs-ll.d
 	debug umask 0077
 	debug /lib/mkinitramfs-ll/init.sh
 	[ -f /etc/profile ] && . /etc/profile
@@ -519,7 +528,7 @@ _init() {
 	debug -d mount -t proc proc /proc
 	debug -d mount -t tmpfs -o mode=755 tmpfs /run
 	debug -d mkdir -p /run/log && export logdir=/run/log
-	debug mv -f $logfile $logdir
+	mv -f $logfile $logdir
 	$eck && debug ack
 	debug -d mount -t sysfs sysfs /sys
 	debug _getopts
