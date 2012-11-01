@@ -1,7 +1,7 @@
 #!/bin/sh
 # $Id: mkinitramfs-ll/usr/lib/mkinitramfs-ll/init.sh,v 0.11.2 2012/11/01 00:33:09 -tclover Exp $
 mkdir -p /lib/mkinitramfs-ll/bin
-cat </init | sed '/^#.*$/d' | tail -n+4 | head -n306 |
+cat </init | sed '/^#.*$/d' | tail -n+4 | head -n302 |
 	sed -e 's/debug\ rsh.*$/exit\ \$_ret/' >>/lib/mkinitramfs-ll/functions.sh
 for helper in $(grep '()' /lib/mkinitramfs-ll/functions.sh | sed 's,().*$,,g'); do
 	{

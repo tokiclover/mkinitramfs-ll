@@ -1,6 +1,6 @@
-# $Id: mkinitramfs-ll.d/zfs.3d,v 0.11.2 2012/11/01 00:52:51 -tclover Exp $
-if [ -n "$(echo "$izfs" | cut -d',' -f1)" ]; then
+# $Id: mkinitramfs-ll.d/zfs.3d,v 0.11.2 2012/11/01 15:06:37 -tclover Exp $
+if [ -n "$(echo "$izfs" | cut -d, -f1)" ] || [ "${iroot##*:}" = "zfs" ]; then
 	debug -d source "$moddir"/zfs
-	debug -d dozfs "$(echo "$iroot" | cut -d':' -f1)" "$(echo "$izfs" | cut -d',' -f1)" -m
+	debug -d dozfs "$(echo "$iroot" | cut -d: -f1)" "$(echo "$izfs" | cut -d, -f1)" -m
 fi
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:

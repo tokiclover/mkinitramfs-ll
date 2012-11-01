@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.2 2012/10/31 23:34:10 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.2 2012/11/01 14:54:08 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -131,7 +131,7 @@ dolevel() {
 	[ "$shlevel" = "$1" ] && debug die
 }
 
-_blkid() { eval $2=$(blkid | grep "${1#*=}" | cut -d':' -f1); }
+_blkid() { eval $2=$(blkid | grep "${1#*=}" | cut -d: -f1); }
 
 getdev() {
 	local _asw _opt msg
@@ -157,22 +157,19 @@ getdev() {
 }
 
 glk() {
+	[ -b "$1" ] && return
 	if [ ! "$cld" ]; then
 		local _ld="$(debug -d losetup -f)"
 		debug -d losetup "$_ld" "$1"
 		ldv="$_ld:$ldv"
 	else local _ld="$1"; fi
-	debug cryptsetup luksOpen "$_ld" "$_fn" 
-	if [ "$?" ]; then
-		kfile=/dev/mapper/"$_fn"
-		ldk="$_fn:$ldk"
-	fi
+	debug cryptsetup luksOpen "$_ld" "$_fn" && ldk="$_fn:$ldk"
 }
 
 getkey() {
-	local _fp="$(echo "$1" | cut -d':' -f3)"
-	local _kd="$(echo "$1" | cut -d':' -f2)"
-	local _km="$(echo "$1" | cut -d':' -f1)"
+	local _fp="$(echo "$1" | cut -d: -s -f3)"
+	local _kd="$(echo "$1" | cut -d: -s -f2)"
+	local _km="$(echo "$1" | cut -d: -f1)"
 	local _dv _fn=${_fp##*/}
 	if [ "$_km" != "none" ];then
 		if [ -z "$cld" ]; then
@@ -195,7 +192,7 @@ getkey() {
 	case ${_km:-pwd} in
 		gpg) $eck && debug -d bck gpg; kfile="/mnt/tok$_fp"; kmode=gpg;;
 		reg) kfile="/mnt/tok$_fp";                           kmode=reg;;
-		ldk) [ -b "/dev/mapper/$_fn" ] || glk "/mnt/tok$_fp" kmode=ldk;;
+		ldk) glk "/mnt/tok$_fp"; kfile="/dev/mapper/$_fn";   kmode=ldk;;
 		pwd) kmode=pwd                                                ;;
 		*)   die "$_km: invalid key mode"                             ;;
 	esac
@@ -285,7 +282,7 @@ mdopen() {
 	else
 		$eck && debug -d bck dmraid
 		debug _modprobe dm-raid
-		_dev=$(dmraid -r | grep "$_dev" | cut -d':' -f1)
+		_dev=$(dmraid -r | grep "$_dev" | cut -d: -f1)
 		[ -b "$_dev" ] && return
 		for _f in $(echo "$_opt" | sed 's/:/ /g'); do
 			_set+=" $(dmraid -s -c $_f)"
@@ -316,8 +313,8 @@ squashd() {
 dorootfs() {
 	debug -d"iroot=<PV|VG-LV>[:<c>:<fs>] argument is missing" test -n "$iroot"
 	local _dev dev=${iroot%%:*}
-	local _fsck="$(echo "$iroot" | cut -d':' -f2)"
-	local _fs="$(echo "$iroot" | cut -d':' -f3)"
+	local _fsck="$(echo "$iroot" | cut -d: -s -f2)"
+	local _fs="$(echo "$iroot" | cut -d: -s -f3)"
 :	local ${_lvm:=$(echo "$ilvm" | cut -d',' -f1)}
 :	local ${_raid:=$(echo "$iraid" | cut -d',' -f1)}
 	debug -d getkey "${ikroot:-pwd}" "root"
@@ -354,8 +351,8 @@ dorootfs() {
 doswap() {
 	debug -d"i$1=<type>:<PV|VG-LV>[:<sign>] argument is missing" test -n "$2"
 	local _swp="$3" _type="${1%%:*}" _dev
-	local dev="$(echo "$1" | cut -d':' -f2)" 
-	local _sign="$(echo "$1" | cut -d':' -f3)"
+	local dev="$(echo "$1" | cut -d: -s -f2)" 
+	local _sign="$(echo "$1" | cut -d: -s -f3)"
 	debug -d getkey "${2:-pwd}" "$_swp"
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_dev"
 	if [ "$swap" != "$3" ]; then
@@ -371,7 +368,7 @@ doresume() {
 	local _asw _dev _img _msg _toi _spd
 	_msg="Resuming from hibernation..."
 	info "$_msg"; msg "$_msg"
-	if [ -n "$(echo "$iresume" | cut -d':' -f2)" ]; then
+	if [ -n "$(echo "$iresume" | cut -d: -s -f2)" ]; then
 :		local ${_raid:=$(echo "$iraid" | cut -d',' -f3)}
 :		local ${_lvm:=$(echo "$ilvm" | cut -d',' -f3)}
 		debug -d doswap "$iresume" "$ikresume" "resume" "_dev"
@@ -455,8 +452,8 @@ doswitch() {
 
 main() {
 	debug _init
-	local _font=$(echo "$ikmap" | cut -d':' -f2)
-	local _kmap=$(echo "$ikmap" | cut -d':' -f1)
+	local _font=$(echo "$ikmap" | cut -d: -s -f2)
+	local _kmap=$(echo "$ikmap" | cut -d: -f1)
 	if [ -n "$_kmap" ]; then
 		for _dir in /usr/share/keymaps /etc /; do
 			if [ -f "$_dir/$_kmap" ]; then
@@ -507,12 +504,12 @@ _getopts() {
 				[ "${isqfsd%,*}" = "y" ] && sqfsdir="${sqfsdir:-/sqfsd}" ||
 					sqfsdir=${isqfsd%,*}
 				if [ "${isqfsd#*,}" = "y" ]; then sqfsd="${sqfsd:-usr:opt:bin:sbin}"
-				elif [ "$(echo ${isqfsd#*,}|cut -d':' -f1)" = "a" ]; then
+				elif [ "$(echo ${isqfsd#*,}|cut -d: -f1)" = "a" ]; then
 					sqfsd="${sqfsd:-usr:opt:bin:sbin}:$(echo ${isqfsd#*,} | cut -c3-)"
 				else sqfsd="$(echo ${isqfsd#*,} | cut -c3-)"; fi;;
 			*init=*)  export init="${arg#*=}";;
-			ishrl=*)  shlevel=$(echo ${arg#*=}|cut -d':' -f1)
-				     runlevel=$(echo ${arg#*=}|cut -d':' -f2);;
+			ishrl=*)  shlevel=$(echo ${arg#*=}|cut -d: -f1)
+				     runlevel=$(echo ${arg#*=}|cut -d: -s -f2);;
 			dmesg|i[klm]*|*root*|*resume*|*swap*|splash*|console*) export "$arg";;
 	   	 esac
 	done
