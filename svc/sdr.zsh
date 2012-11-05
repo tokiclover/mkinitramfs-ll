@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.11.2 2012/10/21 13:06:36 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.11.2 2012/11/05 21:11:36 -tclover Exp $
 revision=0.11.2
 usage() {
   cat <<-EOF
@@ -40,7 +40,7 @@ if [[ -n $(uname -m | grep 64) ]] { opts[-arc]=64 } else { opts[-arc]=32 }
 :	${opts[-exclude]:=$opts[-e]}
 :	${opts[-bsize]:=${opts[-b]:-131072}}
 :	${opts[-comp]:=${opts[-c]:-gzip}}
-:	${opt[-busybox]:-${opts[-B]:-$(which bb)}}
+:	${opts[-busybox]:=${opts[-B]:-$(which bb)}}
 info() 	{ print -P " %B%F{green}*%b%f $@" }
 error() { print -P " %B%F{red}*%b%f $@" }
 die()   { error $@; return 1 }
