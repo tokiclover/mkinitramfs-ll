@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.11.1 2012/10/16 22:10:22 -tclover Exp $
-revision=0.11.1
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.11.2 2012/11/05 23:51:55 -tclover Exp $
+revision=0.11.2
 usage() {
   cat <<-EOF
  usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
@@ -16,7 +16,7 @@ usage() {
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p, --prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
   -W, --workdir [<dir>]     use <dir> as a work directory to create initramfs instead of \$PWD
-  -M, --module <name>       include <name> module from [../]mkinitramfs-ll.d module directory
+  -M, --module <name>       include <name> module from [..\/]mkinitramfs-ll.d module directory
   -m, --mdep [:<mod>]       include a colon separated list of kernel modules to the initramfs
       --mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
       --mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
@@ -143,7 +143,7 @@ fi
 cp -a "${opts[-workdir]}"/init . && chmod 775 init && mkdir -pm700 root || die
 cp -af {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
 for mod in ${opts[-module]//:/ }; do
-	cp -a ${opts[-usrdir]}/../mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
+	cp -a ${opts[-usrdir]}/..\/mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
 done
 [ -f /etc/issue.logo ] && cp {/,}etc/issue.logo
 if [[ -x usr/bin/busybox ]]; then mv -f {usr/,}bin/busybox
