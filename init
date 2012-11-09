@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.2 2012/11/01 14:54:08 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.3 2012/11/09 20:31:12 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -123,8 +123,10 @@ dolevel() {
 	local _file="$(ls $moddir/*.$1 2>/dev/null)"
 	if [ -n "$_file" ]; then
 		for _f in $_file; do
-			info "exec: source $_f..."
-			debug -d source $_f
+			info "exec: $sh -ex $_f..."
+			debug -d $sh -ex $_f
+			[ -f /run/env ] && debug source /run/env
+			[ -f /run/${_s##*/}.pid ] && rm -f /run/${_s##*/}.pid && debug die
 			exec 0<$console 1>$console 2>&1	
 		done
 	fi
