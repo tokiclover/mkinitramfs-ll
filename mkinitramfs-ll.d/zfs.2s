@@ -1,4 +1,6 @@
-# $Id: mkinitramfs-ll.d/zfs.2s,v 0.11.2 2012/11/01 15:06:44 -tclover Exp $
+# $Id: mkinitramfs-ll.d/zfs.2s,v 0.11.3 2012/11/09 20:30:32 -tclover Exp $
+set +x
+. $moddir/zfs || exit
 if [ -n "$(echo "$izfs" | cut -d, -s -f2)" ] || [ "${iswap##*:}" = "zfs" ]; then
 	debug -d source "$moddir"/zfs
 	debug -d dozfs "$(echo "$iroot" | cut -d: -f1)" "$(echo "$izfs" | cut -d, -f1)"
