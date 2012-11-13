@@ -1,4 +1,4 @@
-# $Id: mkinitramfs-ll.d/zfs,v 0.11.3 2012/11/13 20:01:09 -tclover Exp $
+# $Id: mkinitramfs-ll.d/zfs,v 0.11.4 2012/11/13 21:22:08 -tclover Exp $
 . /lib/mkinitramfs-ll/functions.sh || exit
 dozfs() {
 	echo $$ >/run/${0##*/}.pid
@@ -21,7 +21,8 @@ dozfs() {
 		zfs list 2>/dev/null | grep "$1" 1>/dev/null ||
 		debug zfs mount $1 || debug -d mount.zfs $1 /newroot
 	fi
-	zfs list 2>/dev/null | grep "$1" && export rootfs=mounted &&
+	zfs list 2>/dev/null | grep "$1" &&
+		echo 'rootfs=mounted' >> /run/env &&
 		rm /run/${0##*/}.pid
 }
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
