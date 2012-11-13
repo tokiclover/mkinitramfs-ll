@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.3 2012/11/09 20:31:12 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.4 2012/11/13 21:21:29 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -125,7 +125,9 @@ dolevel() {
 		for _f in $_file; do
 			info "exec: $sh -ex $_f..."
 			debug -d $sh -ex $_f
-			[ -f /run/env ] && debug source /run/env
+			if [ -f /run/env ]; then
+				while read line; do export $line; done </run/env
+				rm -f /run/env; fi
 			[ -f /run/${_s##*/}.pid ] && rm -f /run/${_s##*/}.pid && debug die
 			exec 0<$console 1>$console 2>&1	
 		done
