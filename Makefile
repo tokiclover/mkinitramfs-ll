@@ -12,6 +12,7 @@ docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 DOCS        = AUTHORS BUGS COPYING README.textile
 
 MODULES     = zfs
+SCRIPTS     = xcpio
 
 all:
 
@@ -21,7 +22,10 @@ install:
 	$(shell) install -pd $(datadir)/usr/lib/{mdev,$(PACKAGE)}
 	install -pm 644 busybox.cfg       $(datadir)
 	install -pm 755 init              $(datadir)
-	install -pm 755 xcpio             $(datadir)
+	install -pd                       $(datadir)/scripts
+	$(shell) for script in $(SCRIPTS); do \
+		install -pm 755 $${script}    $(datadir)/scripts; \
+	done
 	$(shell) find usr -name '.keep' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
 	$(shell) for module in $(MODULES); do \
 		for file in $(PACKAGE).d/$${module}*; do \
