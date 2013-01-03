@@ -23,7 +23,7 @@ install:
 	install -pm 644 busybox.cfg       $(datadir)
 	install -pm 755 init              $(datadir)
 	install -pd                       $(datadir)/scripts
-	$(shell) for script in $(SCRIPTS); do \
+	$(shell) for script in scripts/$(SCRIPTS); do \
 		install -pm 755 $${script}    $(datadir)/scripts; \
 	done
 	$(shell) find usr -name '.keep' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
