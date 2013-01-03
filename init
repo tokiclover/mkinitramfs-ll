@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.4 2012/11/13 21:21:29 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.4 2012/11/15 12:01:24 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -543,8 +543,8 @@ _init() {
 	echo >/dev/mdev.seq
 	debug -d mdev -s
 	echo /sbin/mdev >/proc/sys/kernel/hotplug
-	if [ -n "$mod" ]; then local IFS="${IFS},"
-		for _m in $mod; do 
+	if [ -n "$imod" ]; then local IFS="${IFS},"
+		for _m in $imod; do 
 			debug modprobe $_m 1>/dev/null 2>&1
 		done
 	fi
