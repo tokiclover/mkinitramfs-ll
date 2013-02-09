@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.4 2013/02/09 14:17:37 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.4 2013/02/09 15:47:19 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -263,12 +263,14 @@ lvopen() {
 		if [ -n "$2" ] && [ "$kmode" != "none" ]; then
 			local _pv="$2" IFS="${IFS}:"
 			[ -e "/mnt/tok/$_pv" ] && _pv="$(cat /mnt/tok/$_pv)"
-			for _p in $_pv; do debug dmopen "${_p}"; done
+			for _p in $_pv; do
+				debug dmopen "${_p}"
+			done
 			debug vgchange -ay ${1%-*} || debug -d dmclose "$_pv" "$1"
 		else die "$1 require a valid crypted physical volume"; fi
 	}
-	if [ -b "/dev/mapper/$1" ]; then eval ${3-lv}=/dev/mapper/$1
-	elif [ -b "/dev/$_lv" ]; then eval ${3-lv}=/dev/$_lv
+	if   [ -b "/dev/mapper/$1" ]; then eval ${3-lv}=/dev/mapper/$1
+	elif [ -b "/dev/$_lv" ];      then eval ${3-lv}=/dev/$_lv
 	else die "$_lv VG/LV not found"; fi
 }
 
@@ -361,9 +363,9 @@ doswap() {
 	debug -d getkey "${2:-pwd}" "$_swp"
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_dev"
 	if [ "$swap" != "$3" ]; then
-	if [ -n "$_lvm" ]; then debug -d lvopen "$dev" "$_lvm" "_dev"
-	elif [ "$kmode" != "none" ]; then debug -d dmopen "$_swp-$dev" "_dev"
-	elif [ "$kmode" == "none" ]; then debug -d _blkid "$dev" "_dev"; fi
+		if [ -n "$_lvm" ]; then debug -d lvopen "$dev" "$_lvm" "_dev"
+		elif [ "$kmode" != "none" ]; then debug -d dmopen "$_swp-$dev" "_dev"
+		elif [ "$kmode" == "none" ]; then debug -d _blkid "$dev" "_dev"; fi
 	fi
 	[ -n "$4" ] && eval ${4:-swp}=$_type:$_dev${_sign+:$_sign}
 	unset i$1 ik$1 kmode
