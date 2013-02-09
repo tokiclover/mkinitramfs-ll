@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.4 2013/02/09 14:57:40 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.4 2013/02/09 14:17:37 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -133,6 +133,7 @@ dolevel() {
 		done
 	fi
 	[ "$shlevel" = "$1" ] && debug die
+	return 0
 }
 
 _blkid() { eval $2=$(blkid | grep "${1#*=}" | cut -d: -f1); }
