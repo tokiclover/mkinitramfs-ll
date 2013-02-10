@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.4 2013/02/09 15:47:19 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.4 2013/02/10 01:01:16 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -386,7 +386,7 @@ doresume() {
 :		${_toi:=$(which tuxoniceui_fbsplash)}
 		debug _modprobe tuxonice
 		echo $_dev >/sys/power/tuxonice/resume
-		_i="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
+		_img="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
 		if [ "$_img" = "1" ]; then 
 			error "toi: no recognizable signature at the pointed location"
 			error "toi: proceed anyway [NO|yes]? "
