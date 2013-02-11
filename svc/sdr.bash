@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.11.2 2012/10/21 13:06:33 -tclover Exp $
-revision=0.11.2
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.11.7 2013/02/11 09:59:42 -tclover Exp $
+revision=0.11.7
 usage() {
   cat <<-EOF
  usage: ${0##*/} [--update|--remove] [-r|--sqfsdir=<dir>] -d|--sqfsd=<dir>:<dir>
@@ -51,15 +51,42 @@ while [[ $# > 0 ]]; do
 done
 info() 	{ echo -ne " \e[1;32m* \e[0m$@\n"; }
 error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
-die()   { error "$@"; return 1; }
+die()   { error "$@"; return; }
 [[ -n "$(uname -m | grep 64)" ]] && opts[-arc]=64 || opts[-arc]=32
 [[ -n "${opts[-sqfsdir]}" ]] || opts[-sqfsdir]=/sqfsd
 [[ -n "${opts[-bsize]}" ]] || opts[-bsize]=131072
 [[ -n "${opts[-busybox]}" ]] || opts[-busybox]="$(which bb)"
 [[ -n "${opts[-comp]}" ]] || opts[-comp]=gzip
 [[ -n "${opts[-exclude]}" ]] && opts[-exclude]="-wildcards -regex -e ${opts[-exclude]//:/ }"
+mnt() {
+	if [[ "$dir" = *bin ]] || [[ "$dir" = lib* ]]; then
+		local busybox=/tmp/busybox cp grep mount mv rm mcdir mrc
+		cp ${opts[-busybox]} $busybox || die "no static busybox binary found"
+		cp="$busybox cp -ar"; mv="$busybox mv"; rm="$busybox rm -fr"
+		mount="$busybox mount"; umount="$busybox umount"; grep="$busybox grep"
+	else cp="cp -ar"; grep=grep; mount="mount"; umount=umount mv=mv; rm="rm -fr"; fi
+	if [[ -n "$($mount -t aufs | $grep -w $dir)" ]]; then 
+		$umount -l /$dir 1>/dev/null 2>&1 || die "$dir: failed to umount aufs branch"
+	fi
+	if [[ -n "$($mount -t squashfs | $grep $bdir/rr)" ]]; then 
+		$umount -l $bdir/rr 1>/dev/null 2>&1 || die "$dir: failed to umount sfs img"
+	fi
+	$rm "$bdir"/rw/* || die "failed to clean up $bdir/rw"
+	[[ -e $bdir.sfs ]] && $rm $bdir.sfs 
+	$mv $bdir.tmp.sfs $bdir.sfs || die "failed to move $dir.tmp.sfs img"
+	$mount $bdir.sfs $bdir/rr -tsquashfs -onodev,loop,ro 1>/dev/null 2>&1 &&
+	{
+		if [[ -n "${opts[-remove]}" ]]; then
+			$rm /$dir/* || die "$dir:failed to clean up"
+		fi
+		if [[ -n "${opts[-update]}" ]]; then
+			$rm /$dir && $cp $bdir/rr /$dir || die "$dir: failed to update"
+		fi
+		$mount -onodev,udba=reval,br:$bdir/rw:$bdir/rr -taufs $dir /$dir \
+			1>/dev/null 2>&1 || die "$dir: failed to mount aufs branch"
+	} || die "failed to mount $dir.sfs"
+}
 squashd() {
-	local cp mv rm mcdir mrc
 	if [[ "${opts[-fstab]}" = "y" ]]; then
 		echo "$bdir.sfs $bdir/rr squashfs nodev,loop,rr 0 0" >>/etc/fstab ||
 			die "$dir: failed to write squashfs line"
@@ -79,33 +106,7 @@ squashd() {
 				rc=yes || die "failed to move rc-svcdir"
 		fi
 	fi
-	if [[ -n "$(mount -taufs | grep -w $dir)" ]]; then 
-		umount -l /$dir 1>/dev/null 2>&1 || die "$dir: failed to umount aufs branch"
-	fi
-	if [[ -n "$(mount -tsquashfs | grep $bdir/rr)" ]]; then 
-		umount -l $bdir/rr 1>/dev/null 2>&1 || die "$dir: failed to umount sfs img"
-	fi
-	if [[ "$dir" = *bin ]] || [[ "$dir" = lib* ]]; then
-		busybox=/tmp/busybox; cp ${opts[-busybox]} $busybox ||
-			die "no static busybox binary found"
-		cp="$busybox cp -ar"; mv="$busybox mv"; rm="$busybox rm -fr"
-	else cp="cp -ar"; mv=mv; rm="rm -fr"; fi
-	$rm "$bdir"/rw/* || die "failed to clean up $bdir/rw"
-	[[ -e $bdir.sfs ]] && $rm $bdir.sfs 
-	$mv $bdir.tmp.sfs $bdir.sfs || die "failed to move $dir.tmp.sfs img"
-	if [[ -z "${opts[-nomount]}" ]]; then
-		mount $bdir.sfs $bdir/rr -tsquashfs -onodev,loop,ro 1>/dev/null 2>&1 &&
-		{
-		if [[ -n "${opts[-remove]}" ]]; then
-			$rm /$dir/* || die "$dir:failed to clean up"
-		fi
-		if [[ -n "${opts[-update]}" ]]; then
-			$rm /$dir && $cp $bdir/rr /$dir || die "$dir: failed to update"
-		fi
-		mount -onodev,udba=reval,br:$bdir/rw:$bdir/rr -taufs $dir /$dir 1>/dev/null 2>&1 ||
-			die "$dir: failed to mount aufs branch"
-		} || die "failed to mount $dir.sfs"
-	fi
+	[[ -z "${opts[-nomount]}" ]] && mnt
 	if [[ -n "$mcdir" ]]; then
 		mount --move /var/cache/splash /$dir/splash/cache &>/dev/nul ||
 			die "failed to move back cachedir"
@@ -128,6 +129,6 @@ for dir in ${opts[-sqfsd]//:/ }; do
 		else echo -ne "\e[1;32m>>> updating squashed $dir...\e[0m\n"; squashd; fi
 	else echo -ne "\e[1;32m>>> building squashed $dir...\e[0m\n"; squashd; fi			
 done
-rm -f $busybox
+[[ -f $busybox ]] && rm -f $busybox
 unset bdir opt opts rr rw
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
