@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.7 2013/02/10 11:42:13 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.7 2013/02/11 10:12:38 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -312,8 +312,11 @@ squashd() {
 		local _bdir="$sqfsdir"/$_dir
 		debug -d test -f .$_bdir.sfs
 		debug mkdir -p -m 0755 .$_bdir/rw .$_bdir/rr .$_dir
-		debug -d mount -tsquashfs -onodev,loop,ro .$_bdir.sfs .$_bdir/rr &&
-		mount -taufs -onodev,udba=reval,br:.$_bdir/rw:.$_bdir/rr $_dir $_dir
+		if [ -z "$(mount -t aufs | grep $_dir)" ]; then
+			[ -z "$(mount -t squashfs | grep $_bdir/rr)" ] &&
+   				debug -d mount -tsquashfs -onodev,loop,ro .$_bdir.sfs .$_bdir/rr
+			mount -taufs -onodev,udba=reval,br:.$_bdir/rw:.$_bdir/rr $_dir $_dir
+		fi
 	done
 }
 
