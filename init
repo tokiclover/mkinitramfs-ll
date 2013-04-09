@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.11.7 2013/02/11 10:12:38 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.11.7 2013/04/09 12:18:46 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -223,7 +223,7 @@ gld() {
 dmopen() { 
 	$eck && debug -d bck cryptsetup
 	debug _modprobe dm-crypt
-	local _arg=isLuks _header _msg dev
+	local _arg=isLuks _header _msg
 	local _map=$(echo "$1" | cut -d'-' -f1)
 	local _dev=$(echo "$1" | cut -d'-' -f2 | cut -d'+' -f1)
 	local _hdr="$(echo "$1" | cut -d'+' -f2 -s)"
@@ -232,7 +232,7 @@ dmopen() {
 			debug gld "$_hdr" -l
 		elif [ -e "/mnt/tok/$_hdr" ]; then debug gld "/mnt/tok/$_hdr" -l
 		else die "$_hdr detached header doesn't exist."; fi
-		_hdr=$dev && _header="--header $_hdr"
+		_header="--header $dev"
 		debug gld "$_dev"
 	else debug gld "$_dev" -l; fi
 	_dev=$dev
@@ -275,7 +275,7 @@ lvopen() {
 }
 
 mdopen() {
-	local _dev=${1%*+} _device _opt=$(echo "$1" | cut -d+ -f2) _set _uuid
+	local _dev=${1%*+} _opt=$(echo "$1" | cut -d+ -f2 -s) _set _uuid
 	[ -n "$(echo "$_opt" | grep -i uuid)" ] && _uuid=$_opt
 	if [ -n "$_uuid" ] || [ -n "$(echo "$_opt" | egrep '^[0-9]')" ]; then
 		[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
@@ -322,19 +322,19 @@ squashd() {
 
 dorootfs() {
 	debug -d"iroot=<PV|VG-LV>[:<c>:<fs>] argument is missing" test -n "$iroot"
-	local _dev dev=${iroot%%:*}
+	local _dev=${iroot%%:*}
 	local _fsck="$(echo "$iroot" | cut -d: -s -f2)"
 	local _fs="$(echo "$iroot" | cut -d: -s -f3)"
 :	local ${_lvm:=$(echo "$ilvm" | cut -d',' -f1)}
 :	local ${_raid:=$(echo "$iraid" | cut -d',' -f1)}
 	debug -d getkey "${ikroot:-pwd}" "root"
 	dolevel 3d
-	[ -n "$_raid" ] && mdopen "$_raid" "_dev"
+	[ -n "$_raid" ] && mdopen "$_raid" "dev"
 	if [ -z "$rootfs" ]; then
-	if [ -n "$_lvm" ]; then debug -d lvopen "$dev" "$_lvm" "_dev"
+	if [ -n "$_lvm" ]; then debug -d lvopen "$_dev" "$_lvm" "dev"
 	elif [ -n "$kmode" ]; then
-		[ "$kmode" != "none" ] && debug -d dmopen "${map:-root}-$iroot" "_dev"
-		[ "$kmode" == "none" ] && debug -d _blkid "$dev" "_dev"
+		[ "$kmode" != "none" ] && debug -d dmopen "${map:-root}-$iroot" "dev"
+		[ "$kmode" == "none" ] && debug -d _blkid "$_dev" "dev"
 	fi
 	dolevel 3f
 	if [ -n "$_fsck" ]; then 
@@ -343,13 +343,13 @@ dorootfs() {
 			c*|y*|Y*) _fsck=-d;;
 			*)        _fsck=  ;;
 		esac
-		debug $_fsck fsck ${_fs:+-t$_fs} $_dev 
+		debug $_fsck fsck ${_fs:+-t$_fs} $dev 
 	fi
 	dolevel 3m
-	debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $_dev /newroot ||
+	debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $dev /newroot ||
 	{
 		[ -n "$kmode" ] &&
-			debug -d dmclose "${_lvm:-${map:-root}}" "${_lvm:+${_dev##*/}}" ||
+			debug -d dmclose "${_lvm:-${map:-root}}" "${_lvm:+${dev##*/}}" ||
 			die "failed to mount rootfs"
 	}
 	fi
@@ -360,17 +360,16 @@ dorootfs() {
 
 doswap() {
 	debug -d"i$1=<type>:<PV|VG-LV>[:<sign>] argument is missing" test -n "$2"
-	local _swp="$3" _type="${1%%:*}" _dev
-	local dev="$(echo "$1" | cut -d: -s -f2)" 
+	local _swp="$3" _type="${1%%:*}" _dev="$(echo "$1" | cut -d: -s -f2)" 
 	local _sign="$(echo "$1" | cut -d: -s -f3)"
 	debug -d getkey "${2:-pwd}" "$_swp"
-	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_dev"
+	[ -n "$_raid" ] && debug -d mdopen "$_raid" "dev"
 	if [ "$swap" != "$3" ]; then
-		if [ -n "$_lvm" ]; then debug -d lvopen "$dev" "$_lvm" "_dev"
-		elif [ "$kmode" != "none" ]; then debug -d dmopen "$_swp-$dev" "_dev"
-		elif [ "$kmode" == "none" ]; then debug -d _blkid "$dev" "_dev"; fi
+		if [ -n "$_lvm" ]; then debug -d lvopen "$_dev" "$_lvm" "dev"
+		elif [ "$kmode" != "none" ]; then debug -d dmopen "$_swp-$dev" "dev"
+		elif [ "$kmode" == "none" ]; then debug -d _blkid "$dev" "dev"; fi
 	fi
-	[ -n "$4" ] && eval ${4:-swp}=$_type:$_dev${_sign+:$_sign}
+	[ -n "$4" ] && eval ${4:-swp}=$_type:$dev${_sign+:$_sign}
 	unset i$1 ik$1 kmode
 }
 
