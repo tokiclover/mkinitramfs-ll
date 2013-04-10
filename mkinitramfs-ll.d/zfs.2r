@@ -1,7 +1,7 @@
 # $Id: mkinitramfs-ll.d/zfs.2r,v 0.12.0 2012/11/09 20:30:34 -tclover Exp $
 
-set +x
-source $moddir/zfs || exit
+set -e +x
+source $moddir/zfs
 
 if [ -n "$(echo "$izfs" | cut -d, -s -f3)" ] || [ "${iresume##*:}" = "zfs" ]; then
 	debug -d source "$moddir"/zfs

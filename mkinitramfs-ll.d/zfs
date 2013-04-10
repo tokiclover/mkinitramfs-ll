@@ -9,7 +9,8 @@
 # @ARG: 3
 # @DESCRIPTION: wether to try to mount the volume or not
 
-source $initlib/functions.sh || exit
+set -e
+source $initlib/functions.sh
 
 dozfs() {
 	echo $$ >/run/${0##*/}.pid
