@@ -9,7 +9,6 @@
 # @ARG: 3
 # @DESCRIPTION: wether to try to mount the volume or not
 
-set -e
 source $initlib/functions.sh
 
 dozfs() {
