@@ -1,7 +1,22 @@
 # $Id: mkinitramfs-ll/svc/sqfsdmount.confd, 2012/06/19 13:38:02 -tclover Exp $
+#
+# @VARIABLE: sqfsdir
 sqfsdir=/sqfsd
+#
+# @VARIABLE:  sqfsd_sys
+# @DESCRIPTION: system wide squashed dir
 sqfsd_sys=usr:lib32:lib64:bin:sbin:opt
+#
+# @VARIABLE: sqfsd_local
+# @DESCRIPTION: local squashed dir
 sqfsd_local=var/db:var/cache/edb:var/lib/layman:var/portage
+#
+# @VARIABLE: sqfsd_sdr
+# @DESCRIPTION: squashed dir to rebuild before shutting down the machine
 sqfsd_sdr=
+#
+# @VARIABLE: umount_sys
+# @DESCRIPTION: whether to try or not to umount system wide squashed dir
 umount_sys=yes
+#
 # vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:

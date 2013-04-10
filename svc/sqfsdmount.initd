@@ -1,7 +1,7 @@
 #!/sbin/runscript
-# Copyright 1999-2012 Gentoo Foundation
+# Copyright 1999-2013 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/sqfsdmount.initd,v 1.2 2012/09/26 15:40:30 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/sqfsdmount.initd,v 1.2 2013/04/10 22:06:10 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="manage (aufs+squashfs) squashed directories"
@@ -32,23 +32,30 @@ stop() {
 		eeinfo "sdr: rebuilding $sqfsd_sdr squashed directories"
 		if which sdr 1>/dev/null 2>&1; then
 			sdr -o0 -nd$sqfsd_sdr 1>/dev/null 2>&1
-		else eerror "sdr: there is not a sdr script in PATH"; fi
+		else
+			eerror "sdr: there is not a sdr script in PATH"
+		fi
 	fi
+
 	einfo "umounting local wide squashed dirs"
 	local IFS="${IFS}:"
 	sync; sync
 	for dir in $sqfsd_local; do 
 		sumount $dir
 	done
+
 	einfo "remounting in ro mode system squashed dirs"
 	if [[ "$umount_sys" == "yes" ]]; then
-		for dir in $sqfsd_sys; do sremount $dir ro; done
+		for dir in $sqfsd_sys; do
+			sremount $dir ro
+		done
 	fi
 	return 0
 }
 
 restart() {
-	stop; start
+	stop
+	start
 	for dir in $sqfsd_sys; do
 		sremount $dir rw
 		eend "$?" "failed to remount $dir in rw mode"
@@ -56,11 +63,14 @@ restart() {
 	return 0
 }
 
+# @FUNCTION:smount
+# @DESCRIPTION: Squashed dir MOUNT
 smount() {
 	local d=$2 b=$1/$2
 	if [[ -n "$(mount -t aufs | grep /$d)" ]]; then 
 		einfo "squashed $d already mounted"
-	else ebegin "mounting squashed $d"
+	else
+		ebegin "mounting squashed $d"
 		if [[ -n "$(mount -t squashfs | grep $b/rr)" ]]; then 
 			einfo "squashed $b.sfs image already mounted"
 		else
@@ -72,16 +82,22 @@ smount() {
 	fi
 }
 
+# @FUNCTION: sumount
+# @DESCRIPTION: Squashed dir UMOUNT
 sumount() {
 	local d=$2 b=$1/$2 no_netdev
 	[[ "${RC_UNAME}" == "Linux" ]] && no_netdev="-O no_netdev"
+
 	ebegin "umounting squashed ${dir}"
 	umount -lt aufs /$d $no_netdev 1>/dev/null 2>&1
 	eend "$?" "failed to umount squashed $d" || return
+	
 	umount -lt squashfs $b/rr $no_netdev 1>/dev/null 2>&1
 	eend "$?" "failed to umount $b.sfs image"
 }
 
+# @FUNCTION: sremount
+# @DESCRIPTION: Squashed dir RE-MOUNT in ro mode
 sremount() {
 	local d=$1 o=${2:-ro}
 	ebegin "ro mode remounting ${dir} aufs branch"
