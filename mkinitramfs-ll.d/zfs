@@ -1,5 +1,16 @@
-# $Id: mkinitramfs-ll.d/zfs,v 0.11.4 2012/11/13 21:22:08 -tclover Exp $
-. /lib/mkinitramfs-ll/functions.sh || exit
+# $Id: mkinitramfs-ll.d/zfs,v 0.12.0 2012/11/13 21:22:08 -tclover Exp $
+
+# @ARG: 1
+# @DESCRIPTION: pool/volume
+#
+# @ARG: 2
+# @DESCRIPTION: if present, : colon separated list, dm-crypt LUKS crypted vdevs
+#
+# @ARG: 3
+# @DESCRIPTION: wether to try to mount the volume or not
+
+source $initlib/functions.sh || exit
+
 dozfs() {
 	echo $$ >/run/${0##*/}.pid
 	$eck && for bin in zfs zpool; do 
@@ -8,6 +19,7 @@ dozfs() {
 	debug -d test -n "$1"
 	debug -d _modprobe zfs
 	debug -d _getopt izfs
+
 	zpool list -H 2>/dev/null | grep "$1" 1>/dev/null ||
 	{
 		if [ -n "$2" ]; then
@@ -17,12 +29,13 @@ dozfs() {
 		fi
 		debug -d zpool import -f $3 -R /newroot ${1%/*}
 	}
+	
 	if [ -n "$3" ]; then
 		zfs list 2>/dev/null | grep "$1" 1>/dev/null ||
 		debug zfs mount $1 || debug -d mount.zfs $1 /newroot
 	fi
-	zfs list 2>/dev/null | grep "$1" &&
-		echo 'rootfs=mounted' >> /run/env &&
-		rm /run/${0##*/}.pid
+	
+	zfs list 2>/dev/null | grep "$1" && rm /run/${0##*/}.pid
 }
+
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
