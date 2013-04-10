@@ -1,5 +1,8 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/autogen.bash,v 0.11.1 2012/10/16 21:58:38 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.bash,v 0.12.0 2013/04/10 22:13:40 -tclover Exp $
+
+# @FUNCTION: usage
+# @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
  usage: ${0##*/} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -36,12 +39,15 @@ usage() {
 EOF
 exit $?
 }
+
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev:: \
 	  -l mtuxonice::,sqfsd,toi,usage,usrdir::,version,confdir:,minimal \
 	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,regen \
 	  -o ab:c::d::f::gk::lLm::p::rs::tuvy::W::C:n -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
+
 declare -A opts
+
 while [[ $# > 0 ]]; do
 	case $1 in
 		-t|--toi) opts[-toi]=y; shift;;
@@ -73,19 +79,37 @@ while [[ $# > 0 ]]; do
 		-u|--usage|*) usage;;
 	esac
 done
+
 [[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf ||
 	die "no mkinitramfs-ll.conf found"
+
 [[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
 [[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/usr
+
 mkdir -p "${opts[-workdir]}"
-error() { echo -ne "\e[1;31m* \e[0m$@\n"; }
-die()   { error "$@"; exit 1; }
+
+# @FUNCTION: error
+# @DESCRIPTION: print error message to stdout
+error() {
+	echo -ne "\e[1;31m* \e[0m$@\n"
+}
+# @FUNCTION: die
+# @DESCRIPTION: call error() to print error message before exiting
+die()   { 
+	error "$@"
+	exit 1
+}
+
 which bb &>/dev/null || ./busybox.bash
-if [[ -n "${opts[-gpg]}" ]]; then ./gnupg.bash
+
+if [[ -n "${opts[-gpg]}" ]]; then
+	./gnupg.bash
 	if [[ -f "${opts[-confdir]}"/gpg.conf ]]; then
 		mkdir -pm700 "${opts[-usrdir]}"/root/.gnupg/
 		cp "${opts[-confdir]}"/gpg.conf "${opts[-usrdir]}"/root/.gnupg/ || die
 	fi
 fi
+
 ./mkinitramfs-ll.bash
+
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:

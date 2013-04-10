@@ -1,5 +1,8 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/autogen.zsh,v 0.11.1 2012/10/16 21:58:45 -tclover Exp $
+# $Id: mkinitramfs-ll/autogen.zsh,v 0.12.0 2013/04/10 22:13:37 -tclover Exp $
+
+# @FUNCTION: usage
+# @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
  usage: ${(%):-%1x} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -36,27 +39,46 @@ usage() {
 EOF
 exit 0
 }
-error() { print -P "%B%F{red}*%b%f $@"; }
-die()   { error $@; exit 1; }
+
+# @FUNCTION: error
+# @DESCRIPTION: print error message to stdout
+error() { print -P "%B%F{red}*%b%f $@" }
+# @FUNCTION: die
+# @DESCRIPTION: call error() to print error message before exiting
+die()   { 
+	error $@
+	exit 1
+}
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
+
 zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
 	k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage C: confdir: n minimal \
 	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: \
 	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen || usage
+
 if [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
+
 if [[ $# < 1 ]] { typeset -A opts }
+
 if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
 } else { die "no mkinitramfs-ll.conf found" }
+
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 :	${opts[-usrdir]:=${opts[-d]:-${opts[-workdir]}/usr}}
+
 mkdir -p ${opts[-workdir]}
+
 which bb &>/dev/null || ./busybox.zsh
-if [[ -n ${(k}opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] { ./gnupg.zsh
+
+if [[ -n ${(k}opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
+	./gnupg.zsh
 	if [[ -f ${opts[-confdir]:-${opts[-C]}}/gpg.conf ]] ]] { 
 		mkdir -pm700 ${opts[-usrdir]}/root/.gnupg/
 		cp ${opts[-confdir]}/gpg.conf ${opts[-usrdir]}/root/.gnupg/ || die
 	}
 }
+
 ./mkinitramfs-ll.zsh
+
 # vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:
