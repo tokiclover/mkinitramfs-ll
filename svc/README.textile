@@ -1,32 +1,19 @@
-@$Id: mkinitramfs-ll/svc/README.textile,v 1.1 2012/10/17 10:21:37 -tclover Exp $@
+@$Id: mkinitramfs-ll/svc/README.textile,v 1.2 2012/10/17 10:21:37 -tclover Exp $@
 
-Need dependancies is not mandatory, if and only if, @lib${arch}@ and usr are mounted in a initramfs, 
-otherwise you might run into big troubles for two reasons: 
-* rc uses a tmpfs mounted on @/lib${arch}/rc/init.d@ to store states of running services and 
-* many services need binaries/libraries from usr when booting up.
+Actually, without an initramfs one can get aufs+squashfs working without an
+issue if you make sure @/usr@ and @/lib${arch}@ get mounted as earlier as
+possible with or without localmount help.
 
-Actually, without an initramfs one can get aufs+squashfs working without an issue if you ensure: 
-usr and @lib${arch}@ get mounted as earlier as possible with/without localmount help. This initservice 
-will do the trick putting usr and @lib${arch}@ first in the config file because a few (boot) services 
-are rushing (especially with rc_parallel) to get userspace ready. 
-Additionaly, one could disable rc_parallel and add more services in the `before' line if need be.
+This init service will do the trick putting @/usr@ and @/lib${arch}@ first
+in the config file because a few (boot) services are rushing
+(especially with rc_parallel) to get userspace ready. 
 
-*Note*: those two considerations are not true anymore with >=openrc-0.10 which moved `/lib/rc/init.d'
-to `/run/openrc'; remain the splash cachedir.
+*Note*: Remain a singe consideration >=sys-apps/openrc-0.10 which moved
+@/lib/rc/init.d@ to @/run/openrc@.
 
-*Note*: @/etc/con.d/sqfsdmount@ configuration variables:
+*Note*: Read the configuration file for the differents config variables.
 
-* sqfsd_{sys,local} is a sufix for system/local which speaks of itself, one should to put squashed 
-dirs related to system in @sfqd_sys@, e.g. @/usr:/sbin:/bin:/opt@, and local ones in the other 
-as @sqfsd_local@ dirs will be unmounted right way before stopping the init service.
-* @sqfsdir@ is the root directory location for .sfs images and mount points for aufs rw/ro branches. 
-* @sys_umount@ enable umounting system wide squashed directories before stopping service.
-* @sqfsd_sdr@ rebuild local squashed directories before stopping service, similar to sqfsd_local
-
-*Note*: systemd, or even upstart, users have to make their own way/script for this!
-
-*Warn*: sdr.$shell now should works when updating system dirs, it needs to copy @$(which bb)@ to
-@/tmp/busybox@ to work properly. Notice that for no gentoo users, a little edit from @bb@ to your
-static busybox binary is necessary.
+*Warn*: sdr.$shell now should works when updating system dirs, it needs
+to copy @$(which bb)@  or a static busybox to @/tmp/busybox@ to work properly.
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
