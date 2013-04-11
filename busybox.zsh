@@ -48,7 +48,7 @@ if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf
 opts[-pkg]=busybox
 
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] { 
-:	opts[-pkg]=${opts[-pkg]-${opts[-version]:-${opts[-v]}}
+	opts[-pkg]=${opts[-pkg]-${opts[-version]:-${opts[-v]}}
 } else {
 	opts[-pkg]=$(emerge -pvO ${opts[-pkg]} | grep -o "busybox-[-0-9.r]*")
 }
