@@ -64,7 +64,11 @@ if [[ $# < 1 ]] { typeset -A opts }
 if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
 } else { die "no mkinitramfs-ll.conf found" }
 
+# @VARIABLE: opts[-workdir]
+# @DESCRIPTION: initial working directory, where to build everythng
 :	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
+# @VARIABLE: opts[-usrdir]
+# @DESCRIPTION: usr dir path, to get extra files
 :	${opts[-usrdir]:=${opts[-d]:-${opts[-workdir]}/usr}}
 
 mkdir -p ${opts[-workdir]}

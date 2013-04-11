@@ -83,7 +83,11 @@ done
 [[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf ||
 	die "no mkinitramfs-ll.conf found"
 
+# @VARIABLE: opts[-workdir]
+# @DESCRIPTION: initial working directory, where to build everythng
 [[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
+# @VARIABLE: opts[-usrdir]
+# @DESCRIPTION: usr dir path, to get extra files
 [[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/usr
 
 mkdir -p "${opts[-workdir]}"
