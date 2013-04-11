@@ -1,222 +1,340 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.11.2 2012/11/01 19:32:47 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.0 2012/11/01 19:32:47 -tclover Exp $@
 
-bq. "initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support [with a handfull zsh and or bash set of scripts]"
+bq. "an initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support
+[with a handfull zsh and bash set of scripts to get going easily]."
 
 *WARNING: USE AT YOUR OWN RISK!*
 
-h3. 1. Getting an intramfs ready
+h3. 1. Getting an intramfs quickly and ready
 
-If you have a static busybox binary or if you use Gentoo [you have already one: installed as /bin/bb] 
-you can make an initramfs in matter of secondes with locales settings: keymap and consolefont (in addition to 
-media-fonts/terminus-font if you use the associated "ebuild":https://github.com/tokiclover/bar-overlay, or else if you have that package installed).
+If you have a static busybox binary or if you use Gentoo
+[you have already one: installed as /bin/bb],
+you can make an initramfs in matter of secondes with locales settings:
+keymap and consolefont, in addition to media-fonts/terminus-font if you use
+the associated "ebuild":https://github.com/tokiclover/bar-overlay,
+or if you have that package installed).
 
-If you want GnuPG support, yo should have an app-crypt/gnupg-1.4*[static] binary along with its 
-options.skel file. Or if you run Gentoo you can run either gnupg.{ba,z}sh to generate one. 
-@gnupg.zsh -W/usr/share/mkinitramfs-ll@ if you installed the package or simply @gnupg.zsh@
-will build a binary in the current directory (with a usr/bin/gpg and usr/share/gnupg/options.skel).
+If you want GnuPG support, yo should have an app-crypt/gnupg-1.4*[static]
+binary along with its options.skel file.
+Or if you run Gentoo you can run either gnupg.{ba,z}sh to generate one. 
 
-And then run @mkinitramfs-ll.zsh -font -keymap -gpg@ or the bash counterpart @mkinitramfs-ll.bash --font --keymap --gpg@
+@gnupg.zsh -W/usr/share/mkinitramfs-ll@ if you installed the package
+or simply @gnupg.zsh@ will build a binary in the current directory
+(with a usr/bin/gpg and usr/share/gnupg/options.skel).
+Or else, run the bash script counterpart to get build a binary.
 
-Gentoo users can build everything with: @autogen.zsh -all -font -keymap@ or @autogen.bash --all --font --keymap@
+And then run @mkinitramfs-ll.zsh -font -keymap -gpg@
+or the bash counterpart @mkinitramfs-ll.bash --font --keymap --gpg@
+to generate an initramfs.
 
-Of course, one can append extra fonts and keymaps with @-fter-g12n -yfr-latin1@ etc. 
-and the @-a@ option depend on @mkinitramfs-ll.conf@ so one can put many default values there.
+Gentoo users can build everything with: @autogen.zsh -all -font -keymap@
+or bash counterpart @autogen.bash --all --font --keymap@
+
+Of course, one can append extra fonts and keymaps with @-fter-g12n -yfr-latin1@
+etc. and the @-a@ option depend on @mkinitramfs-ll.conf@
+so one can put many sane default values there.
 
 One can get more info on the scripts by running @$script -u@
 
-*Warn*: mkinitramfs-ll-0.10.8 or later need, not required, the associated usr directory.
-There's no support building at hand without the associated generating scripts! becasue there are a few
-handy files in usr.
+*Warn*: mkinitramfs-ll-0.12.0 or later require the associated usr directory.
+There's no support building at hand without the associated generating scripts!
+
+*New:* mkinitramfs-ll-0.12.0 allow to be dropped in a shell while being asked
+for a block device (infinite loop).
 
 h3. 2. _Optional_ kernel cmdline option or arguments
 
-*_Only_* @iroot@ _is required_ else nothing will happen but, maybe, a kernel panic. 
-And of course when using this script, one does not need @root=<arg>@ nor @resume=<arg>@ etc. options.
+*_Only_* @iroot@ _is required_ else nothing will happen but a kernel panic. 
+And of course, when using this script, one does not need @root=<arg>@
+nor @resume=<arg>@ kernel command line options.
 
-init script supports the following specific arguments: 
+KERNEL-COMMAND-LINE-ARG: @iroot=<PV|VG-LV>[:c:<fs>]@
+DESCRIPTION: root block device, required,
+	recommanded optional file system check @:[c|chk|y|..]:[<filesystem>]@
+EXAMPLE: @iroot=vg-root:c:ext4@ for an ext4 rootfs in LVM (Volume Group is named vg),
+	or @iroot=POOL/root::zfs@ for zfs rootfs in a zfs pool called POOL.
 
-* @iroot=<PV|VG-LV>[:c:<fs>]@    -> required root device, recommanded optional @:c[|chk|y|..]:ext4@ 
+*Note*: @:[n|no|N|NO]:@ instead of @[c|chk|y:@ will disable a die after fsck failure.
 
-*Note*: @:n[|no|N|NO]:ext4@ (instead of @c[|chk|check|y|yes])@ will disable a die after fsck failure.
+KERNEL-COMMAND-LINE-ARG: @imopt=<ro,inode64,...>@
+DESCRIPTION: optional rootfs mount options
+EXAMPLE: @imopt=inode64,noatime,ro@ for xfs file system
 
-* @imopt=<ro,inode64,...>@       -> optional mount options for rootfs.
-* @imount=</usr:/var:...>@       -> mount /usr:/var using /etc/fstab
+@KERNEL-COMMAND-LINE-ARG: @imount=</usr:/var:...>@
+@DESCRIPTION: mount /usr:/var using the included @/etc/fstab@
+EXAMPLE: @imount=/usr@
 
-*Note*:@imount@ can be used to mount /usr:/var ... using @/etc/fstab@. Nothing more is required if unencrypted. 
-However, if using LVM and/or LUKS and/or RAID array, one should ensure that the underlaying PVs are available 
-after swp(), resume() and rootfs() being executed, meaning that, the volume(s) should be either in one group. 
+*Note*: @imount@ can be used to mount /usr:/var ... using @/etc/fstab@.
+Nothing more is required if using unencrypted volume. 
+However, if using LVM and/or LUKS and/or RAID array, one should make sure
+that the underlaying volume are available after swp(), resume() and rootfs().
+Meaning that, the volume(s) in question should be either in one group of those. 
 
-* @imod=<drm,ttm,...,nouveau>@   -> optional modules [list] to load (in the boot group).
-* @ikmap=<kmap>[:<font>]@        -> optional keymap and font to load, may be handy for passwords.
-* @ishrl=<n>|:<n>@               -> interrupt init and drop to n level or pass n to real init (see EOF)
-* @rescue|rescueshell@           -> drops directly into a minimal shell.
+KERNEL-COMMAND-LINE-ARG: @imod=<drm,ttm,...,nouveau>@
+DESCRIPTION: optional modules to load (in the boot group)
+EXAMPLE: @imod=drm,drm_kms_helper,ttm,i915,radeon@
 
-*Note*: now with >=init-0.8.2 one can @exit@ the rescue shell after having finished to fix a issue
-which caused a @die@, or simply after a @rescue[shell]@ on kernel cmdline and the init will resume
-booting from there.
+KERNEL-COMMAND-LINE-ARG: @ikmap=<kmap>[:<font>]@
+DESCRIPTION: optional keymap and font to load, handy for passwords
+EXAMPLE: @ikmap=fr-x86_64.bin:ter-g12n.psf@
 
-* @ilvm=<map-PV>,...,<map-PV>@   -> LVM argument @<mapping-PV>@ is collon ':' separated 
-list of PVs of a VG; and comma ',' separated list of VG: 1st for root, 2nd for swap and 
-the 3rd for resume, hence one can append enough commas to asign a particular group.
-* @iraid=<array>+UUID=<uuid>[|<p>|<f>]@   -> comma separated list of arrays for root, swap and resume.
-* @iswap=<type>:<VG-LV>[:signature]@       -> e.g. @iswap=swap:sda2@ for a swap device.
-* @iresume=<type>:<VG-LV>[:signature]@     -> e.g. @iresume=file:<VG-LV>:0x4400@ for a swapfile.
-* @ikroot=<mode>:<device>:</path/to/file>@ -> ikroot for root keyfile or password.
-* @ikswap=<mode>:<device>:</path/to/file>@ -> iswap for swap keyfile or password.
-* @ikresume=<mode>:<device>:</path/to/key/file>@ -> same as above but for [i]resume.
-* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@    -> squashed directories, see below for more info.    
-* @dmesg=emerg|alert|crit|err|..|debug@    -> optional dmesg log level priority.
+KERNEL-COMMAND-LINE-ARG: @ishrl=<n>|:<n>@
+DESCRIPTION: interrupt init and drop to <n> level or pass <n> to real init
+EXAMPLE: @ishrl=3s@ drop to @3s@ (before squahsd()) init level,
+	or @ishrl=:1@ pass @1@, so single to real init
 
-init script accept @single,ro,rw@ argument and will append single runlevel to real init. 
-It also support @splash=silent,fadein,theme:emergence console=[/dev/]tty1@ splash cmdline arguments.
+KERNEL-COMMAND-LINE-ARG: @rescue|rescueshell@
+DESCRIPTION: drops directly into a minimal shell
+EXAMPLE:
 
-h3. 3. About device, /dev/ prefix and detached LUKS header
+*Note*: now with >=init-0.8.2 one can @exit@ the rescue shell after beiing
+dropped there, or simply after a @rescue[shell]@ or @ishrl=<n>@ on kernel
+cmdline and the init will resume booting from there.
 
-There's no need to provide any @/dev/@ prefix for block devices, _blkid() will take care of it.
-Now one can use @UUID=<uuid>@ or @LABEL=<label>@ instead of @[/dev/]sd[a-z0-9]@ for any device or PV. 
-However, a leading plus @+@ is used as a separator for detached header device|file when using 
+KERNEL-COMMAND-LINE-ARG: @ilvm=<map-PV>,...,<map-PV>@
+DESCRIPTION: LVM argument @<mapping-PV>@ is collon ':' separated list of PVs of
+a Volume Group; and comma ',' separated list of VG: 1st for root, 2nd for swap
+and the 3rd for resume. Hence one can append commas to asign a particular group.
+EXAMPLE: @lvm=pva-sda1:pvb-sdb1,pvc-sda1@ assigne a single PV to swap group,
+	and two PVs to root group with its mappings.
 
-*LUKS*: @<map-UUID=<uid>[|LABEL=<label>][+[/dev/]sd*]|</path/to/header/file>]@
+*Note*: This argument is used only in case of dm-crypt LUKS crypted PVs.
+Unencrypted PVs do _not_ require this!
+
+KERNEL-COMMAND-LINE-ARG: @iraid=<array>+UUID=<uuid>[|<p>|<f>]@
+DESCRIPTION: comma separated list of arrays for root, swap and resume
+EXAMPLE:
+
+KERNEL-COMMAND-LINE-ARG: @iswap=<type>:<VG-LV>[:signature]@
+DESCRIPTION: the equivalent of @iroot@ for swap
+EXAMPLE: e.g. @iswap=swap:sda2@ for an unencrypted swap device
+
+KERNEL-COMMAND-LINE-ARG: @iresume=<type>:<VG-LV>[:signature]@
+DESCRIPTION: the equivalent of @iroot@ for resume
+EXAMPLE: e.g. @iresume=file:<VG-LV>:0x4400@ for a swapfile in a Logical Volume
+
+KERNEL-COMMAND-LINE-ARG: @ikroot=<mode>:<device>:</path/to/file>@
+DESCRIPTION: key [file] mode for @iroot@ group
+EXAMPLE: @ikroot=gpg:sdc1:/key.gpg@ for a GnuPG crypted key file in sdc1
+
+KERNEL-COMMAND-LINE-ARG: @ikswap=<mode>:<device>:</path/to/file>@
+DESCRIPTION: key [file] mode for @iswap@ group
+EXAMPLE: @iswap=reg:sdb1:/key.reg@ for a regular key file in root of sdb1
+
+KERNEL-COMMAND-LINE-ARG: @ikresume=<mode>:<device>:</path/to/key/file>@
+DESCRIPTION: key [file] mode for @iresume@ group
+EXAMPLE: @ikresume=pwd@ for a password mode
+
+KERNEL-COMMAND-LINE-ARG: @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@
+DESCRIPTION: squashed directories, see below for more info
+EXAMPLE: @isqfsd=y,a:lib64@ use default squashed dirs and append @/lib64@
+
+KERNEL-COMMAND-LINE-ARG: @dmesg=emerg|alert|crit|err|..|debug@
+DESCRIPTION: optional dmesg log level priority
+EXAMPLE: @dmesg=alert@ set dmesg to alert level
+
+init script accept also @single@, @ro@ and rw@ kernel cmdline argument
+and will append single runlevel to real init. 
+
+It also support @splash=silent,fadein,theme:emergence console=[/dev/]tty1@
+splash kernel cmdline arguments.
+
+h3. 3. About device, @/dev/@ prefix and detached LUKS header
+
+There's no need to provide any @/dev/@ prefix for block devices,
+blk() will take care of it.
+Now one can use @UUID=<uuid>@ or @LABEL=<label>@ instead of 
+@[/dev/]sd[a-z0-9]@ for any block device or physical volume. 
+However, a leading plus @+@ is used as a separator for
+detached header device|file when using:
+@<map-UUID=<uid>[+UUID=<uuid>|</path/to/header/file>]@
 
 Each encrypted PV, with a detached header is given like:
 
-* @<[/dev/]sda6+[/dev/]sdc>@ for a detached header to @/dev/sdc@ device [passed as @--header /dev/sdc@]
-* @</path/to/header/file>@ for a detached header file @[--header /mnt/tok/path/to/header/file]@ 
+* @<sda+sdc>@ for a detached header to @/dev/sdc@ device
+	passed as @--header /dev/sdc@ to dmopen().
+* @<sda+/path/to/header/file>@ for a detached header file 
+	passed as @--header /mnt/tok/path/to/header/file@ to dmopen().
 
-so in this case, the header file must be in the same removable device or @/boot@ PV used for 
-keyfiles [because it'll be too troublesome to make it otherwise]. Of course, a detached header to a device 
-should use an UUID or a LABEL instead of @[/dev/]sd[a-z0-9]@ to avoid header mismatch!
+*Note*: So in this case, the header file must be in the same removable device
+or @/boot@ PV used for key-files.
+Because it'll be too troublesome to make it otherwise.
+
+*Warning*: Of course, a detached header to a device should use an UUID or a LABEL
+instead of to a block device @sd[a-z0-9]@ to avoid header mismatch!
 
 h3. About RAID array
 
-iraid argument can take up to 3 comma separated list of RAID arrays: the 1st for root, 2nd for swap
-and the 3rd for resume. Each argument is of  the forme @<array>+UUID=<uuid>[|<part>|<format>]@. @<format>@ is a
-metadata format used to scan dmraid set and subset software (ata)raid and @<part>@ a partiton number.
+@iraid@ argument can take up to 3 comma separated list of RAID arrays:
+the 1st for root, 2nd for swap and the 3rd for resume.
+Each argument is of the forme @<array>+UUID=<uuid>[|<part>|<format>]@.
+@<format>@ is a metadata format used to scan dmraid set and subset
+software (ata)raid and @<part>@ a partiton number.
 
-Either way, one can use mdadm software raid like @iraid=md<n>+UUID=<uuid>@ and optionaly 
-embed or not an config file @/etc/mdadm.conf@. Or else, @iraid@ is sufficient to enable arrays: 
-@echo ARRAY <array> <uuid> >> /etc/mdadm.conf@; or else, @iraid=md<n>+<part>@ to enable arrays like:
-@echo ARRAY <array> devices=/dev/sd*<part> >> /etc/mdadm.conf@, @<part>@ could be something like @[a-d]2@.
+Either way, one can use mdadm software raid like @iraid=md<n>+UUID=<uuid>@
+and optionaly embed or not an config file @/etc/mdadm.conf@.
+Either way @iraid@ is sufficient to enable arrays: 
 
-Or else, an optional @<format>@ can be used to enable mdraid software (ata)raid e.g. @asr|..|isw|jmicron|..|dos@
-see @mdraid -l@. dmraid software raid can be passed like @iraid=<array>+isw:dos@, ':' as a metadata seperator.
+@echo ARRAY <array> <uuid> >> /etc/mdadm.conf@,
+or else, @iraid=md<n>+<part>@ to enable arrays like:
+@echo ARRAY <array> devices=/dev/sd*<part> >> /etc/mdadm.conf@,
+@<part>@ could be something like @[a-d]2@.
 
-*Note*: raid array can be used as the underlaying pyshical device of unencrypted or not with LVM on top.
-@<UUID=<uuid>>@ or @<part>@ is required to enable mdadm software raid, nothing or @<format>@ can be used 
-to enable dmraid sofware (ata)raid.
+Or else, an optional @<format>@ can be used to enable mdraid software (ata)raid
+e.g. @asr|..|isw|jmicron|..|dos@ see @mdraid -l@. dmraid software raid can be
+passed like @iraid=<array>+isw:dos@, ':' as a metadata seperator.
+
+*Note*: raid array can be used as the underlaying pyshical device of unencrypted
+or encrypted with LVM on top.
+@<UUID=<uuid>>@ or @<part>@ is required to enable mdadm software raid, nothing or
+@<format>@ can be used to enable dmraid sofware (ata)raid.
 
 h3. 4. About LVM argument
 
-Actually a PV in a group, respectively root, swap, resume is given by @<mapping>-<device>@, 
-mapping being a mapping name for cryptsetup and a block device|partition without the @/dev/@ prefix.
+Actually a PV in a group, respectively root, swap, resume is given by
+@<mapping>-<device>@, mapping being a mapping name for cryptsetup and
+a block device|partition without the @/dev/@ prefix.
 
 * LV, PV, VG: Logical Volume, Physical Volume, Volume Group.
-* @map-PV@: colon separated list @<mapping-PV>@ e.g. @<pv1-sda1:pv2-sdb1:...>@ for a Volume Group,
-the 1st being for root, the 2nd for swap and the 3rd for resume;
+* @map-PV@: is a colon separated list @<mapping-PV>@ e.g. @<pv1-sda1:pv2-sdb1:...>@
+for a Volume Group, the 1st being for root, the 2nd for swap and the 3rd for resume;
 so this @ilvm=,swp-sdc1,@ asign only a VG for swap.
 
-*NOTE*: for unencrypted PVs, there's no need to provide a list of PVs in ilvm argument. A single 
-character or word is enough to activate LVM like @ilvm=y@ for root.
+*NOTE*: for unencrypted PVs, there's no need to provide a list of PVs in @ilvm@ arg.
+A single character or word is enough to activate LVM like @ilvm=y@ for root.
 
-* PV list: now @<map-PV>@ [list] can be replaced with @</path/to/list>@ file, this require the 
-use of keyfile to decrypt PV, which means that a removable media or @/boot@ device is mounted. 
+* PV list: now @<map-PV>@ [list] can be replaced with @</path/to/list>@ file,
+this require the use of keyfile to decrypt PV, which means that a removable media
+or @/boot@ device is mounted. 
 List can be a line separated list insted of a collon @:@ of the forme:
-@<mapping-UUID=<uid>[+UUID=<uuid>]@ for an UUID list. One can mix UUID, LABEL and [h|s]d??* 
-in a list. However, it's best to use UUID only for detached header from cyphertext device which 
-prevent header mismatch. One can use multiple lists up to three, one for each group.
+@<mapping-UUID=<uid>[+UUID=<uuid>]@ for an UUID list.
+One can mix UUID, LABEL and [h|s]d??* in a list. However, it's best to use UUID
+only for detached header from cyphertext device which prevent header mismatch.
+One can use multiple lists up to three, one for each group.
 
 h3. 4. About mount options: @imopt=<rootfs mount options>@
 
-Say, you have a @rootfs=xfs[|jsf|reiser|ext*]@ and want to mount your rootfs with specific opts. 
-In case of xfs, for exemple, just create your log LV on a different PV than what you're logging 
-from and everything is set up--well if the logging LV is in the swap VG--and, in fact, you do 
-not need a swap LV there--you just use that VG as if there were one. 
+Say, you have a @rootfs=xfs[|jsf|reiser|ext*]@ and want to mount your rootfs
+with specific opts. In case of xfs, for exemple, just create your log volume
+on a different volume than what you're logging from and everything is set up
+--well if the logging volume is in the swap group--and, in fact, you do 
+not need a swap volume there--you just use that group as if there were one. 
 
-h3. 5. About supported keyfile/password modes
+h3. 5. About supported key modes
 
-For partitions or PVs that are encrypted with a key, setting @ikroot@ and/or @ikswap@ and/or 
-@ikresume@ is required, otherwise a passphrase is required for _each_ PV as a fall back.
+For volume that are encrypted with a key, setting @ikroot@ and/or @ikswap@
+and/or @ikresume@ is required, otherwise a passphrase is required for _each_
+physical volume as a fall back.
 
-* @<mode>@: defines how the init script shall treat the supplied keyfile (see below). 
+* @<mode>@: defines how the init script shall treat the supplied key:
 
-** @gpg@  -> keyfile is GnuPG-protected
-** @ldk@  -> keyfile is LUKS encrypted, via loop back device.
-** @reg@  -> keyfile is regular file
-** @pwd@  -> encrypted on a regular passphrase, if no argument is passed, fallback is pwd mode.
-** @none@ -> handy for unencrypted PVs, with or without LVM2 support.
+** @gpg@  -> key-file is GnuPG encrypted file
+** @ldk@  -> key-file is LUKS encrypted, via loop back device
+** @reg@  -> key-file is a regular file
+** @pwd@  -> encrypted on a regular passphrase
+** @none@ -> handy for unencrypted volumes
 
-* @<device|dev>@ is a device or PV that will be assigned to the removable media e.g. sd[a-z][0-9]
-* @</path/to/file>@ is a full path to file inside the removable media.
+* @<device|dev>@ is a block device that will be assigned to the removable media
+* @</path/to/file>@ is a full path to file inside the removable media
 
 *Notes on key modes*
 
-* @gpg@   : GnuPG encrypted keyfile support only gnupg-1.4*, passed as @gpg -qd /path/to/keyfile |@ 
-one can add a @/root/.gnupg/gpg.conf@ in the initramfs root to avoid its creattion on each boot 
-* @ldk@   : encrypted keyfile passed to cryptsetup as @-d /dev/mapper/$(basename /path/to/keyfile)@ after decryption 
-* @reg@   : regular keyfile passed to cryptsetup as @-d /path/to/keyfile@
-* @pwd@   : regular passphrase: it's not mandatory to append any @ikroot[|swap|resume]=pwd@ (fallback keymode)
-* @none@  : unencrypted Physical Volume or device which should be explicitely appended 
+* @gpg@: GnuPG encrypted key-file support only gnupg-1.4*,
+	used as @gpg -qd /path/to/keyfile |@. One can add a @/root/.gnupg/gpg.conf@
+	in the initramfs root to avoid its creattion on each boot 
+* @ldk@: encrypted key-file passed to cryptsetup as
+	@-d /dev/mapper/$(basename /path/to/keyfile)@ after decryption 
+* @reg@: regular keyfile passed to cryptsetup as @-d /path/to/keyfile@
+* @pwd@: regular passphrase: it's not mandatory to append any
+	@ikroot[|swap|resume]=pwd@ (fallback keymode)
+* @none@ : unencrypted block device which should be explicitely appended 
 	
 h3. 6. About squashed directories 
 
-One can use squashfs+aufs to squash directories like @$PORTDIR:var/lib/layamn@, or system related directories 
-like @usr:lib32:lib64:bin:sbin@. Advantages are system speed, responsiveness and very small disk size footprint.
+One can use squashfs+aufs to squash directories like @$PORTDIR:var/lib/layamn@,
+or system related directories like @usr:lib32:lib64:bin:sbin@. Advantages are
+system speed, responsiveness and very small disk size footprint.
 
 Squashed directories argument:
-* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@ -> using default or append directories after a @[n|a]:@
-* @isqfsd=/sqfsdir,n:<dir 1>:<dir n>@ -> neither sqfsdir nor sqfsd default is used, sqfsdir,sqfsd required
-* @isqfsd=y,y@ -> using sqfsd and sqfsdir default values do not require any additional argument. 
-* @isqfsd=y,a:<dir 1>[:<dir n>]@ -> same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
 
-*NOTE*: leading '/' slash is only required for @sqfsdir@, else mounting squashed dirs will fail. 
+* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@
+	using default or append directories after a @[n|a]:@
+* @isqfsd=/sqfsdir,n:<dir 1>:<dir n>@
+	neither sqfsdir nor sqfsd default is used, sqfsdir,sqfsd required
+* @isqfsd=y,y@
+	using sqfsd and sqfsdir default values do not require any additional argument. 
+* @isqfsd=y,a:<dir 1>[:<dir n>]@
+	same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
+
+*Warn*: leading '/' slash is only required for @sqfsdir@, else mounting squashed dirs will fail. 
 
 h3. 7. Kernel parameters example
 
-* unencrypted Root LV: @iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin:ter-g12n.psf@
+DESCRIPTION: unencrypted Root LV
+EXAMPLE: iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin:ter-g12n.psf
 
-*Note*: one can append any character or word like `ilvm=lvr` when using LVM on unencrypted PVs.
-* Root--key regular passphrase--and fbsplash: @iroot=sda3 ikroot=pwd video=1280x800-24 \@
-	@imod=drm,drm_kms_helper,ttm,i915 splash=verbose,theme:livecd-20007.0,tty:1@
-* Root--regular keyfile--on usb stick: @iroot=sda3 ikroot=reg:sdb1:/path/to/keyfile@
-* Root--gpg encrypted key on usb stick: @iroot=sda3 ikroot=gpg:sdb1:/path/to/file@
-* Swap and root--ldk encrypted--keyfiles: @iroot=sda3 iswap=swap[|file]:sda2[:signature] \@
-	@ikroot=ldk:sdb1:/path/to/rootkey ikswap=ldk:sdb1:/path/to/swapkey@
-* Regular swap--_and_ TuxOnIce resume on a different PV--regular passphrase: 
-	@iswap=swap:sda2 iresume=swap:sda3:0x4400 ikswap=pwd ikresume=pwd@
-* Swap file--resuming from hibernation--ldk protected keyfile on usb stick:
-	@iswap=file:sda3:0x4400 iresume=toi[|CHAR|WORD] ikswap=ldk:sdb1:/path/to/swapkey@
-* crypted LVs [root,swap] using LVM--ldk crypted keyfile and--_and_ mount options for rootfs:
-	@iroot=vgr-lvr:c:xfs iswap=file:vgs-lvs:0x4400 imopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier \@
-	@ilvm=pva1-UUID=<uuid>:pvb2-UUID=<uuid>,pvc1-UID=<uuid> \@
-	@ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile@
+*Note*: one can append any character or word like `ilvm=lvr`
+when using LVM on unencrypted PVs.
 
-*NOTE*: multiple key files (one for each group) are supported along with single key file. 
+DESCRIPTION: Root--regular passphrase--and fbsplash
+EXAMPLE: iroot=sda3 ikroot=pwd video=1280x800-24 imod=drm,drm_kms_helper,ttm,i915 \
+	splash=verbose,theme:livecd-20007.0,tty:1
+
+DESCRIPTION: Root--regular key-file--on usb device
+EXAMPLE: iroot=sda3 ikroot=reg:sdb1:/path/to/keyfile
+
+DESCRIPTION: Root--gpg encrypted key-file on usb drive
+EXAMPLE: iroot=sda3 ikroot=gpg:sdb1:/path/to/file
+
+DESCRIPTION: Swap and root--ldk encrypted--key-files
+EXAMPLE: iroot=sda3 iswap=swap[|file]:sda2[:signature] \
+	ikroot=ldk:sdb1:/path/to/rootkey ikswap=ldk:sdb1:/path/to/swapkey
+
+DESCRIPTION: Regular swap _and_ TuxOnIce resume on a different volume
+EXAMPLE: iswap=swap:sda2 iresume=swap:sda3:0x4400 ikswap=pwd ikresume=pwd
+
+DESCRIPTION: Swap file--resuming from hibernation--ldk protected key-file
+EXAMPLE: iswap=file:sda3:0x4400 iresume=toi[|CHAR|WORD] ikswap=ldk:sdb1:/path/to/swapkey
+
+DESCRIPTION: crypted volume [root,swap] using LVM--ldk crypted keyfile and--
+_and_ mount options for rootfs
+EXAMPLE: iroot=vgr-lvr:c:xfs iswap=file:vgs-lvs:0x4400 \
+	imopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier \
+	ilvm=pva1-UUID=<uuid>:pvb2-UUID=<uuid>,pvc1-UID=<uuid> \
+	ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile \
+	ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile
+
+*NOTE*: multiple key-files (one for each group) are supported along with single key file. 
 
 h3. 8. Kernel module groups
 
-To load kernel modules, one could either create needed groups in @[usr/]etc/mkinitramfs-ll/module.$group@ 
-(IFS separated list of module). Or else, append a comma seperated list on cmdline using @imod=@ arg.
+To load kernel modules, one could either create needed groups in
+@[usr/]etc/mkinitramfs-ll/module.$group@ (IFS separated list of module).
+Or else, append a comma seperated list on cmdline using @imod=@ arg.
 
 Supported groups:
-* @boot@      -> boot up modules, loaded but not removed
-* @dm-crypt@  -> automaticaly generated with mkinitramfs-ll.$shell (dm-crypt module group)
-* @devide-mapper@ -> automaticaly generated with mkinitramfs-ll.$shell (device-mapper module group)
-* @dm-raid@   -> automaticaly generated with mkinitramfs-ll.$shell (dmraid module group)
-* @raid@      -> automaticaly generated with mkinitramfs-ll.$shell (mdadm/raid module group)
-* @tuxonice@  -> tuxonice module, wich aren't removed
-* @remdev@    -> modules required to access removable device
-* @gpg@       -> modules required to access gpg crypted keyfile
-* @sqfsd@     -> modules required for squashfs+aufs, can be built into the kernel
+
+* boot: boot up modules, loaded but not removed
+* dm-crypt: automaticaly generated with mkinitramfs-ll.$shell (dm-crypt module group)
+* devide-mapper: automaticaly generated included script (device-mapper module group)
+* dm-raid: automaticaly generated with included script (dmraid module group)
+* raid: automaticaly generated with mkinitramfs-ll.$shell (mdadm/raid module group)
+* tuxonice: tuxonice module, wich aren't removed
+* remdev: modules required to access removable device
+* gpg: modules required to access gpg crypted key-file
+* sqfsd: modules required for squashfs+aufs, can be built into the kernel
 
 Modules should exist in @/lib/modules/$KV/@, the kernel should support modules [un]loading.
-Just make sure to append the necessary modules to the right group in mkinitramfs-ll.conf for autoloading, 
-or else append to @opts[-mdep]@ variable to be able to append kernel mdoules to @imod=@ cmdline argument.
+Just make sure to append the necessary modules to the right group in mkinitramfs-ll.conf for
+autoloading, or else append to @opts[-mdep]@ variable to be able to append kernel
+mdoules to @imod=@ cmdline argument.
 
 h3. 9. Optional user scripts
 
 Now one can add scripts to @/etc/mkinitramfs-ll.d@ of the initramfs root, or else in
 @$gitdir/usr/etc/mkinitramfs-ll.d@ if using mkinitramfs-ll.$shell generating script. 
-Each script should not have the executable bit set and should have a @.level@ sufix as the follwing:
+
+Each script  should have a @.$level@ sufix as the follwing:
 * runlevel 1:  initialization -> splash -> keymap -> font -> print boot msg -> 1
 * runlevel 2?: 2s -> swap -> 2r -> resume -> rootfs ->
 * runlevel 3?: 3d -> decrypt -> 3f -> rootfs fsck -> 3m -> root mount ->
@@ -226,12 +344,15 @@ Each script should not have the executable bit set and should have a @.level@ su
 
 h3. 10. ZFS support
 
-One can use something like @iroot=pool/ROOT[::zfs][ izfs=zva-sda:zvb-sdb]@. Notice that @izfs=@ argument
-is required for crypted vdev(s). Do not forget to include zfs module or build an initramfs with something
-like: @mkinitramfs-ll.$shell -a -f -y -Mzfs -b:zpool:zfs@ (kernel modules would be rightly added).
+One can use something like @iroot=POOL/ROOT[::zfs][ izfs=zva-sda:zvb-sdb]@.
+Notice that @izfs=@ argument is required for crypted vdev(s). Do not forget to
+include zfs module or build an initramfs with something like:
+@mkinitramfs-ll.$shell -a -f -y -Mzfs -b:zpool:zfs@
+(kernel modules would be rightly added).
 
-*IMPORTANT*: So either way one can append @::zfs@ to @iroot@ argument for unencrypted vdev(s) or @:zfs@ to
-@iswap@ or @iresume@; or either @izfs@ will suffice for encrypted vdev(s); or else both.
+*IMPORTANT*: So either way one can append @::zfs@ to @iroot@ argument for
+unencrypted vdev(s) or @:zfs@ to @iswap@ or @iresume@;
+or either @izfs@ will suffice for encrypted vdev(s); or else both.
 
 *WARNING*: Back up your data! else... you may lose a few of... them by carelessness.
 
