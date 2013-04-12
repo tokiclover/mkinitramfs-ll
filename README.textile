@@ -342,7 +342,7 @@ Each script  should have a @.$level@ sufix as the follwing:
 * runlevel 1:  initialization -- splash -- keymap -- font -- print boot msg -- @1@
 * runlevel 2?: @2s@ -- swap -- @2r@ -- resume -- rootfs --
 * runlevel 3?: @3d@ -- decrypt -- @3f@ -- rootfs fsck -- @3m@ -- root mount --
-* runlevel 4?: @4c@ -- clean up -- @4m@ -- mount /usr:/var... -> @4u@ --
+* runlevel 4?: @4c@ -- clean up -- @4m@ -- mount /usr:/var... -- @4u@ --
 	umount -- @4s@ -- switch root
 
 *Info*: See zfs module for more info and a praticable example.
