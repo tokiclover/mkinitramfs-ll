@@ -1,14 +1,16 @@
-@$Header: mkinitramfs-ll/usr/README.textile,v 0.10.0 2012/07/08 02:55:28 -tclover Exp $@
+@$Header: mkinitramfs-ll/usr/README.textile,v 0.12.0 2013/04/12 03:10:59 -tclover Exp $@
 
-This where user extra files (binaries, man pages, info and scripts (to [usr/]etc/mkinitramfs-ll.d))
-files are stored relatively from this dir,just like in @/usr@.
+This where user extra files (binaries, man pages, info and user scripts to
+[usr/]etc/mkinitramfs-ll.d) files are stored relatively from this dir.
 
-User scripts should have a prefix @{1,2{r,s},3{f,d,m,s},4{c,m,s,u}}?-@ corresponding to 
-a init runlevel and a `.sh' suffix to be correctly executed in the right run level.
+User scripts should have a sufix @{1,2{r,s},3{f,d,m,s},4{c,m,s,u}}?-@
+corresponding to an init runlevel to be righttly executed in the right run level.
 
-*Note*: [usr/bin/]busybox and its optional applets--@[usr/etc/mkinitramfs-ll/]busybox.app@--
+*Important*: [usr/bin/]busybox and its optional applets
+--@[usr/etc/mkinitramfs-ll/]busybox.app@--
 and @[usr/etc/]mdev.conf@ are stored in this directory as well.
 
-*Note*: a [usr/]etc/profile can be used to set up global env variables or a profile in other words.
+*Note*: a [usr/]etc/profile can be used to set up environment variables or
+to set up, in other words, a profile in other words.
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
