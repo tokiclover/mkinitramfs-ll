@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.0 2012/11/05 23:51:58 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.0 2013/04/12 03:50:01 -tclover Exp $
 revision=0.12.0
 
 # @FUNCTION: usage

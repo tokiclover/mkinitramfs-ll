@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.0 2012/11/05 23:51:55 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.0 2013/04/12 03:50:13 -tclover Exp $
 revision=0.12.0
 
 # @FUNCTION: usage
