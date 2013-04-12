@@ -138,8 +138,8 @@ KERNEL-COMMAND-LINE-ARG: @idebug=<char>|<word>@
 DESCRIPTION: optionaly enable debugging, shell tracing precisely
 EXAMPLE: @idebug=y@ enable shell tracing
 
-init script accept also @single@, @ro@ and @rw@ kernel cmdline argument
-and will append single runlevel to real init. 
+init script accept also @single@, @ro@, @rw@ and @init=/path/to/real/init@
+kernel cmdline argument and will append single runlevel to real init. 
 
 It also support @splash=silent,fadein,theme:emergence console=[/dev/]tty1@
 splash kernel cmdline arguments.
