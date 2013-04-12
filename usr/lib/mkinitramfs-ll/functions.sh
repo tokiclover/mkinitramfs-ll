@@ -1,7 +1,8 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.0 2013/04/12 06:13:13 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.0 2013/04/12 07:08:54 -tclover Exp $
 
 # @FUNCTION: info
 # @EXTTERNAL
+# @USAGE: <msg>
 # @DESCRIPTION: print message on stdout
 info() {
 	echo -ne "\033[1;32m * \033[0m$@\n"
@@ -10,6 +11,7 @@ info() {
 
 # @FUNCTION: error
 # @EXTERNAL
+# @USAGE: <msg>
 # @DESCRIPTION: print error message on stdout
 error() {
 	echo -ne "\033[1;31m * \033[0m$@\n"
@@ -17,6 +19,7 @@ error() {
 
 # @FUNCTION: debug
 # @INTERNAL
+# @USAGE: [option] <cmd>
 # @DESCRIPTION: execute a command and log the command into $logfile
 debug() {
 	local _cmd _opt _ret
@@ -67,6 +70,7 @@ rsh() {
 
 # @FUNCTION: die
 # @INTERNAL
+# @USAGE: <msg>
 # @DESCRIPTION: drop into a rescue shell after a command failure
 die() {
 	local _ret=$? _msg="Dropping into a rescueshell..."
@@ -79,6 +83,7 @@ die() {
 
 # @FUNCTION: bck
 # #INTERNAL
+# @USAGE: <bin>
 # @DESCRIPTION: Binary ChecK
 bck() {
 	debug -d which $1 1>/dev/null 2>&1
@@ -86,6 +91,7 @@ bck() {
 
 # @FUNCTION: ack
 # @INTERNAL
+# @USAGE: [<applets>]
 # @DESCRIPTION: busybox Applets ChecK
 ack() {
 	local _app _applets="$@"
@@ -100,6 +106,7 @@ ack() {
 
 # @FUNCTION: _rmmod
 # @EXTERNAL
+# @USAGE: <kernel module(s)|module group>
 # @DESCRIPTION: ReMove kernel MODules from a file liste or...
 _rmmod() {
 	[ -f "/etc/mkinitramfs-ll/module.$1" ] &&
@@ -112,6 +119,7 @@ _rmmod() {
 
 # @FUNCTION: _modprobe
 # @EXTERNAL
+# @USAGE: <kernel module(s) | module group>
 # @DESCRIPTION: insert kernel MODules from a file liste or...
 _modprobe() {
 	[ -f "/etc/mkinitramfs-ll/module.$1" ] &&
@@ -124,6 +132,7 @@ _modprobe() {
 
 # @FUNCTION: _getopt
 # @EXTERNAL
+# @USAGE: <kernel cmdline>
 # @DESCRIPTION: get kernel command line options
 _getopt() {
 	for arg in $*; do
@@ -135,6 +144,7 @@ _getopt() {
 
 # @FUNCTION: cmd
 # @EXTERNAL
+# @USAGE: <splash cmd>
 # @DESCRIPTION: send command or message to splash deamon
 cmd() {
 	debug echo "$@" >$SPLASH_FIFO
@@ -185,6 +195,7 @@ _stop() {
 
 # @FUNCTION: shread
 # @EXTERNAL
+# @USAGE: <var>
 # @DESCRIPTION: read line from stdin and drop to rescue shell if a line is sh[ell]
 shread() {
 	read _asw
@@ -193,6 +204,7 @@ shread() {
 
 # @FUNCTION: blk
 # @EXTERNAL
+# @USAGE: <block device node | (part of) uuid | (part of) label>
 # @DESCRIPTION: get block device
 blk() {
 	eval $2=$(blkid | grep "${1#*=}" | cut -d: -f1)
@@ -200,6 +212,7 @@ blk() {
 
 # @FUNCTION: gev
 # @EXTERNAL
+# @USAGE: <removable device | cyphertext>
 # @DESCRIPTION: Get removable or dm-crypt LUKS block dEVices
 gev() {
 	local _asw _opt msg
@@ -234,6 +247,7 @@ gev() {
 
 # @FUNCTION: dlk
 # @EXTERNAL
+# @USAGE: <full path to file> plus a mapping indirectly given by <_fn>
 # @DESCRIOTON: Decrypt LDk, dm-crypt LUKS crypted, key file
 dlk() {
 	[ -b "$1" ] && return
@@ -251,6 +265,7 @@ dlk() {
 
 # @FUNCTION: stk
 # @EXTERNAL
+# USAGE: <mode:dev:/path/to/file>
 # @DESCRIPTION: SeT Key [file] mode for decryptiong
 stk() {
 	local _fp="$(echo "$1" | cut -d: -s -f3)"
@@ -299,6 +314,7 @@ stk() {
 
 # @FUNCTION: dmclose
 # @EXTERNAL
+# @USAGE: <mapping>
 # @DESCRIPTION: close dm-crypt mapping
 dmclose() { 
 	[ -n "$2" ] && debug -d vgchange -an ${2%-*}
@@ -312,7 +328,8 @@ dmclose() {
 
 # @FUNCTION: gld
 # @EXTERNAL
-# @DESCRIPTION: Get dm-crypt LUKS block device
+# @USAGE: <dev>
+# @DESCRIPTION: retrieve Get dm-crypt LUKS block device via gev
 gld() {
 	if [ -e "$1" ]; then 
 		dev=$1
@@ -324,6 +341,7 @@ gld() {
 
 # @FUNCTIOON: dmopen
 # @EXTERNAL
+# @USAGE: <map-dev+header>
 # @DESCRIPTION: open dm-crypt LUKS block device
 dmopen() { 
 	$eck && debug -d bck cryptsetup
@@ -337,8 +355,11 @@ dmopen() {
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
 			debug gld "$_hdr" -l
-		elif [ -e "/mnt/tok/$_hdr" ]; then debug gld "/mnt/tok/$_hdr" -l
-		else die "$_hdr detached header doesn't exist."; fi
+		elif [ -e "/mnt/tok/$_hdr" ]; then
+			debug gld "/mnt/tok/$_hdr" -l
+		else
+			die "$_hdr detached header doesn't exist."
+		fi
 		_header="--header $dev"
 		debug gld "$_dev"
 	else
@@ -368,6 +389,7 @@ dmopen() {
 
 # @FUNCTION: lvopen
 # @EXTERNAL
+# @USAGE: <vg-lv> <map-crypted_pv>
 # @DESCRIPTION: open LVM Logical Volume
 lvopen() {
 	$eck && debug -d bck lvm
@@ -399,6 +421,7 @@ lvopen() {
 
 # @FUNCTION: mdopen
 # @EXTERNAL
+# @USAGE: <mdn-opt>
 # @DESCRIPTION: open md-raid block device
 mdopen() {
 	local _dev=${1%+*} _conf _opt=$(echo "$1" | cut -d+ -f2 -s) _set _uuid
@@ -439,6 +462,7 @@ mdopen() {
 
 # @FUNCTION: squashd
 # @EXTERNAL
+# @USAGE: indirectly given by sqfsdir and sqfsd
 # @DESCRIPTION: mount squashed, aufs+squashfs, dirs
 squashd() {
 	local IFS="${IFS}:"
@@ -461,6 +485,7 @@ squashd() {
 
 # @FUNCTION: domount
 # @EXTERNAL
+# @UAGE: indirectly given by /etc/fstab
 # @DESCRIPTION: mount, /usr for example, extra block device using /etc/fstab
 # before switching root
 domount() {
