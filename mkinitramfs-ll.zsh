@@ -146,6 +146,7 @@ if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
 	[[ -d ${opts[-initdir]} ]] || die "${opts[-initdir]}: no old initramfs dir"
 	print -P "%F{green}>>> regenerating ${opts[-initramfs]}...%f"
 	pushd ${opts[-initdir]} || die
+	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions.sh usr/lib/mkinitramfs-ll &&
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 	docpio || die
 	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f" && exit
