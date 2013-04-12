@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.0 2013/04/12 03:50:01 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.0 2013/04/12 05:15:21 -tclover Exp $
 revision=0.12.0
 
 # @FUNCTION: usage
@@ -61,12 +61,16 @@ adn() {
 	[[ -c dev/console ]] || mknod -m 600 dev/console c 5 1 || die
 	[[ -c dev/urandom ]] || mknod -m 666 dev/urandom c 1 9 || die
 	[[ -c dev/random ]]  || mknod -m 666 dev/random  c 1 8 || die
-	[[ -c dev/mem ]]     || mknod -m 640 dev/mem     c 1 1 || die
+	[[ -c dev/mem ]]     || mknod -m 640 dev/mem     c 1 1 && chmod 0:9 || die
 	[[ -c dev/null ]]    || mknod -m 666 dev/null    c 1 3 || die
 	[[ -c dev/tty ]]     || mknod -m 666 dev/tty     c 5 0 || die
 	[[ -c dev/zero ]]    || mknod -m 666 dev/zero    c 1 5 || die
-	for nod ($(seq 0 6)) [[ -c dev/tty${nod} ]] ||
-		mknod -m 600 dev/tty${nod} c 4 ${nod} || die
+
+	for nod ($(seq 0 6)) [[ -c dev/tty${n} ]] ||
+		mknod -m 600 dev/tty${nod} c 4 ${n} || die
+
+	for n ($(seq 64 67)) [[ -c dev/ttyS${n} ]] ||
+		mknod -m660 dev/ttyS${n} c 4 ${n} && chmod 0:14 || die
 }
 
 setopt EXTENDED_GLOB NULL_GLOB
@@ -167,7 +171,8 @@ mkdir -p run lib${opts[-arc]}/{modules/${opts[-kversion]},mkinitramfs-ll} || die
 ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 
-cp -a /dev/{console,random,urandom,mem,null,tty,tty[0-6],zero} dev/ || adn
+cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6],S[0-4]},zero} dev/ ||
+	adn
 if [[ ${${(pws:.:)opts[-kversion]}[1]} -eq 3 ]] &&
 	[[ ${${(pws:.:)opts[-kversion]}[2]} -ge 1 ]] {
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
