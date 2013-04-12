@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.0 2013/04/12 06:02:20 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.0 2013/04/12 06:13:13 -tclover Exp $
 
 # @FUNCTION: info
 # @EXTTERNAL
@@ -453,8 +453,8 @@ squashd() {
 		debug mkdir -p -m 0755 .$_bdir/rw .$_bdir/rr ./$_dir
 		if [ -z "$(mount -t aufs | grep $_dir)" ]; then
 			[ -z "$(mount -t squashfs | grep $_bdir/rr)" ] &&
-   				debug -d mount -tsquashfs -onodev,loop,ro .$_bdir.sfs .$_bdir/rr
-			mount -taufs -onodev,udba=reval,br:.$_bdir/rw:.$_bdir/rr $_dir $_dir
+   				debug -d mount -tsquashfs -onodev,loop,ro .$_bdir.sfs .$_bdir/rr &&
+				mount -taufs -onodev,udba=reval,br:.$_bdir/rw:.$_bdir/rr $_dir $_dir
 		fi
 	done
 }
