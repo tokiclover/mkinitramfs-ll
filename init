@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.0 2013/04/09 12:57:08 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.0 2013/04/12 04:37:26 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -33,8 +33,9 @@
 # @DEFAULT_SET
 # @DESCRIPTION: splash deamon running variable
 
-export eck=true init=/sbin/init initlib=/lib/mkinitramfs-ll
-export map=root sh=/bin/sh logfile=$0.log spld=false
+export init=/sbin/init initlib=/lib/mkinitramfs-ll moddir=/etc/mkinitramfs-ll.d
+export eck=true logfile=$0.log map=root sh=/bin/sh spld=false
+export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin 
 
 source $initlib/functions.sh || $sh -a
 
@@ -355,12 +356,12 @@ _getopts() {
 					sqfsd="$(echo ${isqfsd#*,} | cut -c3-)"
 				fi
 				;;
-			*init=*) export init="${arg#*=}"
+			i[dklmn]*) export "$arg"
 				;;
 			ishrl=*) shlevel=$(echo ${arg#*=}|cut -d: -f1)
 				runlevel=$(echo ${arg#*=}|cut -d: -s -f2)
 				;;
-			dmesg|i[klm]*|*root*|*resume*|*swap*|splash*|console*) export "$arg"
+			dmesg|*root*|*resume*|*swap*|splash*|console*) export "$arg"
 				;;
 	   	 esac
 	done
@@ -370,22 +371,23 @@ _getopts() {
 # @INTERNAL
 # @DESCRIPTION: pre-init or initialization function before calling the main loop
 _init() {
-	debug export PATH=/sbin:/bin:/usr/bin:/usr/sbin HOME=/root \
-		moddir=/etc/mkinitramfs-ll.d
-	debug umask 0077
 
 	debug -d mkdir -p dev/pts proc run sys newroot mnt/tok
 	debug -d mount -t proc proc /proc
+	
+	debug _getopts
+	
+	[ -n "$idebug" ] && set -x
+
+	debug -d mount -t sysfs sysfs /sys
 	debug -d mount -t tmpfs -o mode=755 tmpfs /run
 	debug -d mkdir -p /run/log && export logdir=/run/log
 	
-	mv -f $logfile $logdir
+	debug umask 0077
+
+	debug mv -f $logfile $logdir
 	
 	$eck && debug ack
-	
-	debug -d mount -t sysfs sysfs /sys
-	
-	debug _getopts
 	
 	[ -n "$dmesg" ] && debug dmesg -n $dmesg
 	

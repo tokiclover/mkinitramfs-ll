@@ -134,6 +134,10 @@ KERNEL-COMMAND-LINE-ARG: @dmesg=emerg|alert|crit|err|..|debug@
 DESCRIPTION: optional dmesg log level priority
 EXAMPLE: @dmesg=alert@ set dmesg to alert level
 
+KERNEL-COMMAND-LINE-ARG: @idebug=<char>|<word>@
+DESCRIPTION: optionaly enable debugging, shell tracing precisely
+EXAMPLE: @idebug=y@ enable shell tracing
+
 init script accept also @single@, @ro@ and @rw@ kernel cmdline argument
 and will append single runlevel to real init. 
 
