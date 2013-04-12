@@ -54,7 +54,7 @@ DESCRIPTION: root block device, required,
 EXAMPLE: @iroot=vg-root:c:ext4@ for an ext4 rootfs in LVM (Volume Group is named vg),
 	or @iroot=POOL/root::zfs@ for zfs rootfs in a zfs pool called POOL.
 
-*Note*: @:[n|no|N|NO]:@ instead of @[c|chk|y:@ will disable a die after fsck failure.
+*Note*: @:[n|no|N|NO]:@ instead of @[c|chk|y:]@ will disable a die after fsck failure.
 
 KERNEL-COMMAND-LINE-ARG: @imopt=<ro,inode64,...>@
 DESCRIPTION: optional rootfs mount options
@@ -79,7 +79,7 @@ DESCRIPTION: optional keymap and font to load, handy for passwords
 EXAMPLE: @ikmap=fr-x86_64.bin:ter-g12n.psf@
 
 KERNEL-COMMAND-LINE-ARG: @ishrl=<n>|:<n>@
-DESCRIPTION: interrupt init and drop to <n> level or pass <n> to real init
+DESCRIPTION: interrupt init and drop to @<n>@ level or pass @<n>@ to real init
 EXAMPLE: @ishrl=3s@ drop to @3s@ (before squahsd()) init level,
 	or @ishrl=:1@ pass @1@, so single to real init
 
@@ -100,6 +100,7 @@ EXAMPLE: @lvm=pva-sda1:pvb-sdb1,pvc-sda1@ assigne a single PV to swap group,
 
 *Note*: This argument is used only in case of dm-crypt LUKS crypted PVs.
 Unencrypted PVs do _not_ require this!
+Asingle character or word is sufficient in that case.
 
 KERNEL-COMMAND-LINE-ARG: @iraid=<array>+UUID=<uuid>[|<p>|<f>]@
 DESCRIPTION: comma separated list of arrays for root, swap and resume
@@ -111,7 +112,7 @@ EXAMPLE: e.g. @iswap=swap:sda2@ for an unencrypted swap device
 
 KERNEL-COMMAND-LINE-ARG: @iresume=<type>:<VG-LV>[:signature]@
 DESCRIPTION: the equivalent of @iroot@ for resume
-EXAMPLE: e.g. @iresume=file:<VG-LV>:0x4400@ for a swapfile in a Logical Volume
+EXAMPLE: e.g. @iresume=file:<VG-LV>[:<signature>]@ for a swapfile in a Logical Volume
 
 KERNEL-COMMAND-LINE-ARG: @ikroot=<mode>:<device>:</path/to/file>@
 DESCRIPTION: key [file] mode for @iroot@ group
@@ -133,7 +134,7 @@ KERNEL-COMMAND-LINE-ARG: @dmesg=emerg|alert|crit|err|..|debug@
 DESCRIPTION: optional dmesg log level priority
 EXAMPLE: @dmesg=alert@ set dmesg to alert level
 
-init script accept also @single@, @ro@ and rw@ kernel cmdline argument
+init script accept also @single@, @ro@ and @rw@ kernel cmdline argument
 and will append single runlevel to real init. 
 
 It also support @splash=silent,fadein,theme:emergence console=[/dev/]tty1@
@@ -146,7 +147,7 @@ blk() will take care of it.
 Now one can use @UUID=<uuid>@ or @LABEL=<label>@ instead of 
 @[/dev/]sd[a-z0-9]@ for any block device or physical volume. 
 However, a leading plus @+@ is used as a separator for
-detached header device|file when using:
+detached header device|file when using dm-crypt LUKS:
 @<map-UUID=<uid>[+UUID=<uuid>|</path/to/header/file>]@
 
 Each encrypted PV, with a detached header is given like:
@@ -157,7 +158,7 @@ Each encrypted PV, with a detached header is given like:
 	passed as @--header /mnt/tok/path/to/header/file@ to dmopen().
 
 *Note*: So in this case, the header file must be in the same removable device
-or @/boot@ PV used for key-files.
+or @/boot@ volume used for key-files.
 Because it'll be too troublesome to make it otherwise.
 
 *Warning*: Of course, a detached header to a device should use an UUID or a LABEL
@@ -193,12 +194,12 @@ h3. 4. About LVM argument
 
 Actually a PV in a group, respectively root, swap, resume is given by
 @<mapping>-<device>@, mapping being a mapping name for cryptsetup and
-a block device|partition without the @/dev/@ prefix.
+a block device/volume without the optional @/dev/@ prefix.
 
 * LV, PV, VG: Logical Volume, Physical Volume, Volume Group.
 * @map-PV@: is a colon separated list @<mapping-PV>@ e.g. @<pv1-sda1:pv2-sdb1:...>@
 for a Volume Group, the 1st being for root, the 2nd for swap and the 3rd for resume;
-so this @ilvm=,swp-sdc1,@ asign only a VG for swap.
+so this @ilvm=,swp-sdc1,@ asign only a LV for swap.
 
 *NOTE*: for unencrypted PVs, there's no need to provide a list of PVs in @ilvm@ arg.
 A single character or word is enough to activate LVM like @ilvm=y@ for root.
@@ -216,8 +217,8 @@ h3. 4. About mount options: @imopt=<rootfs mount options>@
 
 Say, you have a @rootfs=xfs[|jsf|reiser|ext*]@ and want to mount your rootfs
 with specific opts. In case of xfs, for exemple, just create your log volume
-on a different volume than what you're logging from and everything is set up
---well if the logging volume is in the swap group--and, in fact, you do 
+on a different volume than what you're logging from and everything is set up--
+well if the logging volume is in the swap group--and, in fact, you do 
 not need a swap volume there--you just use that group as if there were one. 
 
 h3. 5. About supported key modes
@@ -228,11 +229,11 @@ physical volume as a fall back.
 
 * @<mode>@: defines how the init script shall treat the supplied key:
 
-** @gpg@  -> key-file is GnuPG encrypted file
-** @ldk@  -> key-file is LUKS encrypted, via loop back device
-** @reg@  -> key-file is a regular file
-** @pwd@  -> encrypted on a regular passphrase
-** @none@ -> handy for unencrypted volumes
+** @gpg@: key-file is GnuPG encrypted file
+** @ldk@: key-file is LUKS encrypted, via loop back device
+** @reg@: key-file is a regular file
+** @pwd@: encrypted on a regular passphrase
+** @none@: handy for unencrypted volumes
 
 * @<device|dev>@ is a block device that will be assigned to the removable media
 * @</path/to/file>@ is a full path to file inside the removable media
@@ -241,13 +242,14 @@ physical volume as a fall back.
 
 * @gpg@: GnuPG encrypted key-file support only gnupg-1.4*,
 	used as @gpg -qd /path/to/keyfile |@. One can add a @/root/.gnupg/gpg.conf@
-	in the initramfs root to avoid its creattion on each boot 
+	in the initramfs root to avoid its creattion on each boot, a simple file
+	is already included in the package
 * @ldk@: encrypted key-file passed to cryptsetup as
 	@-d /dev/mapper/$(basename /path/to/keyfile)@ after decryption 
-* @reg@: regular keyfile passed to cryptsetup as @-d /path/to/keyfile@
+* reg@: regular keyfile passed to cryptsetup as @-d /path/to/keyfile@
 * @pwd@: regular passphrase: it's not mandatory to append any
 	@ikroot[|swap|resume]=pwd@ (fallback keymode)
-* @none@ : unencrypted block device which should be explicitely appended 
+* @none@: unencrypted block device which should be explicitely appended 
 	
 h3. 6. About squashed directories 
 
@@ -264,47 +266,49 @@ Squashed directories argument:
 * @isqfsd=y,y@
 	using sqfsd and sqfsdir default values do not require any additional argument. 
 * @isqfsd=y,a:<dir 1>[:<dir n>]@
-	same as above, however, <dir 1>[:<dir n>] is  appended to sqfsd variable.
+	same as above, however, @<dir 1>[:<dir n>]@ is  appended to sqfsd variable.
 
 *Warn*: leading '/' slash is only required for @sqfsdir@, else mounting squashed dirs will fail. 
 
 h3. 7. Kernel parameters example
 
 DESCRIPTION: unencrypted Root LV
-EXAMPLE: iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin:ter-g12n.psf
+EXAMPLE: @iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin:ter-g12n.psf@
 
-*Note*: one can append any character or word like `ilvm=lvr`
+*Note*: one can append any character or word like @ilvm=lvr@
 when using LVM on unencrypted PVs.
 
 DESCRIPTION: Root--regular passphrase--and fbsplash
-EXAMPLE: iroot=sda3 ikroot=pwd video=1280x800-24 imod=drm,drm_kms_helper,ttm,i915 \
-	splash=verbose,theme:livecd-20007.0,tty:1
+EXAMPLE: @iroot=root-sda3 video=1280x800-24 imod=drm,drm_kms_helper,ttm,i915 \
+	ikroot=pwd splash=verbose,theme:livecd-20007.0,tty:1@
 
 DESCRIPTION: Root--regular key-file--on usb device
-EXAMPLE: iroot=sda3 ikroot=reg:sdb1:/path/to/keyfile
+EXAMPLE: @iroot=root-sda3 ikroot=reg:sdb1:/path/to/keyfile@
 
 DESCRIPTION: Root--gpg encrypted key-file on usb drive
-EXAMPLE: iroot=sda3 ikroot=gpg:sdb1:/path/to/file
+EXAMPLE: @iroot=sda3 ikroot=gpg:sdb1:/path/to/file@
 
 DESCRIPTION: Swap and root--ldk encrypted--key-files
-EXAMPLE: iroot=sda3 iswap=swap[|file]:sda2[:signature] \
-	ikroot=ldk:sdb1:/path/to/rootkey ikswap=ldk:sdb1:/path/to/swapkey
+EXAMPLE: @iroot=root-sda3 iswap=swap[|file]:data-sda2[:signature] \
+	ikroot=ldk:sdb1:/path/to/rootkey ikswap=ldk:sdb1:/path/to/swapkey@
 
 DESCRIPTION: Regular swap _and_ TuxOnIce resume on a different volume
-EXAMPLE: iswap=swap:sda2 iresume=swap:sda3:0x4400 ikswap=pwd ikresume=pwd
+EXAMPLE: @iswap=swap-sda2 iresume=toi-sda3:0x4400 ikswap=pwd ikresume=pwd@
 
 DESCRIPTION: Swap file--resuming from hibernation--ldk protected key-file
-EXAMPLE: iswap=file:sda3:0x4400 iresume=toi[|CHAR|WORD] ikswap=ldk:sdb1:/path/to/swapkey
+EXAMPLE: @iswap=file:swap-sda3:0x4400 iresume=toi[|CHAR|WORD] \
+	ikswap=ldk:sdb1:/path/to/swapkey@
 
 DESCRIPTION: crypted volume [root,swap] using LVM--ldk crypted keyfile and--
 _and_ mount options for rootfs
-EXAMPLE: iroot=vgr-lvr:c:xfs iswap=file:vgs-lvs:0x4400 \
+EXAMPLE: @iroot=vgr-lvr:c:xfs iswap=file:vgs-lvs:0x4400 \
 	imopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier \
-	ilvm=pva1-UUID=<uuid>:pvb2-UUID=<uuid>,pvc1-UID=<uuid> \
+	ilvm=pva1-UUID=uuida:pvb2-UUID=uuidb,pvc1-UID=uuidc \
 	ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile \
-	ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile
+	ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile@
 
-*NOTE*: multiple key-files (one for each group) are supported along with single key file. 
+*NOTE*: multiple key-files (one for each group) are supported along with single
+a key file. 
 
 h3. 8. Kernel module groups
 
@@ -314,15 +318,15 @@ Or else, append a comma seperated list on cmdline using @imod=@ arg.
 
 Supported groups:
 
-* boot: boot up modules, loaded but not removed
-* dm-crypt: automaticaly generated with mkinitramfs-ll.$shell (dm-crypt module group)
-* devide-mapper: automaticaly generated included script (device-mapper module group)
-* dm-raid: automaticaly generated with included script (dmraid module group)
-* raid: automaticaly generated with mkinitramfs-ll.$shell (mdadm/raid module group)
-* tuxonice: tuxonice module, wich aren't removed
-* remdev: modules required to access removable device
-* gpg: modules required to access gpg crypted key-file
-* sqfsd: modules required for squashfs+aufs, can be built into the kernel
+* @boot@: boot up modules, loaded but not removed
+* @dm-crypt@: automaticaly generated with mkinitramfs-ll.$shell (dm-crypt module group)
+* @devide-mapper@: automaticaly generated included script (device-mapper module group)
+* @dm-raid@: automaticaly generated with included script (dmraid module group)
+* @raid@: automaticaly generated with mkinitramfs-ll.$shell (mdadm/raid module group)
+* @tuxonice@: tuxonice module, wich aren't removed
+* @remdev@: modules required to access removable device
+* @gpg@: modules required to access gpg crypted key-file
+* @sqfsd@: modules required for squashfs+aufs, can be built into the kernel
 
 Modules should exist in @/lib/modules/$KV/@, the kernel should support modules [un]loading.
 Just make sure to append the necessary modules to the right group in mkinitramfs-ll.conf for
@@ -335,10 +339,11 @@ Now one can add scripts to @/etc/mkinitramfs-ll.d@ of the initramfs root, or els
 @$gitdir/usr/etc/mkinitramfs-ll.d@ if using mkinitramfs-ll.$shell generating script. 
 
 Each script  should have a @.$level@ sufix as the follwing:
-* runlevel 1:  initialization -> splash -> keymap -> font -> print boot msg -> 1
-* runlevel 2?: 2s -> swap -> 2r -> resume -> rootfs ->
-* runlevel 3?: 3d -> decrypt -> 3f -> rootfs fsck -> 3m -> root mount ->
-* runlevel 4?: 4c -> clean up -> 4m -> mount /usr:/var... -> 4u -> umount -> 4s -> switch root
+* runlevel 1:  initialization -- splash -- keymap -- font -- print boot msg -- @1@
+* runlevel 2?: @2s@ -- swap -- @2r@ -- resume -- rootfs --
+* runlevel 3?: @3d@ -- decrypt -- @3f@ -- rootfs fsck -- @3m@ -- root mount --
+* runlevel 4?: @4c@ -- clean up -- @4m@ -- mount /usr:/var... -> @4u@ --
+	umount -- @4s@ -- switch root
 
 *Info*: See zfs module for more info and a praticable example.
 
