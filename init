@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.0 2013/04/12 04:37:26 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.0 2013/04/12 05:18:12 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -418,7 +418,7 @@ _init() {
 	[ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
 
 :	${console:=/dev/tty1}
-	[ -n "$(echo $console | grep /dev)" ] || console="/dev/$tty"
+	[ -n "$(echo $console | grep /dev)" ] || console="/dev/$console"
 	exec 0<$console 1>$console 2>&1
 	export console
 
