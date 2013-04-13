@@ -58,7 +58,7 @@ EXAMPLE: @iroot=vg-root:c:ext4@ for an ext4 rootfs in LVM (Volume Group is named
 
 KERNEL-COMMAND-LINE-ARG: @imopt=<ro,inode64,...>@
 DESCRIPTION: optional rootfs mount options
-EXAMPLE: @imopt=inode64,noatime,ro@ for xfs file system
+EXAMPLE: @imopt=inode64,noatime,ro@ for xfs file system@
 
 @KERNEL-COMMAND-LINE-ARG: @imount=</usr:/var:...>@
 @DESCRIPTION: mount /usr:/var using the included @/etc/fstab@
