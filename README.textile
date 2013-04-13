@@ -54,7 +54,8 @@ DESCRIPTION: root block device, required,
 EXAMPLE: @iroot=vg-root:c:ext4@ for an ext4 rootfs in LVM (Volume Group is named vg),
 	or @iroot=POOL/root::zfs@ for zfs rootfs in a zfs pool called POOL.
 
-*Note*: @:[n|no|N|NO]:@ instead of @[c|chk|y:]@ will disable a die after fsck failure.
+*Note*: @:[n|no|N|NO]:@ instead of @[c|chk|check|y|Y|yes|YES:]@
+will disable a die after fsck failure.
 
 KERNEL-COMMAND-LINE-ARG: @imopt=<ro,inode64,...>@
 DESCRIPTION: optional rootfs mount options
