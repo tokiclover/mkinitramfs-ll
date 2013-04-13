@@ -286,7 +286,7 @@ EXAMPLE: @iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin:ter-g12n.psf
 when using LVM on unencrypted PVs.
 
 DESCRIPTION: Root--regular passphrase--and fbsplash
-EXAMPLE: @iroot=root-sda3 video=1280x800-24 imod=drm,drm_kms_helper,ttm,i915 \
+EXAMPLE: @iroot=root-sda3 video=1280x800-24 imod=drm,drm_kms_helper,ttm,i915 
 	ikroot=pwd splash=verbose,theme:livecd-20007.0,tty:1@
 
 DESCRIPTION: Root--regular key-file--on usb device
@@ -296,22 +296,22 @@ DESCRIPTION: Root--gpg encrypted key-file on usb drive
 EXAMPLE: @iroot=sda3 ikroot=gpg:sdb1:/path/to/file@
 
 DESCRIPTION: Swap and root--ldk encrypted--key-files
-EXAMPLE: @iroot=root-sda3 iswap=swap[|file]:data-sda2[:signature] \
+EXAMPLE: @iroot=root-sda3 iswap=swap[|file]:data-sda2[:signature] 
 	ikroot=ldk:sdb1:/path/to/rootkey ikswap=ldk:sdb1:/path/to/swapkey@
 
 DESCRIPTION: Regular swap _and_ TuxOnIce resume on a different volume
 EXAMPLE: @iswap=swap-sda2 iresume=toi-sda3:0x4400 ikswap=pwd ikresume=pwd@
 
 DESCRIPTION: Swap file--resuming from hibernation--ldk protected key-file
-EXAMPLE: @iswap=file:swap-sda3:0x4400 iresume=toi[|CHAR|WORD] \
+EXAMPLE: @iswap=file:swap-sda3:0x4400 iresume=toi[|CHAR|WORD] 
 	ikswap=ldk:sdb1:/path/to/swapkey@
 
 DESCRIPTION: crypted volume [root,swap] using LVM--ldk crypted keyfile and--
 _and_ mount options for rootfs
-EXAMPLE: @iroot=vgr-lvr:c:xfs iswap=file:vgs-lvs:0x4400 \
-	imopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier \
-	ilvm=pva1-UUID=uuida:pvb2-UUID=uuidb,pvc1-UID=uuidc \
-	ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile \
+EXAMPLE: @iroot=vgr-lvr:c:xfs iswap=file:vgs-lvs:0x4400 
+	imopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier 
+	ilvm=pva1-UUID=uuida:pvb2-UUID=uuidb,pvc1-UID=uuidc 
+	ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile 
 	ikswap=ldk:LABEL=PENDRIVE:/path/to/keyfile@
 
 *NOTE*: multiple key-files (one for each group) are supported along with single
