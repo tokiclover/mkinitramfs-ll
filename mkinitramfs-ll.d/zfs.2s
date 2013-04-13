@@ -1,13 +1,11 @@
 # $Id: mkinitramfs-ll.d/zfs.2s,v 0.12.0 2012/11/09 20:30:32 -tclover Exp $
 
 set -e +x
-source $moddir/zfs
+source $MODDIR/zfs
 
 if [ -n "$(echo "$izfs" | cut -d, -s -f2)" ] || [ "${iswap##*:}" = "zfs" ]; then
 	debug -d source "$moddir"/zfs
 	debug -d dozfs "$(echo "$iroot" | cut -d: -f1)" "$(echo "$izfs" | cut -d, -f1)"
 fi
-
-echo 'swap=swap' >> /run/env
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
