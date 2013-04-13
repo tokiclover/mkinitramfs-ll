@@ -111,7 +111,8 @@ DESCRIPTION: the equivalent of @iroot@ for swap
 EXAMPLE: e.g. @iswap=swap:sda2@ for an unencrypted swap device
 
 KERNEL-COMMAND-LINE-ARG: @iresume=<type>:<VG-LV>[:signature]@
-DESCRIPTION: the equivalent of @iroot@ for resume
+DESCRIPTION: the equivalent of @iroot@ for resume, to resume from the already
+swap passed in the command line, one need only a @iresume=swap@ cmdline.
 EXAMPLE: e.g. @iresume=file:<VG-LV>[:<signature>]@ for a swapfile in a Logical Volume
 
 KERNEL-COMMAND-LINE-ARG: @ikroot=<mode>:<device>:</path/to/file>@
