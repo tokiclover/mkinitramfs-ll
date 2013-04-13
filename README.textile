@@ -40,6 +40,7 @@ One can get more info on the scripts by running @$script -u@
 There's no support building at hand without the associated generating scripts!
 
 *New:* mkinitramfs-ll-0.12.0 allow to be dropped on each read() (infinite loop).
+Just type @sh@ or @shellà and then hit Enter.
 
 h3. 2. _Optional_ kernel cmdline option or arguments
 
