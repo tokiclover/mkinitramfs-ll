@@ -363,9 +363,7 @@ include zfs module or build an initramfs with something like:
 (kernel modules would be rightly added).
 
 *IMPORTANT*: So either way one can append @::zfs@ to @iroot@ argument for
-unencrypted vdev(s) or @:zfs@ to @iswap@ or @iresume@;
+[un]encrypted vdev(s) or @:zfs@ to @iswap@ or @iresume@;
 or either @izfs@ will suffice for encrypted vdev(s); or else both.
-
-*WARNING*: Back up your data! else... you may lose a few of... them by carelessness.
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
