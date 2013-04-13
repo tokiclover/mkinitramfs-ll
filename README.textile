@@ -253,9 +253,10 @@ physical volume as a fall back.
 * @ldk@: encrypted key-file passed to cryptsetup as
 	@-d /dev/mapper/$(basename /path/to/keyfile)@ after decryption 
 * reg@: regular keyfile passed to cryptsetup as @-d /path/to/keyfile@
-* @pwd@: regular passphrase: it's not mandatory to append any
-	@ikroot[|swap|resume]=pwd@ (fallback keymode)
-* @none@: unencrypted block device which should be explicitely appended 
+* @pwd@: regular passphrase: it's mandatory to append any
+	@ikroot[|swap|resume]=pwd@ (fallback keymode for crypted devices)
+* @none@: unencrypted block device, it's not mandatory to append this
+	key mode: this the default (v0.12.0)
 	
 h3. 6. About squashed directories 
 
