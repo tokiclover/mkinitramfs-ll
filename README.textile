@@ -39,8 +39,7 @@ One can get more info on the scripts by running @$script -u@
 *Warn*: mkinitramfs-ll-0.12.0 or later require the associated usr directory.
 There's no support building at hand without the associated generating scripts!
 
-*New:* mkinitramfs-ll-0.12.0 allow to be dropped in a shell while being asked
-for a block device (infinite loop).
+*New:* mkinitramfs-ll-0.12.0 allow to be dropped on each read() (infinite loop).
 
 h3. 2. _Optional_ kernel cmdline option or arguments
 
