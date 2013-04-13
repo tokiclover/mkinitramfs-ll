@@ -1,10 +1,10 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.0 2013/04/12 05:18:12 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.0 2013/04/13 20:22:49 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
-# @VARIABLE: eck
+# @VARIABLE: ECK
 # @DEFAUT_SET
 # @DESCRIPTION: Environment ChecK, whether or not to check binaries
 # and busybox applets
@@ -13,45 +13,40 @@
 # @DEFAULT_SET
 # @DESCRIPTION: real init
 
-# @VARIABLE: initlib
+# @VARIABLE: INITLIB
 # @DEFAULT_SET
 # @DESCRIPTION: path to default mkinitramfs-ll library dir
-
-# @VARIABLE: map
-# @DEAULT_SET
-# @DESCRIPTION: root dm-crypt LUKS mapping
 
 # @VARIABLE: sh
 # @DEFAULT_SET
 # @DESCRIPTION: shell for scripts and user scripts execution and rescue shell
 
-# @VARIABLE: logfile
+# @VARIABLE: LOGFILE
 # @DEFAULT_SET
 # @DESCRIPTION: log file to log execution commands for debugging
 
-# @VARIABLE: spld
-# @DEFAULT_SET
-# @DESCRIPTION: splash deamon running variable
+# @VARIABLE: level
+# @DESCRIPTION: au seted variable, dolevel(), to hold the running level
 
-export init=/sbin/init initlib=/lib/mkinitramfs-ll moddir=/etc/mkinitramfs-ll.d
-export eck=true logfile=$0.log map=root sh=/bin/sh spld=false
+export init=/sbin/init INITLIB=/lib/mkinitramfs-ll MODDIR=/etc/mkinitramfs-ll.d
+export ECK=true LOGFILE=$0.log sh=/bin/sh SPLD=false
 export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin 
+export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-> '
 
-source $initlib/functions.sh || $sh -a
+source $INITLIB/functions.sh || $sh -a
 
 # @FUNCTION: dolevel
 # @INTERNAL
 # @DESCRIPTION: make run level and drop to rescue shell if $level = $shlevel
 dolevel() {
 	local _msg="Switching to init shell run level: $1"
-	echo -ne ">>> $_msg\n"
-	msg ">>> $_msg"
+	msg -i ">>> $_msg"
 	export level=$1
 
-	local _file="$(ls $moddir/*.$1 2>/dev/null)"
+	local _file="$(ls $MODDIR/*.$1 2>/dev/null)"
 	if [ -n "$_file" ]; then
 		for _f in $_file; do
-			info "exec: $sh -aex $_f..."
+			msg -i "exec: $sh -aex $_f..."
 			debug -d $sh -aex $_f
 			if [ -f /run/env ]; then
 				while read line; do
@@ -59,7 +54,7 @@ dolevel() {
 				done </run/env
 				rm -f /run/env; fi
 			[ -f /run/${_s##*/}.pid ] && rm -f /run/${_s##*/}.pid && debug die
-			exec 0<$console 1>$console 2>&1	
+			exec 0<$CONSOLE 1>$CONSOLE 2>&1	
 		done
 	fi
 
@@ -67,18 +62,22 @@ dolevel() {
 	return 0
 }
 
+# @VARIABLE: SPLD
+# @DEFAULT_SET
+# @DESCRIPTION: splash deamon running variable
+
 # @FUNCTION: spld
 # @INTERNAL
 # @DESCRIPTION: run splash deamon
 spld() {
-	$eck && for bin in fbcondecor_helper splash_util; do 
+	$ECK && for bin in fbcondecor_helper splash_util; do 
 		debug -d bck $bin
 	done
 	local IFS="${IFS}," _opt _opts cachedir event mode msg theme util
 	event="$(grep -Hsi keyboard /sys/class/input/input*/name | \
 		sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"
 :	${cachedir:=/run/splash/cache}
-	splu=$(which splash_util)
+:	${splu=$(which splash_util)}
 :	${BOOT_MSG:="Booting the system (\$progress%)... Press F2 for verbose mode."}
 :	${SPLASH_FIFO=$cachedir/.splash}
 	export BOOT_MSG cachedir SPLASH_FIFO
@@ -89,7 +88,7 @@ spld() {
 				;;
 			silent|verbose) mode=$_opt
 				;;
-			tty) console=/dev/${_opt/:/}
+			tty) export CONSOLE=/dev/${_opt/:/}
 				;;
 			theme) theme=${_opt#*:}
 				;;
@@ -98,333 +97,301 @@ spld() {
 
 	[ -d "$cachedir" ] || mkdir -p $cachedir
 	debug mkfifo $SPLASH_FIFO
-	debug $splu -d -ms -t$theme && spld=true
+	debug $splu -d -ms -t$theme && SPLD=true
 	[ -n "$_opts" ] && debug cmd $_opts
 	debug cmd "set event dev /dev/input/$event"
 	debug cmd "set autoverbose 0"
 	debug ${mode:-verbose}
 }
 
-# @FUNCTION: dorootfs
+# @FUNCTION: gbk
 # @INTERNAL
-# @DESCRIPTION: mount rootfs on /newroot before switching to real init
-dorootfs() {
-	debug -d"iroot=<PV|VG-LV>[:<c>:<fs>] argument is missing" test -n "$iroot"
-	local _dev=${iroot%%:*}
-	local _fsck="$(echo "$iroot" | cut -d: -s -f2)"
-	local _fs="$(echo "$iroot" | cut -d: -s -f3)"
-:	local ${_lvm:=$(echo "$ilvm" | cut -d',' -f1)}
-:	local ${_raid:=$(echo "$iraid" | cut -d',' -f1)}
+# @USAGE: <dev> <key> <name> [<var>]
+# @DESCRIPTION: Get BlocK device
+gbk() {
+	local _prm="$1" _snd="$2" _trn="$3"
+	debug test -n "$_prm" && debug test -n "$_trn" ||
+		die "1st and/or 3rd requird arguments are missing"
+	local _grp _opt _ilvm _iraid _dev _typ _sig dev
 
-	debug -d stk "${ikroot:-pwd}" "root"
+	case $_trn in
+		root) _grp=1;;
+		swap) _grp=2;;
+		resu) _grp=3;;
+	esac
 
-	dolevel 3d
-	[ -n "$_raid" ] && mdopen "$_raid" "dev"
-
-	if [ -z "$rootfs" ]; then
-		if [ -n "$_lvm" ]; then
-			debug -d lvopen "$_dev" "$_lvm" "dev"
-		elif [ -n "$kmode" ]; then
-			[ "$kmode" != "none" ] && debug -d dmopen "${map:-root}-$iroot" "dev"
-			[ "$kmode" == "none" ] && debug -d blk "$_dev" "dev"
-		fi
-	
-		dolevel 3f
-		if [ -n "$_fsck" ]; then 
-			case $_fsck in
-				n*|N*) _fsck=-e
-					;;
-				c*|y*|Y*) _fsck=-d
-					;;
-				*) _fsck
-					;;
-			esac
-			debug $_fsck fsck ${_fs:+-t$_fs} $dev 
-		fi
-	
-		dolevel 3m
-		debug mount ${imopt:+-o$imopt} ${_fs:+-t$_fs} $dev /newroot ||
-		{
-			[ -n "$kmode" ] &&
-				debug -d dmclose "${_lvm:-${map:-root}}" "${_lvm:+${dev##*/}}" ||
-				die "failed to mount rootfs"
-		}
+	if [ "$_grp" != "1" ]; then
+		_opt=-s
+		arg "_typ" "$_prm" ":" "1"
+		arg "_dev" "$_prm" ":" "2" "-s"
+		arg "_sig" "$_prm" ":" "3" "-s"
+	else
+		arg "_dev" "$_prm" ":" "1"
 	fi
+
+	[ -n "$iraid" ] && debug arg "_raid" "$iraid" "," "$_grp" "$_opt"
+	[ -n "$ilvm"  ] && debug arg "_lvm" "$ilvm" "," "$_grp" "$_opt"
 	
-	dolevel 3s
-	[ -n "$sqfsd" ] && debug -d squashd
-	unset imopt iroot ikroot kmode sqfsdir sqfsd
-}
-
-# @FUNCTION: doswap
-# @INTERNAL
-# @DESCRIPTION: manage swap related stuff, decrypt...
-doswap() {
-	debug -d"i$1=<type>:<PV|VG-LV>[:<sign>] argument is missing" test -n "$2"
-	local _swp="$3" _type="${1%%:*}"
-	local _dev="$(echo "$1" | cut -d: -s -f2)" 
-	local _sign="$(echo "$1" | cut -d: -s -f3)"
-
-	debug -d stk "${2:-pwd}" "$_swp"
+	debug -d stk "${_snd:-pwd}" "$_trn"
 	
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "dev"
-	if [ "$swap" != "$3" ]; then
-		if [ -n "$_lvm" ]; then
-			debug -d lvopen "$_dev" "$_lvm" "dev"
-		elif [ "$kmode" != "none" ]; then
-			debug -d dmopen "$_swp-$dev" "dev"
-		elif [ "$kmode" == "none" ]; then
-			debug -d blk "$_dev" "dev"
-		fi
+	if [ -n "$_lvm" ]; then
+		debug -d lvopen "$_dev" "$_lvm" "dev"
+	elif [ "$keymode" != "none" ]; then
+		debug -d dmopen "$_dev" "dev"
+	elif [ "$keymode" == "none" ]; then
+		debug -d blk "$_dev" "dev"
 	fi
 
-	[ -n "$4" ] && eval ${4:-swp}=$_type:$dev${_sign+:$_sign}
-	unset i$1 ik$1 kmode
+	eval ${4:-$_trn}=${_typ:+$_typ:}$dev${_sig:+:$_sig}
 }
 
-# @FUNCTION: doresume
+# @FUNCTION: resume
 # @INTERNAL
-# @DESCRIPTON: resume after a hibernation, TuxOnIce may work, the kernal implementation
-# should be fixed/finished before use [WARN].
-doresume() {
-	local _asw _dev _img _msg _toi _spd
+# @USAGE: <[type:]dev[:signature]>
+# @DESCRIPTON: resume after a hibernation, TuxOnIce may work,
+# the intrnal kernal implementation should be fixed/finished before use
+resume() {
+	local _asw _dev=$1 _img _msg _hpr
 	_msg="Resuming from hibernation..."
-	info "$_msg"
-	msg "$_msg"
+	msg -i "$_msg"
 
-	if [ -n "$(echo "$iresume" | cut -d: -s -f2)" ]; then
-:		local ${_raid:=$(echo "$iraid" | cut -d',' -f3 -s)}
-:		local ${_lvm:=$(echo "$ilvm" | cut -d',' -f3 -s)}
-		debug -d doswap "$iresume" "$ikresume" "resume" "_dev"
-	fi
-	
 	debug -d mount -n -o remount,ro /newroot
 	
 	if [ -d /sys/power/tuxonice ]; then
-		_toi="$(which tuxoniceui_text)"
-:		${_toi:=$(which tuxoniceui_fbsplash)}
+		if $SPLD; then
+			[ -n "$theme" ] &&
+				debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
+			_toi:=$(which tuxoniceui_fbsplash)
+		else
+			_hpr="$(which tuxoniceui_text)"
+		fi
+		
 		debug _modprobe tuxonice
 		echo $_dev >/sys/power/tuxonice/resume
+
 		_img="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
 		if [ "$_img" = "1" ]; then 
-			error "toi: no recognizable signature at the pointed location"
-			error "toi: proceed anyway [NO|yes]? "
-			read _asw
+			msg -e "toi: no recognizable signature at the pointed location"
+			msg -e "toi: proceed anyway [ NO | yes ]? "
+			shread _asw
 			[ "${_asw:-no}" != "yes" ] && die "toi: resume aborted"
 		else
 			die "toi: no image found at the pointed location"
 		fi
-		if [ -n "$theme" ]; then
-			debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
-		fi
-		_stop
-		echo $_toi >/sys/power/tuxonice/user_interface/program
+
+		$SPLD && spld_stop
+
+		echo $_hpr >/sys/power/tuxonice/user_interface/program
 		echo >/sys/power/tuxonice/do_resume
 		echo >/sys/power/tuxonice/image_exists
 		debug _rmmod tuxonice
 	elif [ -f /sys/power/resume ]; then
-		_spd="$(which suspendui_text)"
-:		${_spd:=$(which suspendui_fbsplash)}
+		$SPLD && _spd:=$(which suspendui_fbsplash) ||
+			_hpr="$(which suspendui_text)"
+	
 		debug _modprobe swsusp
 		echo $_dev >/sys/power/disk/resume
 		_img="$(cat /sys/power/image_exists | head -n 1)"
+		
 		if [ "$_img" = "1" ]; then 
-			error "suspend: no recognizable signature at the pointed location"
-			error "suspend: proceed anyway [NO|yes]? "
-			read _asw
+			msg -e "swsusp: no recognizable signature at the pointed location"
+			msg -e "swsusp: proceed anyway [ NO | yes ]? "
+			shread _asw
 			[ "${_asw:-no}" != "yes" ] && die "suspend: resume aborted"
 		else
 			die "suspend: no image found at the pointed location"
 		fi
-		_stop
+
+		$SPLD && spld_stop
+
 		echo disk >/sys/power/state
 		debug _rmmod swsusp
 	else
-		error "no suspend/hibernation support found"
+		msg -e "no suspend/hibernation support found"
 	fi
 	
 	debug -d mount -n -o remount,rw /newroot
 	die "failed to resume from hibernation"
 }
 
-# @FUNCTION: doswitch
-# @INTERNAL
-# @DESCRIPTION: switch to new root
-doswitch() {
-	echo >/proc/sys/kernel/hotplug
-	local _msg="Switching / ..."
-	info "$_msg"; msg "$_msg"
-	debug _stop
-	sleep 1
-	dolevel 4u
-	debug -d umount -l /proc
-	debug -d umount -l /sys
-	debug -d umount -l /dev/pts
-	debug -d umount -l /dev
-	debug -d umount -l /run
-	dolevel 4s
-	debug -d exec switch_root /newroot ${init:-/sbin/init} $runlevel
-}
+# -*- Initialisation -*-
 
-# FUNCTION: main
-# @INTERNAL
-# @DESCRIPTION: main loop of mkinitrafs-ll
-main() {
-	debug _init
+debug -d mkdir -p dev/pts proc run sys newroot mnt/tok
+debug -d mount -t proc proc /proc
 
-	local _font=$(echo "$ikmap" | cut -d: -s -f2)
-	local _kmap=$(echo "$ikmap" | cut -d: -f1)
-	
-	if [ -n "$_kmap" ]; then
-		for _dir in /usr/share/keymaps /etc /; do
-			if [ -f "$_dir/$_kmap" ]; then
-				debug -d loadkmap <"$_dir/$_kmap" && break
-			fi
-		done
-	fi
+for arg in $(cat /proc/cmdline); do
+   	case $arg in
+		rescue*) export shlevel=1
+			;;
+		ro|rw) [ -n "$imtop" ] && imtopt="$arg,$imtopt" || imtopt="$arg"
+			export imtopt=$imtopt
+			;;
+		single) export runlevel=2
+			;;
+		i[dklmns]*) export "$arg"
+			;;
+		ishrl=*) arg "shlevel" "$arg" ":" "1"
+			arg "runlevel" "$arg" "2" "-s"
+			;;
+		dmesg|*root*|*resume*|*swap*|splash*|console*|CONSOLE) export "$arg"
+			;;
+   	 esac
+done
 
-	if [ -n "$_font" ]; then
-		for _dir in /usr/share/consolefonts /etc /; do
-			if [ -f "$_dir/$_font" ]; then
-				debug -d loadfont <"$_dir/$_font" && break
-			fi
-		done
-	fi
+[ -n "$idebug" ] && set -x
+
+debug -d mount -t sysfs sysfs /sys
+debug -d mount -t tmpfs -o mode=755 tmpfs /run
+debug -d mkdir -p /run/log
+
+debug umask 0077
+debug mv -f $LOGFILE /run/log && export LOGFILE=/run/log/$LOGFILE
+$ECK && debug ack
+[ -n "$dmesg" ] && debug dmesg -n $dmesg
+
+debug _modprobe boot
+
+if grep devtmpfs /proc/filesystems 1>/dev/null 2>&1; then
+	debug -d mount -t devtmpfs devtmpfs /dev
+else
+	debug -d mount -t tmpfs tmpfs /dev
+fi
+
+debug mkdir /dev/pts
+debug mount -t devpts -o gid=5,mode=0620 devpts /dev/pts
+
+echo >/dev/mdev.seq
+debug -d mdev -s
+echo /sbin/mdev >/proc/sys/kernel/hotplug
 	
-	[ -f /etc/issue.logo ] && cat /etc/issue.logo
-	debug test -f /etc/msg && clear &&
-	while read _line; do
-		info "$_line"
-		msg "$_line"
-	done </etc/msg
-	
-	debug _modprobe gpg
-	debug _modprobe remdev
-	dolevel 1
-	
-	if [ -n "$iswap" ]; then
-:		local ${_raid:=$(echo "$iraid" | cut -d',' -f2 -s)}
-:		local ${_lvm:=$(echo "$ilvm" | cut -d',' -f2 -s)}
-		dolevel 2s
-		doswap "$iswap" "$ikswap" "swap"
-	fi
-	
-	[ -n "$iresume" ] && dolevel 2r && debug doresume
-	
-	debug dorootfs
-	
-	dolevel 4c
-	local IFS="${IFS}:"
-	
-	for _k in $ldk; do
-		debug dmclose "$_k"
+if [ -n "$imod" ]; then
+	for _m in $(echo $imod | sed 's/,/ /g'); do 
+		debug modprobe $_m 1>/dev/null 2>&1
 	done
+fi
 	
-	for _d in $ldv; do
-		debug losetup -d $_d
+[ -h /dev/fd     ] || debug ln -fs /proc/self/fd   /dev/fd
+[ -n /dev/stderr ] || debug ln -fs /proc/self/fd/2 /dev/stderr
+[ -n /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
+[ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
+
+:	${CONSOLE:=/dev/console}
+[ -n "$(echo $CONSOLE | grep /dev)" ] || CONSOLE="/dev/$CONSOLE"
+exec 0<$CONSOLE 1>$CONSOLE 2>&1
+export CONSOLE
+
+[ -n "$splash" ] && debug spld
+
+debug _modprobe gpg
+debug _modprobe remdev
+
+dolevel 1
+
+# -*- Font -*-
+
+export font=$(echo "$ikmap" | cut -d: -s -f2)
+if [ -n "$font" ]; then
+	for _dir in /usr/share/consolefonts /etc /; do
+		if [ -f "$_dir/$font" ]; then
+			debug -d loadfont <"$_dir/$font" && break
+		fi
 	done
-	
-	debug _rmmod gpg
-	debug -d umount -f -l /mnt/tok
-	debug _rmmod remdev
-	
-	[ -n "$imount" ] && dolevel 4m && debug domount
-	
-	debug doswitch
-}
+fi
 
-# @FUNCTION: _getopts
-# @INTERNAL
-# @DESCRIPTION: get kernel commands line option
-_getopts() {
-	for arg in $(cat /proc/cmdline); do
-    	case $arg in
-			rescue*) shlevel=1
-				;;
-			ro|rw) [ -n "$imtop" ] && imtopt="$arg,$imtopt" || imtopt="$arg"
-				;;
-			single) runlevel=2
-				;;
-			isqfsd=*) export "$arg"
-				[ "${isqfsd%,*}" = "y" ] && sqfsdir="${sqfsdir:-/sqfsd}" ||
-					sqfsdir=${isqfsd%,*}
-				
-				if [ "${isqfsd#*,}" = "y" ]; then sqfsd="${sqfsd:-usr:opt:bin:sbin}"
-				elif [ "$(echo ${isqfsd#*,}|cut -d: -f1)" = "a" ]; then
-					sqfsd="${sqfsd:-usr:opt:bin:sbin}:$(echo ${isqfsd#*,} | cut -c3-)"
-				else
-					sqfsd="$(echo ${isqfsd#*,} | cut -c3-)"
-				fi
-				;;
-			i[dklmn]*) export "$arg"
-				;;
-			ishrl=*) shlevel=$(echo ${arg#*=}|cut -d: -f1)
-				runlevel=$(echo ${arg#*=}|cut -d: -s -f2)
-				;;
-			dmesg|*root*|*resume*|*swap*|splash*|console*) export "$arg"
-				;;
-	   	 esac
+# -*- Keymap -*-
+
+export keymap=$(echo "$ikmap" | cut -d: -f1)
+if [ -n "$keymap" ]; then
+	for _dir in /usr/share/keymaps /etc /; do
+		if [ -f "$_dir/$keymap" ]; then
+			debug -d loadkmap <"$_dir/$keymap" && break
+		fi
 	done
-}
+fi
 
-# @FUNCTION: _init
-# @INTERNAL
-# @DESCRIPTION: pre-init or initialization function before calling the main loop
-_init() {
+# -*- Logo and or boot message -*-
 
-	debug -d mkdir -p dev/pts proc run sys newroot mnt/tok
-	debug -d mount -t proc proc /proc
-	
-	debug _getopts
-	
-	[ -n "$idebug" ] && set -x
+[ -f /etc/issue.logo ] && cat /etc/issue.logo
+debug test -f /etc/msg && clear &&
+while read _line; do
+	msg -i "$_line"
+done </etc/msg
 
-	debug -d mount -t sysfs sysfs /sys
-	debug -d mount -t tmpfs -o mode=755 tmpfs /run
-	debug -d mkdir -p /run/log && export logdir=/run/log
-	
-	debug umask 0077
+# -*- Swap -*-
 
-	debug mv -f $logfile $logdir
-	
-	$eck && debug ack
-	
-	[ -n "$dmesg" ] && debug dmesg -n $dmesg
-	
-	debug _modprobe boot
-	
-	if grep devtmpfs /proc/filesystems 1>/dev/null 2>&1; then
-		debug -d mount -t devtmpfs devtmpfs /dev
-	else
-		debug -d mount -t tmpfs tmpfs /dev
+[ -n "$iswap" ] && dolevel 2s && debug -d gbk "$iswap" "$ikswap" "swap"
+
+# -*- Resume -*-
+
+if [ -n "$iresume" ]; then
+	dolevel 2r
+	[ "$isresume" != "swap" ] && debug -d gbk "$iresume" "$ikresume" "resu"
+	debug resume "${resu:-$swap}"
+fi
+
+# -*- Root -*-
+
+arg "fsck" "$iroot" ":" "2" "-s"
+arg "fsys" "$iroot" ":" "3" "-s"
+dolevel 3d
+
+# @VARIABLE: ROOT
+# @DESCRIPTION: if rootfs is mounted, this variable should be set
+
+if [ -z "$ROOT" ]; then
+	debug -d gbk "$iroot" "$ikroot" "root"
+
+	dolevel 3f
+	if [ -n "$fsck" ]; then 
+		case $fsck in
+			no|NO) fsck=-e;;
+			c|chk|check|yes|YES) fsck=-d;;
+			*) fsck=;;
+		esac
+		debug $fsck fsck ${fsys:+-t$fsys} $root
 	fi
-	
-	debug mkdir /dev/pts
-	debug mount -t devpts -o gid=5,mode=0620 devpts /dev/pts
-	
-	echo >/dev/mdev.seq
-	debug -d mdev -s
-	echo /sbin/mdev >/proc/sys/kernel/hotplug
-	
-	if [ -n "$imod" ]; then local IFS="${IFS},"
-		for _m in $imod; do 
-			debug modprobe $_m 1>/dev/null 2>&1
-		done
-	fi
-	
-	[ -h /dev/fd     ] || debug ln -fs /proc/self/fd   /dev/fd
-	[ -n /dev/stderr ] || debug ln -fs /proc/self/fd/2 /dev/stderr
-	[ -n /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
-	[ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
 
-:	${console:=/dev/tty1}
-	[ -n "$(echo $console | grep /dev)" ] || console="/dev/$console"
-	exec 0<$console 1>$console 2>&1
-	export console
+	dolevel 3m
+	debug mount ${imopt:+-o$imopt} ${fsys:+-t$fsys} $root /newroot ||
+	{
+		[ "$keymode" != "none" ] &&	debug -d dmclose "${root##*/}"
+		die "failed to mount rootfs"
+	}
+fi
 
-	[ -n "$splash" ] && debug spld
-}
+[ -n "$isqfsd" ] && dolevel 3s && debug -d squashd
 
-main
+# -*- Clean up and switch -*-
+
+dolevel 4c
+
+for _k in $(echo $LBK | sed '/:/ /g'); do
+	debug dmclose "$_k"
+done
+for _d in $(echo $LBD | sed 's/:/ /g'); do
+	debug losetup -d $_d
+done
+
+[ -n "$imount" ] && dolevel 4m && debug domount
+
+debug _rmmod gpg
+debug -d umount -f -l /mnt/tok
+debug _rmmod remdev
+
+echo >/proc/sys/kernel/hotplug
+msg -i "Switching / ..."
+debug spld_stop
+sleep 1
+
+dolevel 4u
+debug -d umount -l /proc
+debug -d umount -l /sys
+debug -d umount -l /dev/pts
+debug -d umount -l /dev
+debug -d umount -l /run
+dolevel 4s
+
+debug -d exec switch_root /newroot ${init:-/sbin/init} $runlevel
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
