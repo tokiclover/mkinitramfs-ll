@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.0 2013/04/12 05:15:18 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.0 2013/04/13 20:49:01 -tclover Exp $
 revision=0.12.0
 
 # @FUNCTION: usage
@@ -67,10 +67,6 @@ adn() {
 
 	for n in $(seq 0 6); do 
 		[[ -c dev/tty$n ]] || mknod -m600 dev/tty$n c 4 $n && chmod 0:5 || die
-	done
-
-	for n in $(seq 64 67); do
-		[[ -c dev/ttyS$n ]] || mknod -m660 dev/ttyS$n c 4 $n && chmod 014 || die
 	done
 }
 
@@ -192,8 +188,7 @@ mkdir -p run lib${opts[-arc]}/{modules/${opts[-kversion]},mkinitramfs-ll} || die
 ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 
-cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6],S[0-4]},zero} dev/ ||
-	adn
+cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || adn
 if [[ $(echo ${opts[-kversion]} | cut -d'.' -f1 ) -eq 3 ]] && \
 	[[ $(echo ${opts[-kversion]} | cut -d'.' -f2) -ge 1 ]]; then
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
