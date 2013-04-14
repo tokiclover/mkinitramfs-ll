@@ -31,7 +31,6 @@ install:
 		for file in $(PACKAGE).d/$${module}*; do \
 			install -Dpm644 $${file} $(datadir)/$${file}; done; done
 	$(shell) install -pm 644 {,$(datadir)/}usr/lib/$(PACKAGE)/functions.sh
-	$(shell) install -pm 755 {,$(datadir)/}usr/lib/$(PACKAGE)/init.sh
 	$(shell) install -Dpm644 {,$(datadir)/}usr/root/.gnupg/gpg.conf
 	$(shell) install -pm 644 {,$(datadir)/}usr/etc/mdev.conf
 	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/ide_links
