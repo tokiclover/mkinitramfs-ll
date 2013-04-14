@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.2 2013/04/14 15:46:28 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.2 2013/04/14 15:47:22 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -363,7 +363,7 @@ dmcrypt() {
 		debug blk "${_asw:-$1}" "_ldh"
 	done
 
-	eval ${2:-GLD}=$_ldh
+	eval ${2:-DMC}=$_ldh
 }
 
 # @FUNCTIOON: dmopen
