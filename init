@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.2 2013/04/14 15:23:22 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.2 2013/04/14 15:42:51 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -106,7 +106,7 @@ spld() {
 
 # @FUNCTION: bkd
 # @INTERNAL
-# @USAGE: <dev> <key> <name> [<var>]
+# @USAGE: <dev> <key>
 # @DESCRIPTION: get BlocK Device (dm|md-raid, dm-crypt, lvm)
 bkd() {
 	debug -d test -n "$1"
