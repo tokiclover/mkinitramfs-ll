@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.0 2013/04/14 10:53:34 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.0 2013/04/14 10:56:33 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -452,7 +452,7 @@ mdopen() {
 	arg "_opt" "$1" "+" "2" "-s"
 	[ -n "$(echo "$_opt" | grep -i uuid)" ] && _uuid=$_opt
 
-	if [ -n "$_uuid" ] || [ -n "$(echo "$_opt" | egrep '^(\[[a-z0-9]|[0-9])')" ]; then
+	if [ -n "$_uuid" ] || [ -n "$(echo "$_opt" | egrep '^(\[|[0-9])')" ]; then
 		[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
 		[ -b "$_dev" ] && return
 		$ECK && debug -d bck mdadm
