@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.0 2013/04/14 12:37:11 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.2 2013/04/14 15:23:22 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -25,8 +25,8 @@
 # @DEFAULT_SET
 # @DESCRIPTION: log file to log execution commands for debugging
 
-# @VARIABLE: level
-# @DESCRIPTION: au seted variable, dolevel(), to hold the running level
+# @VARIABLE: LVL
+# @DESCRIPTION: auto setted variable, lvl(), to hold the running LeVeL
 
 export init=/sbin/init INITLIB=/lib/mkinitramfs-ll MODDIR=/etc/mkinitramfs-ll.d
 export ECK=true LOGFILE=$0.log sh=/bin/sh SPLD=false
@@ -35,13 +35,13 @@ export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-> '
 
 source $INITLIB/functions.sh || $sh -a
 
-# @FUNCTION: dolevel
+# @FUNCTION: lvl
 # @INTERNAL
-# @DESCRIPTION: make run level and drop to rescue shell if $level = $shlevel
-dolevel() {
+# @DESCRIPTION: make LeVeL and drop to rescue shell if $LVL = $SHLVL
+lvl() {
 	local _msg="Switching to init shell run level: $1"
 	msg -i ">>> $_msg"
-	export level=$1
+	export LVL=$1
 
 	local _file="$(ls $MODDIR/*.$1 2>/dev/null)"
 	if [ -n "$_file" ]; then
@@ -58,7 +58,7 @@ dolevel() {
 		done
 	fi
 
-	[ "$shlevel" = "$1" ] && debug die
+	[ "$SHLVL" = "$1" ] && debug die
 	return 0
 }
 
@@ -104,46 +104,44 @@ spld() {
 	debug ${mode:-verbose}
 }
 
-# @FUNCTION: gbk
+# @FUNCTION: bkd
 # @INTERNAL
 # @USAGE: <dev> <key> <name> [<var>]
-# @DESCRIPTION: Get BlocK device
-gbk() {
-	local _prm="$1" _snd="$2" _trn="$3"
-	debug test -n "$_prm" && debug test -n "$_trn" ||
-		die "1st and/or 3rd requird arguments are missing"
-	local _grp _opt _ilvm _iraid _dev _typ _sig dev
+# @DESCRIPTION: get BlocK Device (dm|md-raid, dm-crypt, lvm)
+bkd() {
+	debug -d test -n "$1"
+	local _bkd _cut _grp _ilvm _iraid _dev _typ _sig
 
-	case $_trn in
-		root) _grp=1;;
-		swap) _grp=2;;
-		resu) _grp=3;;
+	case $LVL in
+		3d) _grp=1;;
+		2s) _grp=2;;
+		2r) _grp=3;;
 	esac
 
 	if [ "$_grp" != "1" ]; then
 		_opt=-s
-		arg "_typ" "$_prm" ":" "1"
-		arg "_dev" "$_prm" ":" "2" "-s"
-		arg "_sig" "$_prm" ":" "3" "-s"
+		arg "_typ" "$1" ":" "1"
+		arg "_dev" "$1" ":" "2" "-s"
+		arg "_sig" "$1" ":" "3" "-s"
 	else
-		arg "_dev" "$_prm" ":" "1"
+		arg "_dev" "$1" ":" "1"
 	fi
 
-	[ -n "$iraid" ] && debug arg "_raid" "$iraid" "," "$_grp" "$_opt"
-	[ -n "$ilvm"  ] && debug arg "_lvm" "$ilvm" "," "$_grp" "$_opt"
+	[ -n "$iraid" ] && debug arg "_raid" "$iraid" "," "$_grp" "$_cut"
+	[ -n "$ilvm"  ] && debug arg "_lvm" "$ilvm" "," "$_grp" "$_cut"
 	
-	debug -d stk "${_snd:-pwd}" "$_trn"
+	debug -d stk "${2:-none}"
 	
-	[ -n "$_raid" ] && debug -d mdopen "$_raid" "dev"
+	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
 	if [ -n "$_lvm" ]; then
-		debug -d lvopen "$_dev" "$_lvm" "dev"
+		debug -d lvopen "$_dev" "$_lvm" "_bkd"
 	elif [ "$keymode" != "none" ]; then
-		debug -d dmopen "$_dev" "dev"
+		debug -d dmopen "$_dev" "_bkd"
 	elif [ "$keymode" == "none" ]; then
-		debug -d blk "$_dev" "dev"
+		debug -d blk "$_dev" "_bkd"
 	fi
 
-	eval ${4:-$_trn}=${_typ:+$_typ:}$dev${_sig:+:$_sig}
+	eval ${3:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
 }
 
 # @FUNCTION: resume
@@ -222,17 +220,17 @@ debug -d mount -t proc proc /proc
 
 for arg in $(cat /proc/cmdline); do
    	case $arg in
-		rescue*) export shlevel=1
+		rescue*) export SHLVL=1
 			;;
 		ro|rw) [ -n "$imtop" ] && imtopt="$arg,$imtopt" || imtopt="$arg"
 			export imtopt=$imtopt
 			;;
-		single) export runlevel=2
+		single) export RUNLVL=2
 			;;
 		i[dklmns]*) export "$arg"
 			;;
-		ishrl=*) arg "shlevel" "$arg" ":" "1"
-			arg "runlevel" "$arg" "2" "-s"
+		ishrl=*) arg "SHLVL" "$arg" ":" "1"
+			arg "RUNLVL" "$arg" "2" "-s"
 			;;
 		dmesg|*root*|*resume*|*swap*|splash*|console*|CONSOLE) export "$arg"
 			;;
@@ -241,7 +239,7 @@ done
 
 [ -n "$idebug" ] &&
 for _o in $(echo "$idebug" | sed 's/:/ /g'); do
-	set $_o
+	set -$_o
 done
 
 debug -d mount -t sysfs sysfs /sys
@@ -289,7 +287,7 @@ export CONSOLE
 debug _modprobe gpg
 debug _modprobe remdev
 
-dolevel 1
+lvl 1
 
 # -*- Font -*-
 
@@ -323,60 +321,62 @@ done </etc/msg
 
 # -*- Swap -*-
 
-[ -n "$iswap" ] && dolevel 2s && debug -d gbk "$iswap" "$ikswap" "swap"
+[ -n "$iswap" ] && lvl 2s && debug -d bkd "$iswap" "$ikswap" "SWAP"
 
 # -*- Resume -*-
 
 if [ -n "$iresume" ]; then
-	dolevel 2r
-	[ "$isresume" != "swap" ] && debug -d gbk "$iresume" "$ikresume" "resu"
-	debug resume "${resu:-$swap}"
+	lvl 2r
+	[ "$isresume" != "swap" ] && debug -d bkd "$iresume" "$ikresume" "RESUME"
+	debug resume "${RESUME:-$SWAP}"
 fi
 
 # -*- Root -*-
 
 arg "fsck" "$iroot" ":" "2" "-s"
 arg "fsys" "$iroot" ":" "3" "-s"
-dolevel 3d
+lvl 3d
 
 # @VARIABLE: ROOT
 # @DESCRIPTION: if rootfs is mounted, this variable should be set
 
 if [ -z "$ROOT" ]; then
-	debug -d gbk "$iroot" "$ikroot" "root"
+	debug -d bkd "$iroot" "$ikroot" "ROOT"
 
-	dolevel 3f
+	lvl 3f
 	if [ -n "$fsck" ]; then 
 		case $fsck in
 			no|NO) fsck=-e;;
 			c|chk|check|yes|YES) fsck=-d;;
 			*) fsck=;;
 		esac
-		debug $fsck fsck ${fsys:+-t$fsys} $root
+		debug $fsck fsck ${fsys:+-t$fsys} $ROOT
 	fi
 
-	dolevel 3m
-	debug mount ${imopt:+-o$imopt} ${fsys:+-t$fsys} $root /newroot ||
+	lvl 3m
+	debug mount ${imopt:+-o$imopt} ${fsys:+-t$fsys} $ROOT /newroot ||
 	{
-		[ "$keymode" != "none" ] &&	debug -d dmclose "${root##*/}"
+		[ "$keymode" != "none" ] &&	debug -d dmclose "${ROOT##*/}"
 		die "failed to mount rootfs"
 	}
 fi
 
-[ -n "$isqfsd" ] && dolevel 3s && debug -d squashd
+[ -n "$isqfsd" ] && lvl 3s && debug -d squashd
 
 # -*- Clean up and switch -*-
 
-dolevel 4c
+lvl 4c
 
+[ -n "$LBK" ] &&
 for _k in $(echo $LBK | sed '/:/ /g'); do
 	debug dmclose "$_k"
 done
+[ -n "$LBD" ] &&
 for _d in $(echo $LBD | sed 's/:/ /g'); do
 	debug losetup -d $_d
 done
 
-[ -n "$imount" ] && dolevel 4m && debug domount
+[ -n "$imount" ] && lvl 4m && debug domount
 
 debug _rmmod gpg
 debug -d umount -f -l /mnt/tok
@@ -387,14 +387,16 @@ msg -i "Switching / ..."
 debug spld_stop
 sleep 1
 
-dolevel 4u
+lvl 4u
 debug -d umount -l /proc
 debug -d umount -l /sys
 debug -d umount -l /dev/pts
 debug -d umount -l /dev
+debug mv $LOGFILE /
+export LOGFILE=/$0.log
 debug -d umount -l /run
-dolevel 4s
+lvl 4s
 
-debug -d exec switch_root /newroot ${init:-/sbin/init} $runlevel
+debug -d exec switch_root /newroot ${init:-/sbin/init} $RUNLVL
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:

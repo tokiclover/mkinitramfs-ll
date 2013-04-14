@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.0 2013/04/14 10:56:33 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.2 2013/04/14 15:23:28 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -260,7 +260,7 @@ blk() {
 		done
 	fi
 
-	eval ${2:-dev}=$_blk
+	eval ${2:-BLK}=$_blk
 }
 
 # @VARIABLE: LBD
@@ -313,8 +313,8 @@ stk() {
 	fi
 
 	if [ "${_km:-pwd}" != "pwd" ]; then
-		[ -n "$_kd" ] || die "ik$2=$_km:$_kd:$_fp device field empty"
-		[ -n "$_fp" ] || die "ik$2=$_km:$_kd:$_fp filepath field empty"
+		[ -n "$_kd" ] || die "device field empty"
+		[ -n "$_fp" ] || die "file path field empty"
 
 		if [ -z "$(mount | grep /mnt/tok)" ]; then
 			[ -b "$_dv" ] || blk "$_kd" "_dv"
@@ -350,11 +350,11 @@ dmclose() {
 	done
 }
 
-# @FUNCTION: gld
+# @FUNCTION: dmc
 # @EXTERNAL
 # @USAGE: <dev> <var>
-# @DESCRIPTION: Get dm-crypt LUKS block device or detached header
-gld() {
+# @DESCRIPTION: get DM-Crypt LUKS block device or detached header
+dmcrypt() {
 	local _asw _ldh=$1
 	while ! debug cryptsetup $_arg "$_ldh"; do
 		msg -i "Type in a valid cyphertext device e.g. \
@@ -363,7 +363,7 @@ gld() {
 		debug blk "${_asw:-$1}" "_ldh"
 	done
 
-	eval ${2:-dev}=$_ldh
+	eval ${2:-GLD}=$_ldh
 }
 
 # @FUNCTIOON: dmopen
@@ -374,22 +374,22 @@ dmopen() {
 	$ECK && debug -d bck cryptsetup
 	debug _modprobe dm-crypt
 
-	local _arg=isLuks _dev _hdr _header
+	local _arg=isLuks _ctx _dev _hdr _header
 	arg "_map" "$1" "-" "1"
 	arg "_hdr" "$1" "+" "2" "-s"
 	blk "$(echo "$1" | cut -d'-' -f2 -s | cut -d'+' -f1)" "_dev"
 
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
-			debug gld "$_hdr" "_header"
+			debug dmcrypt "$_hdr" "_header"
 		elif [ -e "/mnt/tok/$_hdr" ]; then
-			debug gld "header" "/mnt/tok/$_hdr" "_header"
+			debug dmcrypt "header" "/mnt/tok/$_hdr" "_header"
 		else
 			die "header not found"
 		fi
 		_header="--header $_header"
 	else
-		debug gld "$_dev" "_dev"
+		debug dmcrypt "$_dev" "_dev"
 	fi
 
 	_arg="luksOpen $_dev $_map $_header"
@@ -405,9 +405,9 @@ dmopen() {
 		debug cryptsetup $_arg -d "$keyfile"
 	fi
 
-	ctxt=/dev/mapper/$_map
-	[ -b "$ctxt" ] || debug -d cryptsetup $_arg
-	debug -d test -b $ctxt && eval ${2:-ctxt}=$ctxt
+	_ctx=/dev/mapper/$_map
+	[ -b "$_ctx" ] || debug -d cryptsetup $_arg
+	debug -d test -b $_ctx && eval ${2:-CTX}=$_ctx
 }
 
 # @FUNCTION: lvopen
@@ -434,9 +434,9 @@ lvopen() {
 	}
 
 	if [ -b "/dev/mapper/$1" ]; then
-		eval ${3-lv}=/dev/mapper/$1
+		eval ${3-LV}=/dev/mapper/$1
 	elif [ -b "/dev/$_lv" ]; then
-		eval ${3-lv}=/dev/$_lv
+		eval ${3-LV}=/dev/$_lv
 	else
 		die "$_lv VG/LV not found"
 	fi
@@ -482,7 +482,7 @@ mdopen() {
 	fi
 
 	debug -d test -b $_dev
-	eval ${2:-md}=$_dev
+	eval ${2:-MD}=$_dev
 }
 
 # @FUNCTION: squashd
