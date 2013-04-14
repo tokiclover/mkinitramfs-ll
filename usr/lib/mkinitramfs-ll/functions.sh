@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.2 2013/04/14 15:23:28 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.2 2013/04/14 15:46:28 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -350,7 +350,7 @@ dmclose() {
 	done
 }
 
-# @FUNCTION: dmc
+# @FUNCTION: dmcrypt
 # @EXTERNAL
 # @USAGE: <dev> <var>
 # @DESCRIPTION: get DM-Crypt LUKS block device or detached header
