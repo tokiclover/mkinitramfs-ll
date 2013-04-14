@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.0 2013/04/13 20:22:49 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.0 2013/04/14 12:37:11 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -239,7 +239,10 @@ for arg in $(cat /proc/cmdline); do
    	 esac
 done
 
-[ -n "$idebug" ] && set -x
+[ -n "$idebug" ] &&
+for _o in $(echo "$idebug" | sed 's/:/ /g'); do
+	set $_o
+done
 
 debug -d mount -t sysfs sysfs /sys
 debug -d mount -t tmpfs -o mode=755 tmpfs /run
