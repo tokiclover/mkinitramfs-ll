@@ -145,7 +145,7 @@ init script accept also @single@, @ro@, @rw@ and @init=/path/to/real/init@
 kernel cmdline argument and will append single runlevel to real init. 
 
 It also support @splash=silent,fadein,theme:emergence console=[/dev/]tty1@
-splash kernel cmdline arguments.
+or @splash=silent,fadein,theme:emergenc,tty:1@ esplash kernel cmdline arguments.
 
 h3. 3. About device, @/dev/@ prefix and detached LUKS header
 
