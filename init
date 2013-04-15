@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.2 2013/04/14 15:42:51 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.2 2013/04/15 09:04:16 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -230,7 +230,7 @@ for arg in $(cat /proc/cmdline); do
 		i[dklmns]*) export "$arg"
 			;;
 		ishrl=*) arg "SHLVL" "$arg" ":" "1"
-			arg "RUNLVL" "$arg" "2" "-s"
+			arg "RUNLVL" "$arg" ":" "2" "-s"
 			;;
 		dmesg|*root*|*resume*|*swap*|splash*|console*|CONSOLE) export "$arg"
 			;;
@@ -291,7 +291,7 @@ lvl 1
 
 # -*- Font -*-
 
-export font=$(echo "$ikmap" | cut -d: -s -f2)
+arg "font" "$ikmap" ":" "2" "-s"
 if [ -n "$font" ]; then
 	for _dir in /usr/share/consolefonts /etc /; do
 		if [ -f "$_dir/$font" ]; then
@@ -302,7 +302,7 @@ fi
 
 # -*- Keymap -*-
 
-export keymap=$(echo "$ikmap" | cut -d: -f1)
+arg "keymap" "$ikmap" ":" "1"
 if [ -n "$keymap" ]; then
 	for _dir in /usr/share/keymaps /etc /; do
 		if [ -f "$_dir/$keymap" ]; then
@@ -333,8 +333,6 @@ fi
 
 # -*- Root -*-
 
-arg "fsck" "$iroot" ":" "2" "-s"
-arg "fsys" "$iroot" ":" "3" "-s"
 lvl 3d
 
 # @VARIABLE: ROOT
@@ -344,6 +342,8 @@ if [ -z "$ROOT" ]; then
 	debug -d bkd "$iroot" "$ikroot" "ROOT"
 
 	lvl 3f
+	arg "fsck" "$iroot" ":" "2" "-s"
+	arg "fsys" "$iroot" ":" "3" "-s"
 	if [ -n "$fsck" ]; then 
 		case $fsck in
 			no|NO) fsck=-e;;
