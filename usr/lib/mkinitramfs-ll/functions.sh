@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.2 2013/04/14 15:47:22 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.3 2013/04/16 09:48:47 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -176,7 +176,7 @@ _modprobe() {
 # @FUNCTION: _getopt
 # @EXTERNAL
 # @USAGE: <kernel cmdline>
-# @DESCRIPTION: get kernel command line options
+# @DESCRIPTION: get kernel command line argument
 _getopt() {
 	for _arg in $*; do
 		for _opt in $(cat /proc/cmdline); do
@@ -337,6 +337,42 @@ stk() {
 		*) die "$_km: invalid key mode"
 			;;
 	esac
+}
+
+# @FUNCTION: bkd
+# @EXTERNAL
+# @USAGE: <dev> <key> [<BKD>] [<group>]
+# @DESCRIPTION: get BlocK Device (dm|md-raid, dm-crypt, lvm)
+bkd() {
+	debug -d test -n "$1"
+	local _bkd _cut _grp="$4" _ilvm _iraid _dev _typ _sig
+
+	if [ -n "$_grp" ]; then
+		if [ "$_grp" != "1" ]; then
+			_opt=-s
+			arg "_typ" "$1" ":" "1"
+			arg "_dev" "$1" ":" "2" "-s"
+			arg "_sig" "$1" ":" "3" "-s"
+		else
+			arg "_dev" "$1" ":" "1"
+		fi
+	fi
+
+	[ -n "$iraid" ] && debug arg "_raid" "$iraid" "," "$_grp" "$_cut"
+	[ -n "$ilvm"  ] && debug arg "_lvm" "$ilvm" "," "$_grp" "$_cut"
+	
+	debug -d stk "${2:-none}"
+	
+	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
+	if [ -n "$_lvm" ]; then
+		debug -d lvopen "$_dev" "$_lvm" "_bkd"
+	elif [ "$keymode" != "none" ]; then
+		debug -d dmopen "$_dev" "_bkd"
+	elif [ "$keymode" == "none" ]; then
+		debug -d blk "$_dev" "_bkd"
+	fi
+
+	eval ${3:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
 }
 
 # @FUNCTION: dmclose
