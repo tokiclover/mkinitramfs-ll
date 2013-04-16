@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.0 2013/04/13 20:49:01 -tclover Exp $
-revision=0.12.0
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.3 2013/04/16 10:14:24 -tclover Exp $
+revision=0.12.3
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -31,6 +31,7 @@ usage() {
   -q, --sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -r, --regen               regenerate a new initramfs from an old dir with newer init
   -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
+  -n, --clean               clean initramfs building files, or leftover files
   -u, --usage               print this help or usage message and exit
   -v, --version             print version string and exit
 
@@ -71,9 +72,9 @@ adn() {
 }
 
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev:: \
-	  -l module:,mtuxonice::,sqfsd,toi,usage,usrdir::,version \
+	  -l clean,module:,mtuxonice::,sqfsd,toi,usage,usrdir::,version \
 	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,regen \
-	  -o ab:c::d::f::gk::lLM:m::p::rs::tuvy::W:: -n ${0##*/} -- "$@" || usage)
+	  -o ab:c::d::f::gk::lLM:m::np::rs::tuvy::W:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 
 # @VARIABLE: opts [associative array]
@@ -88,6 +89,7 @@ while [[ $# > 0 ]]; do
 			opts[-lvm]=y; opts[-luks]=y; shift;;
 		-R|--regen) opts[-regen]=y; shift;;
 		-q|--sqfsd) opts[-sqfsd]=y; shift;;
+		-n|--clean) opts[-clean]=y; shift;;
 		-b|--bin) opts[-bin]+=:${2}; shift 2;;
 		-c|--comp) opts[-comp]="${2}"; shift 2;;
 		-d|--usrdir) opts[-usrdir]=${2}; shift 2;;
@@ -170,9 +172,13 @@ if [[ -n ${opts[-regen]} ]]; then
 	echo ">>> regenerated ${opts[-initramfs]}..." && exit
 fi
 
+if [[ -f ${opts[-initramfs]} ]]; then
+	mv ${opts[-initramfs]}{,.old}
+fi
+
 echo ">>> building ${opts[-initramfs]}..."
 
-rm -rf "${opts[-initdir]}" || die
+rm -rf "${opts[-initdir]}"
 mkdir -p "${opts[-initdir]}" && pushd "${opts[-initdir]}" || die
 if [[ -d "${opts[-usrdir]}" ]]; then
 	cp -ar "${opts[-usrdir]}" . && rm -f usr/README* || die
@@ -361,6 +367,10 @@ for grp in ${opts[-kmodule]//:/ }; do
 done
 
 docpio || die
+
+if [[ -n "${opts[-clean]}" ]]; then
+	rm -rf ${opts[-initdir]}
+fi
 
 echo ">>> ${opts[-initramfs]} initramfs built"
 

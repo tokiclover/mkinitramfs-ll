@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.0 2013/04/13 20:50:16 -tclover Exp $
-revision=0.12.0
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.3 2013/04/16 10:10:24 -tclover Exp $
+revision=0.12.3
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -31,6 +31,7 @@ usage() {
   -q|-sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -R|-regen               regenerate a new initramfs from an old dir with newer init
   -y|-keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
+  -n|-clean               clean initramfs building files, or leftover files
   -u|-usage               print this help or usage message and exit
   -v|-version             print version string and exit
 
@@ -75,7 +76,8 @@ zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
 	k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage M: module: \
 	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: \
-	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen || usage
+	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen n clean ||
+	usage
 if [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
 	print "${(%):-%1x}-$revision"
@@ -153,9 +155,13 @@ if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
 	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f" && exit
 }
 
+if [[ -f ${opts[-initramfs]} ]] {
+	mv ${opts[-initramfs]}{,.old}
+}
+
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 
-rm -rf ${opts[-initdir]} || die
+rm -rf ${opts[-initdir]}
 mkdir -p ${opts[-initdir]} && pushd ${opts[-initdir]} || die
 if [[ -d ${opts[-usrdir]} ]] {
 	cp -ar ${opts[-usrdir]} . && rm -f usr/README* || die
@@ -313,6 +319,10 @@ for grp (${(pws,:,)opts[-kmodule]})
 docpio || die
 
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
+
+if [[ -n ${(k)opts[-clean]} ]] || [[ -n ${(k)opts[-n]} ]] {
+	rm -rf ${opts[-initdir]}
+}
 
 unset opts
 
