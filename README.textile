@@ -274,8 +274,6 @@ Squashed directories argument:
 * @isqfsd=y,a:<dir 1>[:<dir n>]@
 	same as above, however, @<dir 1>[:<dir n>]@ is  appended to sqfsd variable.
 
-*Warn*: leading '/' slash is only required for @sqfsdir@, else mounting squashed dirs will fail. 
-
 h3. 7. Kernel parameters example
 
 DESCRIPTION: unencrypted Root LV
