@@ -1,8 +1,8 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.3 2013/04/16 09:48:47 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.3 2013/04/24 10:40:02 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
-# @USAGE: <var> <char> <int> <opt>
+# @USAGE: <var> <var> <char> <int> <opt>
 # @DESCRIPTION: retrieve a value from a kernel cmdline
 arg() {
 	eval ${1}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
@@ -32,7 +32,7 @@ msg() {
 	local _opt _msg
 	while true; do
 		case $1 in
-			-e|-i) _opt=${1:0:2} _msg="${1#$_opt}"
+			-e|-i) _opt=$1
 				shift
 				;;
 			--) shift
@@ -65,7 +65,7 @@ debug() {
 	local _cmd _opt _ret
 	while true; do
 		case $1 in
-			-d|-e|-i) _opt=${1:0:2} _msg="${1#$_opt}"
+			-d|-e|-i) _opt=$1
 				shift
 				;;
 			--) shift
@@ -104,11 +104,11 @@ debug() {
 # @DESCRIPTON: Rescue SHell
 rsh() {
 	if $SPLD; then
-		debug openvt -c${CONSOLE#*tty} $sh -i -m 0<$CONSOLE 1>$CONSOLE 2>&1
+		debug openvt -c${CONSOLE#*tty} $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
 	elif ack setsid; then
-		debug setsid $sh -i -m 0<$CONSOLE 1>$CONSOLE 2>&1
+		debug setsid $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
 	else
-		debug $sh -i -m 0<$CONSOLE 1>$CONSOLE 2>&1
+		debug $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
 	fi
 }
 
@@ -121,7 +121,7 @@ die() {
 	[ -n "$@" ] && msg -e "[$_ret]: $@"
 	msg -i "$_msg"
 	spld_stop
-	debug rsh || debug exec $sh -i -m
+	debug rsh || debug exec $sh -aim
 }
 
 # @FUNCTION: bck
@@ -138,9 +138,11 @@ bck() {
 # @DESCRIPTION: busybox Applets ChecK
 ack() {
 	local _app _applets="$@"
-	[ -n "$_applets" ] || [ -f /etc/mkinitramfs-ll/busybox.app ] &&
-		_applets="$(cat /etc/mkinitramfs-ll/busybox.app)" ||
+	if [ -z "$_applets" ] && [ -f /etc/mkinitramfs-ll/busybox.app ]; then
+		_applets="$(cat /etc/mkinitramfs-ll/busybox.app)"
+	else
 		debug -d busybox --install -s && return
+	fi
 	for _app in $_applets; do 
 		[ -h "$_app" ] && [ "$(readlink $_app)" = "/bin/busybox" ] ||
 			debug -d busybox --install -s && break
@@ -149,13 +151,12 @@ ack() {
 
 # @FUNCTION: _rmmod
 # @EXTERNAL
-# @USAGE: <kernel module(s)|module group>
+# @USAGE: <kernel module(s) | module group>
 # @DESCRIPTION: ReMove kernel MODules from a file liste or...
 _rmmod() {
 	[ -f "/etc/mkinitramfs-ll/module.$1" ] &&
-		local _module="$(cat /etc/mkinitramfs-ll/module.$1)" ||
-		local _module="$*"
-	for _m in $_module; do 
+		local _module="$(cat /etc/mkinitramfs-ll/module.$1)"
+	for _m in ${_module:-$*}; do 
 		debug rmmod $_m 1>/dev/null 2>&1
 	done
 }
@@ -166,9 +167,8 @@ _rmmod() {
 # @DESCRIPTION: insert kernel MODules from a file liste or...
 _modprobe() {
 	[ -f "/etc/mkinitramfs-ll/module.$1" ] &&
-		local _module="$(cat /etc/mkinitramfs-ll/module.$1)" ||
-		local _module="$*"
-	for _m in $_module; do 
+		local _module="$(cat /etc/mkinitramfs-ll/module.$1)"
+	for _m in ${_module:-$*}; do 
 		debug modprobe $_m 1>/dev/null 2>&1
 	done
 }
@@ -241,7 +241,7 @@ shread() {
 # @FUNCTION: blk
 # @EXTERNAL
 # @USAGE: <block device node | (part of) uuid | (part of) label>
-# @DESCRIPTION: get block device
+# @DESCRIPTION: get BLocK device
 blk() {
 	local _asw _blk=$(blkid | grep "$1" | cut -d: -f1)
 	
@@ -312,7 +312,7 @@ stk() {
 		CLD=true
 	fi
 
-	if [ "${_km:-pwd}" != "pwd" ]; then
+	if [ "$_km" != "pwd" ]; then
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
 
@@ -537,7 +537,7 @@ squashd() {
 	fi
 
 	local IFS="${IFS}:"
-	debug -d test -d /newroot$sqfsdir
+	debug -d test -d /newroot/$sqfsdir
 	debug _modprobe sqfsd
 	cd /newroot
 
