@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.3 2013/04/16 09:42:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.3 2013/04/24 02:54:35 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -120,7 +120,7 @@ resume() {
 		if $SPLD; then
 			[ -n "$theme" ] &&
 				debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
-			_toi:=$(which tuxoniceui_fbsplash)
+			_hpr=$(which tuxoniceui_fbsplash)
 		else
 			_hpr="$(which tuxoniceui_text)"
 		fi
@@ -145,11 +145,11 @@ resume() {
 		echo >/sys/power/tuxonice/image_exists
 		debug _rmmod tuxonice
 	elif [ -f /sys/power/resume ]; then
-		$SPLD && _spd:=$(which suspendui_fbsplash) ||
+		$SPLD && _hpr=$(which suspendui_fbsplash) ||
 			_hpr="$(which suspendui_text)"
 	
 		debug _modprobe swsusp
-		echo $_dev >/sys/power/disk/resume
+		echo $_dev >/sys/power/resume
 		_img="$(cat /sys/power/image_exists | head -n 1)"
 		
 		if [ "$_img" = "1" ]; then 
