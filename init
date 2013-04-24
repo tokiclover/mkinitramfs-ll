@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.3 2013/04/24 03:03:55 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.3 2013/04/24 10:07:27 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -183,18 +183,18 @@ for arg in $(cat /proc/cmdline); do
 		rescue*) export SHLVL=1
 			;;
 		ro|rw) [ -n "$imtop" ] && imtopt="$arg,$imtopt" || imtopt="$arg"
-			export imtopt=$imtopt
+			export imtopt="$imtopt"
 			;;
 		single) export RUNLVL=2
-			;;
-		i[dklmns]*) export "$arg"
 			;;
 		ishrl=*) arg "SHLVL" "$arg" ":" "1"
 			arg "RUNLVL" "$arg" ":" "2" "-s"
 			;;
-		dmesg|*root*|*resume*|*swap*|splash*|console*|CONSOLE) export "$arg"
+		splash*|console*|CONSOLE*) export "$arg"
 			;;
-   	 esac
+   		i[dklmnrs]*) export "$arg"
+			;;
+	 esac
 done
 
 [ -n "$idebug" ] &&
