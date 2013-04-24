@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.3 2013/04/24 02:54:35 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.3 2013/04/24 03:03:55 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -198,9 +198,13 @@ for arg in $(cat /proc/cmdline); do
 done
 
 [ -n "$idebug" ] &&
-for _o in $(echo "$idebug" | sed 's/:/ /g'); do
+arg "DEBUG" "$idebug" "," "1" &&
+arg "DMESG" "$idebug" "," "2" "-s"
+[ -n "$DEBUG" ] &&
+for _o in $(echo "$DEBUG" | sed 's/:/ /g'); do
 	set -$_o
 done
+[ -n "$DMESG" ] && debug dmesg -n $DMESG
 
 debug -d mount -t sysfs sysfs /sys
 debug -d mount -t tmpfs -o mode=755 tmpfs /run
@@ -209,7 +213,6 @@ debug -d mkdir -p /run/log
 debug umask 0077
 debug mv -f $LOGFILE /run/log && export LOGFILE=/run/log/$LOGFILE
 $ECK && debug ack
-[ -n "$dmesg" ] && debug dmesg -n $dmesg
 
 debug _modprobe boot
 
@@ -251,22 +254,22 @@ lvl 1
 
 # -*- Font -*-
 
-arg "font" "$ikmap" ":" "2" "-s"
-if [ -n "$font" ]; then
+arg "FONT" "$ikmap" ":" "2" "-s"
+if [ -n "$FONT" ]; then
 	for _dir in /usr/share/consolefonts /etc /; do
-		if [ -f "$_dir/$font" ]; then
-			debug -d loadfont <"$_dir/$font" && break
+		if [ -f "$_dir/$FONT" ]; then
+			debug -d loadfont <"$_dir/$FONT" && break
 		fi
 	done
 fi
 
 # -*- Keymap -*-
 
-arg "keymap" "$ikmap" ":" "1"
-if [ -n "$keymap" ]; then
+arg "KEYMAP" "$ikmap" ":" "1"
+if [ -n "$KEYMAP" ]; then
 	for _dir in /usr/share/keymaps /etc /; do
-		if [ -f "$_dir/$keymap" ]; then
-			debug -d loadkmap <"$_dir/$keymap" && break
+		if [ -f "$_dir/$KEYMAP" ]; then
+			debug -d loadkmap <"$_dir/$KEYMAP" && break
 		fi
 	done
 fi
