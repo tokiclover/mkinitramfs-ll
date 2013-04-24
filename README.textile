@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.0 2012/11/01 19:32:47 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.3 2012/11/01 19:32:47 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support
 [with a handfull zsh and bash set of scripts to get going easily]."
@@ -132,14 +132,12 @@ KERNEL-COMMAND-LINE-ARG: @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@
 DESCRIPTION: squashed directories, see below for more info
 EXAMPLE: @isqfsd=y,a:lib64@ use default squashed dirs and append @/lib64@
 
-KERNEL-COMMAND-LINE-ARG: @dmesg=emerg|alert|crit|err|..|debug@
-DESCRIPTION: optional dmesg log level priority
-EXAMPLE: @dmesg=alert@ set dmesg to alert level
-
-KERNEL-COMMAND-LINE-ARG: @idebug=<x:e...>@
-DESCRIPTION: optionaly enable a colon separated list of set option,
-like shell tracing etc.
+KERNEL-COMMAND-LINE-ARG: @idebug=<x:...>[,<log_level>]@
+DESCRIPTION: optionaly enable a colon separated list of sh (set) option,
+like shell tracing etc.; and otptional dmesg console log level
 EXAMPLE: @idebug=x@ enable shell tracing
+EXAMPLE: @idebug=x:e,debug@ enable shell tracing, export every assigned variable
+and set debug console log level
 
 init script accept also @single@, @ro@, @rw@ and @init=/path/to/real/init@
 kernel cmdline argument and will append single runlevel to real init. 
