@@ -1,4 +1,4 @@
-# $Id: mkinitramfs-ll.d/zfs,v 0.12.0 2013/04/24 14:45:04 -tclover Exp $
+# $Id: mkinitramfs-ll.d/zfs,v 0.12.3 2013/04/25 22:48:07 -tclover Exp $
 
 # @ARG: 1
 # @DESCRIPTION: pool/volume
@@ -27,13 +27,8 @@ dozfs() {
 				debug -d dmopen "$vdev"
 			done
 		fi
-		debug -d zpool import -f $3 -R /newroot ${1%/*}
+		debug -d zpool import -f $3 ${1%/*}
 	}
-	
-	if [ -n "$3" ]; then
-		zfs list 2>/dev/null | grep "$1" 1>/dev/null ||
-		debug zfs mount $1 || debug -d mount.zfs $1 /newroot
-	fi
 	
 	zfs list 2>/dev/null | grep "$1" && rm /run/${0##*/}.pid
 }
