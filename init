@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.3 2013/04/24 10:07:27 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.3 2013/04/26 08:27:13 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -39,8 +39,7 @@ source $INITLIB/functions.sh || $sh -a
 # @INTERNAL
 # @DESCRIPTION: make LeVeL and drop to rescue shell if $LVL = $SHLVL
 lvl() {
-	local _msg="Switching to init shell run level: $1"
-	msg -i ">>> $_msg"
+	msg -i ">>> Switching to init shell run level: $1"
 	export LVL=$1
 
 	local _file="$(ls $MODDIR/*.$1 2>/dev/null)"
@@ -52,7 +51,8 @@ lvl() {
 				while read line; do
 					export $line
 				done </run/env
-				rm -f /run/env; fi
+				rm -f /run/env
+			fi
 			[ -f /run/${_s##*/}.pid ] && rm -f /run/${_s##*/}.pid && debug die
 			exec 0<$CONSOLE 1>$CONSOLE 2>&1	
 		done
@@ -110,12 +110,9 @@ spld() {
 # @DESCRIPTON: resume after a hibernation, TuxOnIce may work,
 # the intrnal kernal implementation should be fixed/finished before use
 resume() {
-	local _asw _dev=$1 _img _msg _hpr
-	_msg="Resuming from hibernation..."
-	msg -i "$_msg"
+	local _asw _dev=$1 _img _hpr
+	msg -i "Resuming from hibernation..."
 
-	debug -d mount -n -o remount,ro /newroot
-	
 	if [ -d /sys/power/tuxonice ]; then
 		if $SPLD; then
 			[ -n "$theme" ] &&
@@ -169,7 +166,6 @@ resume() {
 		msg -e "no suspend/hibernation support found"
 	fi
 	
-	debug -d mount -n -o remount,rw /newroot
 	die "failed to resume from hibernation"
 }
 
@@ -230,7 +226,7 @@ debug -d mdev -s
 echo /sbin/mdev >/proc/sys/kernel/hotplug
 	
 if [ -n "$imod" ]; then
-	for _m in $(echo $imod | sed 's/,/ /g'); do 
+	for _m in $(echo $imod | sed 's/:/ /g'); do 
 		debug modprobe $_m 1>/dev/null 2>&1
 	done
 fi
@@ -310,19 +306,18 @@ if [ -z "$ROOT" ]; then
 	arg "fsys" "$iroot" ":" "3" "-s"
 	if [ -n "$fsck" ]; then 
 		case $fsck in
-			no|NO) fsck=-e;;
-			c|chk|check|yes|YES) fsck=-d;;
+			n*|N*) fsck=-e;;
+			c*|y*|Y*) fsck=-d;;
 			*) fsck=;;
 		esac
 		debug $fsck fsck ${fsys:+-t$fsys} $ROOT
 	fi
 
 	lvl 3m
-	debug mount ${imopt:+-o$imopt} ${fsys:+-t$fsys} $ROOT /newroot ||
-	{
-		[ "$keymode" != "none" ] &&	debug -d dmclose "${ROOT##*/}"
+	if ! debug mount ${imopt:+-o$imopt} ${fsys:+-t$fsys} $ROOT /newroot; then
+		[ "$KEYMODE" != "none" ] && debug -d dmclose "${ROOT##*/}"
 		die "failed to mount rootfs"
-	}
+	fi
 fi
 
 [ -n "$isqfsd" ] && lvl 3s && debug -d squashd
@@ -340,7 +335,7 @@ for _d in $(echo $LBD | sed 's/:/ /g'); do
 	debug losetup -d $_d
 done
 
-[ -n "$imount" ] && lvl 4m && debug domount
+[ -n "$imount" ] && lvl 4m && debug mnt
 
 debug _rmmod gpg
 debug -d umount -f -l /mnt/tok
