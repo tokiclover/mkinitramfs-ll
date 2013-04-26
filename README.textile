@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.3 2013/04/24 14:21:59 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.3 2013/04/26 08:56:06 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support
 [with a handfull zsh and bash set of scripts to get going easily]."
@@ -54,7 +54,7 @@ DESCRIPTION: root block device, required,
 EXAMPLE: @iroot=vg-root:c:ext4@ for an ext4 rootfs in LVM (Volume Group is named vg),
 	or @iroot=POOL/root::zfs@ for zfs rootfs in a zfs pool called POOL.
 
-*Note*: @:[n|no|N|NO]:@ instead of @[c|chk|check|y|Y|yes|YES:]@
+*Note*: @:[n*|N*]:@ instead of @[c*|y*|Y*:]@
 will disable a die after fsck failure.
 
 KERNEL-COMMAND-LINE-ARG: @imopt=<ro,inode64,...>@
@@ -71,9 +71,9 @@ However, if using LVM and/or LUKS and/or RAID array, one should make sure
 that the underlaying volume are available after swp(), resume() and rootfs().
 Meaning that, the volume(s) in question should be either in one group of those. 
 
-KERNEL-COMMAND-LINE-ARG: @imod=<drm,ttm,...,nouveau>@
+KERNEL-COMMAND-LINE-ARG: @imod=<drm:ttm:...:nouveau>@
 DESCRIPTION: optional modules to load (in the boot group)
-EXAMPLE: @imod=drm,drm_kms_helper,ttm,i915,radeon@
+EXAMPLE: @imod=drm:drm_kms_helper:ttm:i915:radeon@
 
 KERNEL-COMMAND-LINE-ARG: @ikmap=<kmap>[:<font>]@
 DESCRIPTION: optional keymap and font to load, handy for passwords
@@ -283,7 +283,7 @@ EXAMPLE: @iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin:ter-g12n.psf
 when using LVM on unencrypted PVs.
 
 DESCRIPTION: Root--regular passphrase--and fbsplash
-EXAMPLE: @iroot=root-sda3 video=1280x800-24 imod=drm,drm_kms_helper,ttm,i915 
+EXAMPLE: @iroot=root-sda3 video=1280x800-24 imod=drm:drm_kms_helper:ttm:i915 
 	ikroot=pwd splash=verbose,theme:livecd-20007.0,tty:1@
 
 DESCRIPTION: Root--regular key-file--on usb device
@@ -318,7 +318,7 @@ h3. 8. Kernel module groups
 
 To load kernel modules, one could either create needed groups in
 @[usr/]etc/mkinitramfs-ll/module.$group@ (IFS separated list of module).
-Or else, append a comma seperated list on cmdline using @imod=@ arg.
+Or else, append a colon seperated list on cmdline using @imod=@ arg.
 
 Supported groups:
 
