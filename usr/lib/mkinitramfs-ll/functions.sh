@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.3 2013/04/24 10:40:02 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.3 2013/04/26 08:53:38 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -54,7 +54,7 @@ msg() {
 			;;
 	esac
 
-	$SPLD && debug cmd "set message $_msg" && debug cmd "repaint"
+	$SPLD && debug spld_cmd "set message $_msg" && debug spld_cmd "repaint"
 }
 
 # @FUNCTION: debug
@@ -117,9 +117,9 @@ rsh() {
 # @USAGE: <msg>
 # @DESCRIPTION: drop into a rescue shell after a command failure
 die() {
-	local _ret=$? _msg="Dropping into a rescueshell..."
+	local _ret=$?
 	[ -n "$@" ] && msg -e "[$_ret]: $@"
-	msg -i "$_msg"
+	msg -i "Dropping into a rescueshell..."
 	spld_stop
 	debug rsh || debug exec $sh -aim
 }
@@ -190,7 +190,7 @@ _getopt() {
 # @USAGE: <splash spld_cmd>
 # @DESCRIPTION: send command or message to splash deamon
 spld_cmd() {
-	debug echo "$@" >$SPLASH_FIFO
+	echo "$@" >$SPLASH_FIFO
 }
 
 # @FUNCTION: spld_verbose
@@ -304,7 +304,7 @@ stk() {
 	_fn=${_fp##*/}
 
 	if [ -z "$_km" ];then
-		export keymode=none
+		export KEYMODE=none
 		return
 	elif [ "$_km" = "ldk" ];then
 		[ -z "$CLD" ] &&
@@ -325,14 +325,14 @@ stk() {
 
 	case $_km in
 		gpg) $ECK && debug -d bck gpg
-			export keyfile="/mnt/tok$_fp" keymode=gpg
+			export KEYFILE="/mnt/tok$_fp" KEYMODE=gpg
 			;;
-		reg) export keyfile="/mnt/tok$_fp" keymode=reg
+		reg) export KEYFILE="/mnt/tok$_fp" KEYMODE=reg
 			;;
 		ldk) ldk "/mnt/tok$_fp"
-			export keyfile="/dev/mapper/$_fn" keymode=ldk
+			export KEYFILE="/dev/mapper/$_fn" KEYMODE=ldk
 			;;
-		pwd) export keymode=pwd
+		pwd) export KEYMODE=pwd
 			;;
 		*) die "$_km: invalid key mode"
 			;;
@@ -348,13 +348,13 @@ bkd() {
 	local _bkd _cut _grp="$4" _ilvm _iraid _dev _typ _sig
 
 	if [ -n "$_grp" ]; then
-		if [ "$_grp" != "1" ]; then
+		if [ "$_grp" = "1" ]; then
+			arg "_dev" "$1" ":" "1"
+		else
 			_opt=-s
 			arg "_typ" "$1" ":" "1"
 			arg "_dev" "$1" ":" "2" "-s"
 			arg "_sig" "$1" ":" "3" "-s"
-		else
-			arg "_dev" "$1" ":" "1"
 		fi
 	fi
 
@@ -366,9 +366,9 @@ bkd() {
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
 	if [ -n "$_lvm" ]; then
 		debug -d lvopen "$_dev" "$_lvm" "_bkd"
-	elif [ "$keymode" != "none" ]; then
+	elif [ "$KEYMODE" != "none" ]; then
 		debug -d dmopen "$_dev" "_bkd"
-	elif [ "$keymode" == "none" ]; then
+	elif [ "$KEYMODE" == "none" ]; then
 		debug -d blk "$_dev" "_bkd"
 	fi
 
@@ -430,15 +430,15 @@ dmopen() {
 
 	_arg="luksOpen $_dev $_map $_header"
 
-	if [ "$keymode" = "gpg" ]; then 
+	if [ "$KEYMODE" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
 		for _i in 1 2 3; do
-			gpg -qd "$keyfile" | cryptsetup $_arg && break
-			echo "[$?]: gpg -qd "$keyfile" | cryptsetup $_arg" >>$LOGFILE
+			gpg -qd "$KEYFILE" | cryptsetup $_arg && break
+			echo "[$?]: gpg -qd "$KEYFILE" | cryptsetup $_arg" >>$LOGFILE
 		done
 		rm /dev/tty && mv -f /dev/bak /dev/tty
-	elif [ "$keymode" = "ldk" ] || [ "$keymode" = "reg" ]; then
-		debug cryptsetup $_arg -d "$keyfile"
+	elif [ "$KEYMODE" = "ldk" ] || [ "$KEYMODE" = "reg" ]; then
+		debug cryptsetup $_arg -d "$KEYFILE"
 	fi
 
 	_ctx=/dev/mapper/$_map
@@ -455,19 +455,18 @@ lvopen() {
 	debug _modprobe device-mapper
 	local _lv=${1/-//}
 
-	debug lvchange -ay $_lv ||
-	{
-		if [ -n "$2" ] && [ "$keymode" != "none" ]; then
+	if ! debug lvchange -ay $_lv; then
+		if [ -n "$2" ] && [ "$KEYMODE" != "none" ]; then
 			local _pv="$2" IFS="${IFS}:"
 			[ -e "/mnt/tok/$_pv" ] && _pv="$(cat /mnt/tok/$_pv)"
 			for _p in $_pv; do
-				debug dmopen "${_p}"
+				debug dmopen "$_p"
 			done
 			debug vgchange -ay ${1%-*} || debug -d dmclose "$_pv"
 		else
-			die "$1 require a valid crypted physical volume"
+			die "no logical volume found"
 		fi
-	}
+	fi
 
 	if [ -b "/dev/mapper/$1" ]; then
 		eval ${3-LV}=/dev/mapper/$1
@@ -553,12 +552,12 @@ squashd() {
 	done
 }
 
-# @FUNCTION: domount
+# @FUNCTION: mnt
 # @EXTERNAL
 # @UAGE: indirectly given by /etc/fstab
 # @DESCRIPTION: mount, /usr for example, extra block device using /etc/fstab
 # before switching root
-domount() {
+mnt() {
 	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
 	for _x in $imount; do
 		_y="$(grep $_x /newroot/etc/fstab)"
