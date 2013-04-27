@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.3 2013/04/16 10:10:24 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.3 2013/04/27 05:40:11 -tclover Exp $
 revision=0.12.3
 
 # @FUNCTION: usage
@@ -185,20 +185,22 @@ cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 
 for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]})
 	cp -a ${opts[-usrdir]:h}/mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
-cp -ar {/,}lib/modules/${opts[-kversion]}/modules.dep || die "failed to copy modules.dep"
+cp -ar {/,}lib/modules/${opts[-kversion]}/modules.dep ||
+	die "failed to copy modules.dep"
 
 [ -f /etc/issue.logo ] && cp {/,}etc/issue.logo
 
-if [[ -x usr/bin/busybox ]] { mv -f {usr/,}bin/busybox
+if [[ -x usr/bin/busybox ]] {
+	mv -f {usr/,}bin/busybox
 } elif [[ $(which busybox) != "busybox not found" ]] &&
 	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]] {
 	cp -a $(which busybox) bin/
-} elif [[ $(which bb) != "bb not found" ]] { cp -a $(which bb) bin/busybox
+} elif [[ $(which bb) != "bb not found" ]] {
+	cp -a $(which bb) bin/busybox
 } else { die "no suitable busybox/bb binary found" }
 
-if [[ -f etc/mkinitramfs-ll/busybox.app ]] { :;
-} else {
-	bin/busybox --list-full > etc/mkinitramfs-ll/busybox.app || die
+if [[ ! -f etc/mkinitramfs-ll/busybox.app ]] {
+	bin/busybox --list-full >etc/mkinitramfs-ll/busybox.app || die
 }
 for app ($(< etc/mkinitramfs-ll/busybox.app)) ln -fs /bin/busybox ${app}
 

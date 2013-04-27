@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.3 2013/04/26 08:56:06 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.3 2013/04/27 06:13:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support
 [with a handfull zsh and bash set of scripts to get going easily]."
@@ -71,9 +71,12 @@ However, if using LVM and/or LUKS and/or RAID array, one should make sure
 that the underlaying volume are available after swp(), resume() and rootfs().
 Meaning that, the volume(s) in question should be either in one group of those. 
 
-KERNEL-COMMAND-LINE-ARG: @imod=<drm:ttm:...:nouveau>@
+KERNEL-COMMAND-LINE-ARG: @imod=<uvesafb:kms:...>@
 DESCRIPTION: optional modules to load (in the boot group)
 EXAMPLE: @imod=drm:drm_kms_helper:ttm:i915:radeon@
+EXAMPLE: if using the building scripts one can append @imod=kms@ for basic 
+kms related drivers (one can append extra modules to opts[-mkms] in 
+mkinitramfs-ll.conf if need b).
 
 KERNEL-COMMAND-LINE-ARG: @ikmap=<kmap>[:<font>]@
 DESCRIPTION: optional keymap and font to load, handy for passwords
@@ -317,8 +320,9 @@ a key file.
 h3. 8. Kernel module groups
 
 To load kernel modules, one could either create needed groups in
-@[usr/]etc/mkinitramfs-ll/module.$group@ (IFS separated list of module).
-Or else, append a colon seperated list on cmdline using @imod=@ arg.
+mknitramfs-ll.conf as the kms kernel module group example.
+Afterwards, one only need to append generaed groups as @imod=kms@ instead of
+append a long list of modules like @imod=
 
 Supported groups:
 
@@ -332,10 +336,11 @@ Supported groups:
 * @gpg@: modules required to access gpg crypted key-file
 * @sqfsd@: modules required for squashfs+aufs, can be built into the kernel
 
-Modules should exist in @/lib/modules/$KV/@, the kernel should support modules [un]loading.
-Just make sure to append the necessary modules to the right group in mkinitramfs-ll.conf for
-autoloading, or else append to @opts[-mdep]@ variable to be able to append kernel
-mdoules to @imod=@ cmdline argument.
+Modules should exist in @/lib/modules/$KV/@, the kernel should support modules
+[un]loading. Just make sure to append the necessary modules to the right group
+in mkinitramfs-ll.conf for autoloading, or create your own groups, or else append
+kernel modules to @opts[-mdep]@ variable to be able to append kernel mdoules to
+@imod=@ kernel cmdline argument.
 
 h3. 9. Optional user scripts
 

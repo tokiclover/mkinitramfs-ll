@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.3 2013/04/16 10:14:24 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.3 2013/04/27 05:43:02 -tclover Exp $
 revision=0.12.3
 
 # @FUNCTION: usage
@@ -195,7 +195,7 @@ ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || adn
-if [[ $(echo ${opts[-kversion]} | cut -d'.' -f1 ) -eq 3 ]] && \
+if [[ $(echo ${opts[-kversion]} | cut -d'.' -f1 ) -eq 3 ]] &&
 	[[ $(echo ${opts[-kversion]} | cut -d'.' -f2) -ge 1 ]]; then
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
 		mknod -m 600 dev/loop-control c 10 237 || die
@@ -209,7 +209,7 @@ for mod in ${opts[-module]//:/ }; do
 	cp -a ${opts[-usrdir]}/..\/mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
 done
 
-[ -f /etc/issue.logo ] && cp {/,}etc/issue.logo
+[[ -f /etc/issue.logo ]] && cp {/,}etc/issue.logo
 
 if [[ -x usr/bin/busybox ]]; then
 	mv -f {usr/,}bin/busybox
@@ -222,8 +222,7 @@ else
 	die "there's no suitable busybox/bb binary"
 fi
 
-if [[ -f etc/mkinitramfs-ll/busybox.app ]]; then :;
-else
+if [[ ! -f etc/mkinitramfs-ll/busybox.app ]]; then
 	bin/busybox --list-full >etc/mkinitramfs-ll/busybox.app || die
 fi
 for app in $(< etc/mkinitramfs-ll/busybox.app); do	
