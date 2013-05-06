@@ -68,8 +68,7 @@ EXAMPLE: @imount=/usr@
 *Note*: @imount@ can be used to mount /usr:/var ... using @/etc/fstab@.
 Nothing more is required if using unencrypted volume. 
 However, if using LVM and/or LUKS and/or RAID array, one should make sure
-that the underlaying volume are available after swp(), resume() and rootfs().
-Meaning that, the volume(s) in question should be either in one group of those. 
+that the underlaying volume are available before level @4m@.
 
 KERNEL-COMMAND-LINE-ARG: @imod=<uvesafb:kms:...>@
 DESCRIPTION: optional modules to load (in the boot group)
