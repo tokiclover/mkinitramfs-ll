@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.3 2013/04/26 08:27:13 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.4 2013/04/26 08:27:13 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -58,7 +58,7 @@ lvl() {
 		done
 	fi
 
-	[ "$SHLVL" = "$1" ] && debug die
+	[ "$LVL" = "$SHLVL" ] && debug die
 	return 0
 }
 
@@ -280,41 +280,56 @@ done </etc/msg
 
 # -*- Swap -*-
 
-[ -n "$iswap" ] && lvl 2s && debug -d bkd "$iswap" "$ikswap" "SWAP" "2"
+# @VARIABLE: SWAP
+# @DESCRIPTION: this variable should be set if swap is available
+
+if [ -n "$iswap" ]; then
+	debug -d stk "$ikswap"
+	lvl 2s
+	[ -z "$SWAP" ] && debug -d bkd "$iswap" "SWAP" "2"
+fi
 
 # -*- Resume -*-
 
+# @VARIABLE: RESUME
+# @DESCRIPTION: if resume swap is avalable, this variable should be set
+
 if [ -n "$iresume" ]; then
+	debug -d stk "$ikresume"
 	lvl 2r
-	[ "$isresume" != "swap" ] &&
-	debug -d bkd "$iresume" "$ikresume" "RESUME" "3"
+	[ -z "$RESUME" ] && [ "$iresume" != "swap" ] &&
+	debug -d bkd "$iresume" "RESUME" "3"
 	debug resume "${RESUME:-$SWAP}"
 fi
 
 # -*- Root -*-
 
+debug -d stk "$ikroot"
 lvl 3d
 
 # @VARIABLE: ROOT
 # @DESCRIPTION: if rootfs is mounted, this variable should be set
 
 if [ -z "$ROOT" ]; then
-	debug -d bkd "$iroot" "$ikroot" "ROOT" "1"
+	debug -d bkd "$iroot" "ROOT" "1"
 
 	lvl 3f
-	arg "fsck" "$iroot" ":" "2" "-s"
-	arg "fsys" "$iroot" ":" "3" "-s"
-	if [ -n "$fsck" ]; then 
-		case $fsck in
-			n*|N*) fsck=-e;;
-			c*|y*|Y*) fsck=-d;;
-			*) fsck=;;
+	arg "CK" "$iroot" ":" "2" "-s"
+	arg "FS" "$iroot" ":" "3" "-s"
+	if [ -n "$CK" ]; then 
+		case $CK in
+			n*|N*) CK=-e
+				;;
+			c*|y*|Y*) CK=-d
+				;;
+			*) CK=
+				;;
 		esac
-		debug $fsck fsck ${fsys:+-t$fsys} $ROOT
+		debug $CK fsck ${FS:+-t$FS} $ROOT
 	fi
 
 	lvl 3m
-	if ! debug mount ${imopt:+-o$imopt} ${fsys:+-t$fsys} $ROOT /newroot; then
+	if ! debug mount ${imopt:+-o$imopt} ${FS:+-t$FS} $ROOT /newroot; then
 		[ "$KEYMODE" != "none" ] && debug -d dmclose "${ROOT##*/}"
 		die "failed to mount rootfs"
 	fi

@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.3 2013/04/26 08:53:38 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.4 2013/04/26 08:53:38 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -179,8 +179,8 @@ _modprobe() {
 # @DESCRIPTION: get kernel command line argument
 _getopt() {
 	for _arg in $*; do
-		for _opt in $(cat /proc/cmdline); do
-			[ "$_arg" = "${_opt%%=*}" ] && export $_opt && break
+		for _cmd in $(cat /proc/cmdline); do
+			[ "${_cmd%%=*}" = "$_arg" ] && export $_cmd && break
 		done
 	done
 }
@@ -345,7 +345,7 @@ stk() {
 # @DESCRIPTION: get BlocK Device (dm|md-raid, dm-crypt, lvm)
 bkd() {
 	debug -d test -n "$1"
-	local _bkd _cut _grp="$4" _ilvm _iraid _dev _typ _sig
+	local _bkd _cut _grp="$3" _ilvm _iraid _dev _typ _sig
 
 	if [ -n "$_grp" ]; then
 		if [ "$_grp" = "1" ]; then
@@ -361,8 +361,6 @@ bkd() {
 	[ -n "$iraid" ] && debug arg "_raid" "$iraid" "," "$_grp" "$_cut"
 	[ -n "$ilvm"  ] && debug arg "_lvm" "$ilvm" "," "$_grp" "$_cut"
 	
-	debug -d stk "${2:-none}"
-	
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
 	if [ -n "$_lvm" ]; then
 		debug -d lvopen "$_dev" "$_lvm" "_bkd"
@@ -372,7 +370,7 @@ bkd() {
 		debug -d blk "$_dev" "_bkd"
 	fi
 
-	eval ${3:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
+	eval ${2:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
 }
 
 # @FUNCTION: dmclose
