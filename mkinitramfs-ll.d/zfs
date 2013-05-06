@@ -7,7 +7,7 @@
 # @DESCRIPTION: if present, : colon separated list, dm-crypt LUKS crypted vdevs
 #
 # @ARG: 3
-# @DESCRIPTION: wether to try to mount the volume or not
+# @DESCRIPTION: zpool extra positional arguments
 
 source $INITLIB/functions.sh
 
@@ -16,19 +16,19 @@ dozfs() {
 	$eck && for bin in zfs zpool; do 
 		debug -d bck $bin
 	done
+
 	debug -d test -n "$1"
 	debug -d _modprobe zfs
-	debug -d _getopt izfs
+	local _pool=${1%%/*}
 
-	zpool list -H 2>/dev/null | grep "$1" 1>/dev/null ||
-	{
+	if ! zpool list -H | grep "$_pool" 1>/dev/null 2>&1; then
 		if [ -n "$2" ]; then
-			for vdev in $(echo "$2" | sed 's/:/ /g'); do
-				debug -d dmopen "$vdev"
+			for _vdev in $(echo "$2" | sed 's/:/ /g'); do
+				debug -d dmopen "$_vdev"
 			done
 		fi
-		debug -d zpool import -f $3 ${1%/*}
-	}
+		debug -d zpool import -f -R /newroot $3 "$_pool"
+	fi
 	
 	zfs list 2>/dev/null | grep "$1" && rm /run/${0##*/}.pid
 }

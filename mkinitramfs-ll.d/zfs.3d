@@ -1,14 +1,16 @@
-# $Id: mkinitramfs-ll.d/zfs.3d,v 0.12.3 2013/04/25 22:48:11 -tclover Exp $
+# $Id: mkinitramfs-ll.d/zfs.3d,v 0.12.4 2013/04/25 22:48:11 -tclover Exp $
 
 set -e +x
 source $MODDIR/zfs
 
-arg "FS" "$iroot" "3" ":" "-s"
-arg "VDEV" "$izfs" "1" ","
+_getopt "izfs"
+[ -n "$izfs" ] &&
+arg "VDEV" "$izfs" "," "1"
+arg "FS" "$iroot" ":" "3" "-s"
 
 if [ -n "$VDEV" ] || [ "$FS" = "zfs" ]; then
-	arg "root" "$iroot" "1" ":"
-	debug -d dozfs "$root" "$VDEV" "-R /newroot" &&
+	arg "root" "$iroot" ":" "1"
+	debug -d dozfs "$root" "$VDEV" &&
 	echo "ROOT=$root" >>/run/env
 fi
 
