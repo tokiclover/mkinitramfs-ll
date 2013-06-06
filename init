@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.4 2013/04/26 08:27:13 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.5 2013/06/06 07:52:19 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -285,21 +285,28 @@ done </etc/msg
 
 if [ -n "$iswap" ]; then
 	debug -d stk "$ikswap"
+	arg "TYPE" "$iswap" ":" "1" "-s"
+	arg "SWAP" "$iswap" ":" "2" "-s"
+	arg "SIGN" "$iswap" ":" "3" "-s"
 	lvl 2s
-	[ -z "$SWAP" ] && debug -d bkd "$iswap" "SWAP" "2"
+	[ -z "$SWAP" ] && debug -d bkd "$SWAP" "SWAP" "2"
 fi
 
 # -*- Resume -*-
 
-# @VARIABLE: RESUME
+# @VARIABLE: RESU
 # @DESCRIPTION: if resume swap is avalable, this variable should be set
 
 if [ -n "$iresume" ]; then
 	debug -d stk "$ikresume"
+	if [ -z "$RESU" ] && [ "$iresume" != "swap" ]; then
+		arg "TYPE" "$iswap" ":" "1" "-s"
+		arg "RESU" "$iswap" ":" "2" "-s"
+		arg "SIGN" "$iswap" ":" "3" "-s"
+		debug -d bkd "$RESU" "RESU" "3"
+	fi
 	lvl 2r
-	[ -z "$RESUME" ] && [ "$iresume" != "swap" ] &&
-	debug -d bkd "$iresume" "RESUME" "3"
-	debug resume "${RESUME:-$SWAP}"
+	debug resume "$TYPE:${RESU:-$SWAP}${SIGN:+:$SIGN}"
 fi
 
 # -*- Root -*-
