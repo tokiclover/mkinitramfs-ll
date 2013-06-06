@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.4 2013/04/26 08:53:38 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.5 2013/06/06 14:30:21 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -415,6 +415,7 @@ dmopen() {
 
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
+			blk "$_hdr" "_hdr"
 			debug dmcrypt "$_hdr" "_header"
 		elif [ -e "/mnt/tok/$_hdr" ]; then
 			debug dmcrypt "header" "/mnt/tok/$_hdr" "_header"
