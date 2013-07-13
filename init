@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.5 2013/06/06 07:52:19 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.6 2013/07/13 20:09:48 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -58,7 +58,7 @@ lvl() {
 		done
 	fi
 
-	[ "$LVL" = "$SHLVL" ] && debug die
+	[ "$SHLVL" = $LVL ] && debug die
 	return 0
 }
 
