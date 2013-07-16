@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.7 2013/07/16 08:21:23 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.7 2013/07/16 09:04:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
