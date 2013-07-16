@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.6 2013/07/13 20:26:02 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.7 2013/07/16 08:21:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -284,12 +284,8 @@ done </etc/msg
 # @DESCRIPTION: this variable should be set if swap is available
 
 if [ -n "$iswap" ]; then
-	debug -d stk "$ikswap"
-	arg "TYPE" "$iswap" ":" "1" "-s"
-	arg "SWAP" "$iswap" ":" "2" "-s"
-	arg "SIGN" "$iswap" ":" "3" "-s"
 	lvl 2s
-	debug -d bkd "$SWAP" "SWAP" "2"
+	[ -z "$SWAP" ] && debug -d bkd "$iswap" "SWAP" "2" "$ikswap"
 fi
 
 # -*- Resume -*-
@@ -298,31 +294,26 @@ fi
 # @DESCRIPTION: if resume swap is avalable, this variable should be set
 
 if [ -n "$iresume" ]; then
-	debug -d stk "$ikresume"
 	if [ -z "$RESU" ] && [ "$iresume" != "swap" ]; then
-		arg "TYPE" "$iswap" ":" "1" "-s"
-		arg "RESU" "$iswap" ":" "2" "-s"
-		arg "SIGN" "$iswap" ":" "3" "-s"
-		debug -d bkd "$RESU" "RESU" "3"
+		debug -d bkd "$iresume" "RESU" "3" "$ikresume"
 	fi
 	lvl 2r
-	debug resume "$TYPE:${RESU:-$SWAP}${SIGN:+:$SIGN}"
+	[ -z "$RESU" ] && debug resume "${RESU:-$SWAP}"
 fi
 
 # -*- Root -*-
 
-debug -d stk "$ikroot"
 lvl 3d
 
 # @VARIABLE: ROOT
 # @DESCRIPTION: if rootfs is mounted, this variable should be set
 
 if [ -z "$ROOT" ]; then
-	debug -d bkd "$iroot" "ROOT" "1"
-
-	lvl 3f
 	arg "CK" "$iroot" ":" "2" "-s"
 	arg "FS" "$iroot" ":" "3" "-s"
+	debug -d bkd "$iroot" "ROOT" "1" "$ikroot"
+
+	lvl 3f
 	if [ -n "$CK" ]; then 
 		case $CK in
 			n*|N*) CK=-e

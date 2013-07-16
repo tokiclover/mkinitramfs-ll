@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.5 2013/06/06 14:30:21 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions.sh,v 0.12.7 2013/07/16 08:21:23 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -345,17 +345,17 @@ stk() {
 # @DESCRIPTION: get BlocK Device (dm|md-raid, dm-crypt, lvm)
 bkd() {
 	debug -d test -n "$1"
-	local _bkd _cut _grp="$3" _ilvm _iraid _dev _typ _sig
+	[ -n "$3" ] && debug -d stk "$4"
 
-	if [ -n "$_grp" ]; then
-		if [ "$_grp" = "1" ]; then
-			arg "_dev" "$1" ":" "1"
-		else
-			_opt=-s
-			arg "_typ" "$1" ":" "1"
-			arg "_dev" "$1" ":" "2" "-s"
-			arg "_sig" "$1" ":" "3" "-s"
-		fi
+	local _bkd _dev _grp="$3" _ilvm _iraid _sig _typ
+
+	if [ "$_grp" = "1" ]; then
+		arg "_dev" "$1" ":" "1"
+	else
+		_cut=-s
+		arg "_typ" "$1" ":" "1" "$_cut"
+		arg "_dev" "$1" ":" "2" "$_cut"
+		arg "_sig" "$1" ":" "3" "$_cut"
 	fi
 
 	[ -n "$iraid" ] && debug arg "_raid" "$iraid" "," "$_grp" "$_cut"
