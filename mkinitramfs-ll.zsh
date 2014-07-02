@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.8 2014/07/02 15:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.8 2014/07/02 21:40:11 -tclover Exp $
 revision=0.12.8
 
 # @FUNCTION: usage
@@ -322,7 +322,7 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 for module (${(pws,:,)opts[-kmod]} ${(pws,:,)opts[-m]}) domod ${module}
 for grp (${(pws,:,)opts[-mgrp]})
 	for mod (${(pws,:,)opts[-m${grp}]})
-		domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
+		domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/${grp}
 
 docpio || die
 
