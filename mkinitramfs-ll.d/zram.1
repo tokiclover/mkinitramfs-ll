@@ -1,0 +1,24 @@
+# $Id: mkinitramfs-ll.d/zram.1,v 0.12.8 2014/04/02 09:48:11 -tclover Exp $
+
+set -e +x
+source $INITLIB/functions.sh
+
+_getopt "izram"
+
+if [ -n "$izram" ]; then
+  arg "NUM" "$izram" "," "1"
+  debug -d modprobe zram num_devices=$NUM
+  for num in $(seq 0 1 $NUM); do
+    [ $num == $NUM ] && break
+    arg "zdev" "$izram" "," "$num"
+    [ -n "$zdev" ] || break
+    arg "size" "$zdev" ":" "1"
+    arg "fs" "$zdev" ":" "2"
+    echo $size >/sys/block/zram$num/disksize
+    if [ -x /sbin/mkfs.$fs ]; then
+      debug -d /sbin/mkfs.$fs /dev/zram$num
+    fi
+  done
+fi
+
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
