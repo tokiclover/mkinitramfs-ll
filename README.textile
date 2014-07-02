@@ -328,7 +328,7 @@ Enter zram.1 module. This take of basic zram initialisation:
 * Following arguments are pair of size:filesystem: just make sure to include
 mkfs.$fs binaries!
 
-Just appand -M:zram -m:zram to mkinitramfs-ll.$shell to get support for this module.
+Just appand -M:zram to mkinitramfs-ll.$shell to get support for this module.
 
 h3. 5. Kernel parameters example
 
