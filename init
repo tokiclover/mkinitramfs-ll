@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/02 16:21:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/02 21:21:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -42,7 +42,7 @@ lvl() {
 	msg -i ">>> Switching to init shell run level: $1"
 	export LVL=$1
 
-	local _file="$(ls $MODDIR/*.$1 2>/dev/null)"
+	local _file="$(ls $LIBDIR/${1}-* 2>/dev/null)"
 	if [ -n "$_file" ]; then
 		for _f in $_file; do
 			msg -i "exec: $sh -aex $_f..."
