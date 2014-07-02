@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/02 11:13:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/02 16:13:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support
 [with a handfull zsh and bash set of scripts to get going easily]."
@@ -36,6 +36,9 @@ so one can put many sane default values there.
 
 One can get more info on the scripts by running @$script -u@
 
+*New*: mkinitramfs-ll-0.12.8 support kernel module group loading, meaning:
+one can append a group name instead of a module name like @imod=kms@
+
 *Warn*: mkinitramfs-ll-0.12.0 or later require the associated usr directory.
 There's no support building at hand without the associated generating scripts!
 
@@ -72,9 +75,9 @@ that the underlaying volume are available before level @4m@.
 
 KERNEL-COMMAND-LINE-ARG: @imod=<uvesafb:kms:...>@
 DESCRIPTION: optional modules to load (in the boot group)
-EXAMPLE: @imod=drm:drm_kms_helper:ttm:i915:radeon@
+EXAMPLE: @imod=kms:uvesafb@
 EXAMPLE: if using the building scripts one can append @imod=kms@ for basic 
-kms related drivers (one can append extra modules to opts[-mkms] in 
+kms related drivers group (one can append extra modules to opts[-mkms] in 
 mkinitramfs-ll.conf if need b).
 
 KERNEL-COMMAND-LINE-ARG: @ikmap=<kmap>[:<font>]@
@@ -278,17 +281,20 @@ Squashed directories argument:
 
 h3. 4.4. Optional user scripts support
 
-Now one can add scripts to @/etc/mkinitramfs-ll.d@ of the initramfs root, or else in
-@$gitdir/usr/etc/mkinitramfs-ll.d@ if using mkinitramfs-ll.$shell generating script. 
+Now one can add scripts to @modules@ of the initramfs root, or else in
+@$gitdir/usr/lib/mkinitramfs-ll@ if using mkinitramfs-ll.$shell generating script.
+Basically, each script is considered to be a module! So one can append -M$script
+to mkinitramfs-ll.$shell; and if there is a opts[-m$script] kernel module group
+line in mkinitramfs-ll.conf, the modules and module group file will be added!
 
 Each script  should have a @.$level@ sufix as the follwing:
-* runlevel 1:  initialization -- splash -- keymap -- font -- print boot msg -- @1@
-* runlevel 2?: @2s@ -- swap -- @2r@ -- resume -- rootfs --
-* runlevel 3?: @3d@ -- decrypt -- @3f@ -- rootfs fsck -- @3m@ -- root mount --
-* runlevel 4?: @4c@ -- clean up -- @4m@ -- mount /usr:/var... -- @4u@ --
-	umount -- @4s@ -- switch root
+* runlevel 1:  initialization - splash - keymap - font - print boot msg - @1@
+* runlevel 2?: @2s@ - swap - @2r@ - resume - rootfs -
+* runlevel 3?: @3d@ - decrypt - @3f@ - rootfs fsck - @3m@ - root mount -
+* runlevel 4?: @4c@ - clean up - @4m@ - mount /usr:/var... - @4u@ -
+	umount - @4s@ - switch root
 
-*Info*: See zfs/zram module for more info and a praticable example.
+*Info*: See zfs/zram module for more info and a praticable examples.
 
 h3. 4.5. ZFS support
 
