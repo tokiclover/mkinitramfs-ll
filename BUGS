@@ -1,17 +1,5 @@
-# $Header: mkinitramfs-ll/BUGS,v 0.10.9 2012/08/08 10:03:32 -tclover Exp $
+# $Header: mkinitramfs-ll/BUGS,v 0.12.8 2014/07/02 22:03:32 -tclover Exp $
 #
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# cannot definitly fix updating lib$arc when using sdr.$shell, so follow the
-# instructions when using the script. the only way to do it with the actual
-# version, or the previos way to do it for the matter, would be to compile
-# staticaly sys-apps/coreutils[static]. this prelude to the impossibilty to
-# squash `/usr' after merging /{{,s}bin,lib{32,64}}. /usr/{{,s}bin,lib32} would
-# be doable, lib32 on amd64 multilib. as enforcing a sys-apps/coreutils[static]
-# is not an option, updating the underlaying lib$arc filesystem require a reboot.
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# when dropped ito a minimal shell, if trying to do the remaining task manually
-# and then the first `exec switch_root /newroot /sbin/init' won't work because 
-# of the rescue shell: a second attempt will do.
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 # a die do not work properly in a script/module (rsh is ignored)
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
