@@ -2,7 +2,3 @@
 # TODO: done. However, if somebody want anything else... feel free to do it #
 # of course. And now I added LVM2... done I'm saying...                     #
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-**-*-**-*-*-*-*-*-*-*-*-*-#
-
-* stabilize sqfsdmont.initd with newer udev which broke the init service: now
-  without an initramfs, one would have to start manually sqfsdmount and maybe 
-  lvm before sending an `init 4 && init 3` to get a useable userspace.
