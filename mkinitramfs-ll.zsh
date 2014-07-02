@@ -1,6 +1,6 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.3 2013/04/27 05:40:11 -tclover Exp $
-revision=0.12.3
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.8 2014/07/02 15:40:11 -tclover Exp $
+revision=0.12.8
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -19,8 +19,8 @@ usage() {
   -g|-gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p|-prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
   -W|-workdir [<dir>]     use <dir> as a work directory to create initramfs instead of \$PWD
-  -M|-module <name>       include <name> module from [..\/]mkinitramfs-ll.d module directory
-  -m|-mdep [:<mod>]       include a colon separated list of kernel modules to the initramfs
+  -M|-module :<name>      include <name> module from [..\/]modules/ module directory
+  -m|-kmod [:<mod>]       include a colon separated list of kernel modules to the initramfs
      -mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
      -mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
      -msqfsd [:<mod>]     include a colon separated list of kernel modules to sqfsd   group
@@ -53,7 +53,10 @@ info()  { print -P " %B%F{green}*%b%f $@" }
 warn()  { print -P " %B%F{red}*%b%f $@" }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die()   { error $@; exit 1 }
+die() {
+	error $@
+	exit 1
+}
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
 # @FUNCTION: adn
@@ -74,14 +77,14 @@ adn() {
 setopt EXTENDED_GLOB NULL_GLOB
 zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
-	k: kversion: m+:: mdep+:: f+:: font+:: s:: splash:: u usage M: module: \
+	k: kversion: m+:: kmod+:: f+:: font+:: s:: splash:: u usage M: module: \
 	v version W:: workdir::  b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: \
 	mboot+:: mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen n clean ||
 	usage
 if [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
 	print "${(%):-%1x}-$revision"
-	exit
+	exit $?
 }
 
 # @VARIABLE: opts [associative array]
@@ -149,7 +152,7 @@ if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
 	[[ -d ${opts[-initdir]} ]] || die "${opts[-initdir]}: no old initramfs dir"
 	print -P "%F{green}>>> regenerating ${opts[-initramfs]}...%f"
 	pushd ${opts[-initdir]} || die
-	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions.sh usr/lib/mkinitramfs-ll &&
+	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions usr/lib/mkinitramfs-ll &&
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 	docpio || die
 	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f" && exit
@@ -165,11 +168,12 @@ rm -rf ${opts[-initdir]}
 mkdir -p ${opts[-initdir]} && pushd ${opts[-initdir]} || die
 if [[ -d ${opts[-usrdir]} ]] {
 	cp -ar ${opts[-usrdir]} . && rm -f usr/README* || die
-	mv -f {usr/,}root 1>/dev/null 2>&1 && mv -f {usr/,}etc 1>/dev/null 2>&1 &&
+	mv -f {usr/,}root 1>/dev/null 2>&1 &&
+	mv -f {usr/,}etc 1>/dev/null 2>&1 &&
 	mv -f usr/lib lib${opts[-arc]} || die
 } else { "${opts[-usrdir]} dir not found" }
-mkdir -p {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
-mkdir -p dev proc sys newroot mnt/tok etc/{mkinitramfs-ll{,.d},splash} || die
+mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
+mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash} || die
 mkdir -p run lib${opts[-arc]}/{modules/${opts[-kversion]},mkinitramfs-ll} || die
 ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
@@ -183,8 +187,10 @@ if [[ ${${(pws:.:)opts[-kversion]}[1]} -eq 3 ]] &&
 
 cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 
-for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]})
-	cp -a ${opts[-usrdir]:h}/mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
+for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]}) {
+	cp -a ${opts[-usrdir]:h}/modules/*$mod* etc/mkinitramfs-ll.d/
+	opts[-mgrp]+=:$mod
+}
 cp -ar {/,}lib/modules/${opts[-kversion]}/modules.dep ||
 	die "failed to copy modules.dep"
 
@@ -205,11 +211,11 @@ if [[ ! -f etc/mkinitramfs-ll/busybox.app ]] {
 for app ($(< etc/mkinitramfs-ll/busybox.app)) ln -fs /bin/busybox ${app}
 
 if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] { 
-	opts[-bin]+=:cryptsetup opts[-kmodule]+=:dm-crypt
+	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 }
 
 if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
-	opts[-kmodule]+=:gpg
+	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]] { :;
 	} elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
 		opts[-bin]+=:$(which gpg)
@@ -220,7 +226,7 @@ if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
 }
 
 if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
-	opts[-bin]+=:lvm:lvm.static opts[-kmodule]+=:device-mapper
+	opts[-bin]+=:lvm:lvm.static opts[-mgrp]+=:device-mapper
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge) ln -sf lvm ${lpv} || die
@@ -228,7 +234,7 @@ if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
 }
 
 if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] { 
-	opts[-bin]+=:mount.aufs:umount.aufs opts[-kmodule]+=:sqfsd
+	opts[-bin]+=:mount.aufs:umount.aufs opts[-mgrp]+=:sqfsd
 }
 
 # @FUNCTION: domod
@@ -249,8 +255,8 @@ domod() {
 }
 
 for bin (dmraid mdadm zfs) if [[ -n $(echo ${opts[-b]} | grep $bin) ]] ||
-	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-kmodule]+=:$bin }
-opts[-kmodule]=${opts[-kmodule]/mdadm/raid}
+	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-mgrp]+=:$bin }
+opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] { :;
@@ -313,8 +319,8 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]})
 		warn "no ${bin} binary found"
 	}
 
-for module (${(pws,:,)opts[-mdep]} ${(pws,:,)opts[-m]}) domod ${module}
-for grp (${(pws,:,)opts[-kmodule]})
+for module (${(pws,:,)opts[-kmod]} ${(pws,:,)opts[-m]}) domod ${module}
+for grp (${(pws,:,)opts[-mgrp]})
 	for mod (${(pws,:,)opts[-m${grp}]})
 		domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
 
