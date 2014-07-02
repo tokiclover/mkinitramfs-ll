@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/02 21:04:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/02 21:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -137,16 +137,15 @@ bck() {
 # @USAGE: [<applets>]
 # @DESCRIPTION: busybox Applets ChecK
 ack() {
-	local _app _applets="$@"
-	if [ -z "$_applets" ] && [ -f /etc/mkinitramfs-ll/busybox.app ]; then
-		_applets="$(cat /etc/mkinitramfs-ll/busybox.app)"
+	if [ -z "$@" ] && [ -f $CONFDIR/busybox.app ]; then
+		while read line; do
+			[ -h /$line ] && [ "$(readlink $line)" == "/bin/busybox" ] ||
+			debug -d busybox --install -s
+			break
+		done <$CONFDIR/busybox.app
 	else
-		debug -d busybox --install -s && return
+		debug -d busybox --install -s
 	fi
-	for _app in $_applets; do 
-		[ -h "$_app" ] && [ "$(readlink $_app)" = "/bin/busybox" ] ||
-			debug -d busybox --install -s && break
-	done
 }
 
 # @FUNCTION: _rmmod
@@ -154,8 +153,8 @@ ack() {
 # @USAGE: <kernel module(s) | module group>
 # @DESCRIPTION: ReMove kernel MODules from a file liste or...
 _rmmod() {
-	[ -f "/etc/mkinitramfs-ll/module.$1" ] &&
-		local _module="$(cat /etc/mkinitramfs-ll/module.$1)"
+	[ -f "$CONFDIR/$1" ] &&
+		local _module="$(cat $CONFDIR/$1)"
 	for _m in ${_module:-$*}; do 
 		debug rmmod $_m 1>/dev/null 2>&1
 	done
@@ -166,8 +165,8 @@ _rmmod() {
 # @USAGE: <kernel module(s) | module group>
 # @DESCRIPTION: insert kernel MODules from a file liste or...
 _modprobe() {
-	[ -f "/etc/mkinitramfs-ll/module.$1" ] &&
-		local _module="$(cat /etc/mkinitramfs-ll/module.$1)"
+	[ -f "$CONFDIR/$1" ] &&
+		local _module="$(cat $CONFDIR/$1)"
 	for _m in ${_module:-$*}; do 
 		debug modprobe $_m 1>/dev/null 2>&1
 	done
