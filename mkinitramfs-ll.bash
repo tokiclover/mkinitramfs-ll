@@ -44,16 +44,25 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-error() { echo -ne " \e[1;31m* \e[0m$@\n"; }
+error() {
+	echo -ne " \e[1;31m* \e[0m$@\n"
+}
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
-info() 	{ echo -ne " \e[1;32m* \e[0m$@\n"; }
+info() {
+	echo -ne " \e[1;32m* \e[0m$@\n"
+}
 # @FUNCTION: warn
 # @DESCRIPTION: print warning message to stdout
-warn() 	{ echo -ne " \e[1;33m* \e[0m$@\n"; }
+warn() {
+	echo -ne " \e[1;33m* \e[0m$@\n"
+}
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die()   { error "$@"; exit 1; }
+die() {
+	error "$@"
+	exit 1
+}
 
 # @FUNCTION: adn
 # @DESCRIPTION: ADd the essential Nodes to be able to boot
@@ -166,7 +175,7 @@ if [[ -n ${opts[-regen]} ]]; then
 	[[ -d ${opts[-initdir]} ]] || die "${opts[-initdir]}: no old initramfs dir"
 	echo ">>> regenerating ${opts[-initramfs]}..."
 	pushd ${opts[-initdir]} || die
-	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions.sh usr/lib/mkinitramfs-ll &&
+	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions usr/lib/mkinitramfs-ll &&
 	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
 	docpio || die
 	echo ">>> regenerated ${opts[-initramfs]}..." && exit
