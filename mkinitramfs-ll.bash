@@ -1,6 +1,6 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.3 2013/04/27 05:43:02 -tclover Exp $
-revision=0.12.3
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/02 15:43:02 -tclover Exp $
+revision=0.12.8
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -19,8 +19,8 @@ usage() {
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p, --prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
   -W, --workdir [<dir>]     use <dir> as a work directory to create initramfs instead of \$PWD
-  -M, --module <name>       include <name> module from [..\/]mkinitramfs-ll.d module directory
-  -m, --mdep [:<mod>]       include a colon separated list of kernel modules to the initramfs
+  -M, --module :<name>      include <name> module from [..\/]mkinitramfs-ll.d module directory
+  -m, --kmod [:<mod>]       include a colon separated list of kernel modules to the initramfs
       --mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
       --mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
       --msqfsd [:<mod>]     include a colon separated list of kernel modules to sqfsd   group
@@ -71,7 +71,7 @@ adn() {
 	done
 }
 
-opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,mdep::,mgpg::,msqfsd::,mremdev:: \
+opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msqfsd::,mremdev:: \
 	  -l clean,module:,mtuxonice::,sqfsd,toi,usage,usrdir::,version \
 	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,regen \
 	  -o ab:c::d::f::gk::lLM:m::np::rs::tuvy::W:: -n ${0##*/} -- "$@" || usage)
@@ -106,7 +106,7 @@ while [[ $# > 0 ]]; do
 		-s|--splash) opts[-splash]+=":${2}"; shift 2;;
 		-W|--workdir) opts[-workdir]="${2}"; shift 2;;
 		-M|--module) opts[-module]+=":${2}"; shift 2;;
-		-m|--mdep) opts[-mdep]+=":${2}"; shift 2;;
+		-m|--kmod) opts[-kmod]+=":${2}"; shift 2;;
 		-p|--prefix) opts[-prefix]=${2}; shift 2;;
 		-y|--keymap) 
 			opts[-keymap]+=:"${2:-$(grep -E '^keymap' /etc/conf.d/keymaps|cut -d'"' -f2)}"
@@ -182,15 +182,16 @@ rm -rf "${opts[-initdir]}"
 mkdir -p "${opts[-initdir]}" && pushd "${opts[-initdir]}" || die
 if [[ -d "${opts[-usrdir]}" ]]; then
 	cp -ar "${opts[-usrdir]}" . && rm -f usr/README* || die
-	mv -f {usr/,}root 1>/dev/null 2>&1 && mv -f {usr/,}etc 1>/dev/null 2>&1 &&
+	mv -f {usr/,}root 1>/dev/null 2>&1 &&
+	mv -f {usr/,}etc 1>/dev/null 2>&1 &&
 	mv -f usr/lib lib${opts[-arc]} || die
 else 
 	die "${opts[-usrdir]} not found"
 fi
 
-mkdir -p {,s}bin usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
-mkdir -p dev proc sys newroot mnt/tok etc/{mkinitramfs-ll{,.d},splash} || die
-mkdir -p run lib${opts[-arc]}/{modules/${opts[-kversion]},mkinitramfs-ll} || die
+mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
+mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash} || die
+mkdir -p run lib${opts[-arc]}/{/${opts[-kversion]},mkinitramfs-ll} || die
 ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 
@@ -206,7 +207,8 @@ cp -af {/,}lib/modules/${opts[-kversion]}/modules.dep ||
 	die "failed to copy modules.dep"
 
 for mod in ${opts[-module]//:/ }; do
-	cp -a ${opts[-usrdir]}/..\/mkinitramfs-ll.d/*$mod* etc/mkinitramfs-ll.d/
+	cp -a ${opts[-usrdir]}/..\/modules/*$mod* lib/mkinitramfs-ll/
+	opts[-mgrp]+=:$mod
 done
 
 [[ -f /etc/issue.logo ]] && cp {/,}etc/issue.logo
@@ -230,13 +232,13 @@ for app in $(< etc/mkinitramfs-ll/busybox.app); do
 done
 
 if [[ -n "${opts[-luks]}" ]]; then
-	opts[-bin]+=:cryptsetup opts[-kmodule]+=:dm-crypt
+	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 fi
 if [[ -n "${opts[-sqfsd]}" ]]; then
-	opts[-bin]+=:umount.aufs:mount.aufs opts[-kmodule]+=:sqfsd
+	opts[-bin]+=:umount.aufs:mount.aufs opts[-mgrp]+=:sqfsd
 fi
 if [[ -n "${opts[-gpg]}" ]]; then
-	opts[-kmodule]+=:gpg
+	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]]; then :;
 	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
 		opts[-bin]+=":$(which gpg)"
@@ -248,7 +250,7 @@ if [[ -n "${opts[-gpg]}" ]]; then
 		warn "no gpg.conf was found"
 fi
 if [[ -n "${opts[-lvm]}" ]]; then
-	opts[-bin]+=:lvm:lvm.static opts[-kmodule]+=:device-mapper
+	opts[-bin]+=:lvm:lvm.static opts[-mgrp]+=:device-mapper
 	pushd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge
@@ -275,10 +277,10 @@ domod() {
 }
 
 for bin in dmraid mdadm zfs; do
-	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] && opts[-kmodule]+=:$bin
+	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] && opts[-mgrp]+=:$bin
 done
 
-opts[-kmodule]=${opts[-kmodule]/mdadm/raid}
+opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for keymap in ${opts[-keymap]//:/ }; do
 	if [[ -f usr/share/keymaps/"${keymap}" ]]; then :;
@@ -355,9 +357,9 @@ for bin in ${opts[-bin]//:/ }; do
 	fi
 done
 
-domod ${opts[-mdep]//:/ }
+domod ${opts[-kmod]//:/ }
 
-for grp in ${opts[-kmodule]//:/ }; do
+for grp in ${opts[-mgrp]//:/ }; do
 	if [[ -n "${opts[-m${grp}]}" ]]; then
 		for mod in ${opts[-m${grp}]//:/ }; do 
 			domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
