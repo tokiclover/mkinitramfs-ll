@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.7 2013/07/16 08:21:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.7 2013/07/02 14:21:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -13,7 +13,7 @@
 # @DEFAULT_SET
 # @DESCRIPTION: real init
 
-# @VARIABLE: INITLIB
+# @VARIABLE: LIBDIR
 # @DEFAULT_SET
 # @DESCRIPTION: path to default mkinitramfs-ll library dir
 
@@ -28,12 +28,12 @@
 # @VARIABLE: LVL
 # @DESCRIPTION: auto setted variable, lvl(), to hold the running LeVeL
 
-export init=/sbin/init INITLIB=/lib/mkinitramfs-ll MODDIR=/etc/mkinitramfs-ll.d
+export init=/sbin/init LIBDIR=/lib/mkinitramfs-ll
 export ECK=true LOGFILE=$0.log sh=/bin/sh SPLD=false
 export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin 
 export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-> '
 
-source $INITLIB/functions.sh || $sh -a
+source $LIBDIR/functions || $sh -a
 
 # @FUNCTION: lvl
 # @INTERNAL
