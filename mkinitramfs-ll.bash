@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/02 15:43:02 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/02 21:33:02 -tclover Exp $
 revision=0.12.8
 
 # @FUNCTION: usage
@@ -371,7 +371,7 @@ domod ${opts[-kmod]//:/ }
 for grp in ${opts[-mgrp]//:/ }; do
 	if [[ -n "${opts[-m${grp}]}" ]]; then
 		for mod in ${opts[-m${grp}]//:/ }; do 
-			domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/module.${grp}
+			domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/${grp}
 		done
 	fi
 done
