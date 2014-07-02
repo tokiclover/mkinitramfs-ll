@@ -1,4 +1,4 @@
-# $Id: mkinitramfs-ll.d/zfs,v 0.12.3 2013/04/25 22:48:07 -tclover Exp $
+# $Id: modules/zfs,v 0.12.8 2014/07/02 14:48:07 -tclover Exp $
 
 # @ARG: 1
 # @DESCRIPTION: pool/volume
@@ -9,7 +9,7 @@
 # @ARG: 3
 # @DESCRIPTION: zpool extra positional arguments
 
-source $INITLIB/functions.sh
+source $LIBDIR/functions
 
 dozfs() {
 	echo $$ >/run/${0##*/}.pid
