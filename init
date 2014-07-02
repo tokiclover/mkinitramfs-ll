@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.7 2013/07/02 14:21:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/02 16:21:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -227,7 +227,7 @@ echo /sbin/mdev >/proc/sys/kernel/hotplug
 	
 if [ -n "$imod" ]; then
 	for _m in $(echo $imod | sed 's/:/ /g'); do 
-		debug modprobe $_m 1>/dev/null 2>&1
+		debug _modprobe $_m 1>/dev/null 2>&1
 	done
 fi
 	
