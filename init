@@ -252,22 +252,14 @@ lvl 1
 
 arg "FONT" "$ikmap" ":" "2" "-s"
 if [ -n "$FONT" ]; then
-	for _dir in /usr/share/consolefonts /etc /; do
-		if [ -f "$_dir/$FONT" ]; then
-			debug -d loadfont <"$_dir/$FONT" && break
-		fi
-	done
+	[ -f "$_dir/$FONT" ] && debug -d loadfont < "$_dir/$FONT"
 fi
 
 # -*- Keymap -*-
 
 arg "KEYMAP" "$ikmap" ":" "1"
 if [ -n "$KEYMAP" ]; then
-	for _dir in /usr/share/keymaps /etc /; do
-		if [ -f "$_dir/$KEYMAP" ]; then
-			debug -d loadkmap <"$_dir/$KEYMAP" && break
-		fi
-	done
+	[ -f "$_dir/$KEYMAP" ] && debug -d loadkmap < "$_dir/$KEYMAP"
 fi
 
 # -*- Logo and or boot message -*-
