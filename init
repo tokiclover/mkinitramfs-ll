@@ -29,8 +29,16 @@
 # @DEFAULT_SET
 # @DESCRIPTION: log file to log execution commands for debugging
 
+# @VARIABLE: RSH
+# @DEFAULT_UNSET
+# @DESCRIPTION: Rescue SHell level to be dropped into, see LVL
+
 # @VARIABLE: LVL
-# @DESCRIPTION: auto setted variable, lvl(), to hold the running LeVeL
+# @DESCRIPTION: auto setted variable, lvl(), to hold the running shell LeVeL
+
+# @VARIABLE: RIL
+# @DEFAULT_UNSET
+# @DESCRIPTION: Real Init run-Level to be passed to real init
 
 export LIBDIR=/lib/mkinitramfs-ll CONFDIR=/etc/initramfs-ll
 export ECK=true LOGFILE=$0.log SPLD=false init=/sbin/init sh=/bin/sh
@@ -41,7 +49,7 @@ source $LIBDIR/functions || $sh -a
 
 # @FUNCTION: lvl
 # @INTERNAL
-# @DESCRIPTION: make LeVeL and drop to rescue shell if $LVL = $SHLVL
+# @DESCRIPTION: make LeVeL and drop to rescue shell if $LVL = $RSH
 lvl() {
 	msg -i ">>> Switching to init shell run level: $1"
 	export LVL=$1
@@ -62,7 +70,7 @@ lvl() {
 		done
 	fi
 
-	[ "$SHLVL" = $LVL ] && debug die
+	[ "$LVL" = "$RSH" ] && debug die
 	return 0
 }
 
@@ -180,15 +188,15 @@ debug -d mount -t proc proc /proc
 
 for arg in $(cat /proc/cmdline); do
    	case $arg in
-		rescue*) export SHLVL=1
+		rescue*|RSH*) export RSH=1
 			;;
 		ro|rw) [ -n "$imtop" ] && imtopt="$arg,$imtopt" || imtopt="$arg"
 			export imtopt="$imtopt"
 			;;
-		single) export RUNLVL=2
+		single) export RIL=2
 			;;
-		ishrl=*) arg "SHLVL" "$arg" ":" "1"
-			arg "RUNLVL" "$arg" ":" "2" "-s"
+		irsh=*) arg "RSH" "$arg" ":" "1"
+			arg "RIL" "$arg" ":" "2" "-s"
 			;;
 		splash*|console*|CONSOLE*) export "$arg"
 			;;
@@ -365,6 +373,6 @@ export LOGFILE=/$0.log
 debug -d umount -l /run
 lvl 4s
 
-debug -d exec switch_root /newroot ${init:-/sbin/init} $RUNLVL
+debug -d exec switch_root /newroot ${init:-/sbin/init} $RIL
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
