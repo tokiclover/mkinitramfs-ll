@@ -1,9 +1,10 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 08:13:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 08:53:54 -tclover Exp $@
 
-bq. "an initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support
-[with a handfull zsh and bash set of scripts to get going easily]."
+bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
+TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
+with a handfull zsh and bash set of scripts to get going easily and quickly."
 
-*WARNING: USE AT YOUR OWN RISK!*
+*WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN "AS IS", SEE COPYRIGHT FILE*
 
 h3. 1. Getting an intramfs quickly and ready
 
