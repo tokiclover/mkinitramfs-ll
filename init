@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/02 19:51:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/02 21:51:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -119,60 +119,51 @@ spld() {
 # @DESCRIPTON: resume after a hibernation, TuxOnIce may work,
 # the intrnal kernal implementation should be fixed/finished before use
 resume() {
-	local _asw _dev=$1 _img _hpr
+	local _asw _dev=$1 _img_sz=0 _hpr
 	msg -i "Resuming from hibernation..."
 
 	if [ -d /sys/power/tuxonice ]; then
 		if $SPLD; then
 			[ -n "$theme" ] &&
-				debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
-			_hpr=$(which tuxoniceui_fbsplash)
+			debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
+			_hpr="$(which tuxoniceui_fbsplash)"
 		else
 			_hpr="$(which tuxoniceui_text)"
 		fi
 		
 		debug _modprobe tuxonice
 		echo $_dev >/sys/power/tuxonice/resume
-
-		_img="$(cat /sys/power/tuxonice/image_exists | head -n 1)"
-		if [ "$_img" = "1" ]; then 
+		read _img </sys/power/tuxonice/image_exists
+		if [ "$_img_sz" == "1" ]; then 
 			msg -e "toi: no recognizable signature at the pointed location"
 			msg -e "toi: proceed anyway [ NO | yes ]? "
 			shread _asw
 			[ "${_asw:-no}" != "yes" ] && die "toi: resume aborted"
-		else
-			die "toi: no image found at the pointed location"
 		fi
-
-		$SPLD && spld_stop
-
+		$SPLD || spld_stop
 		echo $_hpr >/sys/power/tuxonice/user_interface/program
 		echo >/sys/power/tuxonice/do_resume
 		echo >/sys/power/tuxonice/image_exists
 		debug _rmmod tuxonice
 	elif [ -f /sys/power/resume ]; then
-		$SPLD && _hpr=$(which suspendui_fbsplash) ||
-			_hpr="$(which suspendui_text)"
-	
 		debug _modprobe swsusp
 		echo $_dev >/sys/power/resume
-		_img="$(cat /sys/power/image_exists | head -n 1)"
-		
-		if [ "$_img" = "1" ]; then 
+		read _img_sz </sys/power/image_exists
+
+		if [ "$_img_sz" == "1" ]; then 
 			msg -e "swsusp: no recognizable signature at the pointed location"
 			msg -e "swsusp: proceed anyway [ NO | yes ]? "
 			shread _asw
-			[ "${_asw:-no}" != "yes" ] && die "suspend: resume aborted"
-		else
-			die "suspend: no image found at the pointed location"
+			[ "${_asw:-no}" != "yes" ] && die "swsusp: resume aborted"
+			echo 0 >/sys/power/image_size
 		fi
 
 		$SPLD && spld_stop
 
-		echo disk >/sys/power/state
+		echo -n disk >/sys/power/state
 		debug _rmmod swsusp
 	else
-		msg -e "no suspend/hibernation support found"
+		msg -e "no hibernation support found"
 	fi
 	
 	die "failed to resume from hibernation"
