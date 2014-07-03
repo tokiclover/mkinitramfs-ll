@@ -1,13 +1,27 @@
-# $Id: mkinitramfs-ll/NEWS, 2014/07/03 08:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/NEWS, 2014/07/03 12:40:11 -tclover Exp $
 
-*New*: mkinitramfs-ll-0.12.8 support kernel module group loading, meaning:
-one can append a group name instead of a module name like @imod=kms@
+0.12.8:
 
-*Warn*: mkinitramfs-ll-0.12.8 user script changed previous sufix .$level
-to prefix $level-! See user script section.
+* support kernel module group loading, meaning:
+one can append a group name instead of a module name like *imod=kms*;
 
-*Warn*: mkinitramfs-ll-0.12.0 or later require the associated usr directory.
+* user script changed previous sufix *.$level* to prefix *$level-*!
+See user script section.
+
+* renamed clumsy ishrl to irsh kernel cmdline argument.
+
+* now one can type SH|SHELL|RSH on each read as well!
+
+0.12.0:
+
+* since this version: require the associated usr directory.
 There's no support building at hand without the associated generating scripts!
 
-*New:* mkinitramfs-ll-0.12.0 allow to be dropped on each read() (infinite loop).
-Just type @sh@ or @shell@ and then hit Enter.
+* allow to be dropped in rescue shell on each read() (infinite loop):
+just type @sh@ or @shell@ and then hit Enter.
+
+0.8.2:
+
+* now one can *exit* the rescue shell after beiing dropped there,
+or simply after a @rescue[shell]/RSH[ELL]@ or @irsh=<n>@ on kernel
+cmdline and the init will resume booting from there.
