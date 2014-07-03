@@ -1,4 +1,4 @@
-# $Id: modules/zfs.3d,v 0.12.8 2014/07/02 14:48:11 -tclover Exp $
+# $Id: modules/zfs.3d,v 0.12.8 2014/07/03 13:45:11 -tclover Exp $
 
 set -e +x
 source $LIBDIR/zfs
@@ -9,9 +9,9 @@ arg "VDEV" "$izfs" "," "1"
 arg "FS" "$iroot" ":" "3" "-s"
 
 if [ -n "$VDEV" ] || [ "$FS" = "zfs" ]; then
-	arg "root" "$iroot" ":" "1"
-	debug -d dozfs "$root" "$VDEV" &&
-	echo "ROOT=$root" >>/run/env
+	arg "ROOT" "$iroot" ":" "1"
+	debug -d dozfs "$ROOT" "$VDEV" &&
+	echo "ROOT=$ROOT" >>/run/env
 fi
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
