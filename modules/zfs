@@ -13,7 +13,7 @@ source $LIBDIR/functions
 
 dozfs() {
 	echo $$ >/run/${0##*/}.pid
-	$eck && for bin in zfs zpool; do 
+	$ECK && for bin in zfs zpool; do 
 		debug -d bck $bin
 	done
 
