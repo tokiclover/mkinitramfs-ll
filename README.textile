@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/02 21:13:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 08:13:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID|LUKS|LVM|TOI|AUFS+SQUASHFS* support
 [with a handfull zsh and bash set of scripts to get going easily]."
@@ -35,18 +35,6 @@ etc. and the @-a@ option depend on @mkinitramfs-ll.conf@
 so one can put many sane default values there.
 
 One can get more info on the scripts by running @$script -u@
-
-*New*: mkinitramfs-ll-0.12.8 support kernel module group loading, meaning:
-one can append a group name instead of a module name like @imod=kms@
-
-*Warn*: mkinitramfs-ll-0.12.8 user script changed previous sufix .$level
-to prefix $level-! See user script section.
-
-*Warn*: mkinitramfs-ll-0.12.0 or later require the associated usr directory.
-There's no support building at hand without the associated generating scripts!
-
-*New:* mkinitramfs-ll-0.12.0 allow to be dropped on each read() (infinite loop).
-Just type @sh@ or @shell@ and then hit Enter.
 
 h3. 2.1 _Optional_ kernel cmdline option or arguments
 
