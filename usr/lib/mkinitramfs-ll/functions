@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/02 21:42:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/03 10:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -51,7 +51,7 @@ msg() {
 		-e) error "${_msg}"
 			;;
 		-i) info  "${_msg}"
-			;;
+		;;
 	esac
 
 	$SPLD && debug spld_cmd "set message $_msg" && debug spld_cmd "repaint"
@@ -59,8 +59,8 @@ msg() {
 
 # @FUNCTION: debug
 # @EXTERNAL
-# @USAGE: [ -d | -e ] <string>
-# @DESCRIPTION: execute a command and log the command into $logfile
+# @USAGE: [ -d | -e | -i ] <string>
+# @DESCRIPTION: execute a command and log the command into $LOGFILE
 debug() {
 	local _cmd _opt _ret
 	while true; do
@@ -153,11 +153,13 @@ ack() {
 # @USAGE: <kernel module(s) | module group>
 # @DESCRIPTION: ReMove kernel MODules from a file liste or...
 _rmmod() {
-	[ -f "$CONFDIR/$1" ] &&
-		local _module="$(cat $CONFDIR/$1)"
-	for _m in ${_module:-$*}; do 
-		debug rmmod $_m 1>/dev/null 2>&1
-	done
+	if [ -f "$CONFDIR/$1" ]; then
+		for _mod in $(cat $CONFDIR/$1); do 
+			debug rmmod -q $_mod
+		done
+	else
+		rmmod $*
+	fi
 }
 
 # @FUNCTION: _modprobe
@@ -165,11 +167,13 @@ _rmmod() {
 # @USAGE: <kernel module(s) | module group>
 # @DESCRIPTION: insert kernel MODules from a file liste or...
 _modprobe() {
-	[ -f "$CONFDIR/$1" ] &&
-		local _module="$(cat $CONFDIR/$1)"
-	for _m in ${_module:-$*}; do 
-		debug modprobe $_m 1>/dev/null 2>&1
-	done
+	if [ -f "$CONFDIR/$1" ]; then
+		for _mod in $(cat $CONFDIR/$1); do 
+			debug modprobe -q $_mod
+		done
+	else
+		modprobe $*
+	fi
 }
 
 # @FUNCTION: _getopt
@@ -178,9 +182,7 @@ _modprobe() {
 # @DESCRIPTION: get kernel command line argument
 _getopt() {
 	for _arg in $@; do
-		for _cmd in $(cat /proc/cmdline | grep -wF "$_arg"); do
-			[ "${_cmd%%=*}" = "$_arg" ] && export $_cmd && break
-		done
+		export $(grep -m1 -oF "$_arg" /proc/cmdline)
 	done
 }
 
