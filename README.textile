@@ -86,6 +86,9 @@ KERNEL-COMMAND-LINE-ARG: @rescue|rescueshell|RSH|RSHELL@
 DESCRIPTION: drops directly into a minimal shell
 EXAMPLE: RSH
 
+*Note*: one can exit a rescue shell and then resume booting !
+Type in _exit_ and hit _Enter_
+
 KERNEL-COMMAND-LINE-ARG: @ilvm=<map-PV>,...,<map-PV>@
 DESCRIPTION: LVM argument @<mapping-PV>@ is collon ':' separated list of PVs of
 a Volume Group; and comma ',' separated list of VG: 1st for root, 2nd for swap
