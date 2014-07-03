@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/02 21:51:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/02 19:51:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -54,21 +54,18 @@ lvl() {
 	msg -i ">>> Switching to init shell run level: $1"
 	export LVL=$1
 
-	local _file="$(ls $LIBDIR/${1}-* 2>/dev/null)"
-	if [ -n "$_file" ]; then
-		for _f in $_file; do
-			msg -i "exec: $sh -aex $_f..."
-			debug $sh -aex $_f
-			if [ -f /run/env ]; then
-				while read line; do
-					export $line
-				done </run/env
-				rm -f /run/env
-			fi
-			[ -f /run/${_f##*/}.pid ] && rm -f /run/${_f##*/}.pid && debug die
-			exec 0<$CONSOLE 1>$CONSOLE 2>&1	
-		done
-	fi
+	for _f in $(ls $LIBDIR/${1}-* 2>/dev/null); do
+		msg -i "exec: $sh -aex $_f..."
+		debug $sh -aex $_f
+		if [ -f /run/env ]; then
+			while read line; do
+				export $line
+			done </run/env
+			rm -f /run/env
+		fi
+		[ -f /run/${_f##*/}.pid ] && rm -f /run/${_f##*/}.pid && debug die
+		exec 0<$CONSOLE 1>$CONSOLE 2>&1	
+	done
 
 	[ "$LVL" = "$RSH" ] && debug die
 	return 0
@@ -264,7 +261,7 @@ lvl 1
 
 arg "FONT" "$ikmap" ":" "2" "-s"
 if [ -n "$FONT" ]; then
-	CSFDDIR=/usr/share/consolefonts
+	CSFDIR=/usr/share/consolefonts
 	[ -f $CSFDIR/$FONT ] && debug -d loadfont <$CSFDIR/$FONT
 fi
 
@@ -322,12 +319,9 @@ if [ -z "$ROOT" ]; then
 	lvl 3f
 	if [ -n "$CK" ]; then 
 		case $CK in
-			n*|N*) CK=-e
-				;;
-			c*|y*|Y*) CK=-d
-				;;
-			*) CK=
-				;;
+			n*|N*) CK=-e;;
+			c*|y*|Y*) CK=-d;;
+			*) CK=;;
 		esac
 		debug $CK fsck ${FS:+-t$FS} $ROOT
 	fi
@@ -362,7 +356,7 @@ debug _rmmod remdev
 
 echo >/proc/sys/kernel/hotplug
 msg -i "Switching / ..."
-debug spld_stop
+$SPLD && debug spld_stop
 sleep 1
 
 lvl 4u
