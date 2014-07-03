@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 12:35:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 12:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -84,11 +84,7 @@ EXAMPLE: @irsh=3s@ drop to @3s@ (before squahsd()) init level,
 
 KERNEL-COMMAND-LINE-ARG: @rescue|rescueshell|RSH|RSHELL@
 DESCRIPTION: drops directly into a minimal shell
-EXAMPLE:
-
-*Note*: now with >=init-0.8.2 one can @exit@ the rescue shell after beiing
-dropped there, or simply after a @rescue[shell]/RSH[ELL]@ or @irsh=<n>@ on kernel
-cmdline and the init will resume booting from there.
+EXAMPLE: RSH
 
 KERNEL-COMMAND-LINE-ARG: @ilvm=<map-PV>,...,<map-PV>@
 DESCRIPTION: LVM argument @<mapping-PV>@ is collon ':' separated list of PVs of
