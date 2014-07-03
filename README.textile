@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 08:53:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 09:35:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -175,7 +175,7 @@ h3. 3.2. Notes on DM-Crypt LUKS key modes
 	is already included in the package
 * @ldk@: encrypted key-file passed to cryptsetup as
 	@-d /dev/mapper/$(basename /path/to/keyfile)@ after decryption 
-* reg@: regular keyfile passed to cryptsetup as @-d /path/to/keyfile@
+* @reg@: regular keyfile passed to cryptsetup as @-d /path/to/keyfile@
 * @pwd@: regular passphrase: it's mandatory to append any
 	@ikroot[|swap|resume]=pwd@ (fallback keymode for crypted devices)
 * @none@: unencrypted block device, it's not mandatory to append this
@@ -309,13 +309,15 @@ h3. 4.6. ZRAM support
 To get a simple zram support in order to get zram device as early as possible,
 one need only to append @zram@ kernel module to @imod@ argument and optionaly
 zram.num_devices=<int> kernel command line argument.
-Extra actions can be taken for with a _user script_ if needed.
+Extra actions can be taken care with a _user script_ if needed.
+
+Enter zram module. 
 
 KERNEL-COMMAND-LIE-ARG: @izram=4,4G:ext3@
 DESCRIPTION: zram basic initialisation kernel command line argument
 EXEMPLE: see above
 
-Enter zram.1 module. This take of basic zram initialisation:
+This module/script take care of basic zram initialisation:
 * First integer: passed as num_devices=<int> to modprobe;
 * Following arguments are pair of size:filesystem: just make sure to include
 mkfs.$fs binaries!
