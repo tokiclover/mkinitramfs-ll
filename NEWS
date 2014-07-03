@@ -1,0 +1,13 @@
+# $Id: mkinitramfs-ll/NEWS, 2014/07/03 08:40:11 -tclover Exp $
+
+*New*: mkinitramfs-ll-0.12.8 support kernel module group loading, meaning:
+one can append a group name instead of a module name like @imod=kms@
+
+*Warn*: mkinitramfs-ll-0.12.8 user script changed previous sufix .$level
+to prefix $level-! See user script section.
+
+*Warn*: mkinitramfs-ll-0.12.0 or later require the associated usr directory.
+There's no support building at hand without the associated generating scripts!
+
+*New:* mkinitramfs-ll-0.12.0 allow to be dropped on each read() (infinite loop).
+Just type @sh@ or @shell@ and then hit Enter.
