@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/03 10:42:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/03 11:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -48,10 +48,8 @@ msg() {
 	done
 
 	case $_opt in
-		-e) error "${_msg}"
-			;;
-		-i) info  "${_msg}"
-		;;
+		-e) error "${_msg}";;
+		-i) info  "${_msg}";;
 	esac
 
 	$SPLD && debug spld_cmd "set message $_msg" && debug spld_cmd "repaint"
@@ -87,12 +85,9 @@ debug() {
 	
 	if [ ! "$_ret" ]; then
 		case $_opt in
-			-d) die "${_msg:-cmd: $_cmd}"
-				;;
-			-e) msg -e "${_msg:-cmd: $_cmd}"
-				;;
-			-i) msg -i "${_msg:-cmd: $_cmd}"
-				;;
+			-d) die "${_msg:-cmd: $_cmd}";;
+			-e) msg -e "${_msg:-cmd: $_cmd}";;
+			-i) msg -i "${_msg:-cmd: $_cmd}";;
 		esac
 	fi
 
@@ -236,7 +231,9 @@ spld_stop() {
 # @DESCRIPTION: read line from stdin and drop to rescue shell if a line is sh[ell]
 shread() {
 	read _asw
-	[ "$_asw" = "sh" ] || [ "$_asw" = "shell" ] && die
+	case $_asw in
+		sh|SH|shell|SHELL|rsh|RSH) die;;
+	esac
 }
 
 # @FUNCTION: blk
@@ -307,8 +304,7 @@ stk() {
 	if [ -z "$_km" ];then
 		export KEYMODE=none
 		return
-	elif [ "$_km" = "ldk" ];then
-		[ -z "$CLD" ] &&
+	elif [ "$_km" = "ldk" ] && [ -z "$CLD" ];then
 		[ $(cryptsetup --version | awk '{print $2}' | cut -d'.' -f2) -ge 3 ] &&
 		CLD=true
 	fi
