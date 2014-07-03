@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 09:35:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 12:35:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -76,17 +76,18 @@ KERNEL-COMMAND-LINE-ARG: @ikmap=<kmap>[:<font>]@
 DESCRIPTION: optional keymap and font to load, handy for passwords
 EXAMPLE: @ikmap=fr-x86_64.bin:ter-g12n.psf@
 
-KERNEL-COMMAND-LINE-ARG: @ishrl=<n>|:<n>@
-DESCRIPTION: interrupt init and drop to @<n>@ level or pass @<n>@ to real init
-EXAMPLE: @ishrl=3s@ drop to @3s@ (before squahsd()) init level,
-	or @ishrl=:1@ pass @1@, so single to real init
+KERNEL-COMMAND-LINE-ARG: @irsh=<n>|:<m>@
+DESCRIPTION: interrupt init and drop to a Rescue SHell (@<n>@ level);
+or pass @<m>@ run level to real init if present
+EXAMPLE: @irsh=3s@ drop to @3s@ (before squahsd()) init level,
+	or @irsh=:1@ pass @1@, so single to real init
 
-KERNEL-COMMAND-LINE-ARG: @rescue|rescueshell@
+KERNEL-COMMAND-LINE-ARG: @rescue|rescueshell|RSH|RSHELL@
 DESCRIPTION: drops directly into a minimal shell
 EXAMPLE:
 
 *Note*: now with >=init-0.8.2 one can @exit@ the rescue shell after beiing
-dropped there, or simply after a @rescue[shell]@ or @ishrl=<n>@ on kernel
+dropped there, or simply after a @rescue[shell]/RSH[ELL]@ or @irsh=<n>@ on kernel
 cmdline and the init will resume booting from there.
 
 KERNEL-COMMAND-LINE-ARG: @ilvm=<map-PV>,...,<map-PV>@
