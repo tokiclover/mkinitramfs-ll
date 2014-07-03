@@ -65,7 +65,7 @@ lvl() {
 				done </run/env
 				rm -f /run/env
 			fi
-			[ -f /run/${_s##*/}.pid ] && rm -f /run/${_s##*/}.pid && debug die
+			[ -f /run/${_f##*/}.pid ] && rm -f /run/${_f##*/}.pid && debug die
 			exec 0<$CONSOLE 1>$CONSOLE 2>&1	
 		done
 	fi
@@ -264,14 +264,16 @@ lvl 1
 
 arg "FONT" "$ikmap" ":" "2" "-s"
 if [ -n "$FONT" ]; then
-	[ -f "$_dir/$FONT" ] && debug -d loadfont < "$_dir/$FONT"
+	CSFDDIR=/usr/share/consolefonts
+	[ -f $CSFDIR/$FONT ] && debug -d loadfont <$CSFDIR/$FONT
 fi
 
 # -*- Keymap -*-
 
 arg "KEYMAP" "$ikmap" ":" "1"
 if [ -n "$KEYMAP" ]; then
-	[ -f "$_dir/$KEYMAP" ] && debug -d loadkmap < "$_dir/$KEYMAP"
+	KMPDIR=/usr/share/keymaps
+	[ -f $KMPDIR/$KEYMAP ] && debug -d loadkmap <$KMP/$KEYMAP
 fi
 
 # -*- Logo and or boot message -*-
