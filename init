@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/04 18:51:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/04 19:51:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -44,9 +44,13 @@
 # @DEFAULT_SET
 # @DESCRIPTION: mount point for removable token or device
 
+# @VARIABLE: NEWROOT
+# @DEFAULT_SET
+# @DESCRIPTION: new root directory to switch root
+
 export LIBDIR=/lib/mkinitramfs-ll CONFDIR=/etc/initramfs-ll MNTDIR=/mnt/tok
 export ECK=true LOGFILE=$0.log SPLD=false init=/sbin/init sh=/bin/sh
-export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin 
+export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin NEWROOT=/newroot
 export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
 
 source $LIBDIR/functions || $sh -a
@@ -172,7 +176,7 @@ resume() {
 
 # -*- Initialisation -*-
 
-debug -d mkdir -p dev/pts proc run sys newroot $MNTDIR
+debug -d mkdir -p dev/pts proc run sys $NEWROOT $MNTDIR
 debug -d mount -t proc proc /proc
 
 for arg in $(cat /proc/cmdline); do
@@ -319,12 +323,20 @@ if [ -z "$ROOT" ]; then
 	fi
 
 	lvl 3m
-	if ! debug mount ${imopt:+-o$imopt} ${FS:+-t$FS} $ROOT /newroot; then
+	if ! debug mount ${imopt:+-o$imopt} ${FS:+-t$FS} $ROOT $NEWROOT; then
 		[ "$KEYMODE" != "none" ] && debug -d dmclose "${ROOT##*/}"
 		die "failed to mount rootfs"
 	fi
 fi
 
+# @VARIABLE: SQFSDIR
+# @DEFAULT_SET
+# @DESCRIPTION: squashed dirs (AUFS+squashfs) root directory
+:	${SQFSDIR:=/sqfsd}
+# @VARIABLE: SQFSD
+# @DEFAULT_SET
+# @DESCRIPTION: colon separated list of squashed dir
+:	${SQFSD:=usr:opt:bin:sbin}
 [ -n "$isqfsd" ] && lvl 3s && debug -d squashd
 
 # -*- Clean up and switch -*-
@@ -361,6 +373,6 @@ export LOGFILE=/$0.log
 debug -d umount -l /run
 lvl 4s
 
-debug -d exec switch_root /newroot ${init:-/sbin/init} $RIL
+debug -d exec switch_root $NEWROOT ${init:-/sbin/init} $RIL
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
