@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/02 21:51:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/04 08:51:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -130,37 +130,34 @@ resume() {
 		else
 			_hpr="$(which tuxoniceui_text)"
 		fi
+		$ECK && debug -d bck $_hpr
+		echo $_hpr >/sys/power/tuxonice/user_interface/program
 		
 		debug _modprobe tuxonice
 		echo $_dev >/sys/power/tuxonice/resume
+
 		read _img </sys/power/tuxonice/image_exists
 		if [ "$_img_sz" == "1" ]; then 
 			msg -e "toi: no recognizable signature at the pointed location"
-			msg -e "toi: proceed anyway [ NO | yes ]? "
-			shread _asw
-			[ "${_asw:-no}" != "yes" ] && die "toi: resume aborted"
 		fi
-		$SPLD || spld_stop
-		echo $_hpr >/sys/power/tuxonice/user_interface/program
+		
 		echo >/sys/power/tuxonice/do_resume
+		$SPLD && spld_stop
 		echo >/sys/power/tuxonice/image_exists
 		debug _rmmod tuxonice
 	elif [ -f /sys/power/resume ]; then
 		debug _modprobe swsusp
-		echo $_dev >/sys/power/resume
-		read _img_sz </sys/power/image_exists
+		echo platform >/sys/power/disk # or 'shutdown'  if ACPI does not work
+		echo ${_dev#*:} >/sys/power/resume
+		echo disk >/sys/power/state
 
+		read _img_sz </sys/power/image_exists
 		if [ "$_img_sz" == "1" ]; then 
 			msg -e "swsusp: no recognizable signature at the pointed location"
-			msg -e "swsusp: proceed anyway [ NO | yes ]? "
-			shread _asw
-			[ "${_asw:-no}" != "yes" ] && die "swsusp: resume aborted"
-			echo 0 >/sys/power/image_size
 		fi
 
 		$SPLD && spld_stop
-
-		echo -n disk >/sys/power/state
+		echo 0 >/sys/power/image_size
 		debug _rmmod swsusp
 	else
 		msg -e "no hibernation support found"
