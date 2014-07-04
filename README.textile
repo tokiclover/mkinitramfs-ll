@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 12:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 20:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -265,11 +265,11 @@ Squashed directories argument:
 * @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@
 	using default or append directories after a @[n|a]:@
 * @isqfsd=/sqfsdir,n:<dir 1>:<dir n>@
-	neither sqfsdir nor sqfsd default is used, sqfsdir,sqfsd required
+	neither SQFSDIR nor SQFSD default is used, so everything is required;
 * @isqfsd=y,y@
-	using sqfsd and sqfsdir default values do not require any additional argument. 
+	using SQFSD and SQFSDIR default values do not require any additional argument;
 * @isqfsd=y,a:<dir 1>[:<dir n>]@
-	same as above, however, @<dir 1>[:<dir n>]@ is  appended to sqfsd variable.
+	same as above, however, @<dir 1>[:<dir n>]@ is  appended to SQFSD variable.
 
 h3. 4.4. Optional user scripts support
 
