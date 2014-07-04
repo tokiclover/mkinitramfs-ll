@@ -1,24 +1,26 @@
-mkinitramfs-ll
+mkinitramfs-ll:
+
 - initramfs generation tool 
 with optional LUKS|LVM|aufs+squashfs|crypted key-files (LUKS/GnuPG) support
 with a set of handy bash/zsh scripts
-- © 2011-2012 tokiclover -tclover <tokiclover{at}gmail{dot}com>
+- © 2011-2014 tokiclover -tclover <tokiclover{at}gmail{dot}com>
 
 @COPYLEFT
 ALL WRONGS RESERVED
 
-License(s) [at your choice]:
+Licenses choice:
 
-	* GNU General Public Licence, version 2 or later at your choice, as published 
-	  by the Free Software Foundation <http://www.gnu.org/licenses/>.
+* GNU General Public Licence, version 2 or later at your choice, as published 
+  by the Free Software Foundation <http://www.gnu.org/licenses/>.
 
-	* Creative Commons by ShareAlike, version 2.5 or later at your choice, 
-	 <https://creativecommons.org/licenses/by-sa/>.
+* Creative Commons by ShareAlike, version 2.5 or later at your choice, 
+ <https://creativecommons.org/licenses/by-sa/>.
 
-	* 2-clause (simplified) BSD:
+* 2-clause (simplified) BSD.
 
 ---
-Copyright 2011-2012 tokiclover/-tclover <tokiclover{at}gmail{dot}com>
+
+Copyright 2011-2014 tokiclover/-tclover <tokiclover{at}gmail{dot}com>
 
 Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
@@ -43,4 +45,5 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The views and conclusions contained in the software and documentation are those of the
 authors and should not be interpreted as representing official policies, either expressed
 or implied, of tokiclover/-tclover.
+
 ---
