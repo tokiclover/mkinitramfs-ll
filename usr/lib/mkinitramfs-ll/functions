@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/04 09:42:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/04 18:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -30,20 +30,11 @@ error() {
 # @DESCRIPTION: manage message sent to stdout and to splash deamon
 msg() {
 	local _opt _msg
-	while true; do
+	while [ $# > 0 ]; do
 		case $1 in
-			-e|-i) _opt=$1
-				shift
-				;;
-			--) shift
-				_msg="$@"
-				shift $#
-				break
-				;;
-			*) _msg="$@"
-				shift $#
-				break
-				;;
+			-e|-i) _opt=$1; shift;;
+			--) shift;;
+			*) _msg="$@"; shift $#;;
 		esac
 	done
 
@@ -61,20 +52,11 @@ msg() {
 # @DESCRIPTION: execute a command and log the command into $LOGFILE
 debug() {
 	local _cmd _opt _ret
-	while true; do
+	while [ $# > 0 ]; do
 		case $1 in
-			-d|-e|-i) _opt=$1
-				shift
-				;;
-			--) shift
-				_cmd="$@"
-				shift $#
-				break
-				;;
-			*) _cmd="$@"
-				shift $#
-				break
-				;;
+			-d|-e|-i) _opt=$1; shift;;
+			--) shift;;
+			*) _cmd="$@"; shift $#;;
 		esac
 	done
 
@@ -115,7 +97,7 @@ die() {
 	local _ret=$?
 	[ -n "$@" ] && msg -e "[$_ret]: $@"
 	msg -i "Dropping into a rescueshell..."
-	spld_stop
+	$SPLD && spld_stop
 	debug rsh || debug exec $sh -aim
 }
 
@@ -209,7 +191,7 @@ spld_silent() {
 # @EXTERNAL
 # @DESCRIPTION: stop splash deamon
 spld_stop() {
-	$SPLD && SPLD=false
+	$SPLD && SPLD=false || return
 	debug spld_cmd "exit"
 	export CONSOLE=/dev/console
 	exec 0<$CONSOLE 1>$CONSOLE 2>&1
@@ -297,7 +279,7 @@ ldk() {
 # USAGE: <mode:dev:/path/to/file>
 # @DESCRIPTION: SeT Key [file] mode for decryptiong
 stk() {
-	local _dv _fp _fn _kd _km
+	local _fp _fn _kd _km
 	arg "_fp" "$1" ":" "3" "-s"
 	arg "_kd" "$1" ":" "2" "-s"
 	arg "_km" "$1" ":" "1"
@@ -315,20 +297,20 @@ stk() {
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
 
-		if [ -z "$(mount | grep /mnt/tok)" ]; then
-			[ -b "$_dv" ] || blk "$_kd" "_dv"
-			debug -d mount -n -r "$_dv" /mnt/tok
+		if [ -z "$(grep $MNTDIR /proc/mounts)" ]; then
+			[ -b "$_kd" ] || blk "$_kd" "_kd"
+			debug -d mount -n -r "$_kd" $MNTDIR
 		fi
-		debug -d test -f "/mnt/tok/$_fp"
+		debug -d test -f "$MNTDIR/$_fp"
 	fi
 
 	case $_km in
 		gpg) $ECK && debug -d bck gpg
-			export KEYFILE="/mnt/tok$_fp" KEYMODE=gpg
+			export KEYFILE="$MNTDIR/$_fp" KEYMODE=gpg
 			;;
-		reg) export KEYFILE="/mnt/tok$_fp" KEYMODE=reg
+		reg) export KEYFILE="$MNTDIR/$_fp" KEYMODE=reg
 			;;
-		ldk) ldk "/mnt/tok$_fp"
+		ldk) ldk "$MNTDIR/$_fp"
 			export KEYFILE="/dev/mapper/$_fn" KEYMODE=ldk
 			;;
 		pwd) export KEYMODE=pwd
@@ -378,7 +360,7 @@ bkd() {
 # @DESCRIPTION: close dm-crypt mapping
 dmclose() { 
 	local IFS="${IFS}:" 
-	for _p in $1; do 
+	for _p in $@; do 
 		debug cryptsetup remove ${_p%-*}
 	done
 }
@@ -416,8 +398,8 @@ dmopen() {
 		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
 			blk "$_hdr" "_hdr"
 			debug dmcrypt "$_hdr" "_header"
-		elif [ -e "/mnt/tok/$_hdr" ]; then
-			debug dmcrypt "header" "/mnt/tok/$_hdr" "_header"
+		elif [ -e "$MNTDIR/$_hdr" ]; then
+			debug dmcrypt "header" "$MNTDIR/$_hdr" "_header"
 		else
 			die "header not found"
 		fi
@@ -456,7 +438,7 @@ lvopen() {
 	if ! debug lvchange -ay $_lv; then
 		if [ -n "$2" ] && [ "$KEYMODE" != "none" ]; then
 			local _pv="$2" IFS="${IFS}:"
-			[ -e "/mnt/tok/$_pv" ] && _pv="$(cat /mnt/tok/$_pv)"
+			[ -f "$MNTDIR/$_pv" ] && _pv="$(cat $MNTDIR/$_pv)"
 			for _p in $_pv; do
 				debug dmopen "$_p"
 			done
