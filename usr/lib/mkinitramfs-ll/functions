@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/04 20:42:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/04 21:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -399,7 +399,7 @@ dmopen() {
 			blk "$_hdr" "_hdr"
 			debug dmcrypt "$_hdr" "_header"
 		elif [ -e "$MNTDIR/$_hdr" ]; then
-			debug dmcrypt "header" "$MNTDIR/$_hdr" "_header"
+			debug dmcrypt "$MNTDIR/$_hdr" "_header"
 		else
 			die "header not found"
 		fi
