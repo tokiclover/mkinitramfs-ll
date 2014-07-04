@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/04 08:51:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/04 18:51:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK!
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -40,10 +40,14 @@
 # @DEFAULT_UNSET
 # @DESCRIPTION: Real Init run-Level to be passed to real init
 
-export LIBDIR=/lib/mkinitramfs-ll CONFDIR=/etc/initramfs-ll
+# @VARIABLE: MNTDIR
+# @DEFAULT_SET
+# @DESCRIPTION: mount point for removable token or device
+
+export LIBDIR=/lib/mkinitramfs-ll CONFDIR=/etc/initramfs-ll MNTDIR=/mnt/tok
 export ECK=true LOGFILE=$0.log SPLD=false init=/sbin/init sh=/bin/sh
 export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin 
-export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-> '
+export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
 
 source $LIBDIR/functions || $sh -a
 
@@ -168,7 +172,7 @@ resume() {
 
 # -*- Initialisation -*-
 
-debug -d mkdir -p dev/pts proc run sys newroot mnt/tok
+debug -d mkdir -p dev/pts proc run sys newroot $MNTDIR
 debug -d mount -t proc proc /proc
 
 for arg in $(cat /proc/cmdline); do
@@ -339,7 +343,7 @@ done
 [ -n "$imount" ] && lvl 4m && debug mnt
 
 debug _rmmod gpg
-debug -d umount -f -l /mnt/tok
+debug -d umount -f -l $MNTDIR
 debug _rmmod remdev
 
 echo >/proc/sys/kernel/hotplug
