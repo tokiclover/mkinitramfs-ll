@@ -262,7 +262,7 @@ fi
 arg "KEYMAP" "$ikmap" ":" "1"
 if [ -n "$KEYMAP" ]; then
 	KMPDIR=/usr/share/keymaps
-	[ -f $KMPDIR/$KEYMAP ] && debug -d loadkmap <$KMP/$KEYMAP
+	[ -f $KMPDIR/$KEYMAP ] && debug -d loadkmap <$KMPDIR/$KEYMAP
 fi
 
 # -*- Logo and or boot message -*-
