@@ -1,8 +1,8 @@
 mkinitramfs-ll:
 
 - initramfs generation tool 
-with optional LUKS|LVM|aufs+squashfs|crypted key-files (LUKS/GnuPG) support
-with a set of handy bash/zsh scripts
+with optional dm-crypt LUKS, LVM, (MD)RAID, AUFS+squashfs, crypted key-files
+(LUKS/GnuPG), ZFS, zram support; with a set of handy bash/zsh scripts
 - © 2011-2014 tokiclover -tclover <tokiclover{at}gmail{dot}com>
 
 @COPYLEFT
