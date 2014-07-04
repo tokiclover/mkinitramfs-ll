@@ -43,7 +43,7 @@ install_bash:
 		-e 's,\./,,g' -i autogen.bash busybox.bash gnupg.bash $(PACKAGE).bash
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
-	$(shell) install -pm 755 {autogen,busybox,gnupg}.bash -t $(datadir)
+	$(shell) install -pm 755 {autogen,busybox,gnupg}.bash -t $(datadir)/scripts
 	install -pm 644 $(PACKAGE).conf   $(sys_confdir)
 	install -pm 755 $(PACKAGE).bash   $(bindir)
 	install -pm 755 svc/sdr.bash      $(bindir)
@@ -54,7 +54,7 @@ install_zsh:
 		-e 's,\./,,g' -i autogen.zsh busybox.zsh gnupg.zsh $(PACKAGE).zsh
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
-	$(shell) install -pm 755 {autogen,busybox,gnupg}.zsh -t $(datadir)
+	$(shell) install -pm 755 {autogen,busybox,gnupg}.zsh -t $(datadir)/scripts
 	install -pm 644 $(PACKAGE).conf   $(sys_confdir)
 	install -pm 755 $(PACKAGE).zsh    $(bindir)
 	install -pm 755 svc/sdr.zsh       $(bindir)
