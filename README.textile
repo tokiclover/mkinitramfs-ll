@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/03 20:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/05 21:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -373,7 +373,7 @@ append a long list of modules like @imod=
 
 Supported groups:
 
-* @boot@: boot up modules, loaded but not removed
+* @boot@: boot up kernel modules, loaded but never removed
 * @dm-crypt@: automaticaly generated with mkinitramfs-ll.$shell (dm-crypt module group)
 * @devide-mapper@: automaticaly generated included script (device-mapper module group)
 * @dm-raid@: automaticaly generated with included script (dmraid module group)
@@ -382,11 +382,14 @@ Supported groups:
 * @remdev@: modules required to access removable device
 * @gpg@: modules required to access gpg crypted key-file
 * @sqfsd@: modules required for squashfs+aufs, can be built into the kernel
+* @kms@: kms esential kernel module group, see mkinitramfs-ll.conf
+* @zfs@: zfs related kernel module group, see configuration file
+* @zram@: zram related kernel module group
 
 Modules should exist in @/lib/modules/$KV/@, the kernel should support modules
 [un]loading. Just make sure to append the necessary modules to the right group
 in mkinitramfs-ll.conf for autoloading, or create your own groups, or else append
-kernel modules to @opts[-mdep]@ variable to be able to append kernel mdoules to
+kernel modules to @opts[-kmod]@ variable to be able to append kernel mdoules to
 @imod=@ kernel cmdline argument.
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
