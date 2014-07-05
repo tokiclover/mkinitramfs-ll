@@ -1,4 +1,4 @@
-# $Id: modules/zram.1,v 0.12.8 2014/04/03 13:40:11 -tclover Exp $
+# $Id: modules/zram.1,v 0.12.8 2014/04/05 09:40:11 -tclover Exp $
 
 set -e +x
 source $LIBDIR/functions
@@ -6,19 +6,24 @@ source $LIBDIR/functions
 _getopt "izram"
 
 if [ -n "$izram" ]; then
+	echo $$ >/run/${0##*/}.pid
 	arg "NUM" "$izram" "," "1"
 	debug -d modprobe zram num_devices=$NUM
+
 	for num in $(seq 0 1 $NUM); do
-    [ $num == $NUM ] && break
-    arg "zdev" "$izram" "," "$num"
-    [ -n "$zdev" ] || break
-	arg "size" "$zdev" ":" "1"
-	arg "fs" "$zdev" ":" "2" "-s"
-	echo $size >/sys/block/zram$num/disksize
-	if [ -n "$fs" ] && [ -x /sbin/mkfs.$fs ]; then
-		debug -d /sbin/mkfs.$fs /dev/zram$num
-	fi
+		[ $num == $NUM ] && break
+		arg "zdev" "$izram" "," "$num"
+		[ -n "$zdev" ] || break
+		arg "size" "$zdev" ":" "1"
+		arg "fs" "$zdev" ":" "2" "-s"
+		echo $size >/sys/block/zram$num/disksize
+		bin="$(ls /sbin/mk*$fs)"
+		if [ -n "$fs" ] && [ -n "$bin" ]; then
+			debug -d $bin /dev/zram$num
+		fi
 	done
+
+	rm -f /run/${0##*/}.pid
 fi
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
