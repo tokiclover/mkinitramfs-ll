@@ -1,23 +1,18 @@
 #!/bin/sh
-# $Id: mkinitramfs-ll/xcpio, 2013/04/12 03:56:45 -tclover Exp $
+# $Id: mkinitramfs-ll/xcpio, 2014/07/05 10:56:45 -tclover Exp $
 
 [[ -z "$@" ]] && echo "usage: ${0##*/} [{-l|-list}|{-x|-extract}] files" && exit 1
 
 comp() {
 	local comp
 	case ${1##*.} in
-		bz*2) comp=bzcat
-			;;
-		gz*) comp=zcat
-			;;
-		xz) comp=xzcat
-			;;
-		lzma) comp=xzcat
-			;;
-		lzo*) comp=lzop -cd
-			;;
-		lz*) comp=lzip -cd
-			;;
+		bz*2) comp=bzcat;;
+		gz*) comp=zcat;;
+		xz) comp=xzcat;;
+		lzma) comp=xzcat;;
+		lzo*) comp='lzop -cd';;
+		lz|lzip) comp='lzip -cd';;
+		lz4) comp='lz4 -cd';;
 		*) echo "unsupported compression format"
 			exit 2;;
 	esac
@@ -26,19 +21,20 @@ comp() {
 
 case $1 in
 	-l|-ls|-list) opt='-t -v'
-		shift
-		;;
+		shift;;
 	-x|-*xtract) opt='-d -i'
-		shift
-		;;
-	*) opt=-t
-		;;
+		shift;;
+	*) opt=-t;;
 esac
 
 for file in $*; do
-	comp $file | cpio $opt
+	if [ -f "$file" ]; then
+		comp $file | cpio $opt
+	else
+		echo "$file: is not a valid file"
+	fi
 done
 
-unset -v opt
+unset -v file opt
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
