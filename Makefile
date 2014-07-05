@@ -20,16 +20,17 @@ instal_all: install install_svc install_bash install_zsh
 
 install:
 	$(shell) install -pd $(datadir)/usr/lib/{mdev,$(PACKAGE)}
-	install -pm 755 init              $(datadir)
-	install -pd                       $(datadir)/scripts
-	install -pm 644 busybox.cfg       $(datadir)/scripts
-	$(shell) for script in scripts/$(SCRIPTS); do \
-		install -pm 755 $${script}    $(datadir)/scripts; \
-	done
+	$(shell) install -pd $(datadir)/usr/etc/{splash,$(PACKAGE)}
+	$(shell) install -pm 755 init        $(datadir)
+	$(shell) install -pd                 $(datadir)/scripts
+	$(shell) install -pm 644 busybox.cfg $(datadir)/scripts
+	$(shell) for script in $(SCRIPTS); do \
+		install -pm 755 $${script}    $(datadir)/scripts; done
 	$(shell) find usr -name '.keep' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
 	$(shell) for module in $(MODULES); do \
 		for file in modules/$${module}*; do \
-			install -Dpm644 $${file} $(datadir)/$${file}; done; done
+			install -Dpm644 $${file} $(datadir)/usr/lib/$(PACKAGE)/$${file}; \
+		done; done
 	$(shell) install -pm 644 {,$(datadir)/}usr/lib/$(PACKAGE)/functions
 	$(shell) install -Dpm644 {,$(datadir)/}usr/root/.gnupg/gpg.conf
 	$(shell) install -pm 644 {,$(datadir)/}usr/etc/mdev.conf
@@ -38,62 +39,61 @@ install:
 	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/usbdisk_link
 
 install_bash:
-	install -pd $(datadir)
+	$(shell) install -pd $(datadir)
 	$(shell) sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
 		-e 's,\./,,g' -i busybox.bash gnupg.bash $(PACKAGE).bash
-	install -pd $(sys_confdir)
-	install -pd $(bindir)
+	$(shell) install -pd $(sys_confdir)
+	$(shell) install -pd $(bindir)
 	$(shell) install -pm 755 {busybox,gnupg}.bash -t $(datadir)/scripts
-	install -pm 644 $(PACKAGE).conf   $(sys_confdir)
-	install -pm 755 $(PACKAGE).bash   $(bindir)
-	install -pm 755 svc/sdr.bash      $(bindir)
+	$(shell) install -pm 644 $(PACKAGE).conf   $(sys_confdir)
+	$(shell) install -pm 755 $(PACKAGE).bash   $(bindir)
+	$(shell) install -pm 755 svc/sdr.bash      $(bindir)
 
 install_zsh:
-	install -pd $(datadir)
+	$(shell) install -pd $(datadir)
 	$(shell) sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
 		-e 's,\./,,g' -i busybox.zsh gnupg.zsh $(PACKAGE).zsh
-	install -pd $(sys_confdir)
-	install -pd $(bindir)
+	$(shell) install -pd $(sys_confdir)
+	$(shell) install -pd $(bindir)
 	$(shell) install -pm 755 {busybox,gnupg}.zsh -t $(datadir)/scripts
-	install -pm 644 $(PACKAGE).conf   $(sys_confdir)
-	install -pm 755 $(PACKAGE).zsh    $(bindir)
-	install -pm 755 svc/sdr.zsh       $(bindir)
+	$(shell) install -pm 644 $(PACKAGE).conf   $(sys_confdir)
+	$(shell) install -pm 755 $(PACKAGE).zsh    $(bindir)
+	$(shell) install -pm 755 svc/sdr.zsh       $(bindir)
 
 install_svc:
-	install -pd $(svc_confdir)
-	install -pd $(svc_initdir)
-	install -pm 755 svc/sqfsdmount.initd $(svc_initdir)/sqfsdmount
-	install -pm 644 svc/sqfsdmount.confd $(svc_confdir)/sqfsdmount
+	$(shell) install -pd $(svc_confdir)
+	$(shell) install -pd $(svc_initdir)
+	$(shell) install -pm 755 svc/sqfsdmount.initd $(svc_initdir)/sqfsdmount
+	$(shell) install -pm 644 svc/sqfsdmount.confd $(svc_confdir)/sqfsdmount
 
 postinstall:
 
-clean_all: unintsall uninstall_bash uninstall_zsh uninstall_svc
+uninstall_all: unintsall uninstall_bash uninstall_zsh uninstall_svc
 
-clean:
-	$(shell) rm -f $(datadir)/{busybox.cfg,init,usr/etc/mdev.conf,xcpio}
+uninstall:
+	$(shell) rm -f $(datadir)/{init,usr/etc/mdev.conf,scripts/{busybox.cfg,xcpio}}
 	$(shell) rm -f $(datadir)/usr/{root/.gnupg/gpg.conf,share/gnupg/options.skel}
 	$(shell) find ${datadir}/usr -name '.keep' -exec rm -f '{}' \;
-	$(shell) for file in 3d-zfs.sh; do \
-		rm -f $(datadir)/$(PACKAGE).d/$${file}; \
-	done
+	$(shell) for file in $(MODULES); do \
+		rm -f $(datadir)/usr/lib/$(PACKAGE)/$${file}; done
 	$(shell) rm -f $(datadir)/usr/lib/mdev/{ide_links,usbdev,usbdisk_link}
-	$(shell) rm -f $(datadir)/usr/lib/$(PACKAGE)/{functions,init}.sh
-	$(shell) rmdir $(datadir)/usr/{lib/{mdev,$(PACKAGE)},etc/$(PACKAGE){,.d}}
-	$(shell) rmdir $(datadir)/usr/{lib,{,s}bin,root/{.gnupg,},etc/{splash,}}
+	$(shell) rm -f $(datadir)/usr/lib/$(PACKAGE)/functions
+	$(shell) rmdir $(datadir)/usr/{lib/{mdev,$(PACKAGE)},etc/{$(PACKAGE),splash}}
+	$(shell) rmdir $(datadir)/usr/{lib,{,s}bin,root/{.gnupg,},etc/{$(PACKAGE),splash,}}
 	$(shell) rmdir $(datadir)/usr/{share/{consolefonts,keymaps,gnupg,},}
 
-clean_bash:
-	rm -f $(bindir)/$(PACKAGE).bash
-	$(shell) rm -f $(datadir)/{autogen,busybox,gnupg}.bash
-	rm -f $(sys_confdir)/$(PACKAGE).conf
+uninstall_bash:
+	$(shell) rm -f $(bindir)/$(PACKAGE).bash
+	$(shell) rm -f $(datadir)/scripts/{busybox,gnupg}.bash
+	$(shell) rm -f $(sys_confdir)/$(PACKAGE).conf
 
-clean_zsh:
-	rm -f $(bindir)/$(PACKAGE).zsh
-	$(shell) rm -f $(datadir)/{autogen,busybox,gnupg}.zsh
-	rm -f $(sys_confdir)/$(PACKAGE).conf
+uninstall_zsh:
+	$(shell) rm -f $(bindir)/$(PACKAGE).zsh
+	$(shell) rm -f $(datadir)/scripts/{busybox,gnupg}.zsh
+	$(shell) rm -f $(sys_confdir)/$(PACKAGE).conf
 
-clean_svc:
-	rm -f $(svc_confdir)/sqfsdmount
-	rm -f $(svc_initdir)/sqfsdmount
+uninstall_svc:
+	$(shell) rm -f $(svc_confdir)/sqfsdmount
+	$(shell) rm -f $(svc_initdir)/sqfsdmount
 
-postclean:
+clean:
