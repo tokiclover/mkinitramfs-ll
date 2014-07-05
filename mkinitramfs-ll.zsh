@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.8 2014/07/02 21:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.8 2014/07/05 10:40:11 -tclover Exp $
 revision=0.12.8
 
 # @FUNCTION: usage
@@ -142,6 +142,7 @@ case ${opts[-comp][(w)1]} in
 	lzma)	opts[-initramfs]+=.cpio.lzma;;
 	lzip)	opts[-initramfs]+=.cpio.lz;;
 	lzop)	opts[-initramfs]+=.cpio.lzo;;
+	lz4)    opts[-initramfs]+=.cpio.lz4;;
 esac
 
 # @FUNCTION: docpio
