@@ -20,9 +20,9 @@ instal_all: install install_svc install_bash install_zsh
 
 install:
 	$(shell) install -pd $(datadir)/usr/lib/{mdev,$(PACKAGE)}
-	install -pm 644 busybox.cfg       $(datadir)
 	install -pm 755 init              $(datadir)
 	install -pd                       $(datadir)/scripts
+	install -pm 644 busybox.cfg       $(datadir)/scripts
 	$(shell) for script in scripts/$(SCRIPTS); do \
 		install -pm 755 $${script}    $(datadir)/scripts; \
 	done
