@@ -1,11 +1,9 @@
 # $Header: mkinitramfs-ll/BUGS,v 0.12.8 2014/07/02 22:03:32 -tclover Exp $
-#
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# a die do not work properly in a script/module (rsh is ignored)
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# sqfsdmount.initd cannot manage mounting in time with newer udev[-182?]
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-# *echo*ing return values is problematic, minimize or eplace by global variables
-#-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-#
+
+* a die do not work properly in a script/module (rsh is ignored);
+
+* sqfsdmount.initd cannot manage mounting in time with newer udev[-182?];
+
+* _echo-ing_ return values is problematic, minimize or replace by global variables;
+
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
