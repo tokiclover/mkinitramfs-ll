@@ -1,7 +1,7 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/04 19:51:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/06 11:51:18 -tclover Exp $
 #
-# WARNING: USE AT YOUR OWN RISK!
+# WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYRIGHT FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
 # @VARIABLE: ECK
@@ -118,7 +118,6 @@ spld() {
 	[ -n "$_opts" ] && debug cmd $_opts
 	debug cmd "set event dev /dev/input/$event"
 	debug cmd "set autoverbose 0"
-	debug ${mode:-verbose}
 }
 
 # @FUNCTION: resume
