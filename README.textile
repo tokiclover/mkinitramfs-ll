@@ -47,7 +47,7 @@ KERNEL-COMMAND-LINE-ARG: @iroot=<PV|VG-LV>[:c:<fs>]@
 DESCRIPTION: root block device, required,
 	recommanded optional file system check @:[c|chk|y|..]:[<filesystem>]@
 EXAMPLE: @iroot=vg-root:c:ext4@ for an ext4 rootfs in LVM (Volume Group is named vg),
-	or @iroot=POOL/ROOT::zfs@ for an encrypted zfs rootfs in a pool called POOL.
+	or @iroot=POOL/ROOT::zfs@ for a zfs rootfs (ROOT) in a pool called POOL.
 
 *Note*: @:[n*|N*]:@ instead of @[c*|y*|Y*:]@
 will disable a die after fsck failure.
