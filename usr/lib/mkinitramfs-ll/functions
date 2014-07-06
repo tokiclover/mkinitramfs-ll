@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/04 21:42:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/06 22:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -212,7 +212,7 @@ spld_stop() {
 # @FUNCTION: shread
 # @EXTERNAL
 # @USAGE: <var>
-# @DESCRIPTION: read line from stdin and drop to rescue shell if a line is sh[ell]
+# @DESCRIPTION: read line from stdin and drop to rescue shell if a word match
 shread() {
 	read _asw
 	case $_asw in
@@ -254,8 +254,8 @@ blk() {
 
 # @FUNCTION: ldk
 # @EXTERNAL
-# @USAGE: <full path to file> plus a mapping indirectly given by <_fn>
-# @DESCRIOTON: Decrypt LDk, dm-crypt LUKS crypted, key file
+# @USAGE: </path/to/file> plus a mapping indirectly given by <_fn>
+# @DESCRIPTION: decrypt dm-crypt LUKS Device Key file
 ldk() {
 	[ -b "$1" ] && return
 
@@ -276,7 +276,7 @@ ldk() {
 
 # @FUNCTION: stk
 # @EXTERNAL
-# USAGE: <mode:dev:/path/to/file>
+# @USAGE: <mode:dev:/path/to/file>
 # @DESCRIPTION: SeT Key [file] mode for decryptiong
 stk() {
 	local _fp _fn _kd _km
@@ -357,7 +357,7 @@ bkd() {
 # @FUNCTION: dmclose
 # @EXTERNAL
 # @USAGE: <mapping>
-# @DESCRIPTION: close dm-crypt mapping
+# @DESCRIPTION: close dm-crypt mapping (colon separated list)
 dmclose() { 
 	local IFS="${IFS}:" 
 	for _p in $@; do 
@@ -395,7 +395,7 @@ dmopen() {
 	blk "$(echo "$1" | cut -d'-' -f2 -s | cut -d'+' -f1)" "_dev"
 
 	if [ -n "$_hdr" ]; then
-		if [ -n "$(echo "$_hdr" | egrep '(UUID|LABEL|sd[a-z])')" ]; then 
+		if [ -n "$(echo "$_hdr" | grep -E '(UUID|LABEL|sd[a-z])')" ]; then 
 			blk "$_hdr" "_hdr"
 			debug dmcrypt "$_hdr" "_header"
 		elif [ -e "$MNTDIR/$_hdr" ]; then
@@ -428,7 +428,7 @@ dmopen() {
 
 # @FUNCTION: lvopen
 # @EXTERNAL
-# @USAGE: <vg-lv> <map-crypted_pv>
+# @USAGE: <vg-lv> [<map-crypted_pv>]
 # @DESCRIPTION: open LVM Logical Volume
 lvopen() {
 	$ECK && debug -d bck lvm
@@ -502,7 +502,7 @@ mdopen() {
 
 # @FUNCTION: squashd
 # @EXTERNAL
-# @USAGE: indirectly given by isqfsd variable and/or SQFSD, SQFSDIR variables
+# @USAGE: indirectly given by isqfsd cmdline arg and/or SQFSD, SQFSDIR variables
 # @DESCRIPTION: mount squashed, AUFS+squashfs, directories
 squashd() {
 	[ "${isqfsd%,*}" = "y" ] || SQFSDIR="${isqfsd%,*}"
@@ -532,9 +532,8 @@ squashd() {
 
 # @FUNCTION: mnt
 # @EXTERNAL
-# @UAGE: indirectly given by /etc/fstab
-# @DESCRIPTION: mount, /usr for example, extra block device using /etc/fstab
-# before switching root
+# @UAGE: </usr:/var:...>
+# @DESCRIPTION: mount /usr:... using embeded /etc/fstab before switching root
 mnt() {
 	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
 	[ -f $NEWROOT/etc/fstab ] || die "mnt: no /etc/fstab file found"
