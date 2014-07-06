@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/05 21:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/06 09:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -300,9 +300,9 @@ include zfs module or build an initramfs with something like:
 @mkinitramfs-ll.$shell -a -f -y -Mzfs -b:zpool:zfs@
 (kernel modules would be rightly added).
 
-*IMPORTANT*: So either way one can append @::zfs@ to @iroot@ argument for
-[un]encrypted vdev(s) or @:zfs@ to @iswap@ or to @iresume@;
-or either, @izfs@ will suffice for encrypted vdev(s) or else both for this case.
+*IMPORTANT*: So either way, one should append @::zfs@ to @iroot@ argument for
+unencrypted vdev(s);
+or else, @izfs@ is required for encrypted vdev(s) or both for this case.
 
 h3. 4.6. ZRAM support
 
