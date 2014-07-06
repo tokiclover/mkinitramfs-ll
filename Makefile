@@ -28,7 +28,7 @@ install:
 		install -pm 755 $${script}    $(datadir)/scripts; done
 	$(shell) find usr -name '.keep' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
 	$(shell) for module in $(MODULES); do \
-		for file in modules/$${module}*; do \
+		for file in modules/*$${module}*; do \
 			install -Dpm644 $${file} $(datadir)/usr/lib/$(PACKAGE)/$${file}; \
 		done; done
 	$(shell) install -pm 644 {,$(datadir)/}usr/lib/$(PACKAGE)/functions
@@ -41,7 +41,7 @@ install:
 install_bash:
 	$(shell) install -pd $(datadir)
 	$(shell) sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
-		-e 's,\./,,g' -i busybox.bash gnupg.bash $(PACKAGE).bash
+		     -i busybox.bash gnupg.bash $(PACKAGE).bash
 	$(shell) install -pd $(sys_confdir)
 	$(shell) install -pd $(bindir)
 	$(shell) install -pm 755 {busybox,gnupg}.bash -t $(datadir)/scripts
@@ -52,7 +52,7 @@ install_bash:
 install_zsh:
 	$(shell) install -pd $(datadir)
 	$(shell) sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
-		-e 's,\./,,g' -i busybox.zsh gnupg.zsh $(PACKAGE).zsh
+		     -i busybox.zsh gnupg.zsh $(PACKAGE).zsh
 	$(shell) install -pd $(sys_confdir)
 	$(shell) install -pd $(bindir)
 	$(shell) install -pm 755 {busybox,gnupg}.zsh -t $(datadir)/scripts
@@ -75,7 +75,7 @@ uninstall:
 	$(shell) rm -f $(datadir)/usr/{root/.gnupg/gpg.conf,share/gnupg/options.skel}
 	$(shell) find ${datadir}/usr -name '.keep' -exec rm -f '{}' \;
 	$(shell) for file in $(MODULES); do \
-		rm -f $(datadir)/usr/lib/$(PACKAGE)/$${file}; done
+		rm -f $(datadir)/usr/lib/$(PACKAGE)/*$${file}*; done
 	$(shell) rm -f $(datadir)/usr/lib/mdev/{ide_links,usbdev,usbdisk_link}
 	$(shell) rm -f $(datadir)/usr/lib/$(PACKAGE)/functions
 	$(shell) rmdir $(datadir)/usr/{lib/{mdev,$(PACKAGE)},etc/{$(PACKAGE),splash}}
