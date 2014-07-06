@@ -1,28 +1,24 @@
-To install this package and actually make any use of it, you will need at least
-a shell, bash or zsh at your choice. Zsh scripts are shorter and cleaner and
-do not have the heaviness of the Bourne Shell.
+To install this package and actually make any use of it, you will just need
+a static busybox. To make use of any building or utility script,
+an additional shell, bash or zsh, is required. Zsh scripts are
+shorter/cleaner and do not have the heaviness of the Bourne-Again SHell.
 
 Ad then a `make DESTDIR=/usr install' will install the essential initramfs
-generating files into `/usr' prefix. One do not actually have to install to
-make any use of the package. One can pretty mush use almost everything minus
-the init service script which has to be installed of course.
+files into `/usr' prefix. Installation is not required to make any use of
+this package. Quite the contrary, one can pretty mush use almost everything
+minus the init service script which has to be installed of course.
 
 To install the building scripts, a simple `make DESTDIR=/usr install_bash' or
 `make DESTDIR=/usr install_zsh' is necessary. autogen, busybox, gnupg scripts
 will not be in any use if not using Gentoo because I am not planing to adapt
-them to any distribution out there. One just need static busybox and why not
-gpg-1.4.x (for GnuPG support) binaries for that can be compiled with gnupg
-and busybox scripts. One can get easily from binary distributions. So no
-need to make any extra script for the latter case.
+them to any distribution out there. One just need static busybox and a static
+gpg-1.4.x (for GnuPG support) binaries which have an easy access from binary
+distributions. So no need to make any extra script for the latter case.
 
-To make use of sqfsdmount for squashed diretory a 
-`make sys_confdir=/etc install_svc' will be necessary. Aufs+Squashfs is
-required here.
+To make use of sqfsdmount for squashed (AUFS+squashfs) diretor-y-ies a 
+`make sys_confdir=/etc install_svc' will be necessary. AUFS+Squashfs
+kernel modules are required here.
 
 Any filesystem utility for mount+umount+fsck is virtually supported.
-Just make sure to include the binaries and make symlink for mount, 
-umount and fsck [.$fs] to the binaries. And everything will go as 
-expected.
-
-This initramfs generating tool support LUKS, LVM, [DM]RAID, splashes and
-/etc/{msg,issue.logo} (msg for boot up message) and more.
+Just make sure to include the binaries and symlinks, if necessary,
+for {mount,umount,fsck}.$fs. And everything will go as expected.
