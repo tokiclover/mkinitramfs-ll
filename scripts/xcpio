@@ -1,40 +1,42 @@
 #!/bin/sh
-# $Id: mkinitramfs-ll/xcpio, 2014/07/05 10:56:45 -tclover Exp $
+# $Id: mkinitramfs-ll/xcpio, 2014/07/07 10:56:45 -tclover Exp $
 
 [[ -z "$@" ]] && echo "usage: ${0##*/} [{-l|-list}|{-x|-extract}] files" && exit 1
 
 comp() {
 	local comp
-	case ${1##*.} in
-		bz*2) comp=bzcat;;
-		gz*) comp=zcat;;
-		xz) comp=xzcat;;
-		lzma) comp=xzcat;;
-		lzo*) comp='lzop -cd';;
-		lz|lzip) comp='lzip -cd';;
-		lz4) comp='lz4 -cd';;
-		*) echo "unsupported compression format"
-			exit 2;;
+	case $1 in
+		*.bz*2) comp=bzcat;;
+		*.gz*) comp=zcat;;
+		*.xz) comp=xzcat;;
+		*.lzma) comp=xzcat;;
+		*.lzo*) comp='lzop -cd';;
+		*.lz4) comp='lz4 -cd';;
+		*.lz*) comp='lzip -cd';;
+		*) echo "xcpio: unsupported compression format"; exit 2;;
 	esac
 	$comp $1
 }
 
 case $1 in
-	-l|-ls|-list) opt='-t -v'
+	-l|-ls|-list) opt=-tv
 		shift;;
-	-x|-*xtract) opt='-d -i'
+	-x|-*xtract) opt=-idv
 		shift;;
 	*) opt=-t;;
 esac
 
 for file in $*; do
 	if [ -f "$file" ]; then
-		comp $file | cpio $opt
+		tmpdir=$(mktemp -d ${file%%*.}-XXXXXX)
+		cd $tmpdir
+		comp $file | cpio $opt &&
+		echo "xcpio: successfuly deflated to $tmpdir"
 	else
-		echo "$file: is not a valid file"
+		echo "xcpio: $file file not found"
 	fi
 done
 
-unset -v file opt
+unset -v file opt tmpdir
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
