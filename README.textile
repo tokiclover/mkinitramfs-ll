@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/06 09:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/07 09:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -19,17 +19,14 @@ If you want GnuPG support, yo should have an app-crypt/gnupg-1.4*[static]
 binary along with its options.skel file.
 Or if you run Gentoo you can run either gnupg.{ba,z}sh to generate one. 
 
-@gnupg.zsh -W/usr/share/mkinitramfs-ll@ if you installed the package
-or simply @gnupg.zsh@ will build a binary in the current directory
-(with a usr/bin/gpg and usr/share/gnupg/options.skel).
+@gnupg.zsh@ will build a binary in the current directory
+(with a usr/bin/gpg and usr/share/gnupg/options.skel) if not installed
+or else in /usr/local/mkiniramfs-ll/ directory if installed.
 Or else, run the bash script counterpart to get build a binary.
 
 And then run @mkinitramfs-ll.zsh -font -keymap -gpg@
 or the bash counterpart @mkinitramfs-ll.bash --font --keymap --gpg@
 to generate an initramfs.
-
-Gentoo users can build everything with: @autogen.zsh -all -font -keymap@
-or bash counterpart @autogen.bash --all --font --keymap@
 
 Of course, one can append extra fonts and keymaps with @-fter-g12n -yfr-latin1@
 etc. and the @-a@ option depend on @mkinitramfs-ll.conf@
