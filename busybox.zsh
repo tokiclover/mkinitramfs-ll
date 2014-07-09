@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.12.0 2013/04/11 10:40:15 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.12.8 2014/07/07 10:40:15 -tclover Exp $
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -21,25 +21,25 @@ exit $?
 error() { print -P " %B%F{red}*%b%f $@" }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die()   { error $@; exit 1 }
+die() {
+	local ret=$?
+	error $@
+	exit $ret
+}
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
 zmodload zsh/zutil
 zparseopts -E -D -K -A opts n minimal d:: usrdir:: ucl: u usage v: version: || usage
 
 if [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
-
 if [[ $# < 1 ]] { typeset -A opts }
 
 if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
 } else { die "no mkinitramfs-ll.conf found" }
 
-# @VARIABLE: opts[-workdir]
-# @DESCRIPTION: initial working directory, where to build everythng
-:	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 # @VARIABLE: opts[-usrdir]
-# @DESCRIPTION: usr dir path, to get extra files
-:	${opts[-usrdir]:=${opts[-d]:-$opts[-workdir]/usr}}
+# @DESCRIPTION: usr dir path where to get extra files
+:	${opts[-usrdir]:=${opts[-d]:-./usr}}
 # @VARIABLE: opts[-version] | opts[-v]
 # @DESCRIPTION: GnuPG version to build
 #
@@ -63,7 +63,7 @@ pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/${opts[-pkg]}/work/${opts[-pk
 
 if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-minimal]} ]] {
 	make allnoconfig || die
-	for cfg ($(< ${opts[-workdir]}/busybox.cfg))
+	for cfg ($(< ${opts[-usrdir]}/busybox.cfg))
 	sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
 } else {
 	make defconfig || die "defconfig failed" 
@@ -82,7 +82,6 @@ cp -a busybox ${opts[-usrdir]}/bin || die
 popd || die
 
 ebuild ${opts[-pkg]}.ebuild clean || die
-popd || die
 
 unset opts[-pkg] opts[-n] opts[-minimal] opts[-ucl]
 
