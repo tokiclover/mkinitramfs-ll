@@ -29,7 +29,7 @@ die() {
 	exit $ret
 }
 
-opt=$(getopt -l usrdir:,minimal,ucl:,usage,version: -o nud::v: \
+opt=$(getopt -l usrdir:,minimal,ucl:,usage,version: -o ?nud::v: \
 	-n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 
