@@ -28,7 +28,7 @@ die() {
 	exit $ret
 }
 
-opt=$(getopt -l usage,useflag::,usrdir::,version:: -o ud::U::v:: -n ${0##*/} \
+opt=$(getopt -l usage,useflag::,usrdir::,version:: -o ?ud::U::v:: -n ${0##*/} \
 	-- "$@" || usage)
 eval set -- "$opt"
 
