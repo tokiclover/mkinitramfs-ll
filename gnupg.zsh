@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/gnupg.zsh,v 0.12.0 2013/04/11 11:00:35 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.zsh,v 0.12.8 2014/07/07 11:00:35 -tclover Exp $
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -8,7 +8,6 @@ usage() {
  usage: ${(%):-%1x} [-d|--usrdir=usr] [options]
 
   -d|-usrdir [usr]       copy binary and options.skel files to usr/
-  -W|-wokdir  [<dir>]    working directory where to create initramfs directory
   -U|-useflag <flags>    extra USE flags to append to USE="nls static"
   -v|-version <str>      build gpg-<str> version instead of gpg-1.4.x
   -u|-usage              print this help/uage and exit
@@ -21,26 +20,25 @@ exit $?
 error() { print -P " %B%F{red}*%b%f $@" }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die()   { error $@; exit 1 }
+die() {
+	local ret=$?
+	error $@
+	exit $ret
+}
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
 zmodload zsh/zutil
-zparseopts -E -D -K -A opts U:: useflag:: v:: version:: d:: usrdir:: \
-	u usage W:: workdir:: || usage
+zparseopts -E -D -K -A opts U:: useflag:: v:: version:: d:: usrdir:: u usage || usage
 
 if [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
-
 if [[ $# < 1 ]] { typeset -A opts }
 
 if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
 } else { die "no mkinitramfs-ll.conf found" }
 
-# @VARIABLE: opts[-workdir]
-# @DESCRIPTION: initial working directory, where to build everythng
-:	${opts[-workdir]:=${opts[-W]:-$(pwd)}}
 # @VARIABLE: opts[-usrdir]
-# @DESCRIPTION: usr dir path, to get extra files
-:	${opts[-usrdir]:=${opts[-B]:-${opts[-workdir]}/usr}}
+# @DESCRIPTION: usr dir path where to get extra files
+:	${opts[-usrdir]:=${opts[-d]:-./usr}}
 # @VARIABLE: opts[-version] | opts[-v]
 # @DESCRIPTION: GnuPG version to build
 :	${opts[-version]:-${opts[-v]:-1.4*}}
@@ -60,7 +58,6 @@ cp g10/options.skel ${opts[-usrdir]}/share/gnupg/ || die
 
 popd || die
 ebuild ${opts[-gpg]}.ebuild clean || die
-popd || die
 
 unset opts[-v] opts[-version] opts[-U] opts[-useflag] opts[-gpg]
 
