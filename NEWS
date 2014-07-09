@@ -4,13 +4,15 @@
 
 * support kernel module group loading, meaning:
 one can append a group name instead of a module name like *imod=kms*;
-
 * user script changed previous sufix *.$level* to prefix *$level-*!
 See user script section.
-
 * renamed clumsy ishrl to irsh kernel cmdline argument.
-
 * now one can type SH|SHELL|RSH on each read as well!
+* autogen.{ba,z}sh: deleted useless files.
+* removed -W|-workdir useless switch from scripts, now initramfs
+will be build from TMPDIR:-/tmp.
+* now bash scripts accept -? switch for help/usage.
+
 
 0.12.0:
 
