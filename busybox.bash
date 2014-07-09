@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.12.0 2013/04/11 10:40:18 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.12.8 2014/07/07 10:40:18 -tclover Exp $
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -11,7 +11,7 @@ usage() {
   -n, --minimal          build busybox with minimal applets, default is full applets
       --ucl i386         arch string needed to build busybox against uClibc	
   -v, --version 1.20.0   use 1.20.0 instead of latest version of busybox
-  -u, --usage            print the usage/help and exit
+  -u, --usage, -?        print the usage/help and exit
 EOF
 exit $?
 }
@@ -24,8 +24,9 @@ error() {
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
 die() {
+	local ret=$?
 	error "$@"
-	exit 1
+	exit $ret
 }
 
 opt=$(getopt -l usrdir:,minimal,ucl:,usage,version: -o nud::v: \
@@ -41,17 +42,16 @@ while [[ $# > 0 ]]; do
 		-y|--keymap) opts[-keymap]="${2}"; shift 2;;
 		-v|--version) opts[-version]="${2}"; shift 2;;
 		--) shift; break;;
-		-u|--usage|*) usage;;
+		-?|-u|--usage|*) usage;;
 	esac
 done
 
 [[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf ||
 	die "no mkinitramfs-ll.conf found"
 
-# @VARIABLE: opts[-workdir]
-# @DESCRIPTION: initial working directory, where to build everythng
-[[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
-[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/usr
+# @VARIABLE: opts[-usrdir]
+# @DESCRIPTION: usr directory, where to get extra files
+[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]=./usr
 # @VARIABLE: opts[-version]
 # @DESCRIPTION: GnuPG version to build
 #
@@ -75,7 +75,7 @@ pushd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/${opts[-pkg]}/work/${opts[-
 if [[ -n "${opts[-minimal]}" ]]; then make allnoconfig || die
 	while read cfg; do
 		sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
-	done <"${opts[-workdir]}"/busybox.cfg
+	done <"${opts[-usrdir]}"/busybox.cfg
 else
 	make defconfig || die "defconfig failed"
 	sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
@@ -93,7 +93,6 @@ cp -a busybox "${opts[-usrdir]}"/bin/ || die
 
 popd || die
 ebuild ${opts[-pkg]}.ebuild clean || die
-popd || die
 
 unset -v opts[-pkg] opts[-minimal] opts[-ucl]
 
