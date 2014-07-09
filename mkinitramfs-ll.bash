@@ -32,7 +32,7 @@ usage() {
   -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
   -K, --keeptmp             keep temporary files instead of removing the tmpdir
   -u, --usage               print this help or usage message and exit
-  -v, --version             print version string and exit
+  -v, --version, -?         print version string and exit
 
  usage: without an argument, generate an default initramfs for kernel \$(uname -r)
  usgae: generate an initramfs with LUKS, GnuPG, LVM2 and aufs+squashfs support
@@ -83,7 +83,7 @@ adn() {
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msqfsd::,mremdev:: \
 	  -l keeptmp,module:,mtuxonice::,sqfsd,toi,usage,usrdir::,version \
 	  -l keymap::,luks,lvm,kv::,prefix::,splash::,regen \
-	  -o ab:c::d::f::gk::lKLM:m::np::rs::tuvy:: -n ${0##*/} -- "$@" || usage)
+	  -o ?ab:c::d::f::gk::lKLM:m::np::rs::tuvy:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 
 # @VARIABLE: opts [associative array]
@@ -123,7 +123,7 @@ while [[ $# > 0 ]]; do
 			/etc/conf.d/consolefont|cut -d'"' -f2)}"
 			shift 2;;
 		--) shift; break;;
-		-u|--usage|*) usage;;
+		-?|-u|--usage|*) usage;;
 	esac
 done
 
