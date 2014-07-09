@@ -41,9 +41,8 @@ install:
 install_bash:
 	$(shell) install -pd $(datadir)
 	$(shell) sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
+	             -e 's:./usr:${prefix}/share/$(PACKAGE)/usr:g' \
 		     -i busybox.bash gnupg.bash $(PACKAGE).bash
-	$(shell) sed -e 's:./usr:${prefix}/share/$(PACKAGE)/usr:g' \
-	             -i mkiniramfs-ll.bash 
 	$(shell) install -pd $(sys_confdir)
 	$(shell) install -pd $(bindir)
 	$(shell) install -pm 755 {busybox,gnupg}.bash -t $(datadir)/scripts
@@ -54,9 +53,8 @@ install_bash:
 install_zsh:
 	$(shell) install -pd $(datadir)
 	$(shell) sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
+	             -e 's:./usr:${prefix}/share/$(PACKAGE)/usr:g' \
 		     -i busybox.zsh gnupg.zsh $(PACKAGE).zsh
-	$(shell) sed -e 's:./usr:${prefix}/share/$(PACKAGE)/usr:g' \
-	             -i mkiniramfs-ll.zsh 
 	$(shell) install -pd $(sys_confdir)
 	$(shell) install -pd $(bindir)
 	$(shell) install -pm 755 {busybox,gnupg}.zsh -t $(datadir)/scripts
