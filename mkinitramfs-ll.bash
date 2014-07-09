@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/05 10:33:02 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/07 10:33:02 -tclover Exp $
 revision=0.12.8
 
 # @FUNCTION: usage
@@ -10,7 +10,7 @@ usage() {
 
   -a, --all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
   -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
-  -k, --kversion 3.4.4-git  build an initramfs for kernel 3.4.4-git or else \$(uname -r)
+  -k, --kv 3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
   -c, --comp ['gzip -9']    use 'gzip -9' command instead default compression command
   -L, --luks                add LUKS support, require a sys-fs/cryptsetup[static] binary
   -l, --lvm                 add LVM support, require a static sys-fs/lvm2[static] binary
@@ -18,7 +18,6 @@ usage() {
   -d, --usrdir [usr]        use usr dir for user extra files, binaries, scripts, fonts...
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p, --prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
-  -W, --workdir [<dir>]     use <dir> as a work directory to create initramfs instead of \$PWD
   -M, --module :<name>      include <name> module from [..\/]mkinitramfs-ll.d module directory
   -m, --kmod [:<mod>]       include a colon separated list of kernel modules to the initramfs
       --mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
@@ -31,7 +30,7 @@ usage() {
   -q, --sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
   -r, --regen               regenerate a new initramfs from an old dir with newer init
   -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
-  -n, --clean               clean initramfs building files, or leftover files
+  -K, --keeptmp             keep temporary files instead of removing the tmpdir
   -u, --usage               print this help or usage message and exit
   -v, --version             print version string and exit
 
@@ -60,8 +59,9 @@ warn() {
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
 die() {
+	local ret=$?
 	error "$@"
-	exit 1
+	exit $ret
 }
 
 # @FUNCTION: adn
@@ -81,9 +81,9 @@ adn() {
 }
 
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msqfsd::,mremdev:: \
-	  -l clean,module:,mtuxonice::,sqfsd,toi,usage,usrdir::,version \
-	  -l keymap::,luks,lvm,workdir::,kversion::,prefix::,splash::,regen \
-	  -o ab:c::d::f::gk::lLM:m::np::rs::tuvy::W:: -n ${0##*/} -- "$@" || usage)
+	  -l keeptmp,module:,mtuxonice::,sqfsd,toi,usage,usrdir::,version \
+	  -l keymap::,luks,lvm,kv::,prefix::,splash::,regen \
+	  -o ab:c::d::f::gk::lKLM:m::np::rs::tuvy:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 
 # @VARIABLE: opts [associative array]
@@ -98,11 +98,11 @@ while [[ $# > 0 ]]; do
 			opts[-lvm]=y; opts[-luks]=y; shift;;
 		-R|--regen) opts[-regen]=y; shift;;
 		-q|--sqfsd) opts[-sqfsd]=y; shift;;
-		-n|--clean) opts[-clean]=y; shift;;
+		-K|--keeptmp) opts[-keeptmp]=y; shift;;
 		-b|--bin) opts[-bin]+=:${2}; shift 2;;
 		-c|--comp) opts[-comp]="${2}"; shift 2;;
 		-d|--usrdir) opts[-usrdir]=${2}; shift 2;;
-		-k|--kversion) opts[-kversion]=${2}; shift 2;;
+		-k|--kv) opts[-kv]=${2}; shift 2;;
 		-g|--gpg) opts[-gpg]=y; shift;;
 		-t|--toi) opts[-toi]=y; shift;;
 		-l|--lvm) opts[-lvm]=y; shift;;
@@ -113,15 +113,14 @@ while [[ $# > 0 ]]; do
 		--mremdev) opts[-mremdev]+=:${2}; shift 2;;
 		--mtuxonice) opts[-tuxonice]+=:${2}; shift 2;;
 		-s|--splash) opts[-splash]+=":${2}"; shift 2;;
-		-W|--workdir) opts[-workdir]="${2}"; shift 2;;
 		-M|--module) opts[-module]+=":${2}"; shift 2;;
 		-m|--kmod) opts[-kmod]+=":${2}"; shift 2;;
 		-p|--prefix) opts[-prefix]=${2}; shift 2;;
-		-y|--keymap) 
-			opts[-keymap]+=:"${2:-$(grep -E '^keymap' /etc/conf.d/keymaps|cut -d'"' -f2)}"
+		-y|--keymap) opts[-keymap]+=:"${2:-$(grep -E '^keymap' \
+			/etc/conf.d/keymaps|cut -d'"' -f2)}"
 			shift 2;;
-		-f|--font) 
-			opts[-font]+=":${2:-$(grep -E '^consolefont' /etc/conf.d/consolefont|cut -d'"' -f2)}"
+		-f|--font) opts[-font]+=":${2:-$(grep -E '^consolefont' \
+			/etc/conf.d/consolefont|cut -d'"' -f2)}"
 			shift 2;;
 		--) shift; break;;
 		-u|--usage|*) usage;;
@@ -131,25 +130,18 @@ done
 [[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf ||
 	die "no mkinitramfs-ll.conf found"
 
-# @VARIABLE: opts[-kversion]
+# @VARIABLE: opts[-kv]
 # @DESCRIPTION: kernel version to pick up
-[[ -n "${opts[-kversion]}" ]] || opts[-kversion]="$(uname -r)"
-# @VARIABLE: opts[-workdir]
-# @DESCRIPTION: initial working directory, where to build everythng
-[[ -n "${opts[-workdir]}" ]] || opts[-workdir]="$(pwd)"
+[[ -n "${opts[-kv]}" ]] || opts[-kv]="$(uname -r)"
 # @VARIABLE: opts[-prefix]
-# @DESCRIPTION: initramfs prefx name <$prefix.$kversion.$ext>
+# @DESCRIPTION: initramfs prefx name <$prefix-$kv.$ext>
 [[ -n "${opts[-prefix]}" ]] || opts[-prefix]=initramfs-
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path, to get extra files
-[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${opts[-workdir]}"/usr
-# @VARIABLE: opts[-initdir]
-# @DESCRIPTION: initramfs dir, where to put everythng before actualy generating
-# an initramfs compressed image
-opts[-initdir]="${opts[-workdir]}"/${opts[-prefix]}${opts[-kversion]}
+[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]=./usr
 # @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
-opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kversion]}
+opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kv]}
 [[ -n "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
 [[ -n "$(uname -m | grep 64)" ]] && opts[-arc]=64 || opts[-arc]=32
 # @VARIABLE: opts[-arch]
@@ -173,14 +165,20 @@ docpio() {
 }
 
 if [[ -n ${opts[-regen]} ]]; then
-	[[ -d ${opts[-initdir]} ]] || die "${opts[-initdir]}: no old initramfs dir"
+	opts[-tmpdir]=${TMPDIR:-/tmp}/${opts[-initramfs]}-XXXXXX
+	[[ -d ${opts[-tmpdir]} ]] || die "${opts[-tmpdir]}: no old initramfs dir"
 	echo ">>> regenerating ${opts[-initramfs]}..."
-	pushd ${opts[-initdir]} || die
+	pushd ${opts[-tmpdir]} || die
 	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions usr/lib/mkinitramfs-ll &&
-	cp -af ${opts[-workdir]}/init . && chmod 775 init || die
+	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio || die
 	echo ">>> regenerated ${opts[-initramfs]}..." && exit
 fi
+
+# @VARIABLE: opts[-tmpdir]
+# @DESCRIPTION: tmp dir where to generate initramfs
+# an initramfs compressed image
+opts[-tmpdir]="$( mktemp -d ${opts[-initramfs]##*/}-XXXXXX)"
 
 if [[ -f ${opts[-initramfs]} ]]; then
 	mv ${opts[-initramfs]}{,.old}
@@ -188,32 +186,31 @@ fi
 
 echo ">>> building ${opts[-initramfs]}..."
 
-rm -rf "${opts[-initdir]}"
-mkdir -p "${opts[-initdir]}" && pushd "${opts[-initdir]}" || die
+pushd "${opts[-tmpdir]}" || die
 if [[ -d "${opts[-usrdir]}" ]]; then
 	cp -ar "${opts[-usrdir]}" . && rm -f usr/README* || die
 	mv -f {usr/,}root 1>/dev/null 2>&1 &&
 	mv -f {usr/,}etc 1>/dev/null 2>&1 &&
 	mv -f usr/lib lib${opts[-arc]} || die
 else 
-	die "${opts[-usrdir]} not found"
+	die "${opts[-usrdir]} dir not found"
 fi
 
 mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
 mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash} || die
-mkdir -p run lib${opts[-arc]}/{/${opts[-kversion]},mkinitramfs-ll} || die
+mkdir -p run lib${opts[-arc]}/{/${opts[-kv]},mkinitramfs-ll} || die
 ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || adn
-if [[ $(echo ${opts[-kversion]} | cut -d'.' -f1 ) -eq 3 ]] &&
-	[[ $(echo ${opts[-kversion]} | cut -d'.' -f2) -ge 1 ]]; then
+if [[ $(echo ${opts[-kv]} | cut -d'.' -f1 ) -eq 3 ]] &&
+	[[ $(echo ${opts[-kv]} | cut -d'.' -f2) -ge 1 ]]; then
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
 		mknod -m 600 dev/loop-control c 10 237 || die
 fi
 
 cp -a "${opts[-workdir]}"/init . && chmod 775 init && mkdir -pm700 root || die
-cp -af {/,}lib/modules/${opts[-kversion]}/modules.dep ||
+cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
 for mod in ${opts[-module]//:/ }; do
@@ -237,9 +234,9 @@ fi
 if [[ ! -f etc/mkinitramfs-ll/busybox.app ]]; then
 	bin/busybox --list-full >etc/mkinitramfs-ll/busybox.app || die
 fi
-for app in $(< etc/mkinitramfs-ll/busybox.app); do	
-	ln -fs /bin/busybox ${app}
-done
+while read line; do
+	ln -fs /bin/busybox $line
+done <etc/mkinitramfs-ll/busybox.app
 
 if [[ -n "${opts[-luks]}" ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
@@ -274,7 +271,7 @@ fi
 domod() {
 	local mod module ret
 	for mod in "$@"; do
-		module=$(find /lib/modules/${opts[-kversion]} -name ${mod}.ko -or -name ${mod}.o)
+		module=$(find /lib/modules/${opts[-kv]} -name ${mod}.ko -or -name ${mod}.o)
 		if [ -n "${module}" ]; then
 			mkdir -p .${module%/*} && cp -ar {,.}${module} ||
 				die "failed to copy ${odulem} module"
@@ -379,9 +376,7 @@ done
 
 docpio || die
 
-if [[ -n "${opts[-clean]}" ]]; then
-	rm -rf ${opts[-initdir]}
-fi
+[[ -n "${opts[-keeptmp]}" ]] || rm -rf ${opts[-dir]}
 
 echo ">>> ${opts[-initramfs]} initramfs built"
 
