@@ -1,7 +1,7 @@
 #!/sbin/runscript
-# Copyright 1999-2013 Gentoo Foundation
+# Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/sqfsdmount.initd,v 1.2 2013/04/10 22:06:10 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/sqfsdmount.initd,v 1.2 2014/07/07 22:06:10 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="manage (aufs+squashfs) squashed directories"
@@ -67,18 +67,18 @@ restart() {
 # @DESCRIPTION: Squashed dir MOUNT
 smount() {
 	local d=$2 b=$1/$2
-	if [[ -n "$(mount -t aufs | grep /$d)" ]]; then 
-		einfo "squashed $d already mounted"
+	if grep aufs:$d /proc/mounts 1>/dev/null 2>&1; then 
+		einfo "squashed aufs:$d already mounted"
 	else
 		ebegin "mounting squashed $d"
-		if [[ -n "$(mount -t squashfs | grep $b/rr)" ]]; then 
+		if grep $b/rr /proc/mounts 1>/dev/null 2>&1; then 
 			einfo "squashed $b.sfs image already mounted"
 		else
 			mount -t squashfs $b.sfs $b/rr -o nodev,loop,ro 1>/dev/null 2>&1
-       		eend "$?" "failed to mount $b.sfs image" || return
+       			eend "$?" "failed to mount $b.sfs image" || return
        	fi
-		mount -t aufs $d /$d -o nodev,udba=reval,br:$b/rw:$b/rr 1>/dev/null 2>&1
-		eend "$?" "failed to mount $d aufs branch"
+		mount -t aufs aufs:$d $d -o nodev,udba=reval,br:$b/rw:$b/rr 1>/dev/null 2>&1
+		eend "$?" "failed to mount aufs:$d"
 	fi
 }
 
@@ -89,8 +89,8 @@ sumount() {
 	[[ "${RC_UNAME}" == "Linux" ]] && no_netdev="-O no_netdev"
 
 	ebegin "umounting squashed ${dir}"
-	umount -lt aufs /$d $no_netdev 1>/dev/null 2>&1
-	eend "$?" "failed to umount squashed $d" || return
+	umount -lt aufs $d $no_netdev 1>/dev/null 2>&1
+	eend "$?" "failed to umount squashed aufs:$d" || return
 	
 	umount -lt squashfs $b/rr $no_netdev 1>/dev/null 2>&1
 	eend "$?" "failed to umount $b.sfs image"
@@ -100,9 +100,9 @@ sumount() {
 # @DESCRIPTION: Squashed dir RE-MOUNT in ro mode
 sremount() {
 	local d=$1 o=${2:-ro}
-	ebegin "ro mode remounting ${dir} aufs branch"
-	mount -o remount,$o /$d 1>/dev/null 2>&1
-	eend "$?" "failed to remount $d aufs branch in ro mode"
+	ebegin "ro mode remounting aufs:$d"
+	mount -o remount,$o aufs:$d 1>/dev/null 2>&1
+	eend "$?" "failed to remount aufs:$d in ro mode"
 }
 
 # vim:fenc=utf-8:ft=gentoo-init-d:ci:pi:sts=0:sw=4:ts=4:
