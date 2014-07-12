@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/07 09:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.12.8 2014/07/07 10:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -32,7 +32,7 @@ Of course, one can append extra fonts and keymaps with @-fter-g12n -yfr-latin1@
 etc. and the @-a@ option depend on @mkinitramfs-ll.conf@
 so one can put many sane default values there.
 
-One can get more info on the scripts by running @$script -u@
+One can get more info on the scripts by running @$script -h@
 
 h3. 2.1 _Optional_ kernel cmdline option or arguments
 
