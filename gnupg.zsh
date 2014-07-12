@@ -1,16 +1,19 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/gnupg.zsh,v 0.12.8 2014/07/07 11:00:35 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.zsh,v 0.12.8 2014/07/07 12:00:35 -tclover Exp $
+basename=${(%):-%1x}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
- usage: ${(%):-%1x} [-d|--usrdir=usr] [options]
+  $basename-0.12.8
+  
+  usage: $basename [-d|--usrdir=usr] [options]
 
-  -d|-usrdir [usr]       copy binary and options.skel files to usr/
-  -U|-useflag <flags>    extra USE flags to append to USE="nls static"
-  -v|-version <str>      build gpg-<str> version instead of gpg-1.4.x
-  -u|-usage              print this help/uage and exit
+  -d, -usrdir [usr]       copy binary and options.skel files to usr/
+  -u, -useflag <flags>    extra USE flags to append to USE="nls static"
+  -v, -version <str>      build gpg-<str> version instead of gpg-1.4.x
+  -h, -help               print this help/uage and exit
 EOF
 exit $?
 }
@@ -28,9 +31,9 @@ die() {
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
 zmodload zsh/zutil
-zparseopts -E -D -K -A opts U:: useflag:: v:: version:: d:: usrdir:: u usage || usage
+zparseopts -E -D -K -A opts u:: useflag:: v:: version:: d:: usrdir:: h help || usage
 
-if [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
+if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
 if [[ $# < 1 ]] { typeset -A opts }
 
 if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
@@ -50,7 +53,7 @@ opts[-gpg]=$(emerge -pvO "=app-crypt/gnupg-${opts[-version]}" |
 mkdir -p ${opts[-usrdir]}/{bin,share/gnupg}
 pushd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die
 ebuild ${opts[-gpg]}.ebuild clean
-USE="nls static ${=opts[-useflag]:-$opts[-U]}" ebuild ${opts[-gpg]}.ebuild compile || die
+USE="nls static ${=opts[-useflag]:-$opts[-u]}" ebuild ${opts[-gpg]}.ebuild compile || die
 pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/${opts[-gpg]}/work/${opts[-gpg]} || die
 
 cp -a gpg ${opts[-usrdir]}/bin/ || die
