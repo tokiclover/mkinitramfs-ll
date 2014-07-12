@@ -1,17 +1,20 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.12.8 2014/07/07 10:40:18 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.12.8 2014/07/07 11:40:18 -tclover Exp $
+basename=${0##*/}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
- usage: ${0##*/}[-m|--minimal] [--ucl=i386]
+  $basename-0.12.8
+  
+  usage: $basename [-m|--minimal] [--ucl=i386]
 
   -d, --usrdir [usr]     copy busybox binary file to usr/bin
   -n, --minimal          build busybox with minimal applets, default is full applets
       --ucl i386         arch string needed to build busybox against uClibc	
   -v, --version 1.20.0   use 1.20.0 instead of latest version of busybox
-  -u, --usage, -?        print the usage/help and exit
+  -h, --help, -?         print the usage/help and exit
 EOF
 exit $?
 }
@@ -29,8 +32,8 @@ die() {
 	exit $ret
 }
 
-opt=$(getopt -l usrdir:,minimal,ucl:,usage,version: -o ?nud::v: \
-	-n ${0##*/} -- "$@" || usage)
+opt=$(getopt -l usrdir:,minimal,ucl:,help,version: -o ?nd::v: \
+	-n $basename -- "$@" || usage)
 eval set -- "$opt"
 
 declare -A opts
@@ -42,7 +45,7 @@ while [[ $# > 0 ]]; do
 		-y|--keymap) opts[-keymap]="${2}"; shift 2;;
 		-v|--version) opts[-version]="${2}"; shift 2;;
 		--) shift; break;;
-		-?|-u|--usage|*) usage;;
+		-?|-h|--help|*) usage;;
 	esac
 done
 
