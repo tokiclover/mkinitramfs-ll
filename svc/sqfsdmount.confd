@@ -1,15 +1,15 @@
-# $Id: mkinitramfs-ll/svc/sqfsdmount.confd, 2012/06/19 13:38:02 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sqfsdmount.confd, 2014/07/07 13:38:02 -tclover Exp $
 #
 # @VARIABLE: sqfsdir
 sqfsdir=/sqfsd
 #
 # @VARIABLE:  sqfsd_sys
 # @DESCRIPTION: system wide squashed dir
-sqfsd_sys=usr:lib32:lib64:bin:sbin:opt
+sqfsd_sys=/usr:/lib32:/lib64:/bin:/sbin:/opt
 #
 # @VARIABLE: sqfsd_local
 # @DESCRIPTION: local squashed dir
-sqfsd_local=var/db:var/cache/edb:var/lib/layman:var/portage
+sqfsd_local=/var/db:/var/cache/edb:/var/lib/layman:/var/portage
 #
 # @VARIABLE: sqfsd_sdr
 # @DESCRIPTION: squashed dir to rebuild before shutting down the machine
