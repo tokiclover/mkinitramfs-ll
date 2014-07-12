@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.12.0 2014/07/07 09:59:45 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.12.0 2014/07/07 10:59:45 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
@@ -85,7 +85,7 @@ setopt NULL_GLOB
 # @DESCRIPTION: mount squashed dir
 mnt() {
 	if [[ $d == /*bin ]] || [[ $d == /lib* ]] {
-		local busybox=/tmp/busybox cp grep mount mv rm mcdir mrc
+		local busybox=/tmp/busybox cp grep mount mv rm mcdir mrc mkdir
 		cp ${opts[-busybox]} /tmp/busybox ||
 			die "no static busybox binary found"
 		cp="$busybox cp -ar"
@@ -102,12 +102,12 @@ mnt() {
 		rm="rm -fr"
 		mkdir=mkdir
 	}
-	if [[ -n $(${=grep} -w aufs:$d /proc/mounts) ]] {
+	if ${=grep} -w aufs:$d /proc/mounts 1>/dev/null 2>&1; then
 		${=umount} -l $d || die "$sdr: failed to umount aufs:$d"
-	}
-	if [[ -n $(${=grep} $b/rr /proc/mounts) ]] {
+	fi
+	if ${=grep} $b/rr /proc/mounts 1>/dev/null 2>&1; then
 		${=umount} -l $b/rr || die "sdr: failed to umount $b.sfs" 
-	}
+	fi
 	${=rm} $b/rw/* || die "sdr: failed to clean up $b/rw"
 	[[ -f $b.sfs ]] && ${=rm} $b.sfs 
 	${=mv} $b.tmp.sfs $b.sfs || die "sdr: failed to move $b.tmp.sfs"
@@ -141,14 +141,14 @@ squashd() {
 	if [[ $d == /lib${opts[-arc]} ]] {
 		# move rc-svcdir cachedir if mounted
 		mkdir -p /var/{lib/init.d,cache/splash}
-		if [[ -n $(grep $d/splash/cache /proc/mounts) ]] { 
+		if grep $d/splash/cache /proc/mounts 1>/dev/null 2>&1; then
 			mount --move $d/splash/cache /var/cache/splash &&
 				mcdir=yes || die "sdr: failed to move cachedir"
-		}
-		if [[ -n $(grep $d/rc/init.d /proc/mounts) ]] { 
+		fi
+		if grep $d/rc/init.d /proc/mounts 1>/dev/null 2>&1; then
 			mount --move $d/rc/init.d /var/lib/init.d &&
 				mrc=yes || die "sdr: failed to move rc-svcdir"
-		}
+		fi
 	}
 	if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-nomount]} ]] { :;
 	} else { mnt }
