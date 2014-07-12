@@ -1,4 +1,4 @@
-# $Id: mkinitramfs-ll/NEWS, 2014/07/03 12:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/NEWS, 2014/07/07 12:40:11 -tclover Exp $
 
 0.12.8:
 
@@ -11,7 +11,10 @@ See user script section.
 * autogen.{ba,z}sh: deleted useless files.
 * removed -W|-workdir useless switch from scripts, now initramfs
 will be build from TMPDIR:-/tmp.
-* now bash scripts accept -? switch for help/usage.
+* now bash scripts accept -? switch for help;
+* rename -u|[-]-usage for standard -h|[-]-help switch.
+* removed useless -v|[-]-version switch, version string is printed
+with -h|[-]-help.
 
 
 0.12.0:
