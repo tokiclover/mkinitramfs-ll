@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.12.8 2014/07/07 10:59:42 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.12.8 2014/07/07 11:59:42 -tclover Exp $
 basename=${0##*/}
 
 # @FUNCTION: usage
@@ -104,7 +104,7 @@ die() {
 # @DESCRIPTION: mount squashed dir
 mnt() {
 	if [[ "$d" == /*bin ]] || [[ "$d" == /lib* ]]; then
-		local busybox=/tmp/busybox cp grep mount mv rm mcdir mrc
+		local busybox=/tmp/busybox cp grep mount mv rm mcdir mrc mkdir
 		cp ${opts[-busybox]} $busybox || die "no static busybox binary found"
 		cp="$busybox cp -ar"
 		mv="$busybox mv"
@@ -121,10 +121,10 @@ mnt() {
 		rm="rm -fr"
 		mkdir=mkdir
 	fi
-	if [[ -n "$($grep -w aufs:$d /proc/mounts)" ]]; then 
+	if $grep -w aufs:$d /proc/mounts 1>/dev/null 2>&1; then 
 		$umount -l $d || die "sdr: failed to umount aufs:$d"
 	fi
-	if [[ -n "$($grep $b/rr /proc/mounts)" ]]; then 
+	if $grep $b/rr /proc/mounts 1>/dev/null 2>&1; then 
 		$umount -l $b/rr || die "sdr: failed to umount $b.sfs"
 	fi
 	$rm "$b"/rw/* || die "sdr: failed to clean up $b/rw"
@@ -157,11 +157,11 @@ squashd() {
 		${opts[-exclude]} >/dev/null || die "sdr: failed to build $d.sfs img"
 	if [[ "$d" == /lib${opts[-arc]} ]]; then
 		# move rc-svcdir and cachedir if mounted
-		if [[ -n "$(grep $d/splash/cache /proc/mounts)" ]]; then
+		if grep $d/splash/cache /proc/mounts 1>/dev/null 2>&1; then
 			mount --move $d/splash/cache /var/cache/splash &&
 				mcdir=yes || die "sdr: failed to move cachedir"
 		fi
-		if [[ -n "$(grep $d/rc/init.d /proc/mount)" ]]; then
+		if grep $d/rc/init.d /proc/mount 1>/dev/null 2>&1; then
 			mount --move $d/rc/init.d /var/lib/init.d &&
 				rc=yes || die "sdr: failed to move rc-svcdir"
 		fi
