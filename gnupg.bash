@@ -1,16 +1,19 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/gnupg.bash,v 0.12.8 2014/07/07 11:00:33 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.bash,v 0.12.8 2014/07/07 12:00:33 -tclover Exp $
+basename=${0##*/}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
- usage: ${0##*/} [-d|--usrdir=usr] [options]
+  $basename-0.12.8
+  
+  usage: $basename [-d|--usrdir=usr] [options]
 
   -d, --usrdir [usr]     copy binary and options.skel files to usr/
   -U, --useflag flags    extra USE flags to append to USE="nls static"
   -v, --version <str>    build gpg-<str> version instead of gpg-1.4.x
-  -u, --usage, -?        print this help/uage and exit
+  -h, --help, -?         print this help/uage and exit
 EOF
 exit $?
 }
@@ -28,8 +31,8 @@ die() {
 	exit $ret
 }
 
-opt=$(getopt -l usage,useflag::,usrdir::,version:: -o ?ud::U::v:: -n ${0##*/} \
-	-- "$@" || usage)
+opt=$(getopt -l help,useflag::,usrdir::,version:: -o ?d::U::v:: \
+	-n $basename -- "$@" || usage)
 eval set -- "$opt"
 
 declare -A opts
@@ -38,7 +41,7 @@ while [[ $# > 0 ]]; do
 		-d|--usrdir)  opts[-usrdir]=${2}; shift 2;;
 		-U|--useflag) opts[-useflag]=${2}; shift 2;;
 		-v|--version) opts[-version]=${2}; shift 2;;
-		-?|-u|--usage|*) usage;;
+		-?|-h|--help|*) usage;;
 	esac
 done
 
