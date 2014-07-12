@@ -1,6 +1,6 @@
-@$Id: mkinitramfs-ll/svc/README.textile,v 1.2 2012/10/17 10:21:37 -tclover Exp $@
+@$Id: mkinitramfs-ll/svc/README.textile,v 0.12.8 2014/07/07 10:21:37 -tclover Exp $@
 
-Actually, without an initramfs one can get aufs+squashfs working without an
+Actually, without an initramfs one can get AUFS+squashfs working without an
 issue if you make sure @/usr@ and @/lib${arch}@ get mounted as earlier as
 possible with or without localmount help.
 
