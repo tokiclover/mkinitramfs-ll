@@ -11,7 +11,7 @@ usage() {
   usage: $basename [-d|--usrdir=usr] [options]
 
   -d, --usrdir [usr]     copy binary and options.skel files to usr/
-  -U, --useflag flags    extra USE flags to append to USE="nls static"
+  -u, --useflag flags    extra USE flags to append to USE="nls static"
   -v, --version <str>    build gpg-<str> version instead of gpg-1.4.x
   -h, --help, -?         print this help/uage and exit
 EOF
@@ -31,7 +31,7 @@ die() {
 	exit $ret
 }
 
-opt=$(getopt -l help,useflag::,usrdir::,version:: -o ?d::U::v:: \
+opt=$(getopt -l help,useflag::,usrdir::,version:: -o ?d::u::v:: \
 	-n $basename -- "$@" || usage)
 eval set -- "$opt"
 
@@ -39,7 +39,7 @@ declare -A opts
 while [[ $# > 0 ]]; do
 	case $1 in 
 		-d|--usrdir)  opts[-usrdir]=${2}; shift 2;;
-		-U|--useflag) opts[-useflag]=${2}; shift 2;;
+		-u|--useflag) opts[-useflag]=${2}; shift 2;;
 		-v|--version) opts[-version]=${2}; shift 2;;
 		-?|-h|--help|*) usage;;
 	esac
