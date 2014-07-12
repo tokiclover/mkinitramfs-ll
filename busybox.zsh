@@ -1,17 +1,20 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.12.8 2014/07/07 10:40:15 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.12.8 2014/07/07 11:40:15 -tclover Exp $
+basename=${(%):-%1x}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
- usage: ${(%):-%1x} [-m|-minimal] [-ucl i386]
+  $basename-0.12.8
+  
+  usage: $basename [-m|-minimal] [-ucl i386]
 
-  -d|-usrdir [usr]        copy busybox binary file to usr/bin
-  -n|-minimal             build busybox with minimal applets, default is full applets
-     -ucl i386            arch string needed to build busybox against uClibc	
-  -v|-version 1.20.0      use 1.20.0 instead of latest version of busybox
-  -u|-usage               print the usage/help and exit
+  -d, -usrdir [usr]        copy busybox binary file to usr/bin
+  -n, -minimal             build busybox with minimal applets, default is full applets
+      -ucl i386            arch string needed to build busybox against uClibc	
+  -v, -version 1.20.0      use 1.20.0 instead of latest version of busybox
+  -h, -help                print the usage/help and exit
 EOF
 exit $?
 }
@@ -29,9 +32,9 @@ die() {
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
 zmodload zsh/zutil
-zparseopts -E -D -K -A opts n minimal d:: usrdir:: ucl: u usage v: version: || usage
+zparseopts -E -D -K -A opts n minimal d:: usrdir:: ucl: h help v: version: || usage
 
-if [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] { usage }
+if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
 if [[ $# < 1 ]] { typeset -A opts }
 
 if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
