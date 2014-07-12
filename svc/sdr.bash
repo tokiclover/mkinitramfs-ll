@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.12.8 2014/07/07 09:59:42 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.12.8 2014/07/07 10:59:42 -tclover Exp $
 basename=${0##*/}
 
 # @FUNCTION: usage
@@ -103,7 +103,7 @@ die() {
 # @FUNCTION: mnt
 # @DESCRIPTION: mount squashed dir
 mnt() {
-	if [[ "$dir" = *bin ]] || [[ "$dir" = lib* ]]; then
+	if [[ "$d" == /*bin ]] || [[ "$d" == /lib* ]]; then
 		local busybox=/tmp/busybox cp grep mount mv rm mcdir mrc
 		cp ${opts[-busybox]} $busybox || die "no static busybox binary found"
 		cp="$busybox cp -ar"
@@ -133,10 +133,10 @@ mnt() {
 	$mount $b.sfs $b/rr -t squashfs -onodev,loop,ro &&
 	{
 		if [[ -n "${opts[-remove]}" ]]; then
-			$rm $d/* || die "$dir: failed to clean up $d"
+			$rm $d && $mkdir $d || die "sdr: failed to clean up $d"
 		fi
 		if [[ -n "${opts[-update]}" ]]; then
-			$rm $d && $mkdir $d && $cp $b/rr $d || die "$dir: failed to update $d"
+			$rm $d && $mkdir $d && $cp $b/rr $d || die "sdr: failed to update $d"
 		fi
 		$mount -onodev,udba=reval,br:$b/rw:$b/rr -taufs aufs:$d $d ||
 		die "sdr: failed to mount aufs:$d branch"
@@ -155,7 +155,7 @@ squashd() {
 	mkdir -p -m 0755 "$b"/{rr,rw} || die "sdr: failed to create $b/{rr,rw} dirs"
 	mksquashfs $d $b.tmp.sfs -b ${opts[-bsize]} -comp ${opts[-comp]} \
 		${opts[-exclude]} >/dev/null || die "sdr: failed to build $d.sfs img"
-	if [[ "$dir" == /lib${opts[-arc]} ]]; then
+	if [[ "$d" == /lib${opts[-arc]} ]]; then
 		# move rc-svcdir and cachedir if mounted
 		if [[ -n "$(grep $d/splash/cache /proc/mounts)" ]]; then
 			mount --move $d/splash/cache /var/cache/splash &&
@@ -179,7 +179,7 @@ squashd() {
 }
 
 for d in ${opts[-sqfsd]//:/ }; do
-	b="${opts[-sqfsdir]}/$dir"
+	b="${opts[-sqfsdir]}/$d"
 	if [[ -e $b.sfs ]]; then
 		if [[ ${opts[-offset]:-10} != 0 ]]; then
 			r=$(du -sk $b/rr | awk '{print $1}')
