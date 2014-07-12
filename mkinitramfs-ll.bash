@@ -1,12 +1,13 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/07 10:33:02 -tclover Exp $
-revision=0.12.8
-
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/07 11:33:02 -tclover Exp $
+basename=${0##*/}
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
- usage: ${1##*/} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
+  $basename-0.12.8
+  
+  usage: $basename [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
   -a, --all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
   -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
@@ -18,7 +19,7 @@ usage() {
   -d, --usrdir [usr]        use usr dir for user extra files, binaries, scripts, fonts...
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p, --prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
-  -M, --module :<name>      include <name> module from [..\/]mkinitramfs-ll.d module directory
+  -M, --module :<name>      include <name> module or script from modules directory
   -m, --kmod [:<mod>]       include a colon separated list of kernel modules to the initramfs
       --mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
       --mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
@@ -27,16 +28,15 @@ usage() {
       --mboot [:<mod>]      include a colon separated list of kernel modules to boot   group
   -s, --splash [:<theme>]   include a colon separated list of splash themes to the initramfs
   -t, --toi                 add tuxonice support for splash, require tuxoniceui_text binary
-  -q, --sqfsd               add aufs(+squashfs modules +{,u}mount.aufs binaries) support
+  -q, --sqfsd               add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
   -r, --regen               regenerate a new initramfs from an old dir with newer init
   -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
   -K, --keeptmp             keep temporary files instead of removing the tmpdir
-  -u, --usage               print this help or usage message and exit
-  -v, --version, -?         print version string and exit
+  -h, --help, -?            print this help or usage message and exit
 
- usage: without an argument, generate an default initramfs for kernel \$(uname -r)
- usgae: generate an initramfs with LUKS, GnuPG, LVM2 and aufs+squashfs support
- ${0##*/} -a -f -y -k$(uname -r)
+  usage: build an initramfs for kernel \$(uname -r) if run without an argument
+  usgae: generate an initramfs with LUKS, GnuPG, LVM2 and AUFS+squashfs support
+  $basename -a -f -y -k$(uname -r)
 EOF
 exit $?
 }
@@ -81,9 +81,9 @@ adn() {
 }
 
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msqfsd::,mremdev:: \
-	  -l keeptmp,module:,mtuxonice::,sqfsd,toi,usage,usrdir::,version \
+	  -l keeptmp,module:,mtuxonice::,sqfsd,toi,usage,usrdir:: \
 	  -l keymap::,luks,lvm,kv::,prefix::,splash::,regen \
-	  -o ?ab:c::d::f::gk::lKLM:m::np::rs::tuvy:: -n ${0##*/} -- "$@" || usage)
+	  -o ?ab:c::d::f::gk::lKLM:m::np::rs::tuy:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 
 # @VARIABLE: opts [associative array]
@@ -93,10 +93,9 @@ declare -A opts
 
 while [[ $# > 0 ]]; do
 	case $1 in
-		-v|--version) echo "${0##*/}-$revision"; exit 0;;
 		-a|--all) opts[-sqfsd]=y; opts[-gpg]=y;
 			opts[-lvm]=y; opts[-luks]=y; shift;;
-		-R|--regen) opts[-regen]=y; shift;;
+		-r|--regen) opts[-regen]=y; shift;;
 		-q|--sqfsd) opts[-sqfsd]=y; shift;;
 		-K|--keeptmp) opts[-keeptmp]=y; shift;;
 		-b|--bin) opts[-bin]+=:${2}; shift 2;;
@@ -123,7 +122,7 @@ while [[ $# > 0 ]]; do
 			/etc/conf.d/consolefont|cut -d'"' -f2)}"
 			shift 2;;
 		--) shift; break;;
-		-?|-u|--usage|*) usage;;
+		-?|-h|--help|*) usage;;
 	esac
 done
 
