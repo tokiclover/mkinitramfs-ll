@@ -1,31 +1,32 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.12.0 2013/02/11 09:59:45 -tclover Exp $
-revision=0.12.0
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.12.0 2014/07/07 09:59:45 -tclover Exp $
+basename=${(%):-%1x}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
- usage: ${(%):-%1x} [-update|-remove] [-r|-sqfsdir<dir>] -d|-sqfsd:<dir>:<dir>
+  $basename-0.12.8
+  
+  usage: $basename [-update|-remove] [-r|-sqfsdir<dir>] -d|-sqfsd:<dir>:<dir>
 
-  -r|-sqfsdir <dir>       overide default value of squashed rootdir 'sqfsdir=/sqfsd'
-  -d|-sqfsd <dir>         squash colon seperated list of dir without the leading '/'
-  -f|-fstab               whether to write the necessary mount lines to '/etc/fstab'
-  -b|-bsize 131072        use [128k] 131072 bytes block size, which is the default
-  -B|-busybox busybox     path to a static busybox binary, default is \$(which bb)
-  -c|-comp 'xz -Xbjc x86' use xz compressor, with optional optimization arguments
-  -e|-exclude :<dir>      collon separated list of directories to exlude from image
-  -o|-offset 0            overide default [10%] offset used to rebuild squashed dir
-  -U|-update              update the underlying source directory e.g. bin:sbin:lib32
-  -R|-remove              remove the underlying source directory e.g. usr:\${PORTDIR}
-  -n|-nomount             do not remount squashed dir nor aufs after rebuilding 
-  -u|-usage               print this help/usage and exit
-  -v|-version             print version string and exit
-	
- usage: speed up your system with aufs+squahfs by squashing a few dirs:
- ${(%):-%1x} -remove -d var/db:var/cache/edb:\$PORTDIR
- usage: squash system related directories and update the underlaying sources dir:
- ${(%):-%1x} -update -d bin:sbin:lib32:lib64
+  -q, -sqfsdir <dir>       overide default value of squashed rootdir 'sqfsdir=/sqfsd'
+  -d, -sqfsd <dir>         squash colon seperated list of dir without the leading '/'
+  -f, -fstab               whether to write the necessary mount lines to '/etc/fstab'
+  -b, -bsize 131072        use [128k] 131072 bytes block size, which is the default
+  -x, -busybox busybox     path to a static busybox binary, default is \$(which bb)
+  -c, -comp 'xz -Xbjc x86' use xz compressor, with optional optimization arguments
+  -e, -exclude :<dir>      collon separated list of directories to exlude from image
+  -o, -offset 0            overide default [10%] offset used to rebuild squashed dir
+  -u, -update              update the underlying source directory e.g. bin:sbin:lib32
+  -r, -remove              remove the underlying source directory e.g. usr:\${PORTDIR}
+  -n, -nomount             do not remount squashed dir nor aufs after rebuilding 
+  -h, -help                print this help/usage and exit
+
+ usage: AUFS+squahfs or *squash* and remove underlying src directories:
+ $basename -r -d/var/db:/var/cache/edb:\$PORTDIR:/var/lib/layman
+ usage: squash system related directories and update the underlaying src dir:
+ $basename -u -d/bin:/sbin:/lib32:/lib64:/usr
 EOF
 exit $?
 }
@@ -34,20 +35,11 @@ exit $?
 # @DESCRIPTION: declare if not declared while arsing options,
 # hold almost every single option/variable
 
-if [[ $# = 0 ]] { usage
-} else {
-	zmodload zsh/zutil
-	zparseopts -E -D -K -A opts r: sqfsdir: d: sqfsd: f fstab B:: b: bsize: \
-		n nomount busybox:: c: comp: e: excl: o: offset: U update R remove \
-		u usage v version || usage
-	if [[ $# != 0 ]] || [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-usage]} ]] {
-		usage
-	}
-	if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
-		print "${(%):-%1x}-$revision"
-		exit
-	}
-}
+if [[ $# == 0 ]] || [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
+zmodload zsh/zutil
+zparseopts -E -D -K -A opts q: sqfsdir: d: sqfsd: f fstab b: bsize: \
+	n nomount x:: busybox:: c: comp: e: excl: o: offset: u update r remove \
+	h help v version || usage
 
 # @VARIABLE: opts[-arc]
 # @DESCRIPTION: architecture of the system [ 32 | 64]
@@ -70,19 +62,20 @@ if [[ -n $(uname -m | grep 64) ]] { opts[-arc]=64 } else { opts[-arc]=32 }
 # @VARIABLE: opts[-busybox] | opts[-b]
 # @DESCRIPTION: full path to a static busysbox binary needed for updtating 
 # system wide dir
-:	${opts[-busybox]:=${opts[-B]:-$(which bb)}}
+:	${opts[-busybox]:=${opts[-x]:-$(which bb)}}
 
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
-info() 	{ print -P " %B%F{green}*%b%f $@" }
+info() { print -P " %B%F{green}*%b%f $@" }
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
 error() { print -P " %B%F{red}*%b%f $@" }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die()   {
+die() {
+	local ret=$?
 	error $@
-	return
+	return $ret
 }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
@@ -91,7 +84,7 @@ setopt NULL_GLOB
 # @FUNCTION: mnt
 # @DESCRIPTION: mount squashed dir
 mnt() {
-	if [[ $dir = *bin ]] || [[ $dir = lib* ]] {
+	if [[ $d == /*bin ]] || [[ $d == /lib* ]] {
 		local busybox=/tmp/busybox cp grep mount mv rm mcdir mrc
 		cp ${opts[-busybox]} /tmp/busybox ||
 			die "no static busybox binary found"
@@ -101,91 +94,93 @@ mnt() {
 		mount="$busybox mount"
 		umount="$busybox umount"
 		grep="$busybox grep"
+		mkdir="$busybox mkdir"
 	} else {
 		cp="cp -ar"
 		grep=grep; mount=mount
 		umount=umount; mv=mv
 		rm="rm -fr"
+		mkdir=mkdir
 	}
-	if [[ -n $(${=mount} -t aufs | ${=grep} -w $dir) ]] {
-		${=umount} -l /$dir 1>/dev/null 2>&1 ||
-			die "$dir: failed to umount aufs branch"
+	if [[ -n $(${=grep} -w aufs:$d /proc/mounts) ]] {
+		${=umount} -l $d || die "$sdr: failed to umount aufs:$d"
 	}
-	if [[ -n $(${=mount} -t squashfs | ${=grep} $bdir/rr) ]] {
-		${=umount} -l $bdir/rr 1>/dev/null 2>&1 ||
-			die "failed to umount $bdir.sfs" 
+	if [[ -n $(${=grep} $b/rr /proc/mounts) ]] {
+		${=umount} -l $b/rr || die "sdr: failed to umount $b.sfs" 
 	}
-	${=rm} $bdir/rw/* || die "failed to clean up $bdir/rw"
-	[[ -f $bdir.sfs ]] && ${=rm} $bdir.sfs 
-	${=mv} $bdir.tmp.sfs $bdir.sfs || die "failed to move $dir.tmp.sfs"
-	${=mount} $bdir.sfs $bdir/rr -t squashfs -o nodev,loop,ro 1>/dev/null 2>&1 &&
+	${=rm} $b/rw/* || die "sdr: failed to clean up $b/rw"
+	[[ -f $b.sfs ]] && ${=rm} $b.sfs 
+	${=mv} $b.tmp.sfs $b.sfs || die "sdr: failed to move $b.tmp.sfs"
+	${=mount} $b.sfs $b/rr -t squashfs -o nodev,loop,ro &&
 	{	
-		if [[ -n ${(k)opts[-R]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
-			${=rm} /$dir/* || die "failed to clean up $bdir"
+		if [[ -n ${(k)opts[-r]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
+			${=rm} $d && ${=mkdir} $d || die "sdr: failed to clean up $d"
 		} 
-		if [[ -n ${(k)opts[-U]} ]] || [[ -n ${(k)opts[-update]} ]] { 
-			${=rm} /$dir && ${=cp} $bdir/rr /$dir || die "$dir: failed to update"
+		if [[ -n ${(k)opts[-r]} ]] || [[ -n ${(k)opts[-update]} ]] { 
+			${=rm} $d && ${=mkdir} $d && ${=cp} $b/rr /$d ||
+			die "sdr: failed to update $d"
 		}
-	${=mount} -t aufs -o nodev,udba=reval,br:$bdir/rw:$bdir/rr $dir /$dir \
-		1>/dev/null 2>&1 || die "$dir: failed to mount aufs branch"
-	} || die "failed to mount $dir.sfs"
+	${=mount} -t aufs -o nodev,udba=reval,br:$b/rw:$b/rr aufs:$d $d ||
+	die "sdr: failed to mount aufs:$d"
+	} || die "sdr: failed to mount $b.sfs"
 }
 
 # @FUNCTION: squashd
 # @DESCRIPTION: squash dir
 squashd() {
-	if [[ -n ${(k)opts[-fstab]} || -n ${(k)opts[-fstab]} ]] {
-		echo "$bdir.sfs $bdir/rr squashfs nodev,loop,rr 0 0" >>/etc/fstab ||
-			die "$dir: failed to write squasshfs line"
-		echo "$dir /$dir aufs nodev,udba=reval,br:$bdir/rw:$bdir/rr 0 0" >>/etc/fstab ||
-			die "$dir: failed to write aufs line" 
+	if [[ -n ${(k)opts[-f]} || -n ${(k)opts[-fstab]} ]] {
+		echo "$b.sfs $b/rr squashfs nodev,loop,rr 0 0" >>/etc/fstab ||
+			die "sdr: failed to write squasshfs fstab line"
+		echo "$d $d aufs nodev,udba=reval,br:$b/rw:$b/rr 0 0" >>/etc/fstab ||
+			die "sdr: failed to write aufs fstab line" 
 	}
-	mkdir -p -m 0755 $bdir/{rr,rw} || die "failed to create $dir/{rr,rw} dirs"
-	mksquashfs /$dir $bdir.tmp.sfs -b ${opts[-bsize]} -comp ${=opts[-comp]} \
-		${=opts[-exclude]:+-wildcards -regex -e ${(pws,:,)opts[-exclude]}} \
-			>/dev/null || die "failed to build $dir.sfs img"
-	if [[ $dir = lib${opts[-arc]} ]] { # move rc-svcdir cachedir if mounted
+	mkdir -p -m 0755 $b/{rr,rw} || die "sdr: failed to create $d/{rr,rw}"
+	mksquashfs $d $b.tmp.sfs -b ${opts[-bsize]} -comp ${=opts[-comp]} \
+		${=opts[-exclude]:+-wildcards -regex -e ${(pws,:,)opts[-exclude]}} ||
+		die "sdr: failed to build $d.sfs"
+	if [[ $d == /lib${opts[-arc]} ]] {
+		# move rc-svcdir cachedir if mounted
 		mkdir -p /var/{lib/init.d,cache/splash}
-		if [[ -n $(mount -ttmpfs | grep /$dir/splash/cache) ]] { 
-			mount --move /$dir/splash/cache /var/cache/splash 1>/dev/null 2>&1 &&
-				mcdir=yes || die "failed to move cachedir"
+		if [[ -n $(grep $d/splash/cache /proc/mounts) ]] { 
+			mount --move $d/splash/cache /var/cache/splash &&
+				mcdir=yes || die "sdr: failed to move cachedir"
 		}
-		if [[ -n $(mount -ttmpfs | grep /$dir/rc/init.d) ]] { 
-			mount --move /$dir/rc/init.d /var/lib/init.d 1>/dev/null 2>&1 &&
-				mrc=yes || die "failed to move rc-svcdir"
+		if [[ -n $(grep $d/rc/init.d /proc/mounts) ]] { 
+			mount --move $d/rc/init.d /var/lib/init.d &&
+				mrc=yes || die "sdr: failed to move rc-svcdir"
 		}
 	}
 	if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-nomount]} ]] { :;
 	} else { mnt }
 	if [[ -n $mcdir ]] { 
-		mount --move /var/cache/splash /$dir/splash/cache 1>/dev/nul 2>&1 ||
-			die "failed to move back cachedir"
+		mount --move /var/cache/splash $d/splash/cache ||
+			die "sdr: failed to move back cachedir"
 	}
 	if [[ -n $mrc ]] { 
-		mount --move /var/lib/init.d /$dir/rc/init.d 1>/dev/null 2>&1 ||
-			die "failed to move back rc-svcdir"
+		mount --move /var/lib/init.d $d/rc/init.d ||
+			die "sdr: failed to move back rc-svcdir"
 	}
-	print -P "%F{green}>>> ...squashed $dir sucessfully [re]build%f"
+	print -P "%F{green}>>> sdr:...squashed $d sucessfully [re]build%f"
 }
 
-for dir (${(pws,:,)opts[-sqfsd]} ${(pws,:,)opts[-d]}) {
-	bdir=${opts[-sqfsdir]}/$dir
-	if [[ -e /sqfsd/$dir.sfs ]] { 
+for d (${(pws,:,)opts[-sqfsd]} ${(pws,:,)opts[-d]}) {
+	b=${opts[-sqfsdir]}/$d
+	if [[ -e ${opts[-sqfsdir]}/$d.sfs ]] { 
 		if [[ ${opts[-offset]:-10} != 0 ]] {
-			rr=${$(du -sk $bdir/rr)[1]}
-			rw=${$(du -sk $bdir/rw)[1]}
-			if (( ($rw*100/$rr) < ${opts[-offset]:-10} )) { 
-				info "$dir: skiping... there's \`-o' options to change the offset"
+			r=${$(du -sk $b/rr)[1]}
+			w=${$(du -sk $b/rw)[1]}
+			if (( ($w*100/$r) < ${opts[-offset]:-10} )) { 
+				info "sdr: skiping... $d, or append -o|-offset option"
 			} else {
-				print -P "%F{green}>>> updating squashed $dir...%f"
+				print -P "%F{green}>>> sdr: updating squashed $d...%f"
 				squashd
 			}
 		} else {
-			print -P "%F{green}>>> updating squashed $dir...%f"
+			print -P "%F{green}>>> sdr: updating squashed $d...%f"
 			squashd
 		}
 	} else {
-		print -P "%F{green}>>> building squashed $dir...%f"
+		print -P "%F{green}>>> sdr: building squashed $d...%f"
 		squashd
 	}
 }
