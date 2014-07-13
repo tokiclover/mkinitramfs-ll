@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.12.0 2014/07/07 10:59:45 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.12.0 2014/07/07 11:59:45 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
@@ -160,7 +160,7 @@ squashd() {
 		mount --move /var/lib/init.d $d/rc/init.d ||
 			die "sdr: failed to move back rc-svcdir"
 	}
-	print -P "%F{green}>>> sdr:...squashed $d sucessfully [re]build%f"
+	info ">>> sdr:...squashed $d sucessfully [re]build"
 }
 
 for d (${(pws,:,)opts[-sqfsd]} ${(pws,:,)opts[-d]}) {
@@ -172,15 +172,15 @@ for d (${(pws,:,)opts[-sqfsd]} ${(pws,:,)opts[-d]}) {
 			if (( ($w*100/$r) < ${opts[-offset]:-10} )) { 
 				info "sdr: skiping... $d, or append -o|-offset option"
 			} else {
-				print -P "%F{green}>>> sdr: updating squashed $d...%f"
+				info ">>> sdr: updating squashed $d..."
 				squashd
 			}
 		} else {
-			print -P "%F{green}>>> sdr: updating squashed $d...%f"
+			info ">>> sdr: updating squashed $d..."
 			squashd
 		}
 	} else {
-		print -P "%F{green}>>> sdr: building squashed $d...%f"
+		info ">>> sdr: building squashed $d..."
 		squashd
 	}
 }
