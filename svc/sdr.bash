@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.12.8 2014/07/07 12:59:42 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.12.8 2014/07/07 13:59:42 -tclover Exp $
 basename=${0##*/}
 
 # @FUNCTION: usage
@@ -112,14 +112,12 @@ mnt() {
 		mount="$busybox mount"
 		umount="$busybox umount"
 		grep="$busybox grep"
-		mkdir="$busybox mkdir"
+		mkdir="$busybox mkdir -p"
 	else
-		cp="cp -ar"
-		grep=grep
-		mount="mount"
-		umount=umount mv=mv
-		rm="rm -fr"
-		mkdir=mkdir
+		cp="cp -ar"; grep=grep
+		mount="mount"; umount=umount
+		mv=mv; rm="rm -fr"
+		mkdir="mkdir -p"
 	fi
 	if $grep -w aufs:$d /proc/mounts 1>/dev/null 2>&1; then 
 		$umount -l $d || die "sdr: failed to umount aufs:$d"
