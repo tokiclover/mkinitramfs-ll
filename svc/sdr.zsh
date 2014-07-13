@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.12.0 2014/07/07 11:59:45 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.12.0 2014/07/07 12:59:45 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
@@ -94,13 +94,12 @@ mnt() {
 		mount="$busybox mount"
 		umount="$busybox umount"
 		grep="$busybox grep"
-		mkdir="$busybox mkdir"
+		mkdir="$busybox mkdir -p"
 	} else {
-		cp="cp -ar"
-		grep=grep; mount=mount
-		umount=umount; mv=mv
-		rm="rm -fr"
-		mkdir=mkdir
+		cp="cp -ar"; grep=grep
+		mount=mount; umount=umount
+		mv=mv; rm="rm -fr"
+		mkdir="mkdir -p"
 	}
 	if ${=grep} -w aufs:$d /proc/mounts 1>/dev/null 2>&1; then
 		${=umount} -l $d || die "$sdr: failed to umount aufs:$d"
@@ -116,12 +115,12 @@ mnt() {
 		if [[ -n ${(k)opts[-r]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
 			${=rm} $d && ${=mkdir} $d || die "sdr: failed to clean up $d"
 		} 
-		if [[ -n ${(k)opts[-r]} ]] || [[ -n ${(k)opts[-update]} ]] { 
+		if [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-update]} ]] { 
 			${=rm} $d && ${=mkdir} $d && ${=cp} $b/rr /$d ||
 			die "sdr: failed to update $d"
 		}
-	${=mount} -t aufs -o nodev,udba=reval,br:$b/rw:$b/rr aufs:$d $d ||
-	die "sdr: failed to mount aufs:$d"
+		${=mount} -t aufs -o nodev,udba=reval,br:$b/rw:$b/rr aufs:$d $d ||
+		die "sdr: failed to mount aufs:$d"
 	} || die "sdr: failed to mount $b.sfs"
 }
 
