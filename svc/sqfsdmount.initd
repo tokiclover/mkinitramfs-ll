@@ -1,10 +1,10 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/sqfsdmount.initd,v 1.2 2014/07/07 22:06:10 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/sqfsdmount.initd,v 1.2 2014/07/07 23:06:10 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
-description="manage (aufs+squashfs) squashed directories"
+description="manage (AUFS+squashfs) squashed directories"
 
 depend() {
 	need fsck localmount
@@ -74,8 +74,8 @@ smount() {
 		if grep $b/rr /proc/mounts 1>/dev/null 2>&1; then 
 			einfo "squashed $b.sfs image already mounted"
 		else
-			mount -t squashfs $b.sfs $b/rr -o nodev,loop,ro 1>/dev/null 2>&1
-       			eend "$?" "failed to mount $b.sfs image" || return
+			mount -t squashfs $b.sfs $b/rr -o nodev,loop,ro 1>/dev/null 2>&1 &&
+       		eend "$?" "failed to mount $b.sfs image" || return
        	fi
 		mount -t aufs aufs:$d $d -o nodev,udba=reval,br:$b/rw:$b/rr 1>/dev/null 2>&1
 		eend "$?" "failed to mount aufs:$d"
