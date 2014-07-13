@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.12.8 2014/07/07 11:59:42 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.12.8 2014/07/07 12:59:42 -tclover Exp $
 basename=${0##*/}
 
 # @FUNCTION: usage
@@ -175,7 +175,7 @@ squashd() {
 		mount --move /var/lib/init.d $d/rc/init.d ||
 			die "sdr: failed to move back rc-svcdir"
 	fi
-	echo -ne "\e[1;32m>>> sdr: ...sucessfully build squashed $d\e[0m\n"
+	info ">>> sdr: ...sucessfully build squashed"
 }
 
 for d in ${opts[-sqfsd]//:/ }; do
@@ -187,15 +187,15 @@ for d in ${opts[-sqfsd]//:/ }; do
 			if (( ($w*100/$r) < ${opts[-offset]:-10} )); then
 				info "sdr: skiping $d, or append -o|--offset option"
 			else
-				echo -ne "\e[1;32m>>> sdr: updating squashed $d...\e[0m\n"
+				info ">>> sdr: updating squashed $d..."
 				squashd
 			fi
 		else
-			echo -ne "\e[1;32m>>> sdr: updating squashed $d...\e[0m\n"
+			info ">>> sdr: updating squashed $d..."
 			squashd
 		fi
 	else
-		echo -ne "\e[1;32m>>> sdr: building squashed $d...\e[0m\n"
+		info ">>> sdr: building squashed $d..."
 		squashd
 	fi			
 done
