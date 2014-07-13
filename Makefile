@@ -9,7 +9,7 @@ svc_initdir	= ${sys_confdir}/init.d
 datadir	    = ${DESTDIR}${prefix}/share/$(PACKAGE)
 docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
-DOCS        = AUTHORS BUGS COPYING README.textile
+DOCS        = AUTHORS BUGS COPYING README.textile ChangeLog
 
 MODULES     = zfs zram
 SCRIPTS     = xcpio
