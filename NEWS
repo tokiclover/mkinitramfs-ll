@@ -15,7 +15,8 @@ will be build from TMPDIR:-/tmp.
 * rename -u|[-]-usage for standard -h|[-]-help switch.
 * removed useless -v|[-]-version switch, version string is printed
 with -h|[-]-help.
-
+* now squashed dir works with full path e.g. /var/lib/layman:/var/portage or
+with var/lib/layman:var/portage which was previously required before 0.12.8.
 
 0.12.0:
 
