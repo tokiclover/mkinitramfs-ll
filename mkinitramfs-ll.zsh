@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.8 2014/07/07 10:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.8 2014/07/07 11:40:11 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
@@ -58,6 +58,36 @@ die() {
 	exit 1
 }
 alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
+
+# @FUNCTION: mktmp
+# @DESCRIPTION: make tmp dir or file in ${TMPDIR:-/tmp}
+# @ARG: -d|-f [-m <mode>] [-o <owner[:group]>] [-g <group>] TEMPLATE
+function mktmp() {
+	local type mode owner group tmp TMP=${TMPDIR:-/tmp}
+	while [[ $# > 1 ]] {
+		case $1 in
+			-d) type=dir; shift;;
+			-f) type=file; shift;;
+			-m) mode=$2; shift 2;;
+			-o) owner=$2; shitf 2;;
+			-g) group=$2; shift 2;;
+		 	*) tmp=$1; shift;;
+		esac
+	}
+	[[ -n $tmp ]] && TMP+=/$tmp-XXXXXX ||
+	die "mktmp: no $tmp TEMPLATE provided"
+	if [[ $type == "dir" ]] {
+		mkdir -p ${mode:+-m$mode} $TMP ||
+		die "mktmp: failed to make $TMP"
+	} else {
+		mkdir -p $TMP:h &&
+		echo >$TMP || die "mktmp: failed to make $TMP"
+		[[ -n $mode ]] && chmod $mode $TMP
+	}
+	[[ -n $owner ]] && chown $owner $TMP
+	[[ -n $group ]] && chgrp $group $TMP
+	print "$TMP"
+}
 
 # @FUNCTION: adn
 # @DESCRIPTION: ADd the essential Nodes to be able to boot
@@ -156,7 +186,7 @@ if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
 # @VARIABLE: opts[-tmpdir]
 # @DESCRIPTION: tmp dir where to generate initramfs
 # an initramfs compressed image
-:	${opts[-tmpdir]:=$(mktemp -d ${opts[-initramfs]:t}-XXXXXX)}
+:	${opts[-tmpdir]:=$(mktmp -d ${opts[-initramfs]:t}-XXXXXX)}
 
 if [[ -f ${opts[-initramfs]} ]] {
 	mv ${opts[-initramfs]}{,.old}
