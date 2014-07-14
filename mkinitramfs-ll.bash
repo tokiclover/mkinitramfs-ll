@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/07 12:33:02 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/07 12:33:03 -tclover Exp $
 basename=${0##*/}
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -79,13 +79,14 @@ mktmp() {
 		 	*) tmp="$1"; shift;;
 		esac
 	done
-	[[ -n "$tmp" ]] && TMP+=/"$tmp"-XXXXXX || die "no $tmp TEMPLATE provided"
+	[[ -n "$tmp" ]] && TMP+=/"$tmp"-XXXXXX ||
+	die "mktmp: no $tmp TEMPLATE provided"
 	if [[ "$type" == "dir" ]]; then
 		mkdir -p ${mode:+-m$mode} "$TMP" ||
-		die "failed to make $TMP"
+		die "mktmp: failed to make $TMP"
 	else
 		mkdir -p ${TMP%*/} &&
-		echo >"$TMP" || die "failed to make $TMP"
+		echo >"$TMP" || die "mktmp: failed to make $TMP"
 		[[ -n "$mode" ]] && chmod $mode "$TMP"
 	fi
 	[[ -n "$owner" ]] && chown "$owner" "$TMP"
