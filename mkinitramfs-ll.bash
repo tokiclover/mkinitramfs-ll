@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/07 11:33:02 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/07 12:33:02 -tclover Exp $
 basename=${0##*/}
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -62,6 +62,35 @@ die() {
 	local ret=$?
 	error "$@"
 	exit $ret
+}
+
+# @FUNCTION: mktmp
+# @DESCRIPTION: make tmp dir or file in ${TMPDIR:-/tmp}
+# @ARG: -d|-f [-m <mode>] [-o <owner[:group]>] [-g <group>] TEMPLATE
+mktmp() {
+	local type mode owner group tmp TMP=${TMPDIR:-/tmp}
+	while [[ $# > 1 ]]; do
+		case $1 in
+			-d) type=dir; shift;;
+			-f) type=file; shift;;
+			-m) mode=$2; shift 2;;
+			-o) owner="$2"; shitf 2;;
+			-g) group=$2; shift 2;;
+		 	*) tmp="$1"; shift;;
+		esac
+	done
+	[[ -n "$tmp" ]] && TMP+=/"$tmp"-XXXXXX || die "no $tmp TEMPLATE provided"
+	if [[ "$type" == "dir" ]]; then
+		mkdir -p ${mode:+-m$mode} "$TMP" ||
+		die "failed to make $TMP"
+	else
+		mkdir -p ${TMP%*/} &&
+		echo >"$TMP" || die "failed to make $TMP"
+		[[ -n "$mode" ]] && chmod $mode "$TMP"
+	fi
+	[[ -n "$owner" ]] && chown "$owner" "$TMP"
+	[[ -n "$group" ]] && chgrp "$group" "$TMP"
+	echo "$TMP"
 }
 
 # @FUNCTION: adn
@@ -177,7 +206,7 @@ fi
 # @VARIABLE: opts[-tmpdir]
 # @DESCRIPTION: tmp dir where to generate initramfs
 # an initramfs compressed image
-opts[-tmpdir]="$( mktemp -d ${opts[-initramfs]##*/}-XXXXXX)"
+opts[-tmpdir]="$( mktmp -d ${opts[-initramfs]##*/}-XXXXXX)"
 
 if [[ -f ${opts[-initramfs]} ]]; then
 	mv ${opts[-initramfs]}{,.old}
