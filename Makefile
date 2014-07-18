@@ -25,7 +25,7 @@ install:
 	$(shell) install -pd                 $(datadir)/scripts
 	$(shell) install -pm 644 busybox.cfg $(datadir)/scripts
 	$(shell) for script in $(SCRIPTS); do \
-		install -pm 755 $${script}    $(datadir)/scripts; done
+		install -pm 755 scripts/$${script}    $(datadir)/scripts; done
 	$(shell) find usr -name '.keep' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
 	$(shell) for module in $(MODULES); do \
 		for file in modules/*$${module}*; do \
