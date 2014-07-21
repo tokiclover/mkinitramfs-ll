@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: mkinitramfs-ll/xcpio, 2014/07/07 10:56:45 -tclover Exp $
+# $Id: mkinitramfs-ll/xcpio, 2014/07/15 10:56:45 -tclover Exp $
 
 [[ -z "$@" ]] && echo "usage: ${0##*/} [{-l|-list}|{-x|-extract}] files" && exit 1
 
@@ -28,8 +28,9 @@ esac
 
 for file in $*; do
 	if [ -f "$file" ]; then
-		tmpdir=$(mktemp -d ${file%%*.}-XXXXXX)
-		cd $tmpdir
+		tmpdir=${file##*/}
+		tmpdir=$(mktemp -d ${tmpdir%%.cpio*}-XXXXXX)
+		cd $tmpdir || exit $?
 		comp $file | cpio $opt &&
 		echo "xcpio: successfuly deflated to $tmpdir"
 	else
