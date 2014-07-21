@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/gnupg.bash,v 0.12.8 2014/07/07 12:00:33 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.bash,v 0.12.8 2014/07/15 12:00:33 -tclover Exp $
 basename=${0##*/}
 
 # @FUNCTION: usage
@@ -36,7 +36,7 @@ opt=$(getopt -l help,useflag::,usrdir::,version:: -o ?d::u::v:: \
 eval set -- "$opt"
 
 declare -A opts
-while [[ $# > 0 ]]; do
+while [[ $# > 1 ]]; do
 	case $1 in 
 		-d|--usrdir)  opts[-usrdir]=${2}; shift 2;;
 		-u|--useflag) opts[-useflag]=${2}; shift 2;;
@@ -45,18 +45,18 @@ while [[ $# > 0 ]]; do
 	esac
 done
 
-[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf ||
-	die "no mkinitramfs-ll.conf found"
+[[ -f /etc/portage/make.conf ]] && source /etc/portage/make.conf ||
+	die "no /etc/portage/make.conf found"
 
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path where to get extra files
-[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]=./usr
+[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${PWD}"/usr
 # @VARIABLE: opts[-version] | opts[-v]
 # @DESCRIPTION: GnuPG version to build
-[[ -n "${opts[-version]}" ]] || opts[-version]='1.4*'
+[[ -n "${opts[-version]}" ]] || opts[-version]='1.4'
 # @VARIABLE: opts[-pkg]
 # @DESCRIPTION: GnuPG version to build
-opts[-gpg]=$(emerge -pvO "=app-crypt/gnupg-${opts[-version]}" |
+opts[-gpg]=$(emerge -pvO "=app-crypt/gnupg-${opts[-version]}*" |
 	grep -o "gnupg-[-0-9.r]*")
 
 mkdir -p "${opts[-usrdir]}"/{bin,share/gnupg}
@@ -66,8 +66,8 @@ ebuild ${opts[-gpg]}.ebuild clean || die
 USE="nls static ${opts[-useflag]}" ebuild ${opts[-gpg]}.ebuild compile || die
 pushd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/app-crypt/${opts[-gpg]}/work/${opts[-gpg]} || die
 
-cp -a gpg "${opts[-usrdir]}"/bin/ || die
-cp g10/options.skel "${opts[-usrdir]}"/share/gnupg/ || die
+cp -a g10/gpg          "${opts[-usrdir]}"/bin/ || die
+cp -a g10/options.skel "${opts[-usrdir]}"/share/gnupg/ || die
 
 popd || die
 ebuild ${opts[-gpg]}.ebuild clean || die

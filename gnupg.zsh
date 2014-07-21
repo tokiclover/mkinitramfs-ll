@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/gnupg.zsh,v 0.12.8 2014/07/07 12:00:35 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.zsh,v 0.12.8 2014/07/15 12:00:35 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
@@ -36,18 +36,19 @@ zparseopts -E -D -K -A opts u:: useflag:: v:: version:: d:: usrdir:: h help || u
 if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
 if [[ $# < 1 ]] { typeset -A opts }
 
-if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
-} else { die "no mkinitramfs-ll.conf found" }
+if [[ -f etc/portage/make.conf ]] {
+	source /etc/portage/make.conf 
+} else { die "no /etc/portage/make.conf found" }
 
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path where to get extra files
-:	${opts[-usrdir]:=${opts[-d]:-./usr}}
+:	${opts[-usrdir]:=${opts[-d]:-${PWD}/usr}}
 # @VARIABLE: opts[-version] | opts[-v]
 # @DESCRIPTION: GnuPG version to build
-:	${opts[-version]:-${opts[-v]:-1.4*}}
+:	${opts[-version]:=${opts[-v]:-1.4}}
 # @VARIABLE: opts[-pkg]
 # @DESCRIPTION: GnuPG version to build
-opts[-gpg]=$(emerge -pvO "=app-crypt/gnupg-${opts[-version]}" |
+opts[-gpg]=$(emerge -pvO "=app-crypt/gnupg-${opts[-version]}*" |
 	grep -o "gnupg-[-0-9.r]*")
 
 mkdir -p ${opts[-usrdir]}/{bin,share/gnupg}
@@ -56,8 +57,8 @@ ebuild ${opts[-gpg]}.ebuild clean
 USE="nls static ${=opts[-useflag]:-$opts[-u]}" ebuild ${opts[-gpg]}.ebuild compile || die
 pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/${opts[-gpg]}/work/${opts[-gpg]} || die
 
-cp -a gpg ${opts[-usrdir]}/bin/ || die
-cp g10/options.skel ${opts[-usrdir]}/share/gnupg/ || die
+cp -a g10/gpg          ${opts[-usrdir]}/bin/ || die
+cp -a g10/options.skel ${opts[-usrdir]}/share/gnupg/ || die
 
 popd || die
 ebuild ${opts[-gpg]}.ebuild clean || die
