@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/07 12:33:03 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/15 12:33:03 -tclover Exp $
 basename=${0##*/}
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -43,22 +43,22 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-error() {
+function error() {
 	echo -ne " \e[1;31m* \e[0m$@\n"
 }
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
-info() {
+function info() {
 	echo -ne " \e[1;32m* \e[0m$@\n"
 }
 # @FUNCTION: warn
 # @DESCRIPTION: print warning message to stdout
-warn() {
+function warn() {
 	echo -ne " \e[1;33m* \e[0m$@\n"
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die() {
+function die() {
 	local ret=$?
 	error "$@"
 	exit $ret
@@ -67,36 +67,16 @@ die() {
 # @FUNCTION: mktmp
 # @DESCRIPTION: make tmp dir or file in ${TMPDIR:-/tmp}
 # @ARG: -d|-f [-m <mode>] [-o <owner[:group]>] [-g <group>] TEMPLATE
-mktmp() {
-	local type mode owner group tmp TMP=${TMPDIR:-/tmp}
-	while [[ $# > 1 ]]; do
-		case $1 in
-			-d) type=dir; shift;;
-			-f) type=file; shift;;
-			-m) mode=$2; shift 2;;
-			-o) owner="$2"; shitf 2;;
-			-g) group=$2; shift 2;;
-		 	*) tmp="$1"; shift;;
-		esac
-	done
-	[[ -n "$tmp" ]] && TMP+=/"$tmp"-XXXXXX ||
-	die "mktmp: no $tmp TEMPLATE provided"
-	if [[ "$type" == "dir" ]]; then
-		mkdir -p ${mode:+-m$mode} "$TMP" ||
-		die "mktmp: failed to make $TMP"
-	else
-		mkdir -p ${TMP%*/} &&
-		echo >"$TMP" || die "mktmp: failed to make $TMP"
-		[[ -n "$mode" ]] && chmod $mode "$TMP"
-	fi
-	[[ -n "$owner" ]] && chown "$owner" "$TMP"
-	[[ -n "$group" ]] && chgrp "$group" "$TMP"
-	echo "$TMP"
+function mktmp() {
+	local tmp=${TMPDIR:-/tmp}/$1-XXXXXX
+	mkdir -p ${mode:+-m$mode} $tmp ||
+	die "mktmp: failed to make $tmp"
+	echo "$tmp"
 }
 
 # @FUNCTION: adn
 # @DESCRIPTION: ADd the essential Nodes to be able to boot
-adn() {
+function adn() {
 	[[ -c dev/console ]] || mknod -m 600 dev/console c 5 1 || die
 	[[ -c dev/urandom ]] || mknod -m 666 dev/urandom c 1 9 || die
 	[[ -c dev/random ]]  || mknod -m 666 dev/random  c 1 8 || die
@@ -167,7 +147,7 @@ done
 [[ -n "${opts[-prefix]}" ]] || opts[-prefix]=initramfs-
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path, to get extra files
-[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]=./usr
+[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${PWD}"/usr
 # @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
 opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kv]}
@@ -176,6 +156,10 @@ opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kv]}
 # @VARIABLE: opts[-arch]
 # @DESCRIPTION: kernel architecture
 [[ -n "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
+# @VARIABLE: opts[-tmpdir]
+# @DESCRIPTION: tmp dir where to generate initramfs
+# an initramfs compressed image
+opts[-tmpdir]="$(mktmp ${opts[-initramfs]/*\/})"
 
 case ${opts[-comp]%% *} in
 	bzip2)	opts[-initramfs]+=.cpio.bz2;;
@@ -189,25 +173,19 @@ esac
 
 # @FUNCTION: docpio
 # @DESCRIPTION: generate an initramfs image
-docpio() { 
+function docpio() { 
 	find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${opts[-initramfs]}
 }
 
 if [[ -n ${opts[-regen]} ]]; then
-	opts[-tmpdir]=${TMPDIR:-/tmp}/${opts[-initramfs]}-XXXXXX
 	[[ -d ${opts[-tmpdir]} ]] || die "${opts[-tmpdir]}: no old initramfs dir"
 	echo ">>> regenerating ${opts[-initramfs]}..."
 	pushd ${opts[-tmpdir]} || die
-	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions usr/lib/mkinitramfs-ll &&
+	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions lib/mkinitramfs-ll &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio || die
 	echo ">>> regenerated ${opts[-initramfs]}..." && exit
 fi
-
-# @VARIABLE: opts[-tmpdir]
-# @DESCRIPTION: tmp dir where to generate initramfs
-# an initramfs compressed image
-opts[-tmpdir]="$( mktmp -d ${opts[-initramfs]##*/}-XXXXXX)"
 
 if [[ -f ${opts[-initramfs]} ]]; then
 	mv ${opts[-initramfs]}{,.old}
@@ -216,10 +194,11 @@ fi
 echo ">>> building ${opts[-initramfs]}..."
 
 pushd "${opts[-tmpdir]}" || die
+rm -r *
 if [[ -d "${opts[-usrdir]}" ]]; then
 	cp -ar "${opts[-usrdir]}" . && rm -f usr/README* || die
-	mv -f {usr/,}root 1>/dev/null 2>&1 &&
-	mv -f {usr/,}etc 1>/dev/null 2>&1 &&
+	mv -f {usr/,}root &&
+	mv -f {usr/,}etc &&
 	mv -f usr/lib lib${opts[-arc]} || die
 else 
 	die "${opts[-usrdir]} dir not found"
@@ -227,7 +206,7 @@ fi
 
 mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
 mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash} || die
-mkdir -p run lib${opts[-arc]}/{/${opts[-kv]},mkinitramfs-ll} || die
+mkdir -p run lib${opts[-arc]}/{modules/${opts[-kv]},mkinitramfs-ll} || die
 ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 
@@ -238,7 +217,8 @@ if [[ $(echo ${opts[-kv]} | cut -d'.' -f1 ) -eq 3 ]] &&
 		mknod -m 600 dev/loop-control c 10 237 || die
 fi
 
-cp -a "${opts[-workdir]}"/init . && chmod 775 init && mkdir -pm700 root || die
+cp -a "${opts[-usrdir]}"/../init . && chmod 775 init || die
+[[ -d root ]] && chmod 0700 root || mkdir -m700 root || die
 cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
@@ -371,8 +351,8 @@ dobin() {
 				bin=$(which $(readlink ${bin})) && cp -au {,.}${bin} || die
 			fi
 			if [[ "$(ldd ${bin})" != *"not a dynamic executable"* ]]; then
-				for lib in $(ldd ${bin} | tail -n+2 | sed -e 's:li.*=>\ ::g' -e 's:\ (.*)::g')
-				do mkdir -p .${lib%/*} && cp -adH {,.}${lib} || die
+				for lib in $(ldd ${bin} | tail -n+2 | sed -e '/use-linker.*$/d' -e 's:li.*=>\ ::g' -e 's:\ (.*)::g')
+				do mkdir -p .${lib%/*} && cp -aL {,.}${lib} || die
 				done
 				warn "${bin} is not a static binary."
 			fi
@@ -401,6 +381,11 @@ for grp in ${opts[-mgrp]//:/ }; do
 			domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/${grp}
 		done
 	fi
+done
+
+for lib in $(find usr/lib/gcc -iname 'lib*'); do
+	ln -fs /$lib     lib/${lib##*/}
+	ln -fs /$lib usr/lib/${lib##*/}
 done
 
 docpio || die
