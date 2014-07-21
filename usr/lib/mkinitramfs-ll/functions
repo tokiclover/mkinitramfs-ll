@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/07 23:42:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/15 23:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -237,7 +237,7 @@ blk() {
 				[ sda5 | UUID=<uuid> | LABEL=<label> ]"
 			shread _asw
 			sleep 1
-			_blk=$(blkid | grep "$1" | cut -d: -f1)
+			_blk=$(blkid | grep "${_asw:-1}" | cut -d: -f1)
 			[ -n "$_blk" ] && [ -b "$_blk" ] && break
 		done
 	fi
