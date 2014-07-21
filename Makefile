@@ -40,8 +40,7 @@ install:
 
 install_bash:
 	$(shell) install -pd $(datadir)
-	$(shell) sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
-	             -e 's:./usr:${prefix}/share/$(PACKAGE)/usr:g' \
+	$(shell) sed -e 's:"$${PWD}"/usr:${prefix}/share/$(PACKAGE)/usr:g' \
 		     -i busybox.bash gnupg.bash $(PACKAGE).bash
 	$(shell) install -pd $(sys_confdir)
 	$(shell) install -pd $(bindir)
@@ -52,8 +51,7 @@ install_bash:
 
 install_zsh:
 	$(shell) install -pd $(datadir)
-	$(shell) sed -e 's:$(PACKAGE).conf:/etc/$(PACKAGE).conf:g' \
-	             -e 's:./usr:${prefix}/share/$(PACKAGE)/usr:g' \
+	$(shell) sed -e 's:$${PWD}/usr:${prefix}/share/$(PACKAGE)/usr:g' \
 		     -i busybox.zsh gnupg.zsh $(PACKAGE).zsh
 	$(shell) install -pd $(sys_confdir)
 	$(shell) install -pd $(bindir)
