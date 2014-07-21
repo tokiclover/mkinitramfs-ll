@@ -49,12 +49,12 @@ while [[ $# > 0 ]]; do
 	esac
 done
 
-[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf ||
-	die "no mkinitramfs-ll.conf found"
+[[ -f /etc/portage/make.conf ]] && source /etc/portage/make.conf ||
+	die "no /etc/portage/make.conf found"
 
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr directory, where to get extra files
-[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]=./usr
+[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${PWD}"/usr
 # @VARIABLE: opts[-version]
 # @DESCRIPTION: GnuPG version to build
 #

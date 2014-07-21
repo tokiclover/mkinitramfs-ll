@@ -37,12 +37,13 @@ zparseopts -E -D -K -A opts n minimal d:: usrdir:: ucl: h help v: version: || us
 if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
 if [[ $# < 1 ]] { typeset -A opts }
 
-if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
-} else { die "no mkinitramfs-ll.conf found" }
+if [[ -f etc/portage/make.conf ]] {
+	source /etc/portage/make.conf 
+} else { die "no /etc/portage/make.conf found" }
 
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path where to get extra files
-:	${opts[-usrdir]:=${opts[-d]:-./usr}}
+:	${opts[-usrdir]:=${opts[-d]:-${PWD}/usr}}
 # @VARIABLE: opts[-version] | opts[-v]
 # @DESCRIPTION: GnuPG version to build
 #
