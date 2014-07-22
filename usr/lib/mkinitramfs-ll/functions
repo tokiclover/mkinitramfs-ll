@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/15 23:42:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/20 23:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -30,7 +30,7 @@ error() {
 # @DESCRIPTION: manage message sent to stdout and to splash deamon
 msg() {
 	local _opt _msg
-	while [ $# > 0 ]; do
+	while [ $# -ge 1 ]; do
 		case $1 in
 			-e|-i) _opt=$1; shift;;
 			--) shift;;
@@ -52,7 +52,7 @@ msg() {
 # @DESCRIPTION: execute a command and log the command into $LOGFILE
 debug() {
 	local _cmd _opt _ret
-	while [ $# > 0 ]; do
+	while [ $# -ge 1 ]; do
 		case $1 in
 			-d|-e|-i) _opt=$1; shift;;
 			--) shift;;
