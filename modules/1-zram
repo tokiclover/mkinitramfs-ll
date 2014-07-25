@@ -5,17 +5,19 @@ source $LIBDIR/functions
 
 _getopt "izram"
 
-if [ -n "$izram" ]; then
+dozram() {
+	local NUM DEV num dev fs size
 	echo $$ >/run/${0##*/}.pid
 	arg "NUM" "$izram" "," "1"
+	arg "DEV" "$izram" "," "2" "-s"
 	debug -d modprobe zram num_devices=$NUM
 
 	for num in $(seq 0 1 $NUM); do
-		[ $num == $NUM ] && break
-		arg "zdev" "$izram" "," "$(expr $num + 1)"
-		[ -n "$zdev" ] || break
-		arg "size" "$zdev" ":" "1"
-		arg "fs" "$zdev" ":" "2" "-s"
+		[ "$num" == "$NUM" ] && break
+		arg "dev" "$DEV" ":" "$(expr $num + 1)"
+		[ -n "$dev" ] || continue
+		arg "size" "$dev" "-" "1"
+		arg "fs" "$dev" "-" "2" "-s"
 		echo $size >/sys/block/zram$num/disksize
 		bin="$(ls /sbin/mk*$fs)"
 		if [ -n "$fs" ] && [ -n "$bin" ]; then
@@ -24,6 +26,8 @@ if [ -n "$izram" ]; then
 	done
 
 	rm -f /run/${0##*/}.pid
-fi
+}
+
+[ -n "$izram" ] && dozram
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
