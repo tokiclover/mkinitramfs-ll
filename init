@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.12.8 2013/07/06 11:51:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.12.8 2014/07/22 11:51:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYRIGHT FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -155,8 +155,8 @@ resume() {
 	elif [ -f /sys/power/resume ]; then
 		debug _modprobe swsusp
 		echo platform >/sys/power/disk # or 'shutdown'  if ACPI does not work
-		echo ${_dev#*:} >/sys/power/resume
 		echo disk >/sys/power/state
+		echo ${_dev#*:} >/sys/power/resume
 
 		read _img_sz </sys/power/image_exists
 		if [ "$_img_sz" == "1" ]; then 
@@ -187,8 +187,8 @@ for arg in $(cat /proc/cmdline); do
 			;;
 		single) export RIL=2
 			;;
-		irsh=*) arg "RSH" "$arg" ":" "1"
-			arg "RIL" "$arg" ":" "2" "-s"
+		irsh=*) arg "RSH" "${arg#*=}" ":" "1"
+			arg "RIL" "${arg#*=}" ":" "2" "-s"
 			;;
 		splash*|console*|CONSOLE*) export "$arg"
 			;;
@@ -240,7 +240,7 @@ fi
 [ -n /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
 [ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
 
-:	${CONSOLE:=/dev/console}
+:	${CONSOLE:=${console:-/dev/console}}
 [ -n "$(echo $CONSOLE | grep /dev)" ] || CONSOLE="/dev/$CONSOLE"
 exec 0<$CONSOLE 1>$CONSOLE 2>&1
 export CONSOLE
