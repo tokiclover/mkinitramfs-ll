@@ -1,7 +1,8 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2014/07/07 12:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2014/07/22 12:40:11 -tclover Exp $
 
 0.12.8:
 
+* added zram support, now one can get zram devices as early as possible.
 * support kernel module group loading, meaning:
 one can append a group name instead of a module name like *imod=kms*;
 * user script changed previous sufix *.$level* to prefix *$level-*!
