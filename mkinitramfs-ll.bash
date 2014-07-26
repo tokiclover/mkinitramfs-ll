@@ -1,11 +1,11 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.12.8 2014/07/15 12:33:03 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.13.0 2014/07/25 12:33:03 -tclover Exp $
 basename=${0##*/}
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
-  $basename-0.12.8
+  $basename-0.13.0
   
   usage: $basename [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
@@ -222,8 +222,14 @@ cp -a "${opts[-usrdir]}"/../init . && chmod 775 init || die
 cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
+for bin in dmraid mdadm zfs; do
+	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] && opts[-mgrp]+=:$bin
+done
+opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
+
 for mod in ${opts[-module]//:/ }; do
 	cp -a ${opts[-usrdir]}/..\/modules/*$mod* lib/mkinitramfs-ll/
+	opts[-bin]+=:${opts[-b$mod]}
 	opts[-mgrp]+=:$mod
 done
 
@@ -261,9 +267,6 @@ if [[ -n "${opts[-gpg]}" ]]; then
 	else
 		die "there's no usable gpg/gnupg-1.4.x binary"
 	fi
-	[[ -f root/.gnupg/gpg.conf ]] &&
-		ln -sf {root/,}.gnupg && chmod 700 root/.gnupg/gpg.conf ||
-		warn "no gpg.conf was found"
 fi
 if [[ -n "${opts[-lvm]}" ]]; then
 	opts[-bin]+=:lvm:lvm.static opts[-mgrp]+=:device-mapper
@@ -291,12 +294,6 @@ domod() {
 	done
 	return ${ret}
 }
-
-for bin in dmraid mdadm zfs; do
-	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] && opts[-mgrp]+=:$bin
-done
-
-opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for keymap in ${opts[-keymap]//:/ }; do
 	if [[ -f usr/share/keymaps/"${keymap}" ]]; then :;

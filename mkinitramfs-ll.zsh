@@ -1,12 +1,12 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.12.8 2014/07/15 11:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.13.0 2014/07/25 11:40:11 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
-  $basename-0.12.8
+  $basename-0.13.0
   
   usage: $basename [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
 
@@ -199,8 +199,14 @@ if [[ ${${(pws:.:)opts[-kv]}[1]} -eq 3 ]] &&
 cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 [[ -d root ]] && chmod 0700 root || mkdir -m700 root || die
 
+for bin (dmraid mdadm zfs)
+	if [[ -n $(echo ${opts[-b]} | grep $bin) ]] ||
+	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-mgrp]+=:$bin }
+opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
+
 for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]}) {
 	cp -a ${opts[-usrdir]:h}/modules/*$mod* lib/mkinitramfs-ll/
+	opts[-bin]+=:${opts[-b$mod]}
 	opts[-mgrp]+=:$mod
 }
 cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||
@@ -234,9 +240,6 @@ if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
 	} elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
 		opts[-bin]+=:$(which gpg)
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
-	if [[ -f root/.gnupg/gpg.conf ]] {
-		ln -sf {root/,}.gnupg && chmod 700 root/.gnupg/gpg.conf
-	} else { warn "no gpg.conf was found" }
 }
 
 if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
@@ -267,10 +270,6 @@ domod() {
 	}
 	return ${ret}
 }
-
-for bin (dmraid mdadm zfs) if [[ -n $(echo ${opts[-b]} | grep $bin) ]] ||
-	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-mgrp]+=:$bin }
-opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] { :;
