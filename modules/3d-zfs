@@ -1,0 +1,16 @@
+# $Id: modules/3d-zfs,v 0.13.0 2014/07/25 14:48:07 -tclover Exp $
+
+set -e +x
+source $LIBDIR/zfs || return $?
+
+[ -n "$izfs" ] || _getopt izfs
+[ -n "$izfs" ] && arg "VDEV" "$izfs" "," "1"
+[ -n "$FS" ] || arg "FS" "$iroot" ":" "3" "-s"
+
+if [ -n "$VDEV" ] || [ "$FS" == "zfs" ]; then
+	arg "ROOT" "$iroot" ":" "1"
+	debug -d dozfs "$ROOT" "$VDEV" &&
+	echo "ROOT=$ROOT" >>/run/env
+fi
+
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
