@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.12.8 2014/07/20 23:42:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.13.0 2014/07/25 23:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -114,12 +114,13 @@ bck() {
 # @USAGE: [<applets>]
 # @DESCRIPTION: busybox Applets ChecK
 ack() {
-	if [ -z "$@" ] && [ -f $CONFDIR/busybox.app ]; then
-		while read line; do
-			[ -h /$line ] && [ "$(readlink $line)" == "/bin/busybox" ] ||
-			debug -d busybox --install -s
-			break
-		done <$CONFDIR/busybox.app
+	local _app _line
+	if [ -n "$@" ] && [ -f $CONFDIR/busybox.app ]; then
+		for _app in $@; do
+			_line="$(grep $_app $CONFDIR/busybox.app)"
+			[ -h /$_line ] && [ "$(readlink $line)" == "/bin/busybox" ] ||
+			debug -d busybox --install -s && break
+		done
 	else
 		debug -d busybox --install -s
 	fi
