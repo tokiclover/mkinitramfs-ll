@@ -1,16 +1,11 @@
-# $Id: modules/zfs,v 0.12.8 2014/07/02 14:48:07 -tclover Exp $
+# $Id: modules/zfs,v 0.13.0 2014/07/25 14:48:07 -tclover Exp $
 
-# @ARG: 1
-# @DESCRIPTION: pool/volume
-#
-# @ARG: 2
-# @DESCRIPTION: if present, : colon separated list, dm-crypt LUKS crypted vdevs
-#
-# @ARG: 3
-# @DESCRIPTION: zpool extra positional arguments
-
+set -e +x
 source $LIBDIR/functions
 
+# @FUNCTION: dozfs
+# @DESCRIPTION: import a zfs pool
+# @USAGE: pool/volume [zpv1-map1:zpv2-map2] [extra zpool options]
 dozfs() {
 	echo $$ >/run/${0##*/}.pid
 	$ECK && for bin in zfs zpool; do 
@@ -32,5 +27,15 @@ dozfs() {
 	
 	zfs list 2>/dev/null | grep "$1" && rm /run/${0##*/}.pid
 }
+
+[ -z "$izfs" ] && _getopt "izfs"
+[ -n "$izfs" ] && arg "VDEV" "$izfs" "," "1" && stk "$ikroot"
+[ -z "$FS" ]   && arg "FS" "$iroot" ":" "3" "-s"
+
+if [ -n "$VDEV" ] || [ "$FS" = "zfs" ]; then
+	arg "ROOT" "$iroot" ":" "1"
+	debug -d dozfs "$ROOT" "$VDEV" &&
+	echo "ROOT=$ROOT" >>/run/env
+fi
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
