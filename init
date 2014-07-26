@@ -199,6 +199,8 @@ for arg in $(cat /proc/cmdline); do
 			;;
 		splash*|console*|CONSOLE*) export "$arg"
 			;;
+		izram*|imodule*) export "$arg" MODULE=$MODULE:$arg
+			;;
    		i[dklmnrs]*) export "$arg"
 			;;
 	 esac
@@ -285,11 +287,8 @@ done </etc/msg
 
 # -*- Module -*-
 
-for arg in $(cat /proc/cmdline); do
-	case $arg in
-		izfs=*)  $arg domod zfs ;;
-		izram=*) $arg domod zram;;
-	esac
+for arg in $MODULE; do
+	debug domod $arg
 done
 
 # -*- Swap -*-
@@ -312,7 +311,7 @@ if [ -n "$iresume" ]; then
 		debug -d bkd "$iresume" "RESU" "3" "$ikresume"
 	fi
 	lvl 2r
-	[ -z "$RESU" ] && debug resume "${RESU:-$SWAP}"
+	debug resume "${RESU:-$SWAP}"
 fi
 
 # -*- Root -*-
@@ -322,11 +321,9 @@ lvl 3d
 # @VARIABLE: ROOT
 # @DESCRIPTION: if rootfs is mounted, this variable should be set
 
-arg "CK" "$iroot" ":" "2" "-s"
-arg "FS" "$iroot" ":" "3" "-s"
-[ "$FS" == "zfs" ] && FS="$FS" domod zfs
-
 if [ -z "$ROOT" ]; then
+	arg "CK" "$iroot" ":" "2" "-s"
+	arg "FS" "$iroot" ":" "3" "-s"
 	debug -d bkd "$iroot" "ROOT" "1" "$ikroot"
 
 	lvl 3f
