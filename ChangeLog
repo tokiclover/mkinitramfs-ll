@@ -1,5 +1,17 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/07/22 12:40:11 -tclover Exp $
 
+0.13.0
+
+* added *imdodule* kernel cmdline argument to be able to execute scripts
+or mmodule whenever one want to do so, previous implementation ran the
+script or module on every single boot up: now append e.g *imodule=zram*
+is enough! And do not prefix scripts/module with LVL init run level which
+brings the old behavious. See zram and zfs for pratical exemples.
+Actualy nobody would want to append zram to *imodule* because zram module
+will be executed if *izram* kernel cmdline is appended.
+* added resume/swap support for zfs.
+* now append *-Mzfs* is enough to include kernel modules/module/binaries.
+
 0.12.8:
 
 * added zram support, now one can get zram devices as early as possible.
