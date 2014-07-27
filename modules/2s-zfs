@@ -1,4 +1,4 @@
-# $Id: modules/2s-zfs,v 0.13.0 2014/07/25 14:48:07 -tclover Exp $
+# $Id: modules/2s-zfs,v 0.13.0 2014/07/26 14:48:07 -tclover Exp $
 
 set -e +x
 source $LIBDIR/zfs || return $?
@@ -12,7 +12,7 @@ if [ -n "$VDEV" ] || [ "$FS" == "zfs" ]; then
 	arg "type" "$iswap" ":" "1"
 	arg "sign" "$iswap" ":" "3" "-s"
 	debug -d dozfs "$SWAP" "$VDEV" "-N" &&
-	echo "SWAP=$type:$SWAP:sign" >>/run/env
+	echo "SWAP=$type:$SWAP${sign:+$sign}" >>/run/env
 	unset FS sign type
 fi
 
