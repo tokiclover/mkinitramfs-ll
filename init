@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.13.0 2014/07/25 11:51:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.13.0 2014/07/26 11:51:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYRIGHT FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -187,22 +187,14 @@ debug -d mount -t proc proc /proc
 
 for arg in $(cat /proc/cmdline); do
    	case $arg in
-		rescue*|RSH*) export RSH=1
-			;;
-		ro|rw) [ -n "$imtop" ] && imtopt="$arg,$imtopt" || imtopt="$arg"
-			export imtopt="$imtopt"
-			;;
-		single) export RIL=2
-			;;
+		rescue*|RSH*) export RSH=1;;
+		ro|rw) export imtopt="${imtopt:+$imtopt,}$arg";;
+		single) export RIL=2;;
 		irsh=*) arg "RSH" "${arg#*=}" ":" "1"
-			arg "RIL" "${arg#*=}" ":" "2" "-s"
-			;;
-		splash*|console*|CONSOLE*) export "$arg"
-			;;
-		izram*|imodule*) export "$arg" MODULE=$MODULE:$arg
-			;;
-   		i[dklmnrs]*) export "$arg"
-			;;
+			arg "RIL" "${arg#*=}" ":" "2" "-s";;
+		splash*|console*|CONSOLE*) export "$arg";;
+		imodule=*) MODULES+=:${arg#*=};;
+		i[dklmnrsz]*) export "$arg";;
 	 esac
 done
 
@@ -287,7 +279,8 @@ done </etc/msg
 
 # -*- Module -*-
 
-for arg in $MODULE; do
+[ -n "$izram" ] && MODULES+=:zram
+for arg in $MODULES; do
 	debug domod $arg
 done
 
