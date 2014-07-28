@@ -1,19 +1,25 @@
-@$Id: mkinitramfs-ll/svc/README.textile,v 0.12.8 2014/07/07 10:21:37 -tclover Exp $@
+@$Id: mkinitramfs-ll/svc/README.textile,v 0.13.0 2014/07/26 10:21:37 -tclover Exp $@
+
+* sqfsdmount.initd:
 
 Actually, without an initramfs one can get AUFS+squashfs working without an
-issue if you make sure @/usr@ and @/lib${arch}@ get mounted as earlier as
+issue if you make sure @/usr@ and @/$libdir@ get mounted as earlier as
 possible with or without localmount help.
 
-This init service will do the trick putting @/usr@ and @/lib${arch}@ first
+This init service will do the trick putting @/usr@ and @/$libdir@ first
 in the config file because a few (boot) services are rushing
 (especially with rc_parallel) to get userspace ready. 
 
-*Note*: Remain a singe consideration >=sys-apps/openrc-0.10 which moved
-@/lib/rc/init.d@ to @/run/openrc@.
-
-*Note*: Read the configuration file for the differents config variables.
+* sdr.$shell: a script to use in conjonction with sqfsdmount to *squash* dirs
 
 *Warn*: sdr.$shell now should works when updating system dirs, it needs
-to copy @$(which bb)@  or a static busybox to @/tmp/busybox@ to work properly.
+to copy @$(which bb)@ or a static busybox to @/tmp/busybox@ to function properly.
+
+* zram.init.d:
+
+zram init service can initialize, if not done with the included initramfs, and
+set up a few zram devices to use (for swap {/var,}/tmp).
+
+*Note*: Read the configuration file for the differents config variables.
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
