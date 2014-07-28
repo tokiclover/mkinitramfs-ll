@@ -1,0 +1,14 @@
+# $Header: /etc/conf.d/zram, 2014/07/26 13:05:19 -tclover Exp $
+
+# number of zram devices (standard name passed to modprobe)
+num_devices=4
+
+# whether to initialize zram devices if not previously initialized
+zram_init=yes
+
+# zram device definition which is defined by <size>:<file-system>:<mount-point
+zram_device=512M:swap
+zram_device=4G:ext4:/var/tmp
+zram_device=512M:ext4:/tmp
+
+# vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:
