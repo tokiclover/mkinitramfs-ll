@@ -16,7 +16,7 @@ SCRIPTS     = xcpio
 
 all:
 
-instal_all: install install_svc install_bash install_zsh
+instal_all: install install_aufs_squashfs install_bash install_zsh install_zram
 
 install:
 	$(shell) install -pd $(datadir)/usr/lib/{mdev,$(PACKAGE)}
@@ -60,15 +60,21 @@ install_zsh:
 	$(shell) install -pm 755 $(PACKAGE).zsh    $(bindir)
 	$(shell) install -pm 755 svc/sdr.zsh       $(bindir)
 
-install_svc:
+install_aufs_squashfs:
 	$(shell) install -pd $(svc_confdir)
 	$(shell) install -pd $(svc_initdir)
 	$(shell) install -pm 755 svc/sqfsdmount.initd $(svc_initdir)/sqfsdmount
 	$(shell) install -pm 644 svc/sqfsdmount.confd $(svc_confdir)/sqfsdmount
 
+install_aufs_squashfs:
+	$(shell) install -pd $(svc_confdir)
+	$(shell) install -pd $(svc_initdir)
+	$(shell) install -pm 755 svc/zram.initd $(svc_initdir)/zram
+	$(shell) install -pm 644 svc/zram.confd $(svc_confdir)/zram
+
 postinstall:
 
-uninstall_all: unintsall uninstall_bash uninstall_zsh uninstall_svc
+uninstall_all: unintsall uninstall_bash uninstall_zsh uninstall_aufs_squashfs uninstall_zram
 
 uninstall:
 	$(shell) rm -f $(datadir)/{init,usr/etc/mdev.conf,scripts/{busybox.cfg,xcpio}}
@@ -92,8 +98,12 @@ uninstall_zsh:
 	$(shell) rm -f $(datadir)/scripts/{busybox,gnupg}.zsh
 	$(shell) rm -f $(sys_confdir)/$(PACKAGE).conf
 
-uninstall_svc:
+uninstall_aufs_squashfs:
 	$(shell) rm -f $(svc_confdir)/sqfsdmount
 	$(shell) rm -f $(svc_initdir)/sqfsdmount
+
+uninstall_zram:
+	$(shell) rm -f $(svc_confdir)/zram
+	$(shell) rm -f $(svc_initdir)/zram
 
 clean:
