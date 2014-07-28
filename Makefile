@@ -66,7 +66,7 @@ install_aufs_squashfs:
 	$(shell) install -pm 755 svc/sqfsdmount.initd $(svc_initdir)/sqfsdmount
 	$(shell) install -pm 644 svc/sqfsdmount.confd $(svc_confdir)/sqfsdmount
 
-install_aufs_squashfs:
+install_zram:
 	$(shell) install -pd $(svc_confdir)
 	$(shell) install -pd $(svc_initdir)
 	$(shell) install -pm 755 svc/zram.initd $(svc_initdir)/zram
