@@ -1,4 +1,4 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.13.0 2014/07/25 23:42:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.13.0 2014/07/26 23:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
@@ -159,8 +159,11 @@ _modprobe() {
 # @USAGE: <kernel cmdline>
 # @DESCRIPTION: get kernel command line argument
 _getopt() {
-	for _arg in $@; do
-		export $(grep -m1 -oF "$_arg" /proc/cmdline)
+	local _arg _cmd
+	for _arg in $*; do
+		for _cmd in $(cat /proc/cmdline); do
+			[ "${_cmd%%=*}" == "$_arg" ] && export $_cmd && break
+		done
 	done
 }
 
