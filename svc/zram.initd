@@ -1,7 +1,7 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the 2-clause BSD or GPL-2 license
-# $Header: /etc/init.d/zram,v 1.0 2014/07/26 13:05:23 -tclover Exp $
+# $Header: /etc/init.d/zram,v 1.1 2014/07/31 13:05:23 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="set up zram devices and initialize zram if necessary"
@@ -15,9 +15,8 @@ start() {
 	[ "x$zram_init" == "xyes" ] && zram_init
 	
 	local dev fsys mtpt num=0 opt ret
-	for dev in $(grep -E '^zram_device=' $conf_file); do
+	for dev in $(sed -nre 's/^zram_device=(.*$)/\1/p' $conf_file); do
 		[ -b /dev/zram$num ] || break
-		dev=${dev##*=}
 		fsys=$(echo "$dev" | cut -d: -f2 -s)
 		mtpt=$(echo "$dev" | cut -d: -f3 -s)
 		[ -n" $fsys" ] || continue
@@ -51,8 +50,7 @@ zram_init() {
 
 	modprobe zram num_devices=${num_devices:-4}
 	eend "$?" "failed to initialize zram"
-	for dev in $(grep -E '^zram_device=' $conf_file); do
-		dev=${dev##*=}
+	for dev in $(sed -nre 's/^zram_device=(.*$)/\1/p' $conf_file); do
 		[ -b /dev/zram$num ] || break
 		size=${dev%%:*}
 		echo $size > /sys/block/zram$num/disksize
@@ -60,4 +58,4 @@ zram_init() {
 	done
 }
 
-# vim:fenc=utf-8:ft=gentoo-init-d:ci:pi:sts=0:sw=4:ts=4:"
+# vim:fenc=utf-8:ft=gentoo-init-d:ci:pi:sts=0:sw=4:ts=4:
