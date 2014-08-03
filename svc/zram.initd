@@ -1,7 +1,7 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the 2-clause BSD or GPL-2 license
-# $Header: /etc/init.d/zram,v 1.1 2014/07/31 13:05:23 -tclover Exp $
+# $Header: ~/scr/zram.initd,v 1.1 2014/08/01 13:05:23 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="set up zram devices and initialize zram if necessary"
@@ -19,19 +19,19 @@ start() {
 		[ -b /dev/zram$num ] || break
 		fsys=$(echo "$dev" | cut -d: -f2 -s)
 		mtpt=$(echo "$dev" | cut -d: -f3 -s)
+		mopt=$(echo "$dev" | cut -d: -f4 -s)
 		[ -n" $fsys" ] || continue
 		
 		if [ "x$fsys" == "xswap" ]; then
 			mkswap /dev/zram$num && swapon
 		else
-			mkfs -t $fsys /dev/zram$num #2>/dev/null
+			mkfs -t $fsys /dev/zram$num 2>/dev/null
 			ret=$?
 			eend "$ret" "failed to formate zram$num to $fsys"
 			[ "x$ret" == "x0" ] || continue
 			if [ -n "$mtpt" ]; then
-				[ "x$mtpt" == "x/tmp" ] && opt="-m1777" || opt=
-				[ -d "$mtpt" ] || mkdir -p $opt $mtpt
-				mount -t $fsys /dev/zram$num $mtpt
+				[ -d "$mtpt" ] || mkdir -p $mtpt
+				mount -t $fsys ${mopt:+-o $mopt} /dev/zram$num $mtpt
 				eend "$?" "failed to mount /dev/zram$num to $mtpt"
 			fi
 		fi
