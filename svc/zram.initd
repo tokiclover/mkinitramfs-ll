@@ -20,6 +20,7 @@ start() {
 		fsys=$(echo "$dev" | cut -d: -f2 -s)
 		mtpt=$(echo "$dev" | cut -d: -f3 -s)
 		mopt=$(echo "$dev" | cut -d: -f4 -s)
+		mode=$(echo "$dev" | cut -d: -f5 -s)
 		[ -n" $fsys" ] || continue
 		
 		if [ "x$fsys" == "xswap" ]; then
@@ -33,6 +34,7 @@ start() {
 				[ -d "$mtpt" ] || mkdir -p $mtpt
 				mount -t $fsys ${mopt:+-o $mopt} /dev/zram$num $mtpt
 				eend "$?" "failed to mount /dev/zram$num to $mtpt"
+				[ -d "$mode" ] || chmod $mode $mtpt
 			fi
 		fi
 		num=$(expr $num + 1)
