@@ -8,7 +8,7 @@ zram_init=yes
 
 # zram device definition which is defined by <size>:<file-system>:<mount-point>:<mount-options>
 zram_device=512M:swap
-zram_device=4G:ext4:/var/tmp:mode=1777
-zram_device=512M:ext4:/tmp:mode=1777
+zram_device=4G:ext4:/var/tmp
+zram_device=512M:ext4:/tmp
 
 # vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:
