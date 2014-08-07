@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.13.0 2014/07/25 11:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.13.0 2014/08/06 11:40:11 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
@@ -11,27 +11,27 @@ usage() {
   usage: $basename [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
 
   -a, -all                 short hand or forme of '-q -l -luks -ggp -font -keymap'
-  -f, -font [:ter-v14n]    include a colon separated list of fonts to the initramfs
-  -k, -kv 3.4.4-git        build an initramfs for kernel 3.4.4-git, or else \$(uname -r)
-  -c, -comp ['gzip -9']    use 'gzip -9' command instead default compression command
+  -f, -font[:ter-v14n]     include a colon separated list of fonts to the initramfs
+  -k, -kv3.4.4-git         build an initramfs for kernel 3.4.4-git, or else \$(uname -r)
+  -c, -comp['gzip -9']     use 'gzip -9' command instead default compression command
   -L, -luks                add LUKS support, require a sys-fs/cryptsetup[static] binary
   -l, -lvm                 add LVM support, require a static sys-fs/lvm2[static] binary
-  -b, -bin :<bin>          include a colon separated list of binar-y-ies to the initramfs
-  -d, -usrdir [usr]        use usr dir for user extra files, binaries, scripts, fonts...
+  -b, -bin:<bin>           include a colon separated list of binar-y-ies to the initramfs
+  -d, -usrdir[usr]         use usr dir for user extra files, binaries, scripts, fonts...
   -g, -gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
-  -p, -prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
-  -M, -module :<name>      include <name> module or script from modules directory
-  -m, -kmod [:<mod>]       include a colon separated list of kernel modules to the initramfs
-      -mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
-      -mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
-      -msqfsd [:<mod>]     include a colon separated list of kernel modules to sqfsd   group
-      -mgpg [:<mod>]       include a colon separated list of kernel modules to gpg     group
-      -mboot [:<mod>]      include a colon separated list of kernel modules to boot   group
-  -s, -splash [:<theme>]   include a colon separated list of splash themes to the initramfs
+  -p, -prefix[initrd-]     use 'initrd-' initramfs prefix instead of default ['initramfs-']
+  -M, -module:<name>       include <name> module or script from modules directory
+  -m, -kmod[:<mod>]        include a colon separated list of kernel modules to the initramfs
+      -mtuxonice[:<mod>]   include a colon separated list of kernel modules to tuxonice group
+      -mremdev[:<mod>]     include a colon separated list of kernel modules to remdev  group
+      -msqfsd[:<mod>]      include a colon separated list of kernel modules to sqfsd   group
+      -mgpg[:<mod>]        include a colon separated list of kernel modules to gpg     group
+      -mboot[:<mod>]       include a colon separated list of kernel modules to boot   group
+  -s, -splash[:<theme>]    include a colon separated list of splash themes to the initramfs
   -t, -toi                 add tuxonice support for splash, require tuxoniceui_text binary
   -q, -sqfsd               add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
   -r, -regen               regenerate a new initramfs from an old dir with newer init
-  -y, -keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
+  -y, -keymap:fr-latin1    include a colon separated list of keymaps to the initramfs
   -K, -keeptmp             keep temporary files instead of removing the tmpdir
   -h, -help                print this help or usage message and exit
 

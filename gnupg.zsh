@@ -1,19 +1,19 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/gnupg.zsh,v 0.12.8 2014/07/15 12:00:35 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.zsh,v 0.13.0 2014/08/06 12:00:35 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
-  $basename-0.12.8
+  $basename-0.13.0
   
   usage: $basename [-d|--usrdir=usr] [options]
 
-  -d, -usrdir [usr]       copy binary and options.skel files to usr/
-  -u, -useflag <flags>    extra USE flags to append to USE="nls static"
-  -v, -version <str>      build gpg-<str> version instead of gpg-1.4.x
-  -h, -help               print this help/uage and exit
+  -d, -usrdir[usr]       copy binary and options.skel files to usr/
+  -u, -useflag<flags>    extra USE flags to append to USE="nls static"
+  -v, -version<str>      build gpg-<str> version instead of gpg-1.4.x
+  -h, -help              print this help/uage and exit
 EOF
 exit $?
 }

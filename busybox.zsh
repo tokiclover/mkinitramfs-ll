@@ -1,20 +1,20 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.12.8 2014/07/07 11:40:15 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.13.0 2014/08/06 11:40:15 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
-  $basename-0.12.8
+  $basename-0.13.0
   
   usage: $basename [-m|-minimal] [-ucl i386]
 
-  -d, -usrdir [usr]        copy busybox binary file to usr/bin
-  -n, -minimal             build busybox with minimal applets, default is full applets
-      -ucl i386            arch string needed to build busybox against uClibc	
-  -v, -version 1.20.0      use 1.20.0 instead of latest version of busybox
-  -h, -help                print the usage/help and exit
+  -d, -usrdir[usr]        copy busybox binary file to usr/bin
+  -n, -minimal            build busybox with minimal applets, default is full applets
+      -ucli386            arch string needed to build busybox against uClibc	
+  -v, -version1.20.0      use 1.20.0 instead of latest version of busybox
+  -h, -help               print the usage/help and exit
 EOF
 exit $?
 }
