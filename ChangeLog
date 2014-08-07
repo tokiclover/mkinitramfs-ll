@@ -1,5 +1,10 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/07/22 12:40:11 -tclover Exp $
 
+0.13.1
+
+* update help message because option should append just after option string
+* added -F|[-]-firmware switch to mikinitramfs-ll
+
 0.13.0
 
 * added *imdodule* kernel cmdline argument to be able to execute scripts
