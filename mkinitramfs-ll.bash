@@ -1,16 +1,18 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.13.0 2014/07/25 12:33:03 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.13.1 2014/07/25 12:33:03 -tclover Exp $
 basename=${0##*/}
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
-  $basename-0.13.0
+  $basename-0.13.1
   
   usage: $basename [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
   -a, --all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
   -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
+  -F, --firmware [:file]    append firmware file or directory (relative to /lib/firmware),
+                            or else full path, or the whole /lib/firmware dir if empty
   -k, --kv 3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
   -c, --comp ['gzip -9']    use 'gzip -9' command instead default compression command
   -L, --luks                add LUKS support, require a sys-fs/cryptsetup[static] binary
@@ -92,8 +94,8 @@ function adn() {
 
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msqfsd::,mremdev:: \
 	  -l keeptmp,module:,mtuxonice::,sqfsd,toi,usage,usrdir:: \
-	  -l keymap::,luks,lvm,kv::,prefix::,splash::,regen \
-	  -o ?ab:c::d::f::gk::lKLM:m::np::rs::tuy:: -n ${0##*/} -- "$@" || usage)
+	  -l firmware::,keymap::,luks,lvm,kv::,prefix::,splash::,regen \
+	  -o ?ab:c::d::f::F::gk::lKLM:m::np::rs::tuy:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 
 # @VARIABLE: opts [associative array]
@@ -131,6 +133,7 @@ while [[ $# > 0 ]]; do
 		-f|--font) opts[-font]+=":${2:-$(grep -E '^consolefont' \
 			/etc/conf.d/consolefont|cut -d'"' -f2)}"
 			shift 2;;
+		-F|--firmware) opts[-firmware]+=:"${2:-/lib/firmware}"; shift 2;;
 		--) shift; break;;
 		-?|-h|--help|*) usage;;
 	esac
@@ -221,6 +224,13 @@ cp -a "${opts[-usrdir]}"/../init . && chmod 775 init || die
 [[ -d root ]] && chmod 0700 root || mkdir -m700 root || die
 cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
+
+if [[ -n "${opts[-firmware]}" ]]; then
+	mkdir -p lib/firmware
+	for f in ${opts[-firmware]//:/ }; do
+		cp -a $f lib/firmware/ || die "failed to copy $f firmware"
+	done
+fi
 
 for bin in dmraid mdadm zfs; do
 	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] && opts[-mgrp]+=:$bin

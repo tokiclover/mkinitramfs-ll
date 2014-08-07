@@ -1,18 +1,20 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.13.0 2014/08/06 11:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.13.1 2014/08/06 11:40:11 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
-  $basename-0.13.0
+  $basename-0.13.1
   
   usage: $basename [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
 
   -a, -all                 short hand or forme of '-q -l -luks -ggp -font -keymap'
   -f, -font[:ter-v14n]     include a colon separated list of fonts to the initramfs
   -k, -kv3.4.4-git         build an initramfs for kernel 3.4.4-git, or else \$(uname -r)
+  -F, -firmware[:file]     append firmware file or directory (relative to /lib/firmware),
+                           or else full path, or the whole /lib/firmware dir if empty
   -c, -comp['gzip -9']     use 'gzip -9' command instead default compression command
   -L, -luks                add LUKS support, require a sys-fs/cryptsetup[static] binary
   -l, -lvm                 add LVM support, require a static sys-fs/lvm2[static] binary
@@ -89,7 +91,7 @@ setopt EXTENDED_GLOB NULL_GLOB
 zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
 	k: kv: m+:: kmod+:: f+:: font+:: s:: splash:: h help M: module: \
-	b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: mboot+:: \
+	b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: mboot+:: f:: firmware:: \
 	mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen K keetmp ||
 	usage
 if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
@@ -213,6 +215,14 @@ cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
 [ -f /etc/issue.logo ] && cp {/,}etc/issue.logo
+
+if [[ -n ${(k)opts[-F]} ]] || [[ -n ${(k)opts[-firmware]} ]] { 
+:   ${opts[-firmware]:=${opts[-F]:-/lib/firmware}}
+	mkdir -p lib/firmware
+	for f (${(pws,:,)opts[-firmware]}) {
+		cp -a $f lib/firmware/ || die "failed to copy $f firmware"
+	}
+}
 
 if [[ -x usr/bin/busybox ]] {
 	mv -f {usr/,}bin/busybox
@@ -351,4 +361,4 @@ if [[ -n ${(k)opts[-K]} ]] || [[ -n ${(k)opts[-keeptmp]} ]] { :;
 
 unset opts
 
-# vim:fenc=utf-8ft=zsh:ci:pi:sts=0:sw=4:ts=4:
+# vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:
