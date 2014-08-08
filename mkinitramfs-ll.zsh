@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.13.1 2014/08/06 11:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.13.1 2014/08/08 11:40:11 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
@@ -220,7 +220,11 @@ if [[ -n ${(k)opts[-F]} ]] || [[ -n ${(k)opts[-firmware]} ]] {
 :   ${opts[-firmware]:=${opts[-F]:-/lib/firmware}}
 	mkdir -p lib/firmware
 	for f (${(pws,:,)opts[-firmware]}) {
-		cp -a $f lib/firmware/ || die "failed to copy $f firmware"
+		if [[ -e $f ]] || [[ -d $f ]] {
+			cp -a $f lib/firmware/ || warn "failed to copy $f firmware"
+		} elif [[ -e /lib/firmware/$f ]] || [[ -d /lib/firmware/$f ]] {
+			cp -a {/,}lib/firmware/$f || warn "failed to copy $f firmware"
+		} else { warn "failed to copy $f firmware" }
 	}
 }
 

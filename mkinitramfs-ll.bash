@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.13.1 2014/07/25 12:33:03 -tclover Exp $
+# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.13.1 2014/08/08 12:33:03 -tclover Exp $
 basename=${0##*/}
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
@@ -228,7 +228,13 @@ cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 if [[ -n "${opts[-firmware]}" ]]; then
 	mkdir -p lib/firmware
 	for f in ${opts[-firmware]//:/ }; do
-		cp -a $f lib/firmware/ || die "failed to copy $f firmware"
+		if [[ -e $f ]] || [[ -d $f ]]; then
+			cp -a $f lib/firmware/ || warn "failed to copy $f firmware"
+		elif [[ -e /lib/firmware/$f ]] || [[ -d /lib/firmware/$f ]]; then
+			cp -a {/,}lib/firmware/$f || warn "failed to copy $f firmware"
+		else 
+			warn "failed to copy $f firmware"
+		fi
 	done
 fi
 
