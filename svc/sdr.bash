@@ -7,7 +7,6 @@ basename=${0##*/}
 usage() {
   cat <<-EOF
   $basename-0.13.0
-  
   usage: $basename [{-u|--update}|{-r|--remove}] [-q|--squashroot=<dir>] -d|--squashdir=<dir>:<dir>
 
   -q, --squashroot <dir>    overide default value of squashed rootdir 'squashroot=/var/aufs'
@@ -32,7 +31,7 @@ exit $?
 }
 
 [[ $# = 0 ]] && usage
-opt=$(getopt -o x::b:c:d:e:fo:r:nhvuq -l bsize:,comp:,exclude:,fstab,offset \
+opt=$(getopt -o x::b:c:d:e:fo:r:nhruq: -l bsize:,comp:,exclude:,fstab,offset \
 	  -l noremount,busybox::,squashroot:,squashdir:,remove,update,help,version \
 	  -n $basename -- "$@" || usage)
 eval set -- "$opt"
@@ -53,7 +52,7 @@ while [[ $# > 0 ]]; do
 		-a|--arch) opts[-arc]="${2}"; shift 2;;
 		-c|--comp) opts[-comp]="${2}"; shift 2;;
 		-u|--update) opts[-update]=y; shift;;
-		-R|--remove) opts[-remove]=y; shift;;
+		-r|--remove) opts[-remove]=y; shift;;
 		-n|--nomount) opts[-nomount]=y; shift;;
 		--) shift; break;;
 		-h|--help|-?|*) usage;;
@@ -81,7 +80,7 @@ die() {
 # @VARIABLE: opts[-arc]
 # @DESCRIPTION: LONG_BIT, word length, supported
 opts[-arc]=$(getconf LONG_BIT)
-# @VARIABLE: opts[-squashroot] | opts[-r]
+# @VARIABLE: opts[-squashroot] | opts[-q]
 # @DESCRIPTION: root of squashed dir
 [[ "${opts[-squashroot]}" ]] || opts[-squashroot]=/var/aufs
 # @VARIABLE: opts[-bsize]

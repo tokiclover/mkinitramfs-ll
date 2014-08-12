@@ -7,7 +7,6 @@ basename=${(%):-%1x}
 usage() {
   cat <<-EOF
   $basename-0.13.0
-  
   usage: $basename [-update|-remove] [-r|-squashroot<dir>] -d|-squashdir:<dir>:<dir>
 
   -q, -squashroot<dir>    overide default value of squashed rootdir 'squashdirir=/var/aufs'
@@ -39,12 +38,12 @@ if [[ $# == 0 ]] || [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usag
 zmodload zsh/zutil
 zparseopts -E -D -K -A opts q: squashroot: d: squashdir: f fstab b: bsize: \
 	n nomount x:: busybox:: c: comp: e: excl: o: offset: u update r remove \
-	h help v version || usage
+	h help || usage
 
 # @VARIABLE: opts[-arc]
 # @DESCRIPTION: LONG_BIT, word length, supported
 opts[-arc]=$(getconf LONG_BIT)
-# @VARIABLE: opts[-squashroot] | opts[-r]
+# @VARIABLE: opts[-squashroot] | opts[-q]
 # @DESCRIPTION: root of squashed dir
 :	${opts[-squashroot]:=${opts[-r]:-/var/aufs}}
 # @VARIABLE: opts[-offset] | opts[-o]
