@@ -31,7 +31,7 @@ exit $?
 }
 
 [[ $# = 0 ]] && usage
-opt=$(getopt -o x::b:c:d:e:fo:r:nhruq: -l bsize:,comp:,exclude:,fstab,offset \
+opt=$(getopt -o x::b:c:d:e:fo:nhruq: -l bsize:,comp:,exclude:,fstab,offset \
 	  -l noremount,busybox::,squashroot:,squashdir:,remove,update,help,version \
 	  -n $basename -- "$@" || usage)
 eval set -- "$opt"
