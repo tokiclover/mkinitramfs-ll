@@ -16,18 +16,18 @@ start() {
 
 	grep -q aufs /proc/filesystems ||
 	if ! grep -q aufs /proc/modules; then
-	    if ! modprobe aufs >${n} 2>&1; then
-	        eend "${?}" "failed to initialize aufs kernel module, exiting"
-	        return 0
-	    fi
+		if ! modprobe aufs >${n} 2>&1; then
+			eend "${?}" "failed to initialize aufs kernel module, exiting"
+			return 0
+		fi
 	fi
 
-    grep -q squashfs /proc/filesystems ||
+	grep -q squashfs /proc/filesystems ||
 	if ! grep -q squashfs /proc/modules; then
-	    if ! modprobe squashfs >${n} 2>&1; then
-	        eend "${?}" "failed to initialize squashfs kernel module, exiting"
-	        return 0
-	    fi
+		if ! modprobe squashfs >${n} 2>&1; then
+			eend "${?}" "failed to initialize squashfs kernel module, exiting"
+			return 0
+		fi
 	fi
 
 	local IFS="${IFS}:"
@@ -93,8 +93,8 @@ squash_mount() {
 			mount -t squashfs ${base}.squashfs ${base}/rr -o loop,ro
 			ret=${?}
 			eend "${ret}" "failed to mount ${base}.squashfs image"
-            [[ ${ret} != 0 ]] && return
-       	fi
+			[[ ${ret} != 0 ]] && return
+		fi
 		mount -t aufs aufs:${dir} ${dir} -o nodev,udba=reval,br:${base}/rw:${base}/rr
 		eend "${?}" "failed to mount aufs:${dir}"
 	fi
