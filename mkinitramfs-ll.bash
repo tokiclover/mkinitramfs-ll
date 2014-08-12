@@ -8,7 +8,7 @@ usage() {
   $basename-0.13.1
   usage: $basename [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
-  -a, --all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
+  -a, --all                 short hand or forme of '-squashd -luks -lvm -gpg -toi'
   -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
   -F, --firmware [:file]    append firmware file or directory (relative to /lib/firmware),
                             or else full path, or the whole /lib/firmware dir if empty
@@ -24,12 +24,12 @@ usage() {
   -m, --kmod [:<mod>]       include a colon separated list of kernel modules to the initramfs
       --mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
       --mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
-      --msqfsd [:<mod>]     include a colon separated list of kernel modules to sqfsd   group
+      --msquashd [:<mod>]   include a colon separated list of kernel modules to squashd group
       --mgpg [:<mod>]       include a colon separated list of kernel modules to gpg     group
       --mboot [:<mod>]      include a colon separated list of kernel modules to boot   group
   -s, --splash [:<theme>]   include a colon separated list of splash themes to the initramfs
   -t, --toi                 add tuxonice support for splash, require tuxoniceui_text binary
-  -q, --sqfsd               add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
+  -q, --squashd             add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
   -r, --regen               regenerate a new initramfs from an old dir with newer init
   -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
   -K, --keeptmp             keep temporary files instead of removing the tmpdir
@@ -91,8 +91,8 @@ function adn() {
 	done
 }
 
-opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msqfsd::,mremdev:: \
-	  -l keeptmp,module:,mtuxonice::,sqfsd,toi,usage,usrdir:: \
+opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msquashd::,mremdev:: \
+	  -l keeptmp,module:,mtuxonice::,squashd,toi,usage,usrdir:: \
 	  -l firmware::,keymap::,luks,lvm,kv::,prefix::,splash::,regen \
 	  -o ?ab:c::d::f::F::gk::lKLM:m::np::rs::tuy:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
@@ -104,10 +104,10 @@ declare -A opts
 
 while [[ $# > 0 ]]; do
 	case $1 in
-		-a|--all) opts[-sqfsd]=y; opts[-gpg]=y;
+		-a|--all) opts[-squashd]=y; opts[-gpg]=y;
 			opts[-lvm]=y; opts[-luks]=y; shift;;
 		-r|--regen) opts[-regen]=y; shift;;
-		-q|--sqfsd) opts[-sqfsd]=y; shift;;
+		-q|--squashd) opts[-squashd]=y; shift;;
 		-K|--keeptmp) opts[-keeptmp]=y; shift;;
 		-b|--bin) opts[-bin]+=:${2}; shift 2;;
 		-c|--comp) opts[-comp]="${2}"; shift 2;;
@@ -119,7 +119,7 @@ while [[ $# > 0 ]]; do
 		-L|--luks) opts[-luks]=y; shift;;
 		--mgpg) opts[-mgpg]+=:${2}; shift 2;;
 		--mboot) opts[-mboot]+=:${2}; shift 2;;
-		--msqfsd) opts[-msqfsd]+=:${2}; shift 2;;
+		--msquashd) opts[-msquashd]+=:${2}; shift 2;;
 		--mremdev) opts[-mremdev]+=:${2}; shift 2;;
 		--mtuxonice) opts[-tuxonice]+=:${2}; shift 2;;
 		-s|--splash) opts[-splash]+=":${2}"; shift 2;;
@@ -273,8 +273,8 @@ done <etc/mkinitramfs-ll/busybox.app
 if [[ -n "${opts[-luks]}" ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 fi
-if [[ -n "${opts[-sqfsd]}" ]]; then
-	opts[-bin]+=:umount.aufs:mount.aufs opts[-mgrp]+=:sqfsd
+if [[ -n "${opts[-squashd]}" ]]; then
+	opts[-bin]+=:umount.aufs:mount.aufs opts[-mgrp]+=:squashd
 fi
 if [[ -n "${opts[-gpg]}" ]]; then
 	opts[-mgrp]+=:gpg

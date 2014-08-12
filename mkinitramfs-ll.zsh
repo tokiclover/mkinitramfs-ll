@@ -25,12 +25,12 @@ usage() {
   -m, -kmod[:<mod>]        include a colon separated list of kernel modules to the initramfs
       -mtuxonice[:<mod>]   include a colon separated list of kernel modules to tuxonice group
       -mremdev[:<mod>]     include a colon separated list of kernel modules to remdev  group
-      -msqfsd[:<mod>]      include a colon separated list of kernel modules to sqfsd   group
+      -msquashd[:<mod>]    include a colon separated list of kernel modules to squashd group
       -mgpg[:<mod>]        include a colon separated list of kernel modules to gpg     group
       -mboot[:<mod>]       include a colon separated list of kernel modules to boot   group
   -s, -splash[:<theme>]    include a colon separated list of splash themes to the initramfs
   -t, -toi                 add tuxonice support for splash, require tuxoniceui_text binary
-  -q, -sqfsd               add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
+  -q, -squashd             add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
   -r, -regen               regenerate a new initramfs from an old dir with newer init
   -y, -keymap:fr-latin1    include a colon separated list of keymaps to the initramfs
   -K, -keeptmp             keep temporary files instead of removing the tmpdir
@@ -88,10 +88,10 @@ adn() {
 
 setopt EXTENDED_GLOB NULL_GLOB
 zmodload zsh/zutil
-zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
+zparseopts -E -D -K -A opts a all q squashd g gpg l lvm t toi c:: comp:: \
 	k: kv: m+:: kmod+:: f+:: font+:: s:: splash:: h help M: module: \
 	b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: mboot+:: F:: firmware:: \
-	mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen K keetmp ||
+	mgpg+:: mremdev+:: msquashd+:: mtuxonice+:: L luks r regen K keetmp ||
 	usage
 if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
 if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] {
@@ -264,8 +264,8 @@ if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
 	popd
 }
 
-if [[ -n ${(k)opts[-sqfsd]} ]] || [[ -n ${(k)opts[-q]} ]] { 
-	opts[-bin]+=:mount.aufs:umount.aufs opts[-mgrp]+=:sqfsd
+if [[ -n ${(k)opts[-squashd]} ]] || [[ -n ${(k)opts[-q]} ]] { 
+	opts[-bin]+=:mount.aufs:umount.aufs opts[-mgrp]+=:squashd
 }
 
 # @FUNCTION: domod
