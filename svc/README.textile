@@ -1,16 +1,20 @@
-@$Id: mkinitramfs-ll/svc/README.textile,v 0.13.0 2014/07/26 10:21:37 -tclover Exp $@
+@$Id: mkinitramfs-ll/svc/README.textile,v 0.13.0 2014/08/08 10:21:37 -tclover Exp $@
 
-* sqfsdmount.initd:
+* squashdir-mount.initd:
 
 Actually, without an initramfs one can get AUFS+squashfs working without an
-issue if you make sure @/usr@ and @/$libdir@ get mounted as earlier as
+issue if you make sure '/usr' and '/$abi_libdir' get mounted as earlier as
 possible with or without localmount help.
 
-This init service will do the trick putting @/usr@ and @/$libdir@ first
+This init service will do the trick putting '/usr' and @/$abi_libdir@ first
 in the config file because a few (boot) services are rushing
 (especially with rc_parallel) to get userspace ready. 
 
 * sdr.$shell: a script to use in conjonction with sqfsdmount to *squash* dirs
+* and it now uses lz4 as default compressor for efficiency/speed, one can use
+'lzo -Xcompression-level 1' for similar performance if you don't have lz4
+(you should have it already as system dependency).
+* sdr.$shell and squashdir-mount.initd now use '/var/aufs' as default location
 
 *Warn*: sdr.$shell now should works when updating system dirs, it needs
 to copy @$(which bb)@ or a static busybox to @/tmp/busybox@ to function properly.
