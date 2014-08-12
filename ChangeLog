@@ -2,6 +2,7 @@
 
 0.13.1
 
+* init/sdr.$shell/squashdir-mount.initd use standard .squashfs file extension;
 * added initialization code for sdr.$shell and squashdir-mount;
 * renamed clumsy sqfsdmount name to a more clear squashdir-mount;
 * clean up sdr.$shell and squashdir-mount with more clear/understandable names
