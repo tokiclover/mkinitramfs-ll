@@ -176,7 +176,7 @@ if [[ -f ${opts[-initramfs]} ]] {
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 
 pushd ${opts[-tmpdir]} || die "no ${opts[-tmpdir]} tmpdir found"
-rm -r *
+rm -fr *
 if [[ -d ${opts[-usrdir]} ]] {
 	cp -ar ${opts[-usrdir]} . && rm -f usr/README* || die
 	mv -f {usr/,}root &&

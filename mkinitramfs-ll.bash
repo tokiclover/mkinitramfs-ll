@@ -197,7 +197,7 @@ fi
 echo ">>> building ${opts[-initramfs]}..."
 
 pushd "${opts[-tmpdir]}" || die
-rm -r *
+rm -fr *
 if [[ -d "${opts[-usrdir]}" ]]; then
 	cp -ar "${opts[-usrdir]}" . && rm -f usr/README* || die
 	mv -f {usr/,}root &&
