@@ -1,7 +1,13 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2014/07/22 12:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2014/08/08 12:40:11 -tclover Exp $
 
 0.13.1
 
+* added initialization code for sdr.$shell and squashdir-mount;
+* renamed clumsy sqfsdmount name to a more clear squashdir-mount;
+* clean up sdr.$shell and squashdir-mount with more clear/understandable names
+for functions/variables;
+* sdr.$shell use `lzo -Xcompression-level 1' as default compressor for speed
+and efficiency; hdd or ssd space is cheap nowadays;
 * update help message because option should append just after option string
 * added -F|[-]-firmware switch to mikinitramfs-ll
 
