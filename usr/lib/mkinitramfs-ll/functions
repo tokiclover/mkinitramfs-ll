@@ -506,24 +506,24 @@ mdopen() {
 
 # @FUNCTION: squashd
 # @EXTERNAL
-# @USAGE: indirectly given by isqfsd cmdline arg and/or SQFSD, SQFSDIR variables
+# @USAGE: indirectly given by isquashd cmdline arg and/or SQUASHD, SQUASHDIR variables
 # @DESCRIPTION: mount squashed, AUFS+squashfs, directories
 squashd() {
-	[ "${isqfsd%,*}" = "y" ] || SQFSDIR="${isqfsd%,*}"
-	if [ "${isqfsd#*,}" = "y" ]; then :;
-	elif [ "$(echo ${isqfsd#*,}|cut -d: -f1)" = "a" ]; then
-		SQFSD="${SQFSD}:$(echo ${isqfsd#*,} | cut -c3-)"
+	[ "${isquashd%,*}" = "y" ] || SQUASHDIR="${isquashd%,*}"
+	if [ "${isquashd#*,}" = "y" ]; then :;
+	elif [ "$(echo ${isquashd#*,}|cut -d: -f1)" = "a" ]; then
+		SQUASHD="${SQUASHD}:$(echo ${isquashd#*,} | cut -c3-)"
 	else
-		SQFSD="$(echo ${isqfsd#*,} | cut -c3-)"
+		SQUASHD="$(echo ${isquashd#*,} | cut -c3-)"
 	fi
 
-	debug -d test -d $NEWROOT/$SQFSDIR
-	debug _modprobe sqfsd
+	debug -d test -d $NEWROOT/$SQUASHDIR
+	debug _modprobe squashd
 	cd $NEWROOT
 
 	local IFS="${IFS}:" _base _dir _n=/dev/null
-	for _dir in $SQFSD; do
-		_base=/"$SQFSDIR"/$_dir
+	for _dir in $SQUASHD; do
+		_base=/"$SQUASHDIR"/$_dir
 		_base=$(echo $_base | sed -e 's,//,/,g')
 		_dir=$( echo /$_dir | sed -e 's,//,/,g')
 		debug -d test -f $_base.squashfs

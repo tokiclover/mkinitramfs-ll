@@ -336,15 +336,15 @@ if [ -z "$ROOT" ]; then
 	fi
 fi
 
-# @VARIABLE: SQFSDIR
+# @VARIABLE: SQUASHDIR
 # @DEFAULT_SET
 # @DESCRIPTION: squashed dirs (AUFS+squashfs) root directory
-:	${SQFSDIR:=/sqfsd}
-# @VARIABLE: SQFSD
+:	${SQUASHDIR:=/var/aufs}
+# @VARIABLE: SQUASHD
 # @DEFAULT_SET
 # @DESCRIPTION: colon separated list of squashed dir
-:	${SQFSD:=usr:opt:bin:sbin}
-[ -n "$isqfsd" ] && lvl 3s && debug -d squashd
+:	${SQUASHD:=usr:opt:bin:sbin}
+[ -n "$isquashd" ] && lvl 3s && debug -d squashd
 
 # -*- Clean up and switch -*-
 
