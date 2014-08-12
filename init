@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.13.0 2014/07/26 11:51:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.13.1 2014/08/08 11:51:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYRIGHT FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -359,7 +359,7 @@ for _d in $(echo $LBD | sed 's/:/ /g'); do
 	debug losetup -d $_d
 done
 
-[ -n "$imount" ] && lvl 4m && debug mnt
+[ -n "$imount" ] && lvl 4m && debug fmount
 
 debug _rmmod gpg
 debug -d umount -f -l $MNTDIR
