@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.13.0 2014/07/26 10:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.13.1 2014/08/08 10:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -122,9 +122,9 @@ KERNEL-COMMAND-LINE-ARG: @ikresume=<mode>:<device>:</path/to/key/file>@
 DESCRIPTION: key [file] mode for @iresume@ group
 EXAMPLE: @ikresume=pwd@ for a password mode
 
-KERNEL-COMMAND-LINE-ARG: @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir>]@
+KERNEL-COMMAND-LINE-ARG: @isquashd=y[|/squashdir],y[|[n|a]:<dir>]@
 DESCRIPTION: squashed directories, see below for more info
-EXAMPLE: @isqfsd=y,a:lib64@ use default squashed dirs and append @/lib64@
+EXAMPLE: @isquashd=y,a:/opt@ use default squashed dirs and append @/opt@
 
 KERNEL-COMMAND-LINE-ARG: @idebug=<x:...>[,<log_level>]@
 DESCRIPTION: optionaly enable a colon separated list of sh (set) option,
@@ -255,18 +255,23 @@ h3. 4.3 Squashed (AUFS+squashfs) directories support
 
 One can use squashfs+aufs to squash directories like @$PORTDIR:var/lib/layamn@,
 or system related directories like @usr:lib32:lib64:bin:sbin@. Advantages are
-system speed, responsiveness and very small disk size footprint.
+system speed, responsiveness and very small disk size footprint. To favor speed,
+one should use 'lzo -Xcompression-level 1', which is the default, until lz4 get
+proper support in squashfs-tools.
+
+SQUASHDIR=<squashed-dir-root>
+SQUASHD=<colon-sperated-list-of-squashed-dirs>
 
 Squashed directories argument:
 
-* @isqfsd=y[|/sqfsdir],y[|[n|a]:<dir1>:<dirn>]@
+* @isquashd=y[|/squashdir],y[|[n|a]:<dir1>:<dirn>]@
 	using default or append directories after a @[n|a]:@
-* @isqfsd=/sqfsdir,n:<dir 1>:<dir n>@
-	neither SQFSDIR nor SQFSD default is used, so everything is required;
-* @isqfsd=y,y@
-	using SQFSD and SQFSDIR default values do not require any additional argument;
-* @isqfsd=y,a:<dir 1>[:<dir n>]@
-	same as above, however, @<dir 1>[:<dir n>]@ is  appended to SQFSD variable.
+* @isquashd=/squashdir,n:<dir 1>:<dir n>@
+	neither SQUASHDIR nor SQUASHD default is used, so everything is required;
+* @isquashd=y,y@
+	using SQUASHD and SQUASHDIR default values do not require any additional argument;
+* @isquashd=y,a:<dir 1>[:<dir n>]@
+	same as above, however, @<dir 1>[:<dir n>]@ is  appended to SQUASHD variable.
 
 h3. 4.4. Optional user scripts support
 
@@ -378,7 +383,7 @@ Supported groups:
 * @tuxonice@: tuxonice module, wich aren't removed
 * @remdev@: modules required to access removable device
 * @gpg@: modules required to access gpg crypted key-file
-* @sqfsd@: modules required for squashfs+aufs, can be built into the kernel
+* @squashd@: modules required for squashfs+aufs, can be built into the kernel
 * @kms@: kms esential kernel module group, see mkinitramfs-ll.conf
 * @zfs@: zfs related kernel module group, see configuration file
 * @zram@: zram related kernel module group
