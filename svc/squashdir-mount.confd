@@ -1,22 +1,22 @@
-# $Id: mkinitramfs-ll/svc/sqfsdmount.confd, 2014/07/07 13:38:02 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/squashdir-mount.confd, 2014/08/08 13:38:02 -tclover Exp $
 #
-# @VARIABLE: sqfsdir
-sqfsdir=/sqfsd
+# @VARIABLE: squash dir root, where to put aufs hierchichal tree
+squash_rootdir=/var/aufs
 #
-# @VARIABLE:  sqfsd_sys
-# @DESCRIPTION: system wide squashed dir
-sqfsd_sys=/usr:/lib32:/lib64:/bin:/sbin:/opt
+# @VARIABLE:  squashed_sysdir
+# @DESCRIPTION: system wide squash-ed dirs
+squash_sysdir=/usr:/lib32:/lib64:/bin:/sbin:/opt
 #
-# @VARIABLE: sqfsd_local
-# @DESCRIPTION: local squashed dir
-sqfsd_local=/var/db:/var/cache/edb:/var/lib/layman:/var/portage
+# @VARIABLE: squashdir_localdir
+# @DESCRIPTION: local squash-ed dirs
+squash_localdir=/var/db:/var/cache/edb:/var/lib/layman:/var/portage
 #
-# @VARIABLE: sqfsd_sdr
-# @DESCRIPTION: squashed dir to rebuild before shutting down the machine
-sqfsd_sdr=
+# @VARIABLE: squashdir_rebuild_dir
+# @DESCRIPTION: squash-ed-dirs to rebuild before shutting down the service
+squashdir_rebuild_dir=
 #
 # @VARIABLE: umount_sys
-# @DESCRIPTION: whether to try or not to umount system wide squashed dir
-umount_sys=yes
+# @DESCRIPTION: whether to try or not to umount system wide squash-ed dirs
+umount_sysdir=yes
 #
 # vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:
