@@ -6,7 +6,6 @@ basename=${0##*/}
 usage() {
   cat <<-EOF
   $basename-0.13.1
-  
   usage: $basename [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
   -a, --all                 short hand or forme of '-sqfsd -luks -lvm -gpg -toi'
@@ -144,21 +143,23 @@ done
 
 # @VARIABLE: opts[-kv]
 # @DESCRIPTION: kernel version to pick up
-[[ -n "${opts[-kv]}" ]] || opts[-kv]="$(uname -r)"
+[[ "${opts[-kv]}" ]] || opts[-kv]="$(uname -r)"
 # @VARIABLE: opts[-prefix]
 # @DESCRIPTION: initramfs prefx name <$prefix-$kv.$ext>
-[[ -n "${opts[-prefix]}" ]] || opts[-prefix]=initramfs-
+[[ "${opts[-prefix]}" ]] || opts[-prefix]=initramfs-
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path, to get extra files
-[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${PWD}"/usr
+[[ "${opts[-usrdir]}" ]] || opts[-usrdir]="${PWD}"/usr
 # @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
 opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kv]}
-[[ -n "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
-[[ -n "$(uname -m | grep 64)" ]] && opts[-arc]=64 || opts[-arc]=32
+[[ "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
 # @VARIABLE: opts[-arch]
 # @DESCRIPTION: kernel architecture
-[[ -n "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
+[[ "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
+# @VARIABLE: opts[-arc]
+# @DESCRIPTION: kernel bit lenght supported
+[[ "${opts[-arc]}" ]] || opts[-arc]=$(getconf LONG_BIT)
 # @VARIABLE: opts[-tmpdir]
 # @DESCRIPTION: tmp dir where to generate initramfs
 # an initramfs compressed image

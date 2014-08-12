@@ -7,7 +7,6 @@ basename=${(%):-%1x}
 usage() {
   cat <<-EOF
   $basename-0.13.1
-  
   usage: $basename [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
 
   -a, -all                 short hand or forme of '-q -l -luks -ggp -font -keymap'
@@ -125,6 +124,9 @@ if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf
 # @VARIABLE: opts[-arch]
 # @DESCRIPTION: kernel architecture
 :	${opts[-arch]:=$(uname -m)}
+# @VARIABLE: opts[-arc]
+# @DESCRIPTION: kernel bit lenght supported
+:	${opts[-arc]:=$(getconf LONG_BIT)}
 # @VARIABLE: opts[-tmpdir]
 # @DESCRIPTION: tmp dir where to generate initramfs
 # an initramfs compressed image
@@ -142,8 +144,6 @@ if [[ -n ${(k)opts[-f]} ]] || [[ -n ${(k)opts[-font]} ]] {
 	opts[-f]+=:$(grep -E '^consolefont' /etc/conf.d/consolefont | cut -d'"' -f2)
 	opts[-f]+=:ter-v14n:ter-g12n
 }
-
-if [[ -n $(uname -m | grep 64) ]] { opts[-arc]=64 } else { opts[-arc]=32 }
 
 case ${opts[-comp][(w)1]} in
 	bzip2)	opts[-initramfs]+=.cpio.bz2;;
