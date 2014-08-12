@@ -90,7 +90,7 @@ setopt EXTENDED_GLOB NULL_GLOB
 zmodload zsh/zutil
 zparseopts -E -D -K -A opts a all q sqfsd g gpg l lvm t toi c:: comp:: \
 	k: kv: m+:: kmod+:: f+:: font+:: s:: splash:: h help M: module: \
-	b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: mboot+:: f:: firmware:: \
+	b:: bin:: p:: prefix:: y:: keymap:: d:: usrdir:: mboot+:: F:: firmware:: \
 	mgpg+:: mremdev+:: msqfsd+:: mtuxonice+:: L luks r regen K keetmp ||
 	usage
 if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
