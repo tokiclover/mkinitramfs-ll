@@ -2,6 +2,8 @@
 
 0.13.1
 
+* renamed sqfsd to squashd in init,usr/lib/mkinitramfs-ll/functions,
+mkinitramfs-ll.{conf,{ba,z}sh};
 * init/sdr.$shell/squashdir-mount.initd use standard .squashfs file extension;
 * added initialization code for sdr.$shell and squashdir-mount;
 * renamed clumsy sqfsdmount name to a more clear squashdir-mount;
