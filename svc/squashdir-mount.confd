@@ -13,7 +13,7 @@ squash_localdir=/var/db:/var/cache/edb:/var/lib/layman:/var/portage
 #
 # @VARIABLE: squashdir_rebuild_dir
 # @DESCRIPTION: squash-ed-dirs to rebuild before shutting down the service
-squashdir_rebuild_dir=
+squash_rebuild_dir=
 #
 # @VARIABLE: umount_sys
 # @DESCRIPTION: whether to try or not to umount system wide squash-ed dirs
