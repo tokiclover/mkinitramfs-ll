@@ -15,8 +15,7 @@ usage() {
   -f, --fstab               whether to write the necessary mount lines to '/etc/fstab'
   -b, --bsize 131072        use [128k] 131072 bytes block size, which is the default
   -x, --busybox busybox     path to a static busybox binary, default is \$(which bb)
-  -c, --comp 'lzo -Xcompression-level 1'
-                            use lzo compressor with compression option, default to lz4
+  -c, --comp 'gzip'         use gzip compressor with compression option, default to lzo
   -e, --exclude :<dir>      collon separated list of directories to exlude from image
   -o, --offset 0            overide default [10%] offset used to rebuild squashed dir
   -u, --update              update the underlying source directory e.g. bin:sbin:lib32
@@ -84,20 +83,20 @@ die() {
 opts[-arc]=$(getconf LONG_BIT)
 # @VARIABLE: opts[-squashroot] | opts[-r]
 # @DESCRIPTION: root of squashed dir
-[[ -n "${opts[-squashroot]}" ]] || opts[-squashroot]=/var/aufs
+[[ "${opts[-squashroot]}" ]] || opts[-squashroot]=/var/aufs
 # @VARIABLE: opts[-bsize]
 # @DESCRIPTION: Block SIZE of squashfs underlying filesystem block
-[[ -n "${opts[-bsize]}" ]] || opts[-bsize]=131072
+[[ "${opts[-bsize]}" ]] || opts[-bsize]=131072
 # @VARIABLE: opts[-busybox]
 # @DESCRIPTION: full path to a static busysbox binary needed for updtating 
 # system wide dir
-[[ -n "${opts[-busybox]}" ]] || opts[-busybox]="$(which bb)"
+[[ "${opts[-busybox]}" ]] || opts[-busybox]="$(which bb)"
 # @VARIABLE: opts[-comp]
 # @DESCRIPTION: COMPression command with optional option
-[[ -n "${opts[-comp]}" ]] || opts[-comp]=lz4
+[[ "${opts[-comp]}" ]] || opts[-comp]="lzo -Xcompression-level 1"
 # @VARIABLE: opts[-exclude]
 # @DESCRIPTION: colon separated list of excluded dir
-[[ -n "${opts[-exclude]}" ]] && opts[-exclude]="-wildcards -regex -e ${opts[-exclude]//:/ }"
+[[ "${opts[-exclude]}" ]] && opts[-exclude]="-wildcards -regex -e ${opts[-exclude]//:/ }"
 # @VARIABLE: opts[-offset] | opts[-o]
 # @DESCRIPTION: offset or rw/rr or ro branch ratio
 
@@ -120,17 +119,17 @@ squashmount() {
 		mv=mv; rm="rm -fr"
 		mkdir="mkdir -p"
 	fi
-	if $grep -w aufs:${dir} /proc/mounts 1>/dev/null 2>&1; then 
+	if $grep -q aufs:${dir} /proc/mounts; then
 		$umount -l ${dir} || die "sdr: failed to umount aufs:${dir}"
 	fi
-	if $grep ${base}/rr /proc/mounts 1>/dev/null 2>&1; then 
+	if $grep -q ${base}/rr /proc/mounts; then
 		$umount -l ${base}/rr || die "sdr: failed to umount ${base}.squashfs"
 	fi
 	$rm "${base}"/rw/* || die "sdr: failed to clean up ${base}/rw"
 	[[ -e ${base}.squashfs ]] && $rm ${base}.squashfs 
 	$mv ${base}.tmp.squashfs ${base}.squashfs ||
 	die "sdr: failed to move ${dir}.tmp.squashfs"
-	$mount ${base}.squashfs ${base}/rr -t squashfs -onodev,loop,ro &&
+	$mount -t squashfs -onodev,loop,ro ${base}.squashfs ${base}/rr &&
 	{
 		if [[ -n "${opts[-remove]}" ]]; then
 			$rm ${dir} && $mkdir ${dir} || die "sdr: failed to clean up ${dir}"
@@ -156,7 +155,7 @@ squashdir() {
 	fi
 	mkdir -p -m 0755 "${base}"/{rr,rw} || die "sdr: failed to create ${base}/{rr,rw} dirs"
 	mksquashfs ${dir} ${base}.tmp.squashfs -b ${opts[-bsize]} -comp ${opts[-comp]} \
-		${opts[-exclude]} >${n} || die "sdr: failed to build ${dir}.squashfs img"
+		${opts[-exclude]} || die "sdr: failed to build ${dir}.squashfs img"
 	if [[ "${dir}" == /lib${opts[-arc]} ]]; then
 		# move rc-svcdir and cachedir if mounted
 		if grep ${dir}/splash/cache /proc/mounts 1>${n} 2>&1; then
@@ -168,7 +167,7 @@ squashdir() {
 				rc=yes || die "sdr: failed to move rc-svcdir"
 		fi
 	fi
-	[[ -z "${opts[-nomount]}" ]] && squashmount
+	[[ ${opts[-nomount]} ]] || squashmount
 	if [[ -n "$mcdir" ]]; then
 		mount --move /var/cache/splash ${dir}/splash/cache ||
 			die "sdr: failed to move back cachedir"
@@ -180,8 +179,31 @@ squashdir() {
 	info ">>> sdr: ...sucessfully build squashed"
 }
 
+# @FUNCTION: squash_init
+# @DESCRIPTION: initialize aufs+squashfs if need be, or exit if no support found
+squash_init() {
+	local n=/dev/null
+
+	grep -q aufs /proc/filesystems ||
+	if ! grep -q aufs /proc/modules; then
+	    if ! modprobe aufs >${n} 2>&1; then
+	        error "failed to initialize aufs kernel module, exiting"
+	        opts[-nomount]=1
+	    fi
+	fi
+
+    grep -q squashfs /proc/filesystems ||
+	if ! grep -q squashfs /proc/modules; then
+	    if ! modprobe squashfs >${n} 2>&1; then
+	        die "failed to initialize squashfs kernel module, exiting"
+	    fi
+	fi
+}
+squash_init
+
 for dir in ${opts[-squashdir]//:/ }; do
 	base="${opts[-squashroot]}/${dir}"
+	base=${base//\/\//\/}
 	if [[ -e ${base}.squashfs ]]; then
 		if [[ ${opts[-offset]:-10} != 0 ]]; then
 			rr=$(du -sk ${base}/rr | awk '{print $1}')
