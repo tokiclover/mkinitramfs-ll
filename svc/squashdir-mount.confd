@@ -5,7 +5,7 @@ squash_rootdir=/var/aufs
 #
 # @VARIABLE:  squashed_sysdir
 # @DESCRIPTION: system wide squash-ed dirs
-squash_sysdir=/usr:/lib32:/lib64:/bin:/sbin:/opt
+#squash_sysdir=/usr:/lib32:/lib64:/bin:/sbin:/opt
 #
 # @VARIABLE: squashdir_localdir
 # @DESCRIPTION: local squash-ed dirs

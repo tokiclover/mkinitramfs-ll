@@ -1,27 +1,42 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.2 2014/08/08 23:06:10 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.3 2014/08/08 23:06:10 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="manage (AUFS+squashfs) squashed directories"
 
 depend() {
-	need fsck localmount
-	use lvm modules mtab
 	after lvm modules
 	before consolefont bootmisc acpid keymaps
-	keyword -jail -openvz -vserver -lxc
 }
 
 start() {
+	local n=/dev/null
+
+	grep -q aufs /proc/filesystems ||
+	if ! grep -q aufs /proc/modules; then
+	    if ! modprobe aufs >${n} 2>&1; then
+	        eend "${?}" "failed to initialize aufs kernel module, exiting"
+	        return 0
+	    fi
+	fi
+
+    grep -q squashfs /proc/filesystems ||
+	if ! grep -q squashfs /proc/modules; then
+	    if ! modprobe squashfs >${n} 2>&1; then
+	        eend "${?}" "failed to initialize squashfs kernel module, exiting"
+	        return 0
+	    fi
+	fi
+
 	local IFS="${IFS}:"
-	einfo "mounting system wide squashed dirs"
+	[[ ${squash_sysdir} ]] && einfo "mounting system wide squashed dirs"
 	for dir in ${squash_sysdir}; do 
 		squash_mount ${squash_rootdir} ${dir}
 	done
-	einfo "mounting local wide squashed dirs"
-	for dir in ${squashdir_localdir} ${squashdir_rebuild_dir}; do 
+	[[ ${squash_localdir}  ]] && einfo "mounting local wide squashed dirs"
+	for dir in ${squash_localdir} ${squash_rebuild_dir}; do 
 		squash_mount ${squash_rootdir} ${dir}
 	done
 	return 0
@@ -37,14 +52,14 @@ stop() {
 		fi
 	fi
 
-	einfo "umounting local wide squashed dirs"
+	[[ ${squash_localdir}  ]] && einfo "umounting local wide squashed dirs"
 	local IFS="${IFS}:"
 	sync; sync
-	for dir in ${squashdir_localdir}; do
+	for dir in ${squash_localdir}; do
 		squash_umount ${dir}
 	done
 
-	einfo "remounting in ro mode system squashed dirs"
+	[[ ${squash_sysdir} ]] && einfo "remounting in ro mode system squashed dirs"
 	if [[ "${umount_sysdir}" == "yes" ]]; then
 		for dir in ${squashdir_sysdir}; do
 			squash_remount ${dir} ro
@@ -66,43 +81,47 @@ restart() {
 # @FUNCTION:squash_mount
 # @DESCRIPTION: Squashed dir MOUNT
 squash_mount() {
-	local d=${2} b=${1}/${2} n=/dev/null
-	if grep aufs:${d} /proc/mounts 1>${n} 2>&1; then 
-		einfo "squash-ed aufs:${d} already mounted"
+	local base=${1}/${dir} n=/dev/null ret
+	base=${base//\/\//\/}
+	if grep -q aufs:${dir} /proc/mounts; then 
+		einfo "squash-ed aufs:${dir} already mounted"
 	else
-		ebegin "mounting squash-ed ${d}"
-		if grep ${b}/rr /proc/mounts 1>${n} 2>&1; then 
-			einfo "squash-ed ${b}.squashfs image already mounted"
+		ebegin "mounting squash-ed ${dir}"
+		if grep -q ${base}/rr /proc/mounts; then 
+			einfo "squash-ed ${base}.squashfs image already mounted"
 		else
-			mount -t squashfs ${b}.squashfs ${b}/rr -o nodev,loop,ro 1>${n} 2>&1 &&
-       		eend "${?}" "failed to mount ${b}.squashfs image" || return
+			mount -t squashfs ${base}.squashfs ${base}/rr -o loop,ro
+			ret=${?}
+			eend "${ret}" "failed to mount ${base}.squashfs image"
+            [[ ${ret} != 0 ]] && return
        	fi
-		mount -t aufs aufs:${d} ${d} -o nodev,udba=reval,br:${b}/rw:${b}/rr 1>${n} 2>&1
-		eend "${?}" "failed to mount aufs:${d}"
+		mount -t aufs aufs:${dir} ${dir} -o nodev,udba=reval,br:${base}/rw:${base}/rr
+		eend "${?}" "failed to mount aufs:${dir}"
 	fi
 }
 
 # @FUNCTION: squash_umount
 # @DESCRIPTION: Squashed dir UMOUNT
 squash_umount() {
-	local d=${2} b=${1}/${2} n=/dev/null no_netdev
+	local base=${1}/${dir} n=/dev/null no_netdev
+	base=${base//\/\//\/}
 	[[ "${RC_UNAME}" == "Linux" ]] && no_netdev="-O no_netdev"
 
 	ebegin "umounting squashed ${dir}"
-	umount -lt aufs ${d} ${no_netdev} 1>${n} 2>&1
-	eend "${?}" "failed to umount squash-ed aufs:${d}" || return
+	umount -lt aufs ${dir} ${no_netdev} 1>${n} 2>&1
+	eend "${?}" "failed to umount squash-ed aufs:${dir}" || return
 	
-	umount -lt squashfs ${b}/rr ${no_netdev} 1>${n} 2>&1
-	eend "${?}" "failed to umount ${b}.squashfs image"
+	umount -lt squashfs ${base}/rr ${no_netdev} 1>${n} 2>&1
+	eend "${?}" "failed to umount ${base}.squashfs image"
 }
 
 # @FUNCTION: squash_remount
 # @DESCRIPTION: Squashed dir RE-MOUNT in ro mode
 squash_remount() {
-	local d=${1} o=${2:-ro}
-	ebegin "remounting in read-only mode aufs:${d}"
-	mount -o remount,${o} aufs:${d} 1>/dev/null 2>&1
-	eend "${?}" "failed to remount aufs:${d} in read-only mode"
+	local opt=${2:-ro}
+	ebegin "remounting in read-only mode aufs:${dir}"
+	mount -o remount,${opt} aufs:${dir} 1>/dev/null 2>&1
+	eend "${?}" "failed to remount aufs:${dir} in read-only mode"
 }
 
 # vim:fenc=utf-8:ft=gentoo-init-d:ci:pi:sts=0:sw=4:ts=4:
