@@ -11,9 +11,9 @@ in the config file because a few (boot) services are rushing
 (especially with rc_parallel) to get userspace ready. 
 
 * sdr.$shell: a script to use in conjonction with sqfsdmount to *squash* dirs
-* and it now uses lz4 as default compressor for efficiency/speed, one can use
-'lzo -Xcompression-level 1' for similar performance if you don't have lz4
-(you should have it already as system dependency).
+* and it now uses lzo as default compressor for efficiency/speed, one can use
+'lzo -Xcompression-level 6' for better compression ratio.
+Warning: lz4 implementation is buggy and slow!
 * sdr.$shell and squashdir-mount.initd now use '/var/aufs' as default location
 
 *Warn*: sdr.$shell now should works when updating system dirs, it needs
