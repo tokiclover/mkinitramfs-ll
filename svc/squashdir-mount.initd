@@ -1,17 +1,19 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.3 2014/08/08 23:06:10 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.4 2014/08/08 23:06:10 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="manage (AUFS+squashfs) squashed directories"
 
-depend() {
+depend()
+{
 	after localmount
 	before consolefont bootmisc acpid keymaps
 }
 
-start() {
+start()
+{
 	local n=/dev/null
 
 	grep -q aufs /proc/filesystems ||
@@ -35,14 +37,19 @@ start() {
 	for dir in ${squash_sysdir}; do 
 		squash_mount ${squash_rootdir} ${dir}
 	done
+
 	[[ ${squash_localdir}  ]] && einfo "mounting local wide squashed dirs"
 	for dir in ${squash_localdir} ${squash_rebuild_dir}; do 
 		squash_mount ${squash_rootdir} ${dir}
 	done
+
 	return 0
 }
 
-stop() {
+stop()
+{
+	local IFS="${IFS}:"
+
 	if [[ -n "${squash_rebuild_dir}" ]]; then
 		eeinfo "sdr: rebuilding ${squash_rebuild_dir} squashed directories"
 		if which sdr 1>/dev/null 2>&1; then
@@ -52,9 +59,9 @@ stop() {
 		fi
 	fi
 
-	[[ ${squash_localdir}  ]] && einfo "umounting local wide squashed dirs"
-	local IFS="${IFS}:"
 	sync; sync
+
+	[[ ${squash_localdir}  ]] && einfo "umounting local wide squashed dirs"
 	for dir in ${squash_localdir}; do
 		squash_umount ${dir}
 	done
@@ -65,24 +72,30 @@ stop() {
 			squash_remount ${dir} ro
 		done
 	fi
+
 	return 0
 }
 
-restart() {
+restart()
+{
 	stop
 	start
+
 	for dir in ${squashdir_sysdir}; do
 		squash_remount ${dir} rw
 		eend "${?}" "failed to remount ${dir} in rw mode"
 	done
+
 	return 0
 }
 
 # @FUNCTION:squash_mount
 # @DESCRIPTION: Squashed dir MOUNT
-squash_mount() {
+squash_mount()
+{
 	local base=${1}/${dir} n=/dev/null ret
 	base=${base//\/\//\/}
+
 	if grep -q aufs:${dir} /proc/mounts; then 
 		einfo "squash-ed aufs:${dir} already mounted"
 	else
@@ -102,7 +115,8 @@ squash_mount() {
 
 # @FUNCTION: squash_umount
 # @DESCRIPTION: Squashed dir UMOUNT
-squash_umount() {
+squash_umount()
+{
 	local base=${1}/${dir} n=/dev/null no_netdev
 	base=${base//\/\//\/}
 	[[ "${RC_UNAME}" == "Linux" ]] && no_netdev="-O no_netdev"
@@ -117,7 +131,8 @@ squash_umount() {
 
 # @FUNCTION: squash_remount
 # @DESCRIPTION: Squashed dir RE-MOUNT in ro mode
-squash_remount() {
+squash_remount()
+{
 	local opt=${2:-ro}
 	ebegin "remounting in read-only mode aufs:${dir}"
 	mount -o remount,${opt} aufs:${dir} 1>/dev/null 2>&1
