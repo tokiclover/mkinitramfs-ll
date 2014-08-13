@@ -8,6 +8,7 @@ description="manage (AUFS+squashfs) squashed directories"
 
 depend() {
 	after localmount
+	before consolefont bootmisc acpid keymaps
 }
 
 start() {
