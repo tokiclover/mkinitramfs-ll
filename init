@@ -280,8 +280,8 @@ done </etc/msg
 # -*- Module -*-
 
 [ -n "$izram" ] && MODULES+=:zram
-for arg in $MODULES; do
-	debug domod $arg
+for mod in $MODULES; do
+	[ -e $LIBDIR/$mod ] && debug domod $LIBDIR/$mod || error "module: $mod not found"
 done
 
 # -*- Swap -*-
