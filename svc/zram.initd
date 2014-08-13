@@ -1,17 +1,19 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the 2-clause BSD or GPL-2 license
-# $Header: ~/scr/zram.initd,v 1.1 2014/08/08 13:05:23 -tclover Exp $
+# $Header: ~/scr/zram.initd,v 1.2 2014/08/08 13:05:23 -tclover Exp $
 
 conf_file="/etc/conf.d/${SVCNAME}"
 description="set up zram devices and initialize zram if necessary"
 
-depend() {
+depend()
+{
 	need localmount
 	before bootmisc acpid
 }
 
-start() {
+start()
+{
 	[ "x$zram_init" == "xyes" ] && zram_init
 	
 	local dev fsys mtpt num=0 opt ret
@@ -43,16 +45,16 @@ start() {
 	return 0
 }
 
-zram_init() {
-	local dev num=0 size
+zram_init()
+{
+	local dev n=/dev/null num=0 size
 	if grep -q zram /proc/modules; then
-		if rmmod zram >/dev/null 2>&1; then
-			modprobe zram num_devices=${num_devices:-4} >/dev/null 2>&1
-			eend "$?" "failed to initialize zram kernel module"
-		else
-			ewarn "zram is built into the kernel"
-		fi
+		rmmod zram >$n 2>&1
+		eend "$?" "failed to remove zram kernel module"
 	fi
+
+	modprobe zram num_devices=${num_devices:-4} >$n 2>&1
+	eend "$?" "failed to initialize zram kernel module"
 
 	for dev in $(sed -nre 's/^zram_device=(.*$)/\1/p' $conf_file); do
 		[ -b /dev/zram$num ] || break
