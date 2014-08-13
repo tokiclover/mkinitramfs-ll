@@ -63,8 +63,8 @@ install_zsh:
 install_aufs_squashfs:
 	$(shell) install -pd $(svc_confdir)
 	$(shell) install -pd $(svc_initdir)
-	$(shell) install -pm 755 svc/sqfsdmount.initd $(svc_initdir)/sqfsdmount
-	$(shell) install -pm 644 svc/sqfsdmount.confd $(svc_confdir)/sqfsdmount
+	$(shell) install -pm 755 svc/squashdir-mount.initd $(svc_initdir)/squashdir-mount
+	$(shell) install -pm 644 svc/squashdir-mount.confd $(svc_confdir)/squashdir-mount
 
 install_zram:
 	$(shell) install -pd $(svc_confdir)
@@ -99,8 +99,8 @@ uninstall_zsh:
 	$(shell) rm -f $(sys_confdir)/$(PACKAGE).conf
 
 uninstall_aufs_squashfs:
-	$(shell) rm -f $(svc_confdir)/sqfsdmount
-	$(shell) rm -f $(svc_initdir)/sqfsdmount
+	$(shell) rm -f $(svc_confdir)/squashdir-mount
+	$(shell) rm -f $(svc_initdir)/squashdir-mount
 
 uninstall_zram:
 	$(shell) rm -f $(svc_confdir)/zram
