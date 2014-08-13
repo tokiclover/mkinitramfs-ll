@@ -94,7 +94,7 @@ function adn() {
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msquashd::,mremdev:: \
 	  -l keeptmp,module:,mtuxonice::,squashd,toi,help,usrdir:: \
 	  -l firmware::,keymap::,luks,lvm,kv::,prefix::,splash::,regen \
-	  -o ?ab:c::d::f::F::gk::lKLM:m::np::rs::thy:: -n ${0##*/} -- "$@" || usage)
+	  -o ?ab:c::d::f::F::gk::lKLM:m::np::qrs::thy:: -n ${0##*/} -- "$@" || usage)
 eval set -- "$opt"
 
 # @VARIABLE: opts [associative array]
