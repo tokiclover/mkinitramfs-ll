@@ -1,7 +1,7 @@
 # $Id: mkinitramfs-ll/svc/squashdir-mount.confd, 2014/08/08 13:38:02 -tclover Exp $
 #
 # @VARIABLE: squash dir root, where to put aufs hierchichal tree
-squash_rootdir=/var/aufs
+squash_rootdir=/aufs
 #
 # @VARIABLE:  squashed_sysdir
 # @DESCRIPTION: system wide squash-ed dirs

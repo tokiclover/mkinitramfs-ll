@@ -7,8 +7,7 @@ conf_file="/etc/conf.d/${SVCNAME}"
 description="manage (AUFS+squashfs) squashed directories"
 
 depend() {
-	after lvm modules
-	before consolefont bootmisc acpid keymaps
+	after localmount
 }
 
 start() {
