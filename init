@@ -343,7 +343,7 @@ fi
 # @VARIABLE: SQUASHD
 # @DEFAULT_SET
 # @DESCRIPTION: colon separated list of squashed dir
-:	${SQUASHD:=usr:opt:bin:sbin}
+:	${SQUASHD:=usr:bin:sbin}
 [ -n "$isquashd" ] && lvl 3s && debug -d squashd
 
 # -*- Clean up and switch -*-
