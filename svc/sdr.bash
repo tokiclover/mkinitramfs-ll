@@ -82,7 +82,7 @@ die() {
 opts[-arc]=$(getconf LONG_BIT)
 # @VARIABLE: opts[-squashroot] | opts[-q]
 # @DESCRIPTION: root of squashed dir
-[[ "${opts[-squashroot]}" ]] || opts[-squashroot]=/var/aufs
+[[ "${opts[-squashroot]}" ]] || opts[-squashroot]=/aufs
 # @VARIABLE: opts[-bsize]
 # @DESCRIPTION: Block SIZE of squashfs underlying filesystem block
 [[ "${opts[-bsize]}" ]] || opts[-bsize]=131072

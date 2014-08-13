@@ -45,7 +45,7 @@ zparseopts -E -D -K -A opts q: squashroot: d: squashdir: f fstab b: bsize: \
 opts[-arc]=$(getconf LONG_BIT)
 # @VARIABLE: opts[-squashroot] | opts[-q]
 # @DESCRIPTION: root of squashed dir
-:	${opts[-squashroot]:=${opts[-r]:-/var/aufs}}
+:	${opts[-squashroot]:=${opts[-r]:-/aufs}}
 # @VARIABLE: opts[-offset] | opts[-o]
 # @DESCRIPTION: offset or rw/rr or ro branch ratio
 :	${opts[-offset]:=$opts[-o]}
