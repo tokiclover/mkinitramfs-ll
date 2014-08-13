@@ -339,7 +339,7 @@ fi
 # @VARIABLE: SQUASHDIR
 # @DEFAULT_SET
 # @DESCRIPTION: squashed dirs (AUFS+squashfs) root directory
-:	${SQUASHDIR:=/var/aufs}
+:	${SQUASHDIR:=/aufs}
 # @VARIABLE: SQUASHD
 # @DEFAULT_SET
 # @DESCRIPTION: colon separated list of squashed dir
