@@ -530,10 +530,10 @@ squashd() {
 		debug mkdir -p -m 0755 .$_base/rw .$_base/rr .$_dir
 		if ! grep aufs:$_dir /proc/mounts >$_n 2>&1; then
 			if ! grep $_base/rr /proc/mounts >$_n 2>&1; then
-   				debug -d mount -t squashfs -o nodev,loop,ro $_base.squashfs $_base/rr ||
-   				continue
+				debug -d mount -t squashfs -o nodev,loop,ro .$_base.squashfs .$_base/rr ||
+				continue
 			fi
-			mount -t aufs -o nodev,udba=reval,br:$_base/rw:$_base/rr aufs:$_dir .$_dir
+			mount -t aufs -o nodev,udba=reval,br:.$_base/rw:.$_base/rr aufs:$_dir .$_dir
 		fi
 	done
 }
