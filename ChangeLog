@@ -11,6 +11,7 @@ mkinitramfs-ll.{conf,{ba,z}sh};
 for functions/variables;
 * sdr.$shell use `lzo -Xcompression-level 1' as default compressor for speed
 and efficiency; hdd or ssd space is cheap nowadays;
+* updated squashdir/SQUASHDIR=/aufs (default squash-ed root location);
 * update help message because option should append just after option string
 * added -F|[-]-firmware switch to mikinitramfs-ll
 
