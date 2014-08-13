@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.13.0 2014/08/08 12:59:45 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.zsh,v 0.13.1 2014/08/08 12:59:45 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
@@ -65,13 +65,20 @@ opts[-arc]=$(getconf LONG_BIT)
 
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
-info() { print -P " %B%F{green}*%b%f $@" }
+function info()
+{
+    print -P " %B%F{green}*%b%f $@"
+}
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-error() { print -P " %B%F{red}*%b%f $@" }
+function error()
+{
+    print -P " %B%F{red}*%b%f $@"
+}
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die() {
+function die()
+{
 	local ret=$?
 	error $@
 	return $ret
@@ -80,38 +87,36 @@ alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
 setopt NULL_GLOB
 
-# @FUNCTION: squashmount
+# @FUNCTION: squash_mount
 # @DESCRIPTION: mount squashed dir
-squashmount() {
+function squash_mount()
+{
 	if [[ ${dir} == /*bin ]] || [[ ${dir} == /lib* ]] {
-		local busybox=/tmp/busybox cp grep mount mv rm mcdir mrc mkdir
-		cp ${opts[-busybox]} /tmp/busybox ||
-			die "no static busybox binary found"
-		cp="$busybox cp -ar"
-		mv="$busybox mv"
-		rm="$busybox rm -fr"
-		mount="$busybox mount"
-		umount="$busybox umount"
-		grep="$busybox grep"
-		mkdir="$busybox mkdir -p"
+		local busybox=/tmp/busybox
+		cp ${opts[-busybox]} /tmp/busybox || die "no static busybox binary found"
+		local cp="${busybox} cp -a"        mv="${busybox} mv"
+		local rm="${busybox} rm -fr"     grep="${busybox} grep"
+        local mount="${busybox} mount" umount="${busybox} umount"
+		local mkdir="${busybox} mkdir -p"
 	} else {
-		cp="cp -ar"; grep=grep
-		mount=mount; umount=umount
-		mv=mv; rm="rm -fr"
-		mkdir="mkdir -p"
+		local cp="cp -a" mv=mv rm="rm -fr" grep=grep
+		local mount=mount umount=umount   mkdir="mkdir -p"
 	}
+
 	if ${=grep} -q aufs:${dir} /proc/mounts; then
 		${=umount} -l ${dir} || die "$sdr: failed to umount aufs:${dir}"
 	fi
 	if ${=grep} -q ${base}/rr /proc/mounts; then
 		${=umount} -l ${base}/rr || die "sdr: failed to umount ${base}.squashfs" 
 	fi
+
 	${=rm} ${base}/rw/* || die "sdr: failed to clean up ${base}/rw"
-	[[ -f ${base}.squashfs ]] && ${=rm} ${base}.squashfs 
+
+	[[ -e ${base}.squashfs ]] && [[ -e ${base}.tmp.squahfs ]] && ${=rm} ${base}.squashfs 
 	${=mv} ${base}.tmp.squashfs ${base}.squashfs ||
 	die "sdr: failed to move ${base}.tmp.squashfs"
-	${=mount} -t squashfs -o nodev,loop,ro ${base}.squashfs ${base}/rr &&
-	{	
+
+	if ${=mount} -t squashfs -o nodev,loop,ro ${base}.squashfs ${base}/rr; then
 		if [[ -n ${(k)opts[-r]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
 			${=rm} ${dir} && ${=mkdir} ${dir} ||
 			die "sdr: failed to clean up ${dir}"
@@ -122,13 +127,17 @@ squashmount() {
 		}
 		${=mount} -t aufs -o nodev,udba=reval,br:${base}/rw:${base}/rr aufs:${dir} ${dir} ||
 		die "sdr: failed to mount aufs:${dir}"
-	} || die "sdr: failed to mount ${base}.squashfs"
+	else
+	    die "sdr: failed to mount ${base}.squashfs"
+	fi
 }
 
-# @FUNCTION: squashdir
+# @FUNCTION: squash_dir
 # @DESCRIPTION: squash-dir
-squashdir() {
-    local n=/dev/null
+function squash_dir()
+{
+	local svcdir splashdir
+
 	if [[ -n ${(k)opts[-f]} || -n ${(k)opts[-fstab]} ]] {
 		echo "${base}.squashfs ${base}/rr squashfs nodev,loop,rr 0 0" >>/etc/fstab ||
 			die "sdr: failed to write squasshfs fstab line"
@@ -142,26 +151,29 @@ squashdir() {
 	if [[ ${dir} == /lib${opts[-arc]} ]] {
 		# move rc-svcdir cachedir if mounted
 		mkdir -p /var/{lib/init.d,cache/splash}
-		if grep ${dir}/splash/cache /proc/mounts 1>${n} 2>&1; then
+		if grep -q ${dir}/splash/cache /proc/mounts; then
 			mount --move ${dir}/splash/cache /var/cache/splash &&
-				mcdir=yes || die "sdr: failed to move cachedir"
+			splashdir=1 || die "sdr: failed to move cachedir"
 		fi
-		if grep ${dir}/rc/init.d /proc/mounts 1>${n} 2>&1; then
+		if grep -q ${dir}/rc/init.d /proc/mounts; then
 			mount --move ${dir}/rc/init.d /var/lib/init.d &&
-				mrc=yes || die "sdr: failed to move rc-svcdir"
+			rcdir=1 || die "sdr: failed to move rc-svcdir"
 		fi
 	}
-	if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-nomount]} ]] { :;
-	} else { squashmount }
-	if [[ -n $mcdir ]] { 
+
+	{ [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-nomount]} ]] } || squash_mount
+
+	if [[ -n ${splashdir} ]] { 
 		mount --move /var/cache/splash ${dir}/splash/cache ||
-			die "sdr: failed to move back cachedir"
+		die "sdr: failed to move back cachedir"
 	}
-	if [[ -n $mrc ]] { 
+
+	if [[ -n ${svcdir} ]] { 
 		mount --move /var/lib/init.d ${dir}/rc/init.d ||
-			die "sdr: failed to move back rc-svcdir"
+		die "sdr: failed to move back rc-svcdir"
 	}
-	info ">>> sdr:...squashed ${dir} sucessfully [re]build"
+
+	print ">>> sdr:...squashed ${dir} sucessfully [re]build"
 }
 
 # @FUNCTION: squash_init
@@ -193,21 +205,21 @@ for dir (${(pws,:,)opts[-squashdir]} ${(pws,:,)opts[-d]}) {
 	dir=${dir//\/\//\/}
 	if [[ -e ${opts[-squashroot]}/${dir}.squashfs ]] { 
 		if [[ ${opts[-offset]:-10} != 0 ]] {
-			r=${$(du -sk ${base}/rr)[1]}
-			w=${$(du -sk ${base}/rw)[1]}
-			if (( ($w*100/$r) < ${opts[-offset]:-10} )) { 
+			rr=${$(du -sk ${base}/rr)[1]}
+			rw=${$(du -sk ${base}/rw)[1]}
+			if (( (${rw}*100/${rr}) < ${opts[-offset]:-10} )) { 
 				info "sdr: skiping... ${dir}, or append -o|-offset option"
 			} else {
-				info ">>> sdr: updating squashed ${dir}..."
-				squashdir
+				print ">>> sdr: updating squashed ${dir}..."
+				squash_dir
 			}
 		} else {
-			info ">>> sdr: updating squashed ${dir}..."
-			squashdir
+			print ">>> sdr: updating squashed ${dir}..."
+			squash_dir
 		}
 	} else {
-		info ">>> sdr: building squashed ${dir}..."
-		squashdir
+		print ">>> sdr: building squashed ${dir}..."
+		squash_dir
 	}
 }
 

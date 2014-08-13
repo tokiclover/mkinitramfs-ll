@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.13.0 2014/08/08 13:59:42 -tclover Exp $
+# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.13.1 2014/08/08 13:59:42 -tclover Exp $
 basename=${0##*/}
 
 # @FUNCTION: usage
@@ -61,17 +61,20 @@ done
 
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
-info() {
+function info()
+{
 	echo -ne " \e[1;32m* \e[0m$@\n"
 }
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-error() {
+function error()
+{
 	echo -ne " \e[1;31m* \e[0m$@\n"
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die() {
+function die()
+{
 	local ret=$?
 	error "$@"
 	return $ret
@@ -99,103 +102,116 @@ opts[-arc]=$(getconf LONG_BIT)
 # @VARIABLE: opts[-offset] | opts[-o]
 # @DESCRIPTION: offset or rw/rr or ro branch ratio
 
-# @FUNCTION: squashmount
+# @FUNCTION: squash_mount
 # @DESCRIPTION: mount squashed dir
-squashmount() {
+function squash_mount()
+{
 	if [[ "${dir}" == /*bin ]] || [[ "${dir}" == /lib* ]]; then
-		local busybox=/tmp/busybox cp grep mount mv rm mcdir mrc mkdir
-		cp ${opts[-busybox]} $busybox || die "no static busybox binary found"
-		cp="$busybox cp -ar"
-		mv="$busybox mv"
-		rm="$busybox rm -fr"
-		mount="$busybox mount"
-		umount="$busybox umount"
-		grep="$busybox grep"
-		mkdir="$busybox mkdir -p"
+		local busybox=/tmp/busybox
+		cp ${opts[-busybox]} ${busybox} || die "no static busybox binary found"
+		local cp="${busybox} cp -a"        mv="${busybox} mv"
+		local rm="${busybox} rm -fr"    mount="${busybox} mount"
+		local umount="${busybox} umount" grep="${busybox} grep"
+		local mkdir="${busybox} mkdir -p"
 	else
-		cp="cp -ar"; grep=grep
-		mount="mount"; umount=umount
-		mv=mv; rm="rm -fr"
-		mkdir="mkdir -p"
+		local cp="cp -a" grep=grep mv=mv rm="rm -fr"
+		local mount=mount umount=umount
+		local mkdir="mkdir -p"
 	fi
-	if $grep -q aufs:${dir} /proc/mounts; then
-		$umount -l ${dir} || die "sdr: failed to umount aufs:${dir}"
+
+	if ${grep} -q aufs:${dir} /proc/mounts; then
+		${umount} -l ${dir} || die "sdr: failed to umount aufs:${dir}"
 	fi
-	if $grep -q ${base}/rr /proc/mounts; then
-		$umount -l ${base}/rr || die "sdr: failed to umount ${base}.squashfs"
+
+	if ${grep} -q ${base}/rr /proc/mounts; then
+		${umount} -l ${base}/rr || die "sdr: failed to umount ${base}.squashfs"
 	fi
-	$rm "${base}"/rw/* || die "sdr: failed to clean up ${base}/rw"
-	[[ -e ${base}.squashfs ]] && $rm ${base}.squashfs 
-	$mv ${base}.tmp.squashfs ${base}.squashfs ||
+
+	${rm} "${base}"/rw/* || die "sdr: failed to clean up ${base}/rw"
+
+	[[ -e ${base}.squashfs ]] && [[ -e ${base}.tmp.squashfs ]] && ${rm} ${base}.squashfs
+	${mv} ${base}.tmp.squashfs ${base}.squashfs ||
 	die "sdr: failed to move ${dir}.tmp.squashfs"
-	$mount -t squashfs -o nodev,loop,ro ${base}.squashfs ${base}/rr &&
-	{
-		if [[ -n "${opts[-remove]}" ]]; then
-			$rm ${dir} && $mkdir ${dir} || die "sdr: failed to clean up ${dir}"
+
+	if ${mount} -t squashfs -o nodev,loop,ro ${base}.squashfs ${base}/rr; then
+		if [[ ${opts[-remove]} ]]; then
+			${rm} ${dir} && $mkdir ${dir} || die "sdr: failed to clean up ${dir}"
 		fi
-		if [[ -n "${opts[-update]}" ]]; then
-			$rm ${dir} && $mkdir ${dir} && $cp ${base}/rr ${dir} ||
+		if [[ ${opts[-update]} ]]; then
+			${rm} ${dir} && $mkdir ${dir} && ${cp} ${base}/rr ${dir} ||
 			die "sdr: failed to update ${dir}"
 		fi
-		$mount -t aufs -o nodev,udba=reval,br:${base}/rw:${base}/rr aufs:${dir} ${dir} ||
+		${mount} -t aufs -o nodev,udba=reval,br:${base}/rw:${base}/rr aufs:${dir} ${dir} ||
 		die "sdr: failed to mount aufs:${dir} branch"
-	} || die "sdr: failed to mount ${base}.squashfs"
+	else
+		die "sdr: failed to mount ${base}.squashfs"
+	fi
 }
 
-# @FUNCTION: squashdir
+# @FUNCTION: squash_dir
 # @DESCRIPTION: squash dir
-squashdir() {
-	local n=/dev/null
-	if [[ "${opts[-fstab]}" == "y" ]]; then
+function squash_dir()
+{
+	local splashdir svcdir
+
+	if [[ ${opts[-fstab]} ]]; then
 		echo "${base}.squashfs ${base}/rr squashfs nodev,loop,rr 0 0" >>/etc/fstab ||
 			die "sdr: failed to write squashfs line to fstab"
 		echo "aufs:${dir} ${dir} aufs nodev,udba=reval,br:${base}/rw:${base}/rr 0 0" >>/etc/fstab ||
 			die "sdr: failed to write aufs line to fstab"
 	fi
+
 	mkdir -p -m 0755 "${base}"/{rr,rw} || die "sdr: failed to create ${base}/{rr,rw} dirs"
+
 	mksquashfs ${dir} ${base}.tmp.squashfs -b ${opts[-bsize]} -comp ${opts[-comp]} \
 		${opts[-exclude]} || die "sdr: failed to build ${dir}.squashfs img"
+
 	if [[ "${dir}" == /lib${opts[-arc]} ]]; then
 		# move rc-svcdir and cachedir if mounted
-		if grep ${dir}/splash/cache /proc/mounts 1>${n} 2>&1; then
+		if grep -q ${dir}/splash/cache /proc/mounts; then
 			mount --move ${dir}/splash/cache /var/cache/splash &&
-				mcdir=yes || die "sdr: failed to move cachedir"
+			splashdir=1 || die "sdr: failed to move cachedir"
 		fi
-		if grep ${dir}/rc/init.d /proc/mount 1>${n} 2>&1; then
+		if grep -q ${dir}/rc/init.d /proc/mount; then
 			mount --move ${dir}/rc/init.d /var/lib/init.d &&
-				rc=yes || die "sdr: failed to move rc-svcdir"
+			svcdir=1 || die "sdr: failed to move rc-svcdir"
 		fi
 	fi
-	[[ ${opts[-nomount]} ]] || squashmount
-	if [[ -n "$mcdir" ]]; then
+
+	[[ ${opts[-nomount]} ]] || squash_mount
+
+	if [[ ${splashdir} ]]; then
 		mount --move /var/cache/splash ${dir}/splash/cache ||
-			die "sdr: failed to move back cachedir"
+		die "sdr: failed to move back cachedir"
 	fi
-	if [[ -n "$mrc" ]]; then
+
+	if [[ ${svcdir} ]]; then
 		mount --move /var/lib/init.d ${dir}/rc/init.d ||
-			die "sdr: failed to move back rc-svcdir"
+		die "sdr: failed to move back rc-svcdir"
 	fi
-	info ">>> sdr: ...sucessfully build squashed"
+
+	echo ">>> sdr: ...sucessfully build squashed"
 }
 
 # @FUNCTION: squash_init
 # @DESCRIPTION: initialize aufs+squashfs if need be, or exit if no support found
-squash_init() {
+function squash_init()
+{
 	local n=/dev/null
 
 	grep -q aufs /proc/filesystems ||
 	if ! grep -q aufs /proc/modules; then
-	    if ! modprobe aufs >${n} 2>&1; then
-	        error "failed to initialize aufs kernel module, exiting"
-	        opts[-nomount]=1
-	    fi
+		if ! modprobe aufs >${n} 2>&1; then
+			error "failed to initialize aufs kernel module, exiting"
+			opts[-nomount]=1
+		fi
 	fi
 
-    grep -q squashfs /proc/filesystems ||
+	grep -q squashfs /proc/filesystems ||
 	if ! grep -q squashfs /proc/modules; then
-	    if ! modprobe squashfs >${n} 2>&1; then
-	        die "failed to initialize squashfs kernel module, exiting"
-	    fi
+		if ! modprobe squashfs >${n} 2>&1; then
+			die "failed to initialize squashfs kernel module, exiting"
+		fi
 	fi
 }
 squash_init
@@ -205,6 +221,7 @@ for dir in ${opts[-squashdir]//:/ }; do
 	base=${base//\/\//\/}
 	dir=/${dir}
 	dir=${dir//\/\//\/}
+
 	if [[ -e ${base}.squashfs ]]; then
 		if [[ ${opts[-offset]:-10} != 0 ]]; then
 			rr=$(du -sk ${base}/rr | awk '{print $1}')
@@ -212,16 +229,16 @@ for dir in ${opts[-squashdir]//:/ }; do
 			if (( (${rw}*100/${rr}) < ${opts[-offset]:-10} )); then
 				info "sdr: skiping ${dir}, or append -o|--offset option"
 			else
-				info ">>> sdr: updating squashed ${dir}..."
-				squashdir
+				echo ">>> sdr: updating squashed ${dir}..."
+				squash_dir
 			fi
 		else
-			info ">>> sdr: updating squashed ${dir}..."
-			squashdir
+			echo ">>> sdr: updating squashed ${dir}..."
+			squash_dir
 		fi
 	else
-		info ">>> sdr: building squashed ${dir}..."
-		squashdir
+		echo ">>> sdr: building squashed ${dir}..."
+		squash_dir
 	fi			
 done
 
