@@ -110,7 +110,7 @@ squashmount() {
 	[[ -f ${base}.squashfs ]] && ${=rm} ${base}.squashfs 
 	${=mv} ${base}.tmp.squashfs ${base}.squashfs ||
 	die "sdr: failed to move ${base}.tmp.squashfs"
-	${=mount} -t squashfs -onodev,loop,ro ${base}.squashfs ${base}/rr &&
+	${=mount} -t squashfs -o nodev,loop,ro ${base}.squashfs ${base}/rr &&
 	{	
 		if [[ -n ${(k)opts[-r]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
 			${=rm} ${dir} && ${=mkdir} ${dir} ||
@@ -189,6 +189,8 @@ squash_init
 for dir (${(pws,:,)opts[-squashdir]} ${(pws,:,)opts[-d]}) {
 	base=${opts[-squashroot]}/${dir}
 	base=${base//\/\//\/}
+	dir=/${dir}
+	dir=${dir//\/\//\/}
 	if [[ -e ${opts[-squashroot]}/${dir}.squashfs ]] { 
 		if [[ ${opts[-offset]:-10} != 0 ]] {
 			r=${$(du -sk ${base}/rr)[1]}

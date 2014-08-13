@@ -128,7 +128,7 @@ squashmount() {
 	[[ -e ${base}.squashfs ]] && $rm ${base}.squashfs 
 	$mv ${base}.tmp.squashfs ${base}.squashfs ||
 	die "sdr: failed to move ${dir}.tmp.squashfs"
-	$mount -t squashfs -onodev,loop,ro ${base}.squashfs ${base}/rr &&
+	$mount -t squashfs -o nodev,loop,ro ${base}.squashfs ${base}/rr &&
 	{
 		if [[ -n "${opts[-remove]}" ]]; then
 			$rm ${dir} && $mkdir ${dir} || die "sdr: failed to clean up ${dir}"
@@ -137,7 +137,7 @@ squashmount() {
 			$rm ${dir} && $mkdir ${dir} && $cp ${base}/rr ${dir} ||
 			die "sdr: failed to update ${dir}"
 		fi
-		$mount -onodev,udba=reval,br:${base}/rw:${base}/rr -taufs aufs:${dir} ${dir} ||
+		$mount -t aufs -o nodev,udba=reval,br:${base}/rw:${base}/rr aufs:${dir} ${dir} ||
 		die "sdr: failed to mount aufs:${dir} branch"
 	} || die "sdr: failed to mount ${base}.squashfs"
 }
@@ -203,6 +203,8 @@ squash_init
 for dir in ${opts[-squashdir]//:/ }; do
 	base="${opts[-squashroot]}/${dir}"
 	base=${base//\/\//\/}
+	dir=/${dir}
+	dir=${dir//\/\//\/}
 	if [[ -e ${base}.squashfs ]]; then
 		if [[ ${opts[-offset]:-10} != 0 ]]; then
 			rr=$(du -sk ${base}/rr | awk '{print $1}')
