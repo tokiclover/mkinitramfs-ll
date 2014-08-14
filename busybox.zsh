@@ -4,7 +4,8 @@ basename=${(%):-%1x}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
-usage() {
+function usage()
+{
   cat <<-EOF
   $basename-0.13.0
   usage: $basename [-m|-minimal] [-ucli386]
@@ -20,7 +21,7 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-funcction error()
+function error()
 {
 	print -P " %B%F{red}*%b%f $@"
 }
@@ -91,4 +92,4 @@ ebuild ${opts[-pkg]}.ebuild clean || die
 
 unset opts[-pkg] opts[-n] opts[-minimal] opts[-ucl]
 
-# vim:fenc=utf-8ft=zsh:ci:pi:sts=0:sw=4:ts=4:
+# vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:

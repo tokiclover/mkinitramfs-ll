@@ -4,7 +4,8 @@ basename=${0##*/}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
-usage() {
+function usage()
+{
   cat <<-EOF
   $basename-0.13.0
   usage: $basename [-d|--usrdir=usr] [options]
