@@ -1,16 +1,15 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.12.8 2014/07/07 11:40:18 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.bash,v 0.13.0 2014/08/08 11:40:18 -tclover Exp $
 basename=${0##*/}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
-  $basename-0.12.8
-  
+  $basename-0.13.0
   usage: $basename [-m|--minimal] [--ucl=i386]
 
-  -d, --usrdir [usr]     copy busybox binary file to usr/bin
+  -d, --usrdir=usr     copy busybox binary file to usr/bin
   -n, --minimal          build busybox with minimal applets, default is full applets
       --ucl i386         arch string needed to build busybox against uClibc	
   -v, --version 1.20.0   use 1.20.0 instead of latest version of busybox
@@ -21,12 +20,14 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-error() {
+function error()
+{
 	echo -ne " \e[1;31m* \e[0m$@\n"
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die() {
+function die()
+{
 	local ret=$?
 	error "$@"
 	exit $ret
@@ -54,7 +55,7 @@ done
 
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr directory, where to get extra files
-[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${PWD}"/usr
+[[ ${opts[-usrdir]} ]] || opts[-usrdir]="${PWD}"/usr
 # @VARIABLE: opts[-version]
 # @DESCRIPTION: GnuPG version to build
 #
@@ -62,7 +63,7 @@ done
 # @DESCRIPTION: busybox version to build
 opts[-pkg]=busybox
 
-if [[ -n ${opts[-version]} ]]; then 
+if [[ ${opts[-version]} ]]; then 
 :	opts[-pkg]=${opts[-pkg]}-${opts[-version]}
 else
 	opts[-pkg]=$(emerge -pvO ${opts[-pkg]} | grep -o "busybox-[-0-9.r]*")
@@ -75,7 +76,8 @@ ebuild ${opts[-pkg]}.ebuild clean || die "clean failed"
 ebuild ${opts[-pkg]}.ebuild unpack || die "unpack failed"
 pushd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/${opts[-pkg]}/work/${opts[-pkg]} || die
 
-if [[ -n "${opts[-minimal]}" ]]; then make allnoconfig || die
+if [[ ${opts[-minimal]} ]]; then
+	make allnoconfig || die
 	while read cfg; do
 		sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
 	done <"${opts[-usrdir]}"/busybox.cfg
@@ -86,7 +88,7 @@ else
 		-i .config || die
 fi
 
-if [[ -n "${opts[-ucl]}" ]]; then
+if [[ ${opts[-ucl]} ]]; then
 	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[-ucl]}\"|" \
 		-i .config || die "setting uClib ARCH failed"
 fi

@@ -1,5 +1,5 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.13.0 2014/08/06 11:40:15 -tclover Exp $
+# $Id: mkinitramfs-ll/busybox.zsh,v 0.13.0 2014/08/08 11:40:15 -tclover Exp $
 basename=${(%):-%1x}
 
 # @FUNCTION: usage
@@ -7,8 +7,7 @@ basename=${(%):-%1x}
 usage() {
   cat <<-EOF
   $basename-0.13.0
-  
-  usage: $basename [-m|-minimal] [-ucl i386]
+  usage: $basename [-m|-minimal] [-ucli386]
 
   -d, -usrdir[usr]        copy busybox binary file to usr/bin
   -n, -minimal            build busybox with minimal applets, default is full applets
@@ -21,10 +20,14 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-error() { print -P " %B%F{red}*%b%f $@" }
+funcction error()
+{
+	print -P " %B%F{red}*%b%f $@"
+}
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die() {
+function die()
+{
 	local ret=$?
 	error $@
 	exit $ret
@@ -37,8 +40,7 @@ zparseopts -E -D -K -A opts n minimal d:: usrdir:: ucl: h help v: version: || us
 if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
 if [[ $# < 1 ]] { typeset -A opts }
 
-if [[ -f etc/portage/make.conf ]] {
-	source /etc/portage/make.conf 
+if [[ -f /etc/portage/make.conf ]] { source /etc/portage/make.conf 
 } else { die "no /etc/portage/make.conf found" }
 
 # @VARIABLE: opts[-usrdir]
