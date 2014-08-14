@@ -271,7 +271,7 @@ if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
 }
 
 if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
-	opts[-bin]+=:lvm:lvm.static opts[-mgrp]+=:device-mapper
+	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge) ln -sf lvm ${lpv} || die
@@ -336,7 +336,7 @@ if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] {
 }
 
 # @FUNCTION: docp
-# @DESCRIPTION: follow and copy link until binary is copied
+# @DESCRIPTION: follow and copy link until binary/library is copied
 function docp()
 {
 	local link=${1} prefix
@@ -351,6 +351,8 @@ function docp()
 		cp -a {,.}${link} || die
 		[[ -h ${link} ]] || break
 	done
+
+	return 0
 }
 
 # @FUNCTION: dobin
@@ -362,8 +364,8 @@ function dobin()
 
 	[[ "$(ldd ${bin})" == "not a dynamic executable" ]] && return
 
-	for lib ($(ldd ${bin} | sed -nre 's,.* ((/usr,|)/lib.*/.*.so.*) .*,\1,p'))
-		mkdir -p .${lib%/*} && cp -aL {,.}${lib} || die
+	for lib ($(ldd ${bin} | sed -nre 's,.* ((/usr|)/lib.*/.*.so.*) .*,\1,p'))
+		mkdir -p .${lib%/*} && docp ${lib} || die
 }
 
 for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]}) {
