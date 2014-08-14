@@ -2,6 +2,8 @@
 
 0.13.1
 
+* fix copying binaries and libraries: binaries and libraries are no longer
+duplicated, symlinks are copied instead with the libraries;
 * renamed sqfsd to squashd in init,usr/lib/mkinitramfs-ll/functions,
 mkinitramfs-ll.{conf,{ba,z}sh};
 * init/sdr.$shell/squashdir-mount.initd use standard .squashfs file extension;
