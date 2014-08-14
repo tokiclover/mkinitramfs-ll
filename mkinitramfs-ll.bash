@@ -3,12 +3,13 @@
 basename=${0##*/}
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
-usage() {
+function usage()
+{
   cat <<-EOF
   $basename-0.13.1
   usage: $basename [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
-  -a, --all                 short hand or forme of '-squashd -luks -lvm -gpg -toi'
+  -a, --all                 short hand or forme of '-f -l -L -g -M:zfs:zram -t -q -y'
   -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
   -F, --firmware [:file]    append firmware file or directory (relative to /lib/firmware),
                             or else full path, or the whole /lib/firmware dir if empty
@@ -44,7 +45,8 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-function error() {
+function error()
+{
 	echo -ne " \e[1;31m* \e[0m$@\n"
 }
 # @FUNCTION: info
@@ -54,12 +56,14 @@ function info() {
 }
 # @FUNCTION: warn
 # @DESCRIPTION: print warning message to stdout
-function warn() {
+function warn()
+{
 	echo -ne " \e[1;33m* \e[0m$@\n"
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-function die() {
+function die()
+{
 	local ret=$?
 	error "$@"
 	exit $ret
@@ -68,7 +72,8 @@ function die() {
 # @FUNCTION: mktmp
 # @DESCRIPTION: make tmp dir or file in ${TMPDIR:-/tmp}
 # @ARG: -d|-f [-m <mode>] [-o <owner[:group]>] [-g <group>] TEMPLATE
-function mktmp() {
+function mktmp()
+{
 	local tmp=${TMPDIR:-/tmp}/$1-XXXXXX
 	mkdir -p ${mode:+-m$mode} $tmp ||
 	die "mktmp: failed to make $tmp"
@@ -77,7 +82,8 @@ function mktmp() {
 
 # @FUNCTION: adn
 # @DESCRIPTION: ADd the essential Nodes to be able to boot
-function adn() {
+function adn()
+{
 	[[ -c dev/console ]] || mknod -m 600 dev/console c 5 1 || die
 	[[ -c dev/urandom ]] || mknod -m 666 dev/urandom c 1 9 || die
 	[[ -c dev/random ]]  || mknod -m 666 dev/random  c 1 8 || die
@@ -104,8 +110,8 @@ declare -A opts
 
 while [[ $# > 0 ]]; do
 	case $1 in
-		-a|--all) opts[-squashd]=y; opts[-gpg]=y;
-			opts[-lvm]=y; opts[-luks]=y; shift;;
+		-a|--all) opts[-squashd]=y; opts[-gpg]=y; opts[-toi]=y;
+			opts[-lvm]=y; opts[-luks]=y; opts[-module]+=:zfs:zram; shift;;
 		-r|--regen) opts[-regen]=y; shift;;
 		-q|--squashd) opts[-squashd]=y; shift;;
 		-K|--keeptmp) opts[-keeptmp]=y; shift;;
@@ -126,11 +132,15 @@ while [[ $# > 0 ]]; do
 		-M|--module) opts[-module]+=":${2}"; shift 2;;
 		-m|--kmod) opts[-kmod]+=":${2}"; shift 2;;
 		-p|--prefix) opts[-prefix]=${2}; shift 2;;
-		-y|--keymap) opts[-keymap]+=:"${2:-$(grep -E '^keymap' \
-			/etc/conf.d/keymaps|cut -d'"' -f2)}"
+		-y|--keymap) opts[-keymap]+=:"${2}"
+			[[ ${2} ]] || [[ -e /etc/conf.d/keymaps ]] &&
+			opts[-keymap]+=$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
+				/etc/conf.d/keymaps)
 			shift 2;;
-		-f|--font) opts[-font]+=":${2:-$(grep -E '^consolefont' \
-			/etc/conf.d/consolefont|cut -d'"' -f2)}"
+		-f|--font) opts[-font]+=":${2}"
+			[[ ${2} ]] || [[ -e /etc/conf.d/consolefont ]] &&
+			opts[-font]+=$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' \
+				/etc/conf.d/consolefont)
 			shift 2;;
 		-F|--firmware) opts[-firmware]+=:"${2:-/lib/firmware}"; shift 2;;
 		--) shift; break;;
@@ -152,7 +162,7 @@ done
 [[ "${opts[-usrdir]}" ]] || opts[-usrdir]="${PWD}"/usr
 # @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
-opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kv]}
+opts[-initramfs]=${opts[-prefix]}${opts[-kv]}
 [[ "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
 # @VARIABLE: opts[-arch]
 # @DESCRIPTION: kernel architecture
@@ -163,7 +173,7 @@ opts[-initramfs]=/boot/${opts[-prefix]}${opts[-kv]}
 # @VARIABLE: opts[-tmpdir]
 # @DESCRIPTION: tmp dir where to generate initramfs
 # an initramfs compressed image
-opts[-tmpdir]="$(mktmp ${opts[-initramfs]/*\/})"
+opts[-tmpdir]="$(mktmp ${opts[-initramfs]})"
 
 case ${opts[-comp]%% *} in
 	bzip2)	opts[-initramfs]+=.cpio.bz2;;
@@ -177,30 +187,30 @@ esac
 
 # @FUNCTION: docpio
 # @DESCRIPTION: generate an initramfs image
-function docpio() { 
-	find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${opts[-initramfs]}
+function docpio()
+{
+	local initramfs=${1:-/boot/${opts[-initramfs]}}
+	find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${initramfs}
 }
 
-if [[ -n ${opts[-regen]} ]]; then
-	[[ -d ${opts[-tmpdir]} ]] || die "${opts[-tmpdir]}: no old initramfs dir"
-	echo ">>> regenerating ${opts[-initramfs]}..."
-	pushd ${opts[-tmpdir]} || die
-	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions lib/mkinitramfs-ll &&
-	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
-	docpio || die
-	echo ">>> regenerated ${opts[-initramfs]}..." && exit
-fi
-
-if [[ -f ${opts[-initramfs]} ]]; then
-	mv ${opts[-initramfs]}{,.old}
+if [[ -f /boot/${opts[-initramfs]} ]]; then
+	mv /boot/${opts[-initramfs]}{,.old}
 fi
 
 echo ">>> building ${opts[-initramfs]}..."
+pushd "${opts[-tmpdir]}" || die "${opts[-tmpdir]} not found"
 
-pushd "${opts[-tmpdir]}" || die
-rm -fr *
+if [[ ${opts[-regen]} ]]; then
+	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions lib/mkinitramfs-ll &&
+	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
+	docpio /boot/${opts[-initramfs]} || die
+	echo ">>> regenerated ${opts[-initramfs]}..." && exit
+else
+	rm -fr *
+fi
+
 if [[ -d "${opts[-usrdir]}" ]]; then
-	cp -ar "${opts[-usrdir]}" . && rm -f usr/README* || die
+	cp -ar "${opts[-usrdir]}" . &&
 	mv -f {usr/,}root &&
 	mv -f {usr/,}etc &&
 	mv -f usr/lib lib${opts[-arc]} || die
@@ -226,7 +236,7 @@ cp -a "${opts[-usrdir]}"/../init . && chmod 775 init || die
 cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
-if [[ -n "${opts[-firmware]}" ]]; then
+if [[ ${opts[-firmware]} ]]; then
 	mkdir -p lib/firmware
 	for f in ${opts[-firmware]//:/ }; do
 		if [[ -e $f ]] || [[ -d $f ]]; then
@@ -270,13 +280,15 @@ while read line; do
 	ln -fs /bin/busybox $line
 done <etc/mkinitramfs-ll/busybox.app
 
-if [[ -n "${opts[-luks]}" ]]; then
+if [[ ${opts[-luks]} ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 fi
-if [[ -n "${opts[-squashd]}" ]]; then
+
+if [[ ${opts[-squashd]} ]]; then
 	opts[-bin]+=:umount.aufs:mount.aufs opts[-mgrp]+=:squashd
 fi
-if [[ -n "${opts[-gpg]}" ]]; then
+
+if [[ ${opts[-gpg]} ]]; then
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]]; then :;
 	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
@@ -285,7 +297,8 @@ if [[ -n "${opts[-gpg]}" ]]; then
 		die "there's no usable gpg/gnupg-1.4.x binary"
 	fi
 fi
-if [[ -n "${opts[-lvm]}" ]]; then
+
+if [[ ${opts[-lvm]} ]]; then
 	opts[-bin]+=:lvm:lvm.static opts[-mgrp]+=:device-mapper
 	pushd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
@@ -297,11 +310,12 @@ fi
 
 # @FUNCTION: domod
 # @DESCRIPTION: copy kernel module
-domod() {
+function domod()
+{
 	local mod module ret
 	for mod in "$@"; do
 		module=$(find /lib/modules/${opts[-kv]} -name ${mod}.ko -or -name ${mod}.o)
-		if [ -n "${module}" ]; then
+		if [[ ${module} ]]; then
 			mkdir -p .${module%/*} && cp -ar {,.}${module} ||
 				die "failed to copy ${odulem} module"
 		else
@@ -357,34 +371,27 @@ fi
 
 # @FUNCTION: dobin
 # @DESCRIPTION: copy binary with libraries if not static
-dobin() {
-	for bin in $@; do
-		if [[ -x ${bin} ]]; then
-			cp -a ${bin} .${bin/%.static}
-			if [[ -L ${bin} ]]; then
-				bin=$(which $(readlink ${bin})) && cp -au {,.}${bin} || die
-			fi
-			if [[ "$(ldd ${bin})" != *"not a dynamic executable"* ]]; then
-				for lib in $(ldd ${bin} | tail -n+2 | sed -e '/use-linker.*$/d' -e 's:li.*=>\ ::g' -e 's:\ (.*)::g')
-				do mkdir -p .${lib%/*} && cp -aL {,.}${lib} || die
-				done
-				warn "${bin} is not a static binary."
-			fi
-		else
-			warn "${bin} binary doesn't exist"
-		fi
+function dobin()
+{
+	local b=${1} lib
+	[[ -L ${b} ]] && b=$(readlink -f ${b})
+	cp -a ${b} .${b} || die
+
+	[[ "$(ldd ${b})" == "not a dynamic executable" ]] && return
+
+	for lib in $(ldd ${b} | sed -nre 's,.* ((/usr|)/lib.*/.*.so.*) .*,\1,p'); do
+		mkdir -p .${lib%/*} && cp -aL {,.}${lib} || die
 	done
 }
 
 for bin in ${opts[-bin]//:/ }; do
-	if [[ -x usr/bin/${bin##*/} ]] || [[ -x usr/sbin/${bin##*/} ]] ||
-	[[ -x bin/${bin##*/} ]] || [[ -x sbin/${bin##*/} ]]; then :;
-	elif [[ -x ${bin} ]]; then
-		dobin ${bin}
-	else
-		which ${bin##*/} 1>/dev/null 2>&1 && dobin $(which ${bin##*/}) ||
-		warn "no ${bin} binary found"
-	fi
+	for b in {usr/,}{,s}bin/${bin}; do
+		[[ -x ${b} ]] && continue 2
+	done
+
+	[[ -x ${bin} ]] && dobin ${bin}
+	which ${bin} 1>/dev/null 2>&1 && dobin $(which ${bin}) ||
+	warn "no ${bin} binary found"
 done
 
 domod ${opts[-kmod]//:/ }
@@ -402,9 +409,9 @@ for lib in $(find usr/lib/gcc -iname 'lib*'); do
 	ln -fs /$lib usr/lib/${lib##*/}
 done
 
-docpio || die
+docpio /boot/${opts[-initramfs]} || die
 
-[[ -n "${opts[-keeptmp]}" ]] || rm -rf ${opts[-dir]}
+[[ ${opts[-keeptmp]} ]] || rm -rf ${opts[-dir]}
 
 echo ">>> ${opts[-initramfs]} initramfs built"
 
