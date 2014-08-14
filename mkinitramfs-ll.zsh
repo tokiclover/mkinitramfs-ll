@@ -335,27 +335,43 @@ if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] {
 		} else { warn "splash themes does not exist" }
 }
 
+# @FUNCTION: docp
+# @DESCRIPTION: follow and copy link until binary is copied
+function docp()
+{
+	local link=${1} prefix
+	[[ -n ${link} ]] || return
+	cp -a {,.}${link}
+
+	[[ -h ${link} ]] &&
+	while true; do
+	    prefix=${link%/*}
+		link=$(readlink ${link})
+		[[ ${link%/*} == ${link} ]] && link=${prefix}/${link}
+		cp -a {,.}${link} || die
+		[[ -h ${link} ]] || break
+	done
+}
+
 # @FUNCTION: dobin
 # @DESCRIPTION: copy binary with libraries if not static
 function dobin()
 {
-	local b=${1} lib
-	[[ -L ${b} ]] && b=$(readlink -f ${b})
-	cp -a ${b} .${b} || die
+	local lib
+	docp ${bin} || return
 
-	[[ "$(ldd ${b})" == "not a dynamic executable" ]] && return
+	[[ "$(ldd ${bin})" == "not a dynamic executable" ]] && return
 
-	for lib ($(ldd ${b} | sed -nre 's,.* ((/usr,|)/lib.*/.*.so.*) .*,\1,p')) {
+	for lib ($(ldd ${bin} | sed -nre 's,.* ((/usr,|)/lib.*/.*.so.*) .*,\1,p'))
 		mkdir -p .${lib%/*} && cp -aL {,.}${lib} || die
-	}
 }
 
 for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]}) {
 	for b ({usr/,}{,s}bin/${bin}) { [[ -x ${b} ]] && continue 2 }
 
 	[[ -x ${bin} ]] && dobin ${bin}
-	which ${bin} >/dev/null 2>&1 && dobin $(which ${bin}) ||
-	warn "no ${bin} binary found"
+	bin=$(which ${bin} 2>/dev/null)
+	dobin ${bin} || warn "no ${bin} binary found"
 }
 
 for module (${(pws,:,)opts[-kmod]} ${(pws,:,)opts[-m]}) domod ${module}
