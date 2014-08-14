@@ -7,8 +7,7 @@ basename=${(%):-%1x}
 usage() {
   cat <<-EOF
   $basename-0.13.0
-  
-  usage: $basename [-d|--usrdir=usr] [options]
+  usage: $basename -d|--usrdir[usr] [options]
 
   -d, -usrdir[usr]       copy binary and options.skel files to usr/
   -u, -useflag<flags>    extra USE flags to append to USE="nls static"
@@ -20,10 +19,14 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-error() { print -P " %B%F{red}*%b%f $@" }
+function error()
+{
+	print -P " %B%F{red}*%b%f $@"
+}
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die() {
+function die()
+{
 	local ret=$?
 	error $@
 	exit $ret
@@ -36,8 +39,7 @@ zparseopts -E -D -K -A opts u:: useflag:: v:: version:: d:: usrdir:: h help || u
 if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
 if [[ $# < 1 ]] { typeset -A opts }
 
-if [[ -f etc/portage/make.conf ]] {
-	source /etc/portage/make.conf 
+if [[ -f /etc/portage/make.conf ]] { source /etc/portage/make.conf 
 } else { die "no /etc/portage/make.conf found" }
 
 # @VARIABLE: opts[-usrdir]

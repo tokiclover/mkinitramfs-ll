@@ -1,13 +1,12 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/gnupg.bash,v 0.12.8 2014/07/15 12:00:33 -tclover Exp $
+# $Id: mkinitramfs-ll/gnupg.bash,v 0.13.0 2014/08/08 12:00:33 -tclover Exp $
 basename=${0##*/}
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
-  $basename-0.12.8
-  
+  $basename-0.13.0
   usage: $basename [-d|--usrdir=usr] [options]
 
   -d, --usrdir [usr]     copy binary and options.skel files to usr/
@@ -20,12 +19,14 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-error() {
+function error()
+{
 	echo -ne " \e[1;31m* \e[0m$@\n"
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-die() {
+function die()
+{
 	local ret=$?
 	error "$@"
 	exit $ret
@@ -50,10 +51,10 @@ done
 
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path where to get extra files
-[[ -n "${opts[-usrdir]}" ]] || opts[-usrdir]="${PWD}"/usr
+[[ ${opts[-usrdir]} ]] || opts[-usrdir]="${PWD}"/usr
 # @VARIABLE: opts[-version] | opts[-v]
 # @DESCRIPTION: GnuPG version to build
-[[ -n "${opts[-version]}" ]] || opts[-version]='1.4'
+[[ ${opts[-version]} ]] || opts[-version]='1.4'
 # @VARIABLE: opts[-pkg]
 # @DESCRIPTION: GnuPG version to build
 opts[-gpg]=$(emerge -pvO "=app-crypt/gnupg-${opts[-version]}*" |
