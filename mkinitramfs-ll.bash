@@ -256,6 +256,10 @@ done
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for mod in ${opts[-module]//:/ }; do
+	if [[ -e ${opts[-usrdir]}/..\/modules/*$mod* ]]; then
+		warn "$mod module does not exist"
+		continue
+	fi
 	cp -a ${opts[-usrdir]}/..\/modules/*$mod* lib/mkinitramfs-ll/
 	opts[-bin]+=:${opts[-b$mod]}
 	opts[-mgrp]+=:$mod

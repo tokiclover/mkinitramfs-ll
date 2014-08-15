@@ -224,10 +224,15 @@ for bin (dmraid mdadm zfs)
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]}) {
+	if [[ -e ${opts[-usrdir]}/..\/modules/*$mod* ]] {
+		warn "$mod module does not exist"
+		continue
+	}
 	cp -a ${opts[-usrdir]:h}/modules/*$mod* lib/mkinitramfs-ll/
 	opts[-bin]+=:${opts[-b$mod]}
 	opts[-mgrp]+=:$mod
 }
+
 cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
