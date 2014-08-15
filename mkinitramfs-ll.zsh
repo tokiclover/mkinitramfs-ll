@@ -113,8 +113,11 @@ if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
 # hold almost every single option/variable
 if [[ $# < 1 ]] { typeset -A opts }
 
-if [[ -f mkinitramfs-ll.conf ]] { source mkinitramfs-ll.conf 
-} else { die "no mkinitramfs-ll.conf found" }
+if [[ -f mkinitramfs-ll.conf ]] {
+	source mkinitramfs-ll.conf 
+} else {
+	die "no mkinitramfs-ll.conf found"
+}
 
 # @VARIABLE: opts[-kv]
 # @DESCRIPTION: kernel version to pick up

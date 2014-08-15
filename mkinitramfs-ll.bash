@@ -148,7 +148,8 @@ while [[ $# > 0 ]]; do
 	esac
 done
 
-[[ -f mkinitramfs-ll.conf ]] && source mkinitramfs-ll.conf ||
+[[ -f mkinitramfs-ll.conf ]] &&
+	source mkinitramfs-ll.conf ||
 	die "no mkinitramfs-ll.conf found"
 
 # @VARIABLE: opts[-kv]
