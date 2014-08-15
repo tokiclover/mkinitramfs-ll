@@ -202,7 +202,7 @@ echo ">>> building ${opts[-initramfs]}..."
 pushd "${opts[-tmpdir]}" || die "${opts[-tmpdir]} not found"
 
 if [[ ${opts[-regen]} ]]; then
-	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions lib/mkinitramfs-ll &&
+	cp -af {${opts[-usrdir]}/,}lib/mkinitramfs-ll/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio /boot/${opts[-initramfs]} || die
 	echo ">>> regenerated ${opts[-initramfs]}..." && exit

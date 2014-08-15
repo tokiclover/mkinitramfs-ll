@@ -186,7 +186,7 @@ print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 pushd ${opts[-tmpdir]} || die "no ${opts[-tmpdir]} tmpdir found"
 
 if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
-	cp -af ${opts[-usrdir]}/lib/mkinitramfs-ll/functions lib/mkinitramfs-ll &&
+	cp -af {${opts[-usrdir]}/,}lib/mkinitramfs-ll/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio /boot/${opts[-initramfs]} || die
 	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f" && exit
@@ -246,7 +246,12 @@ if [[ -n ${(k)opts[-F]} ]] || [[ -n ${(k)opts[-firmware]} ]] {
 			cp -a $f lib/firmware/ || warn "failed to copy $f firmware"
 		} elif [[ -e /lib/firmware/$f ]] || [[ -d /lib/firmware/$f ]] {
 			cp -a {/,}lib/firmware/$f || warn "failed to copy $f firmware"
-		} else { warn "failed to copy $f firmware" }
+		} else {
+			if [[ -d /lib/firmware ]] {
+				cp -a {/,}lib/firmware &&
+				warn "/lib/firmware: fully copied"
+			}
+		}
 	}
 }
 
