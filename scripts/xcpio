@@ -1,21 +1,21 @@
 #!/bin/sh
-# $Id: mkinitramfs-ll/xcpio, 2014/07/15 10:56:45 -tclover Exp $
+# $Id: mkinitramfs-ll/xcpio, 2014/08/08 10:56:45 -tclover Exp $
 
 [[ -z "$@" ]] && echo "usage: ${0##*/} [{-l|-list}|{-x|-extract}] files" && exit 1
 
 comp() {
-	local comp
+	local comp o
 	case $1 in
 		*.bz*2) comp=bzcat;;
 		*.gz*) comp=zcat;;
 		*.xz) comp=xzcat;;
 		*.lzma) comp=xzcat;;
 		*.lzo*) comp='lzop -cd';;
-		*.lz4) comp='lz4 -cd';;
+		*.lz4) comp='lz4 -d' o=-;;
 		*.lz*) comp='lzip -cd';;
 		*) echo "xcpio: unsupported compression format"; exit 2;;
 	esac
-	$comp $1
+	$comp $1 $o
 }
 
 case $1 in
