@@ -9,7 +9,7 @@ function usage()
   $basename-0.13.1
   usage: $basename [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
-  -a, --all                 short hand or forme of '-f -l -L -g -M:zfs:zram -t -q -y'
+  -a, --all                 short hand or forme of '-l -L -g -M:zfs:zram -t -q'
   -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
   -F, --firmware [:file]    append firmware file or directory (relative to /lib/firmware),
                             or else full path, or the whole /lib/firmware dir if empty
@@ -403,7 +403,8 @@ function dobin()
 
 	[[ "$(ldd ${bin})" == "not a dynamic executable" ]] && return 0
 
-	for lib in $(ldd ${bin} | sed -nre 's,.* ((/usr|)/lib.*/.*.so.*) .*,\1,p'); do
+	for lib in $(ldd ${bin} | sed -nre 's,.* (/usr/lib.*/.*.so.*) .*,\1,p' \
+	    -e 's,.* (/lib.*/*.so.*) .*,\1,p' -e 's,.*(/lib.*/ld.*.so.*) .*,\1,p'); do
 		mkdir -p .${lib%/*} && docp ${lib} || die
 	done
 }

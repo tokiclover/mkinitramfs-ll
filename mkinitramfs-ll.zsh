@@ -9,7 +9,7 @@ usage() {
   $basename-0.13.1
   usage: $basename [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
 
-  -a, -all                 short hand or forme of '-f -g -l -L -q -t -y -M:zfs:zram'
+  -a, -all                 short hand or forme of '-g -l -L -q -t -M:zfs:zram'
   -f, -font[:ter-v14n]     include a colon separated list of fonts to the initramfs
   -k, -kv3.4.4-git         build an initramfs for kernel 3.4.4-git, or else \$(uname -r)
   -F, -firmware[:file]     append firmware file or directory (relative to /lib/firmware),
@@ -372,7 +372,8 @@ function dobin()
 
 	[[ "$(ldd ${bin})" == "not a dynamic executable" ]] && return 0
 
-	for lib ($(ldd ${bin} | sed -nre 's,.* ((/usr|)/lib.*/.*.so.*) .*,\1,p'))
+	for lib ($(ldd ${bin} | sed -nre 's,.* (/usr/lib.*/.*.so.*) .*,\1,p' \
+	    -e 's,.* (/lib.*/*.so.*) .*,\1,p' -e 's,.*(/lib.*/ld.*.so.*) .*,\1,p'))
 		mkdir -p .${lib%/*} && docp ${lib} || die
 }
 
