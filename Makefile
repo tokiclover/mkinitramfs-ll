@@ -21,15 +21,15 @@ instal_all: install install_aufs_squashfs install_bash install_zsh install_zram
 install:
 	$(shell) install -pd $(datadir)/usr/lib/{mdev,$(PACKAGE)}
 	$(shell) install -pd $(datadir)/usr/etc/{splash,$(PACKAGE)}
+	$(shell) find . -name '.keep*' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
 	$(shell) install -pm 755 init        $(datadir)
 	$(shell) install -pd                 $(datadir)/scripts
 	$(shell) install -pm 644 busybox.cfg $(datadir)/scripts
 	$(shell) for script in $(SCRIPTS); do \
 		install -pm 755 scripts/$${script}    $(datadir)/scripts; done
-	$(shell) find usr -name '.keep' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
 	$(shell) for module in $(MODULES); do \
 		for file in modules/*$${module}*; do \
-			install -Dpm644 $${file} $(datadir)/usr/lib/$(PACKAGE)/$${file}; \
+			install -Dpm644 $${file} $(datadir)/$${file}; \
 		done; done
 	$(shell) install -pm 644 {,$(datadir)/}usr/lib/$(PACKAGE)/functions
 	$(shell) install -Dpm644 {,$(datadir)/}usr/root/.gnupg/gpg.conf
@@ -83,12 +83,13 @@ uninstall:
 	$(shell) rm -f $(datadir)/usr/{root/.gnupg/gpg.conf,share/gnupg/options.skel}
 	$(shell) find ${datadir}/usr -name '.keep' -exec rm -f '{}' \;
 	$(shell) for file in $(MODULES); do \
-		rm -f $(datadir)/usr/lib/$(PACKAGE)/*$${file}*; done
+			rm -f $(datadir)/modules/*$${file}*; \
+		done
 	$(shell) rm -f $(datadir)/usr/lib/mdev/{ide_links,usbdev,usbdisk_link}
 	$(shell) rm -f $(datadir)/usr/lib/$(PACKAGE)/functions
 	$(shell) rmdir $(datadir)/usr/{lib/{mdev,$(PACKAGE)},etc/{$(PACKAGE),splash}}
 	$(shell) rmdir $(datadir)/usr/{lib,{,s}bin,root/{.gnupg,},etc/{$(PACKAGE),splash,}}
-	$(shell) rmdir $(datadir)/usr/{share/{consolefonts,keymaps,gnupg,},}
+	$(shell) rmdir $(datadir)/{usr/{share/{consolefonts,keymaps,gnupg,},},modules}
 
 uninstall_bash:
 	$(shell) rm -f $(bindir)/$(PACKAGE).bash
