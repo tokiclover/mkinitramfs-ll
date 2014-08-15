@@ -15,8 +15,8 @@ function usage()
                             or else full path, or the whole /lib/firmware dir if empty
   -k, --kv 3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
   -c, --comp ['gzip -9']    use 'gzip -9' command instead default compression command
-  -L, --luks                add LUKS support, require a sys-fs/cryptsetup[static] binary
-  -l, --lvm                 add LVM support, require a static sys-fs/lvm2[static] binary
+  -L, --luks                add LUKS support, require a sys-fs/cryptsetup binary
+  -l, --lvm                 add LVM support, require a static sys-fs/lvm2 binary
   -b, --bin :<bin>          include a colon separated list of binar-y-ies to the initramfs
   -d, --usrdir [usr]        use usr dir for user extra files, binaries, scripts, fonts...
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
@@ -29,7 +29,7 @@ function usage()
       --mgpg [:<mod>]       include a colon separated list of kernel modules to gpg     group
       --mboot [:<mod>]      include a colon separated list of kernel modules to boot   group
   -s, --splash [:<theme>]   include a colon separated list of splash themes to the initramfs
-  -t, --toi                 add tuxonice support for splash, require tuxoniceui_text binary
+  -t, --toi                 add tuxonice support, require tuxoniceui_text binary for splash
   -q, --squashd             add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
   -r, --regen               regenerate a new initramfs from an old dir with newer init
   -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
