@@ -121,6 +121,7 @@ squash_umount()
 	base=${base//\/\//\/}
 	[[ "${RC_UNAME}" == "Linux" ]] && no_netdev="-O no_netdev"
 
+	auplink ${dir} flush
 	ebegin "umounting squashed ${dir}"
 	umount -lt aufs ${dir} ${no_netdev} 1>${n} 2>&1
 	eend "${?}" "failed to umount squash-ed aufs:${dir}" || return
@@ -134,6 +135,7 @@ squash_umount()
 squash_remount()
 {
 	local opt=${2:-ro}
+	auplink ${dir} flush
 	ebegin "remounting in read-only mode aufs:${dir}"
 	mount -o remount,${opt} aufs:${dir} 1>/dev/null 2>&1
 	eend "${?}" "failed to remount aufs:${dir} in read-only mode"
