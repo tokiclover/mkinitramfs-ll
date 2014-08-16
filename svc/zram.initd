@@ -8,7 +8,6 @@ description="set up zram devices and initialize zram if necessary"
 
 depend()
 {
-	need localmount
 	before bootmisc acpid
 }
 
