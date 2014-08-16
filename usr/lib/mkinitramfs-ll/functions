@@ -4,7 +4,8 @@
 # EXTERNAL
 # @USAGE: <var> <var> <char> <int> <opt>
 # @DESCRIPTION: retrieve a value from a kernel cmdline
-arg() {
+function arg()
+{
 	eval ${1}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
 }
 
@@ -12,7 +13,8 @@ arg() {
 # @EXTTERNAL
 # @USAGE: <srting>
 # @DESCRIPTION: print message on stdout
-info() {
+function info()
+{
 	echo -ne "\033[1;32m * \033[0m$@\n"
 }
 
@@ -20,7 +22,8 @@ info() {
 # @EXTERNAL
 # @USAGE: <string>
 # @DESCRIPTION: print error message on stdout
-error() {
+function error()
+{
 	echo -ne "\033[1;31m * \033[0m$@\n"
 }
 
@@ -28,7 +31,8 @@ error() {
 # @EXTERNAL
 # @USAGE: [ -e | -i ] <string>
 # @DESCRIPTION: manage message sent to stdout and to splash deamon
-msg() {
+function msg()
+{
 	local _opt _msg
 	while [ $# -ge 1 ]; do
 		case $1 in
@@ -50,7 +54,8 @@ msg() {
 # @EXTERNAL
 # @USAGE: [ -d | -e | -i ] <string>
 # @DESCRIPTION: execute a command and log the command into $LOGFILE
-debug() {
+function debug()
+{
 	local _cmd _opt _ret
 	while [ $# -ge 1 ]; do
 		case $1 in
@@ -79,7 +84,8 @@ debug() {
 # @FUNCTION: rsh
 # @EXTERNAL
 # @DESCRIPTON: Rescue SHell
-rsh() {
+function rsh()
+{
 	if $SPLD; then
 		debug openvt -c${CONSOLE#*tty} $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
 	elif ack setsid; then
@@ -93,7 +99,8 @@ rsh() {
 # @EXTERNAL
 # @USAGE: <msg>
 # @DESCRIPTION: drop into a rescue shell after a command failure
-die() {
+function die()
+{
 	local _ret=$?
 	[ -n "$@" ] && msg -e "[$_ret]: $@"
 	msg -i "Dropping into a rescueshell..."
@@ -105,7 +112,8 @@ die() {
 # #EXTERNAL
 # @USAGE: <bin>
 # @DESCRIPTION: Binary ChecK
-bck() {
+function bck()
+{
 	debug -d which $1 1>/dev/null 2>&1
 }
 
@@ -113,7 +121,8 @@ bck() {
 # @EXTERNAL
 # @USAGE: [<applets>]
 # @DESCRIPTION: busybox Applets ChecK
-ack() {
+function ack()
+{
 	local _app _line
 	if [ -n "$@" ] && [ -f $CONFDIR/busybox.app ]; then
 		for _app in $@; do
@@ -171,14 +180,16 @@ _getopt() {
 # @EXTERNAL
 # @USAGE: <splash spld_cmd>
 # @DESCRIPTION: send command or message to splash deamon
-spld_cmd() {
+function spld_cmd()
+{
 	echo "$@" >$SPLASH_FIFO
 }
 
 # @FUNCTION: spld_verbose
 # @EXTERNAL
 # @DESCRIPTION: set splash deamon to verbose message
-spld_verbose() {
+function spld_verbose()
+{
 	debug chvt ${CONSOLE:8:1}
 	debug spld_cmd "set mode spld_verbose"
 }
@@ -186,7 +197,8 @@ spld_verbose() {
 # @FUNCTION: spld_silent
 # @EXTERNAL
 # @DESCRIPTION: set splash deamon to silent, suppresse message
-spld_silent() {
+function spld_silent()
+{
 	debug chvt ${CONSOLE:8:1}
 	debug spld_cmd "set mode silent"
 }
@@ -194,7 +206,8 @@ spld_silent() {
 # @FUNCTION: spld_stop
 # @EXTERNAL
 # @DESCRIPTION: stop splash deamon
-spld_stop() {
+function spld_stop()
+{
 	$SPLD && SPLD=false || return
 	debug spld_cmd "exit"
 	export CONSOLE=/dev/console
@@ -217,7 +230,8 @@ spld_stop() {
 # @EXTERNAL
 # @USAGE: <var>
 # @DESCRIPTION: read line from stdin and drop to rescue shell if a word match
-shread() {
+function shread()
+{
 	read _asw
 	case $_asw in
 		sh|SH|shell|SHELL|rsh|RSH) die;;
@@ -228,7 +242,8 @@ shread() {
 # @EXTERNAL
 # @USAGE: <block device node | (part of) uuid | (part of) label>
 # @DESCRIPTION: get BLocK device
-blk() {
+function blk()
+{
 	local _asw _blk=$(blkid | grep "$1" | cut -d: -f1)
 	
 	if [ ! -b "$_blk" ]; then
@@ -260,7 +275,8 @@ blk() {
 # @EXTERNAL
 # @USAGE: </path/to/file> plus a mapping indirectly given by <_fn>
 # @DESCRIPTION: decrypt dm-crypt LUKS Device Key file
-ldk() {
+function ldk()
+{
 	[ -b "$1" ] && return
 
 	if [ ! "$CLD" ]; then
@@ -282,7 +298,8 @@ ldk() {
 # @EXTERNAL
 # @USAGE: <mode:dev:/path/to/file>
 # @DESCRIPTION: SeT Key [file] mode for decryptiong
-stk() {
+function stk()
+{
 	local _fp _fn _kd _km
 	arg "_fp" "$1" ":" "3" "-s"
 	arg "_kd" "$1" ":" "2" "-s"
@@ -328,7 +345,8 @@ stk() {
 # @EXTERNAL
 # @USAGE: <dev> <key> [<BKD>] [<group>]
 # @DESCRIPTION: get BlocK Device (dm|md-raid, dm-crypt, lvm)
-bkd() {
+function bkd()
+{
 	debug -d test -n "$1"
 	[ -n "$3" ] && debug -d stk "$4"
 
@@ -362,7 +380,8 @@ bkd() {
 # @EXTERNAL
 # @USAGE: <mapping>
 # @DESCRIPTION: close dm-crypt mapping (colon separated list)
-dmclose() { 
+function dmclose()
+{
 	local IFS="${IFS}:" 
 	for _p in $@; do 
 		debug cryptsetup remove ${_p%-*}
@@ -373,7 +392,8 @@ dmclose() {
 # @EXTERNAL
 # @USAGE: <dev> <var>
 # @DESCRIPTION: get DM-Crypt LUKS block device or detached header
-dmcrypt() {
+function dmcrypt()
+{
 	local _asw _ldh=$1
 	while ! debug cryptsetup $_arg "$_ldh"; do
 		msg -i "Type in a valid cyphertext device e.g. \
@@ -389,7 +409,8 @@ dmcrypt() {
 # @EXTERNAL
 # @USAGE: <map-dev+header>
 # @DESCRIPTION: open dm-crypt LUKS block device
-dmopen() { 
+function dmopen()
+{
 	$ECK && debug -d bck cryptsetup
 	debug _modprobe dm-crypt
 
@@ -434,7 +455,8 @@ dmopen() {
 # @EXTERNAL
 # @USAGE: <vg-lv> [<map-crypted_pv>]
 # @DESCRIPTION: open LVM Logical Volume
-lvopen() {
+function lvopen()
+{
 	$ECK && debug -d bck lvm
 	debug _modprobe device-mapper
 	local _lv=${1/-//}
@@ -465,7 +487,8 @@ lvopen() {
 # @EXTERNAL
 # @USAGE: <mdn-opt>
 # @DESCRIPTION: open md-raid block device
-mdopen() {
+function mdopen()
+{
 	local _dev _conf _opt _set _uuid
 	arg "_dev" "$1" "+" "1"
 	arg "_opt" "$1" "+" "2" "-s"
@@ -508,7 +531,8 @@ mdopen() {
 # @EXTERNAL
 # @USAGE: indirectly given by isquashd cmdline arg and/or SQUASHD, SQUASHDIR variables
 # @DESCRIPTION: mount squashed, AUFS+squashfs, directories
-squashd() {
+function squashd()
+{
 	[ "${isquashd%,*}" = "y" ] || SQUASHDIR="${isquashd%,*}"
 	if [ "${isquashd#*,}" = "y" ]; then :;
 	elif [ "$(echo ${isquashd#*,}|cut -d: -f1)" = "a" ]; then
@@ -542,7 +566,8 @@ squashd() {
 # @EXTERNAL
 # @UAGE: </usr:/var:...>
 # @DESCRIPTION: mount /usr:... using embeded /etc/fstab before switching root
-fmount() {
+function fmount()
+{
 	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
 	[ -f $NEWROOT/etc/fstab ] || die "mnt: no /etc/fstab file found"
 	for _x in $imount; do
