@@ -403,8 +403,8 @@ function dobin()
 
 	[[ "$(ldd ${bin})" == "not a dynamic executable" ]] && return 0
 
-	for lib in $(ldd ${bin} | sed -nre 's,.* (/usr/lib.*/.*.so.*) .*,\1,p' \
-	    -e 's,.* (/lib.*/*.so.*) .*,\1,p' -e 's,.*(/lib.*/ld.*.so.*) .*,\1,p'); do
+	for lib in $(ldd ${bin} | sed -nre 's,.* (/.*lib.*/.*.so.*) .*,\1,p' \
+	    -e 's,.*(/lib.*/ld.*.so.*) .*,\1,p'); do
 		mkdir -p .${lib%/*} && docp ${lib} || die
 	done
 }
