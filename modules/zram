@@ -1,11 +1,12 @@
-# $Id: modules/zram,v 0.13.0 2014/07/25 09:40:11 -tclover Exp $
+# $Id: modules/zram,v 0.13.1 2014/08/08 09:40:11 -tclover Exp $
 
 set -e +x
 source $LIBDIR/functions
 
 [ -z "$izram" ] && _getopt "izram"
 
-dozram() {
+function dozram()
+{
 	local NUM DEV num dev fs size
 	echo $$ >/run/${0##*/}.pid
 	arg "NUM" "$izram" "," "1"
@@ -19,7 +20,7 @@ dozram() {
 		arg "size" "$dev" "-" "1"
 		arg "fs" "$dev" "-" "2" "-s"
 		echo $size >/sys/block/zram$num/disksize
-		bin="$(ls /sbin/mk*$fs)"
+		bin="$(ls /sbin/mkfs.$fs 2>/dev/null)"
 		if [ -n "$fs" ] && [ -n "$bin" ]; then
 			debug -d $bin /dev/zram$num
 		fi
