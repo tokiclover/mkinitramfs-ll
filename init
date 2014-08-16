@@ -58,7 +58,8 @@ source $LIBDIR/functions || $sh -a
 # @FUNCTION: domod
 # @INTERNAL
 # @DESCRIPTION: execute a module or user script passed as arg 1
-domod() {
+function domod()
+{
 	msg -i "exec: $sh -aex $1..."
 	debug $sh -aex $1
 	if [ -f /run/env ]; then
@@ -74,7 +75,8 @@ domod() {
 # @FUNCTION: lvl
 # @INTERNAL
 # @DESCRIPTION: make LeVeL and drop to rescue shell if $LVL = $RSH
-lvl() {
+function lvl()
+{
 	msg -i ">>> Switching to init shell run level: $1"
 	export LVL=$1
 
@@ -93,7 +95,8 @@ lvl() {
 # @FUNCTION: spld
 # @INTERNAL
 # @DESCRIPTION: run splash deamon
-spld() {
+function spld()
+{
 	$ECK && for bin in fbcondecor_helper splash_util; do 
 		debug -d bck $bin
 	done
@@ -132,7 +135,8 @@ spld() {
 # @USAGE: <[type:]dev[:signature]>
 # @DESCRIPTON: resume after a hibernation, TuxOnIce may work,
 # the intrnal kernal implementation should be fixed/finished before use
-resume() {
+function resume()
+{
 	local _asw _dev=$1 _img_sz=0 _hpr
 	msg -i "Resuming from hibernation..."
 
