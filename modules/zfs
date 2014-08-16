@@ -1,4 +1,4 @@
-# $Id: modules/zfs,v 0.13.0 2014/07/25 14:48:07 -tclover Exp $
+# $Id: modules/zfs,v 0.13.1 2014/08/08 14:48:07 -tclover Exp $
 
 set -e +x
 source $LIBDIR/functions || return $?
@@ -6,7 +6,8 @@ source $LIBDIR/functions || return $?
 # @FUNCTION: dozfs
 # @DESCRIPTION: import a zfs pool
 # @USAGE: pool/volume [zpv1-map1:zpv2-map2] [extra zpool options]
-dozfs() {
+function dozfs()
+{
 	echo $$ >/run/${0##*/}.pid
 	$ECK && for bin in zfs zpool; do 
 		debug -d bck $bin
