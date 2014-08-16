@@ -120,6 +120,7 @@ function squash_mount()
 	fi
 
 	if ${grep} -q aufs:${dir} /proc/mounts; then
+		auplink ${dir} flush
 		${umount} -l ${dir} || die "sdr: failed to umount aufs:${dir}"
 	fi
 
