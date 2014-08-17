@@ -194,10 +194,6 @@ function docpio()
 	find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${initramfs}
 }
 
-if [[ -f /boot/${opts[-initramfs]} ]]; then
-	mv /boot/${opts[-initramfs]}{,.old}
-fi
-
 echo ">>> building ${opts[-initramfs]}..."
 pushd "${opts[-tmpdir]}" || die "${opts[-tmpdir]} not found"
 
@@ -269,11 +265,8 @@ done
 
 if [[ -x usr/bin/busybox ]]; then
 	mv -f {usr/,}bin/busybox
-elif which busybox 1>/dev/null 2>&1 &&
-	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]]; then
+elif ( which busybox >/dev/null 2>&1 && ! ldd $(which busybox) >/dev/null ); then
 	cp -a $(which busybox) bin/
-elif which bb 1>/dev/null 2>&1; then
-	cp -a $(which bb) bin/busybox
 else
 	die "there's no suitable busybox/bb binary"
 fi
@@ -433,6 +426,10 @@ for lib in $(find usr/lib/gcc -iname 'lib*'); do
 	ln -fs /$lib     lib/${lib##*/}
 	ln -fs /$lib usr/lib/${lib##*/}
 done
+
+if [[ -f /boot/${opts[-initramfs]} ]]; then
+	mv /boot/${opts[-initramfs]}{,.old}
+fi
 
 docpio /boot/${opts[-initramfs]} || die
 

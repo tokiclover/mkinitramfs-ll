@@ -178,10 +178,6 @@ function docpio()
 	find . -print0 | cpio -0 -ov -Hnewc | ${=opts[-comp]} > ${initramfs}
 }
 
-if [[ -f /boot/${opts[-initramfs]} ]] {
-	mv /boot/${opts[-initramfs]}{,.old}
-}
-
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 pushd ${opts[-tmpdir]} || die "no ${opts[-tmpdir]} tmpdir found"
 
@@ -257,11 +253,8 @@ if [[ -n ${(k)opts[-F]} ]] || [[ -n ${(k)opts[-firmware]} ]] {
 
 if [[ -x usr/bin/busybox ]] {
 	mv -f {usr/,}bin/busybox
-} elif [[ $(which busybox) != "busybox not found" ]] &&
-	[[ $(ldd $(which busybox)) == *"not a dynamic executable" ]] {
+} elif ( which busybox >/dev/null 2>&1 && ! ldd $(which busybox) >/dev/null ) {
 	cp -a $(which busybox) bin/
-} elif [[ $(which bb) != "bb not found" ]] {
-	cp -a $(which bb) bin/busybox
 } else { die "no suitable busybox/bb binary found" }
 
 if [[ ! -f etc/mkinitramfs-ll/busybox.app ]] {
@@ -398,6 +391,10 @@ for grp (${(pws,:,)opts[-mgrp]})
 for lib (/usr/lib/gcc/**/lib*.so*) {
 	ln -fs $lib     lib/$lib:t
 	ln -fs $lib usr/lib/$lib:t
+}
+
+if [[ -f /boot/${opts[-initramfs]} ]] {
+	mv /boot/${opts[-initramfs]}{,.old}
 }
 
 docpio /boot/${opts[-initramfs]} || die
