@@ -92,7 +92,7 @@ opts[-arc]=$(getconf LONG_BIT)
 # @VARIABLE: opts[-busybox]
 # @DESCRIPTION: full path to a static busysbox binary needed for updtating 
 # system wide dir
-[[ "${opts[-busybox]}" ]] || opts[-busybox]="$(which bb)"
+[[ "${opts[-busybox]}" ]] || opts[-busybox]="$(which busyboxb 2>/dev/null)"
 # @VARIABLE: opts[-comp]
 # @DESCRIPTION: COMPression command with optional option
 [[ "${opts[-comp]}" ]] || opts[-comp]="lzo -Xcompression-level 1"
@@ -107,8 +107,9 @@ opts[-arc]=$(getconf LONG_BIT)
 function squash_mount()
 {
 	if [[ "${dir}" == /*bin ]] || [[ "${dir}" == /lib* ]]; then
+		ldd ${opts[-busybox]} >/dev/null && die "no static busybox binary found"
 		local busybox=/tmp/busybox
-		cp ${opts[-busybox]} ${busybox} || die "no static busybox binary found"
+		cp ${opts[-busybox]} ${busybox} || die
 		local cp="${busybox} cp -a"        mv="${busybox} mv"
 		local rm="${busybox} rm -fr"    mount="${busybox} mount"
 		local umount="${busybox} umount" grep="${busybox} grep"

@@ -61,7 +61,7 @@ opts[-arc]=$(getconf LONG_BIT)
 # @VARIABLE: opts[-busybox] | opts[-b]
 # @DESCRIPTION: full path to a static busysbox binary needed for updtating 
 # system wide dir
-:	${opts[-busybox]:=${opts[-x]:-$(which bb)}}
+:	${opts[-busybox]:=${opts[-x]:-$(which busyboxb 2>/dev/null)}}
 
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
@@ -92,8 +92,9 @@ setopt NULL_GLOB
 function squash_mount()
 {
 	if [[ ${dir} == /*bin ]] || [[ ${dir} == /lib* ]] {
+		ldd ${opts[-busybox]} >/dev/null && die "no static busybox binary found"
 		local busybox=/tmp/busybox
-		cp ${opts[-busybox]} /tmp/busybox || die "no static busybox binary found"
+		cp ${opts[-busybox]} /tmp/busybox || die 
 		local cp="${busybox} cp -a"        mv="${busybox} mv"
 		local rm="${busybox} rm -fr"     grep="${busybox} grep"
         local mount="${busybox} mount" umount="${busybox} umount"
