@@ -368,7 +368,7 @@ function dobin()
 	local lib
 	docp ${bin} || return
 
-	[[ "$(ldd ${bin})" == "not a dynamic executable" ]] && return 0
+	ldd ${bin} >/dev/null || return 0
 
 	for lib ($(ldd ${bin} | sed -nre 's,.* (/.*lib.*/.*.so.*) .*,\1,p' \
 	    -e 's,.*(/lib.*/ld.*.so.*) .*,\1,p'))
