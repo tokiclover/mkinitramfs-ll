@@ -18,7 +18,7 @@ and it now uses lzo as default compressor for efficiency/speed, one can use
 
 *Warning*: lz4 implementation is not implemented to squashfs yet!
 
-sdr.$shell and squashdir-mount.initd now use '/var/aufs' as default location
+* sdr.$shell/squashdir-mount.initd: both script use '/aufs' as default location.
 
 *Warning*: sdr.$shell now should works when updating system dirs, it needs
 to copy @$(which bb)@ or a static busybox to @/tmp/busybox@ to function properly.
