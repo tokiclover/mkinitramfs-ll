@@ -10,13 +10,17 @@ This init service will do the trick putting '/usr' and @/$abi_libdir@ first
 in the config file because a few (boot) services are rushing
 (especially with rc_parallel) to get userspace ready. 
 
-* sdr.$shell: a script to use in conjonction with sqfsdmount to *squash* dirs
-* and it now uses lzo as default compressor for efficiency/speed, one can use
-'lzo -Xcompression-level 6' for better compression ratio.
-Warning: lz4 implementation is buggy and slow!
-* sdr.$shell and squashdir-mount.initd now use '/var/aufs' as default location
+* sdr.$shell:
 
-*Warn*: sdr.$shell now should works when updating system dirs, it needs
+a script to use in conjonction with sqfsdmount to *squash* directories
+and it now uses lzo as default compressor for efficiency/speed, one can use
+'lzo -Xcompression-level 6' for better compression ratio.
+
+*Warning*: lz4 implementation is not implemented to squashfs yet!
+
+sdr.$shell and squashdir-mount.initd now use '/var/aufs' as default location
+
+*Warning*: sdr.$shell now should works when updating system dirs, it needs
 to copy @$(which bb)@ or a static busybox to @/tmp/busybox@ to function properly.
 
 * zram.init.d:
