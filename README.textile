@@ -8,12 +8,13 @@ with a handfull zsh and bash set of scripts to get going easily and quickly."
 
 h3. 1. Getting an intramfs quickly and ready
 
-If you have a static busybox binary or if you use Gentoo
-[you have already one: installed as /bin/bb],
-you can make an initramfs in matter of secondes with locales settings:
-keymap and consolefont, in addition to media-fonts/terminus-font if you use
-the associated "ebuild":https://github.com/tokiclover/bar-overlay,
-or if you have that package installed).
+If you have a static busybox binary you can make an initramfs in matter
+of secondes with locales settings: keymap and consolefont, in addition 
+to media-fonts/terminus-font if you use the associated "ebuild":https://github.com/tokiclover/bar-overlay 
+or if you have that package installed.
+
+*WARNING: no static busybox support require a very minimal effort, however,
+this is discrouraged as it could lead easily to kernel panics without care.
 
 If you want GnuPG support, yo should have an app-crypt/gnupg-1.4*[static]
 binary along with its options.skel file.
