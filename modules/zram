@@ -5,8 +5,7 @@ source $LIBDIR/functions
 
 [ -z "$izram" ] && _getopt "izram"
 
-function dozram()
-{
+dozram() {
 	local NUM DEV num dev fs size
 	echo $$ >/run/${0##*/}.pid
 	arg "NUM" "$izram" "," "1"
