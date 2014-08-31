@@ -6,8 +6,7 @@ source $LIBDIR/functions || return $?
 # @FUNCTION: dozfs
 # @DESCRIPTION: import a zfs pool
 # @USAGE: pool/volume [zpv1-map1:zpv2-map2] [extra zpool options]
-function dozfs()
-{
+dozfs() {
 	echo $$ >/run/${0##*/}.pid
 	$ECK && for bin in zfs zpool; do 
 		debug -d bck $bin
