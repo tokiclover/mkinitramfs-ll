@@ -15,7 +15,7 @@ them to any distribution out there. One just need static busybox and a static
 gpg-1.4.x (for GnuPG support) binaries which have an easy access from binary
 distributions. So no need to make any extra script for the latter case.
 
-To make use of sqfsdmount for squashed (AUFS+squashfs) diretor-y-ies a 
+To make use of squashdir-mount for squashed (AUFS+squashfs) diretor-y-ies a 
 `make sys_confdir=/etc install_svc' will be necessary. AUFS+Squashfs
 kernel modules are required here.
 
