@@ -1,10 +1,19 @@
-@$Header: mkinitramfs-ll/usr/README.textile,v 0.12.8 2014/07/02 15:10:59 -tclover Exp $@
+@$Header: mkinitramfs-ll/usr/README.textile,v 0.13.2 2014/08/31 15:10:59 -tclover Exp $@
 
-*Important*: @usr/bin/busybox@ and its optional applets
-@usr/etc/mkinitramfs-ll/busybox.app@
-and @usr/etc/mdev.conf@ are stored in this directory.
+Binaries and extra files can be putted in this directory to facilitate building initramfs.
+So this would limite file seeking and movings... like busybox and GnuPG related files.
 
-*Note*: a @usr/etc/profile@ can be used to set up environment variables or
-to set up, in other words, a profile in other words.
+* busybox:
+
+- @usr/bin/busybox@ binary and its optional
+- @usr/etc/mkinitramfs-ll/busybox.app@ applet file
+- @usr/etc/mdev.conf@ and mdev conf file
+are stored in this directory following the previous scheme.
+
+* GnuPG:
+
+- @usr/bin/gpg@ binary and
+- @usr/share/gnupg/options.skel@ file
+are stored here following the previous scheme.
 
 @vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
