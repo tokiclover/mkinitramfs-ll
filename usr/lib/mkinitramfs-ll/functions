@@ -1,11 +1,10 @@
-# $Header: mkinitramfs-ll/usr/lib/functions,v 0.13.1 2014/08/08 23:42:11 -tclover Exp $
+# $Header: mkinitramfs-ll/usr/lib/functions,v 0.13.2 2014/08/31 23:42:11 -tclover Exp $
 
 # @FUNCTION: arg
 # EXTERNAL
 # @USAGE: <var> <var> <char> <int> <opt>
 # @DESCRIPTION: retrieve a value from a kernel cmdline
-function arg()
-{
+arg() {
 	eval ${1}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
 }
 
@@ -106,8 +105,7 @@ die() {
 # #EXTERNAL
 # @USAGE: <bin>
 # @DESCRIPTION: Binary ChecK
-function bck()
-{
+bck() {
 	debug -d which $1 1>/dev/null 2>&1
 }
 
