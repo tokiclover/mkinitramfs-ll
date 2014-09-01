@@ -11,6 +11,7 @@ if [ -n "$VDEV" ] || [ "$FS" == "zfs" ]; then
 	arg "RESU" "$iresume" ":" "2" "-s"
 	arg "type" "$iresume" ":" "1"
 	arg "sign" "$iresume" ":" "3" "-s"
+	debug stk "$ikresume"
 	debug -d dozfs "$RESU" "$VDEV" "-N" &&
 	echo "RESU=$type:$RESU${sign:+$sign}" >>/run/env
 	unset FS sign type
