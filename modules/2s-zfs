@@ -1,4 +1,4 @@
-# $Id: modules/2s-zfs,v 0.13.0 2014/07/26 14:48:07 -tclover Exp $
+# $Id: modules/2s-zfs,v 0.13.2 2014/08/31 14:48:07 -tclover Exp $
 
 set -e +x
 source $LIBDIR/zfs || return $?
