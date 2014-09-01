@@ -4,7 +4,7 @@ set -e +x
 source $LIBDIR/zfs || return $?
 
 [ -n "$izfs" ] || _getopt izfs
-[ -n "$izfs" ] && arg "VDEV" "$izfs" "," "3"
+[ -n "$izfs" ] && arg "VDEV" "$izfs" "," "2" "-s"
 [ -n "$FS" ] || FS="${iresume##*:}"
 
 if [ -n "$VDEV" ] || [ "$FS" == "zfs" ]; then
