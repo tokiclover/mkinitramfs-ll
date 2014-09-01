@@ -1,6 +1,25 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2014/08/08 12:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2014/08/31 12:40:11 -tclover Exp $
 
-0.13.1
+0.13.4:
+
+* fix key mode for zfs module;
+* fix kernel cmdline argument parsing for zfs.
+
+0.13.3:
+
+* documented *imodule* kernel cmdline;
+* cleaned usr/README;
+* finished reverting commit dd17c24.
+
+0.13.2:
+
+* revert commit dd17c24 7a9d1fe b601b48 dd17c24 that introduced function name()
+definition to sh scripts;
+* added user_xattr to zram.initd;
+* updated {,svc/}README busybox related bits;
+* minor fix for init (umount proc at the end, not at the begining).
+
+0.13.1:
 
 * fix copying binaries and libraries: binaries and libraries are no longer
 duplicated, symlinks are copied instead with the libraries;
@@ -17,7 +36,7 @@ and efficiency; hdd or ssd space is cheap nowadays;
 * update help message because option should append just after option string
 * added -F|[-]-firmware switch to mikinitramfs-ll
 
-0.13.0
+0.13.0:
 
 * added *imdodule* kernel cmdline argument to be able to execute scripts
 or mmodule whenever one want to do so, previous implementation ran the
