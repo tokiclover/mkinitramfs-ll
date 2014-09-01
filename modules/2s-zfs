@@ -11,6 +11,7 @@ if [ -n "$VDEV" ] || [ "$FS" == "zfs" ]; then
 	arg "SWAP" "$iswap" ":" "2" "-s"
 	arg "type" "$iswap" ":" "1"
 	arg "sign" "$iswap" ":" "3" "-s"
+	debug stk "$ikswap"
 	debug -d dozfs "$SWAP" "$VDEV" "-N" &&
 	echo "SWAP=$type:$SWAP${sign:+$sign}" >>/run/env
 	unset FS sign type
