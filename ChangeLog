@@ -1,5 +1,8 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/08/31 12:40:11 -tclover Exp $
 
+0.13.5:
+
+* fix splash deamon initialization (broken because of helper renames, sigh);
 * fix parsing zfs argument for sawap and resume along with the returned device.
 
 0.13.4:
