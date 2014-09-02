@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.13.1 2014/08/08 11:51:18 -tclover Exp $
+# $Header: mkinitramfs-ll/init,v 0.13.4 2014/08/31 11:51:18 -tclover Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYRIGHT FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -97,14 +97,17 @@ spld() {
 	$ECK && for bin in fbcondecor_helper splash_util; do 
 		debug -d bck $bin
 	done
-	local IFS="${IFS}," _opt _opts cachedir event mode msg theme util
+	
+	local IFS="${IFS}," _opt _opts cachedir event mode theme util
+	
 	event="$(grep -Hsi keyboard /sys/class/input/input*/name | \
 		sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"
+	
 :	${cachedir:=/run/splash/cache}
-:	${splu=$(which splash_util)}
+:	${util=$(which splash_util)}
 :	${BOOT_MSG:="Booting the system (\$progress%)... Press F2 for verbose mode."}
 :	${SPLASH_FIFO=$cachedir/.splash}
-	export BOOT_MSG cachedir SPLASH_FIFO
+	export BOOT_MSG SPLASH_FIFO
 	
 	for _opt in $splash; do
 		case ${_opt%:*} in
@@ -121,10 +124,10 @@ spld() {
 
 	[ -d "$cachedir" ] || mkdir -p $cachedir
 	debug mkfifo $SPLASH_FIFO
-	debug $splu -d -ms -t$theme && SPLD=true
-	[ -n "$_opts" ] && debug cmd $_opts
-	debug cmd "set event dev /dev/input/$event"
-	debug cmd "set autoverbose 0"
+	debug $util -d -ms -t $theme && SPLD=true
+	[ -n "$_opts" ] && debug spld_cmd $_opts
+	debug spld_cmd "set event dev /dev/input/$event"
+	debug spld_cmd "set autoverbose 0"
 }
 
 # @FUNCTION: resume
