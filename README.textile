@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.13.2 2014/08/31 10:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.13.4 2014/08/31 10:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -318,6 +318,10 @@ include zfs module or build an initramfs with something like:
 *IMPORTANT*: So either way, one should append @::zfs@ to @iroot@, or only @:zfs@
 to @iswap@ or @iresume@ argument for unencrypted vdev(s); or else, @izfs@ is 
 required and is enough for encrypted vdev(s) (or both for this later case).
+
+*IMPORTANT*: The @zfs@ suffix should be the 4th field for @iswap@ and @iresume@,
+so append @::zfs@ to @swap:POOL/VOL::zfs@ which means that no signature is present in
+this case; or else @file:POOL/VOL:sign:zfs@ when a signature is present and required. 
 
 h3. 4.6. ZRAM support
 
