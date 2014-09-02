@@ -1,5 +1,7 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/08/31 12:40:11 -tclover Exp $
 
+* fix parsing zfs argument for sawap and resume along with the returned device.
+
 0.13.4:
 
 * fix key mode for zfs module;
