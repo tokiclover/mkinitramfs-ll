@@ -377,7 +377,6 @@ lvl 4u
 debug -d umount -l /sys
 debug -d umount -l /dev/pts
 debug -d umount -l /dev
-debug mv $LOGFILE /
 export LOGFILE=/$0.log
 debug -d umount -l /run
 debug -d umount -l /proc
