@@ -97,6 +97,8 @@ function adn()
 	done
 }
 
+shopt nullglob
+
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msquashd::,mremdev:: \
 	  -l keeptmp,module:,mtuxonice::,squashd,toi,help,usrdir:: \
 	  -l firmware::,keymap::,luks,lvm,kv::,prefix::,splash::,regen \
