@@ -59,22 +59,6 @@ export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
 
 source $LIBDIR/functions || $sh -a
 
-# @FUNCTION: domod
-# @INTERNAL
-# @DESCRIPTION: execute a module or user script passed as arg 1
-domod() {
-	msg -i "exec: $sh -aex $1..."
-	debug $sh -aex $1
-	if [ -f /run/env ]; then
-		while read line; do
-			export $line
-		done </run/env
-		rm -f /run/env
-	fi
-	[ -f /run/${1##*/}.pid ] && rm -f /run/${1##*/}.pid && debug die
-	exec 0<$CONSOLE 1>$CONSOLE 2>&1	
-}
-
 # @FUNCTION: lvl
 # @INTERNAL
 # @DESCRIPTION: make LeVeL and drop to rescue shell if $LVL = $RSH
