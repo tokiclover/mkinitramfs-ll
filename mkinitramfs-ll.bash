@@ -240,7 +240,6 @@ ln -sf lib{${opts[-arc]},} &&
 		echo "${key}=${PKG[$key]}"
 	done
 	echo "build=$(date +%Y-%m-%d-%T)"
-
 } >etc/${PKG[name]}/id
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || adn
@@ -287,15 +286,29 @@ done
 
 if [[ -x usr/bin/busybox ]]; then
 	mv -f {usr/,}bin/busybox
-elif ( which busybox >/dev/null 2>&1 && ! ldd $(which busybox) >/dev/null ); then
-	cp -a $(which busybox) bin/
+elif ( which busybox >/dev/null 2>&1 ); then
+	bb="$(which busybox)"
+	if (ldd ${bb} >/dev/null); then
+		${bb} --list-full >etc/${PKG[name]}/busybox.applets
+		bin+=:${bb}
+		warn "busybox is not a static binary"
+	else
+		cp -a ${bb} bin/
+	fi
+	unset bb
 else
-	die "there's no suitable busybox binary"
+	die "no busybox binary found"
 fi
 
 if [[ ! -f etc/${PKG[name]}/busybox ]]; then
 	bin/busybox --list-full >etc/${PKG[name]}/busybox.applets || die
 fi
+
+while read line; do
+	grep -q ${line} etc/${PKG[name]}/busybox.applets ||
+	die "${line} applet not found, no suitable busybox found"
+done <etc/${PKG[name]}/minimal.applets
+
 while read line; do
 	ln -fs /bin/busybox $line
 done <etc/${PKG[name]}/busybox.applets
