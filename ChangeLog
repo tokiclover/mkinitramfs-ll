@@ -1,4 +1,7 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2014/08/31 12:40:11 -tclover Exp $
+# $Id: mkinitramfs-ll/ChangeLog, 2014/09/09 12:40:11 -tclover Exp $
+
+* mkinitramfs-ll.$shell won't enforce a static busybox binary anymore,
+only a warning will be displayed if a dynamic binary is found.
 
 0.13.5:
 
