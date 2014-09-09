@@ -216,7 +216,8 @@ ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 
 {
-	for key (name shell version) print "${PKG[$key]}"
+	for key (name shell version)
+		print "${key}=${PKG[$key]}"
 } >etc/${PKG[name]}/id
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || adn
