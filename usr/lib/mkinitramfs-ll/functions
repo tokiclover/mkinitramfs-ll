@@ -26,7 +26,7 @@ info() {
 # @USAGE: <string>
 # @DESCRIPTION: print error message on stdout
 error() {
-	echo -ne "\033[1;31m * \033[0m$@\n"
+	echo -ne "\033[1;31m * \033[0m$@\n" >&2
 }
 
 # @FUNCTION: msg
@@ -119,16 +119,29 @@ bck() {
 # @USAGE: [<applets>]
 # @DESCRIPTION: busybox Applets ChecK
 ack() {
-	local _app _line
-	if [ -n "$@" ] && [ -f $CONFDIR/busybox.applets ]; then
-		for _app in $@; do
-			_line="$(grep $_app $CONFDIR/busybox.applets)"
-			[ -h /$_line ] && [ "$(readlink $line)" == "/bin/busybox" ] ||
-			debug -d busybox --install -s && break
-		done
-	else
-		debug -d busybox --install -s
+	local _line
+	if [ -f $CONFDIR/busybox.applets ]; then
+		while read _line; do
+			[ -h /$_line ] || ( debug -d busybox --install -s && return )
+		done <$CONFDIR/busybox.applets
 	fi
+	debug -d busybox --install -s
+}
+
+# @FUNCTION: domod
+# @EXTERNAL
+# @DESCRIPTION: execute a module or user script passed as arg 1
+domod() {
+	msg -i "exec: $sh -aex $1..."
+	debug $sh -aex $1
+	if [ -f /run/env ]; then
+		while read line; do
+			export $line
+		done </run/env
+		rm -f /run/env
+	fi
+	[ -f /run/${1##*/}.pid ] && rm -f /run/${1##*/}.pid && debug die
+	exec 0<$CONSOLE 1>$CONSOLE 2>&1	
 }
 
 # @FUNCTION: _rmmod
