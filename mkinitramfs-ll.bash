@@ -59,7 +59,7 @@ exit $?
 # @DESCRIPTION: print error message to stdout
 function error()
 {
-	echo -ne " \e[1;31m* \e[0m$@\n"
+	echo -ne " \e[1;31m* \e[0m$@\n" >&2
 }
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
