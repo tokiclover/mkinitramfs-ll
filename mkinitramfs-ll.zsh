@@ -216,8 +216,9 @@ ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 
 {
-	for key (name shell version)
+	for key (${(k)PKG[@]})
 		print "${key}=${PKG[$key]}"
+	print "build=$(date +%Y-%m-%d-%T)"
 } >etc/${PKG[name]}/id
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || adn
