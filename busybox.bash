@@ -110,6 +110,6 @@ cp -a busybox "${opts[-usrdir]}"/bin/ || die
 popd || die
 ebuild ${opts[-pkg]}.ebuild clean || die
 
-unset -v opts[-pkg] opts[-minimal] opts[-ucl] PKG
+unset -v opts PKG
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
