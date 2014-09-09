@@ -34,6 +34,7 @@ install:
 	$(shell) install -pm 644 {,$(datadir)/}usr/lib/$(PACKAGE)/functions
 	$(shell) install -Dpm644 {,$(datadir)/}usr/root/.gnupg/gpg.conf
 	$(shell) install -pm 644 {,$(datadir)/}usr/etc/mdev.conf
+	$(shell) install -pm 644 {,$(datadir)/}usr/etc/$(PACKAGE)/minimal.applets
 	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/ide_links
 	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/usbdev
 	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/usbdisk_link
