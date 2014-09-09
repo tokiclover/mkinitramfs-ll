@@ -1,13 +1,25 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/mkinitramfs-ll.bash,v 0.13.1 2014/08/08 12:33:03 -tclover Exp $
-basename=${0##*/}
+#
+# $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.13.4 2014/09/09 12:33:03                   Exp $
+#
+
+declare -A PKG
+PKG=(
+	[name]=mkinitramfs-ll
+	[shell]=bash
+	[version]=0.13.4
+)
+
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 function usage()
 {
   cat <<-EOF
-  $basename-0.13.1
-  usage: $basename [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
+  ${PKG[name]}.${PKG[shell]-${PKG[version}
+  usage: ${PKG[name]} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
   -a, --all                 short hand or forme of '-l -L -g -M:zfs:zram -t -q'
   -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
@@ -150,9 +162,9 @@ while [[ $# > 0 ]]; do
 	esac
 done
 
-[[ -f mkinitramfs-ll.conf ]] &&
-	source mkinitramfs-ll.conf ||
-	die "no mkinitramfs-ll.conf found"
+[[ -f ${PKG[name]}.conf ]] &&
+	source ${PKG[name]}.conf ||
+	die "no ${PKG[name]}.conf found"
 
 # @VARIABLE: opts[-kv]
 # @DESCRIPTION: kernel version to pick up
@@ -200,7 +212,7 @@ echo ">>> building ${opts[-initramfs]}..."
 pushd "${opts[-tmpdir]}" || die "${opts[-tmpdir]} not found"
 
 if [[ ${opts[-regen]} ]]; then
-	cp -af {${opts[-usrdir]}/,}lib/mkinitramfs-ll/functions &&
+	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio /boot/${opts[-initramfs]} || die
 	echo ">>> regenerated ${opts[-initramfs]}..." && exit
@@ -218,10 +230,16 @@ else
 fi
 
 mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
-mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash} || die
-mkdir -p run lib${opts[-arc]}/{modules/${opts[-kv]},mkinitramfs-ll} || die
+mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} || die
+mkdir -p run lib${opts[-arc]}/{modules/${opts[-kv]},${PKG[name]}} || die
 ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
+
+{
+	for key in name shell version; do
+		echo "${key}=${PKG[$key]}"
+	done
+} >etc/${PKG[name]}/id
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || adn
 if [[ $(echo ${opts[-kv]} | cut -d'.' -f1 ) -eq 3 ]] &&
@@ -254,11 +272,11 @@ done
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for mod in ${opts[-module]//:/ }; do
-	if [[ -e ${opts[-usrdir]}/..\/modules/*$mod* ]]; then
+	if [[ -e ${opts[-usrdir]}/../modules/*$mod* ]]; then
+		cp -a ${opts[-usrdir]}/../modules/*$mod* lib/${PKG[name]}/
+	else
 		warn "$mod module does not exist"
-		continue
 	fi
-	cp -a ${opts[-usrdir]}/..\/modules/*$mod* lib/mkinitramfs-ll/
 	opts[-bin]+=:${opts[-b$mod]}
 	opts[-mgrp]+=:$mod
 done
@@ -270,15 +288,15 @@ if [[ -x usr/bin/busybox ]]; then
 elif ( which busybox >/dev/null 2>&1 && ! ldd $(which busybox) >/dev/null ); then
 	cp -a $(which busybox) bin/
 else
-	die "there's no suitable busybox/bb binary"
+	die "there's no suitable busybox binary"
 fi
 
-if [[ ! -f etc/mkinitramfs-ll/busybox.app ]]; then
-	bin/busybox --list-full >etc/mkinitramfs-ll/busybox.app || die
+if [[ ! -f etc/${PKG[name]}/busybox ]]; then
+	bin/busybox --list-full >etc/${PKG[name]}/busybox.applets || die
 fi
 while read line; do
 	ln -fs /bin/busybox $line
-done <etc/mkinitramfs-ll/busybox.app
+done <etc/${PKG[name]}/busybox?applets
 
 if [[ ${opts[-luks]} ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
@@ -419,7 +437,7 @@ domod ${opts[-kmod]//:/ }
 for grp in ${opts[-mgrp]//:/ }; do
 	if [[ -n "${opts[-m${grp}]}" ]]; then
 		for mod in ${opts[-m${grp}]//:/ }; do 
-			domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/${grp}
+			domod ${mod} && echo ${mod} >>etc/${PKG[name]}/${grp}
 		done
 	fi
 done
@@ -439,6 +457,6 @@ docpio /boot/${opts[-initramfs]} || die
 
 echo ">>> ${opts[-initramfs]} initramfs built"
 
-unset -v opt opts
+unset -v opt opts PKG
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
