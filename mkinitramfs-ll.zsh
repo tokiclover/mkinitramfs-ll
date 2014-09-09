@@ -18,7 +18,7 @@ PKG=(
 usage() {
   cat <<-EOF
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
-  usage: ${PKG[name]} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
+  usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
 
   -a, -all                 short hand or forme of '-g -l -L -q -t -M:zfs:zram'
   -f, -font[:ter-v14n]     include a colon separated list of fonts to the initramfs
