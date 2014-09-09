@@ -1,7 +1,11 @@
 #!/bin/sh
-# $Header: mkinitramfs-ll/init,v 0.13.4 2014/08/31 11:51:18 -tclover Exp $
 #
-# WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYRIGHT FILE
+# $Header: mkinitramfs-ll/init                           Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.13.4 2014/09/09 12:33:03                   Exp $
+#
+# WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
 # @VARIABLE: ECK
