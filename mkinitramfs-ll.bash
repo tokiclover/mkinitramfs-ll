@@ -296,7 +296,7 @@ if [[ ! -f etc/${PKG[name]}/busybox ]]; then
 fi
 while read line; do
 	ln -fs /bin/busybox $line
-done <etc/${PKG[name]}/busybox?applets
+done <etc/${PKG[name]}/busybox.applets
 
 if [[ ${opts[-luks]} ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
