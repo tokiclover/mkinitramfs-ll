@@ -1,14 +1,25 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/gnupg.zsh,v 0.13.0 2014/08/06 12:00:35 -tclover Exp $
-basename=${(%):-%1x}
+#
+# $Header: mkinitramfs-ll/gnupg.zsh                      Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.13.4 2014/09/09 12:33:03                   Exp $
+#
+
+typeset -A PKG
+PKG=(
+	[name]=gnupg
+	[shell]=zsh
+	[version]=0.13.4
+)
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 function usage()
 {
   cat <<-EOF
-  $basename-0.13.0
-  usage: $basename -d|--usrdir[usr] [options]
+  $PKG[name].$PKG[shell]-$PKG[version]
+  usage: $PKG[name].$PKG[shell] -d|--usrdir[usr] [options]
 
   -d, -usrdir[usr]       copy binary and options.skel files to usr/
   -u, -useflag<flags>    extra USE flags to append to USE="nls static"
@@ -22,7 +33,7 @@ exit $?
 # @DESCRIPTION: print error message to stdout
 function error()
 {
-	print -P " %B%F{red}*%b%f $@"
+	print -P " %B%F{red}*%b%f $@" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
@@ -66,6 +77,6 @@ cp -a g10/options.skel ${opts[-usrdir]}/share/gnupg/ || die
 popd || die
 ebuild ${opts[-gpg]}.ebuild clean || die
 
-unset opts[-v] opts[-version] opts[-U] opts[-useflag] opts[-gpg]
+unset opts PKG
 
 # vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:
