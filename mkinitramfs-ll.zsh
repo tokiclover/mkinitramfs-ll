@@ -270,13 +270,25 @@ if [[ -n ${(k)opts[-F]} ]] || [[ -n ${(k)opts[-firmware]} ]] {
 
 if [[ -x usr/bin/busybox ]] {
 	mv -f {usr/,}bin/busybox
-} elif ( which busybox >/dev/null 2>&1 && ! ldd $(which busybox) >/dev/null ) {
-	cp -a $(which busybox) bin/
-} else { die "no suitable busybox/bb binary found" }
+} elif ( which busybox >/dev/null 2>&1 ) {
+	bb=$(which busybox)
+	if (ldd ${bb} >/dev/null) {
+		${bb} --list-full >etc/${PKG[name]}/busybox.applets
+		bin+=:${bb}
+		warn "busybox is not a static binary"
+	} else { cp -a ${bb} bin/ }
+	unset bb
+} else { die "no busybox binary found" }
 
 if [[ ! -f etc/${PKG[name]}/busybox ]] {
 	bin/busybox --list-full >etc/${PKG[name]}/busybox.applets || die
 }
+
+while read line; do
+	grep -q ${line} etc/${PKG[name]}/busybox.applets ||
+	die "${line} applet not found, no suitable busybox found"
+done <etc/${PKG[name]}/minimal.applets
+
 while read line; do
 	ln -fs /bin/busybox $line
 done <etc/${PKG[name]}/busybox.applets
