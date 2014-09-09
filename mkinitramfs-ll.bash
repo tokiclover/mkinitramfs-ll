@@ -286,8 +286,8 @@ done
 
 if [[ -x usr/bin/busybox ]]; then
 	mv -f {usr/,}bin/busybox
-elif ( which busybox >/dev/null 2>&1 ); then
-	bb="$(which busybox)"
+elif ( type -p busybox >/dev/null ); then
+	bb="$(type -p busybox)"
 	if (ldd ${bb} >/dev/null); then
 		${bb} --list-full >etc/${PKG[name]}/busybox.applets
 		bin+=:${bb}
@@ -324,8 +324,8 @@ fi
 if [[ ${opts[-gpg]} ]]; then
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]]; then :;
-	elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
-		opts[-bin]+=":$(which gpg)"
+	elif [[ $(gpg --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
+		opts[-bin]+=":$(type -p gpg)"
 	else
 		die "there's no usable gpg/gnupg-1.4.x binary"
 	fi
@@ -443,7 +443,7 @@ for bin in ${opts[-bin]//:/ }; do
 	done
 
 	[[ -x ${bin} ]] && dobin ${bin}
-	bin=$(which ${bin} 2>/dev/null)
+	bin=$(type -p ${bin})
 	dobin ${bin} || warn "no ${bin} binary found"
 done
 
