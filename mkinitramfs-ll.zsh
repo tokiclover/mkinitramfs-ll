@@ -270,8 +270,8 @@ if [[ -n ${(k)opts[-F]} ]] || [[ -n ${(k)opts[-firmware]} ]] {
 
 if [[ -x usr/bin/busybox ]] {
 	mv -f {usr/,}bin/busybox
-} elif ( which busybox >/dev/null 2>&1 ) {
-	bb=$(which busybox)
+} elif (type -p busybox >/dev/null) {
+	bb=$(type -p busybox)
 	if (ldd ${bb} >/dev/null) {
 		${bb} --list-full >etc/${PKG[name]}/busybox.applets
 		bin+=:${bb}
@@ -300,8 +300,8 @@ if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] {
 if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]] { :;
-	} elif [[ $($(which gpg) --version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
-		opts[-bin]+=:$(which gpg)
+	} elif [[ $(gpg --version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
+		opts[-bin]+=:$(type -p gpg)
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
 }
 
@@ -408,7 +408,7 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]}) {
 	for b ({usr/,}{,s}bin/${bin}) { [[ -x ${b} ]] && continue 2 }
 
 	[[ -x ${bin} ]] && dobin ${bin}
-	bin=$(which ${bin} 2>/dev/null)
+	bin=$(type -p ${bin})
 	dobin ${bin} || warn "no ${bin} binary found"
 }
 
