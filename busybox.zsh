@@ -1,14 +1,25 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/busybox.zsh,v 0.13.0 2014/08/08 11:40:15 -tclover Exp $
-basename=${(%):-%1x}
+#
+# $Header: mkinitramfs-ll/busybox.zsh                    Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.13.4 2014/09/09 12:33:03                   Exp $
+#
+
+typset -A PKG
+PKG=(
+	[name]=busybox
+	[shell]=zsh
+	[version]=0.13.4
+)
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 function usage()
 {
   cat <<-EOF
-  $basename-0.13.0
-  usage: $basename [-m|-minimal] [-ucli386]
+  $PKG[name].$PKG[shell]-$PKG[version]
+  usage: $PKG[name].$PKG[shell] [-m|-minimal] [-ucli386]
 
   -d, -usrdir[usr]        copy busybox binary file to usr/bin
   -n, -minimal            build busybox with minimal applets, default is full applets
@@ -23,7 +34,7 @@ exit $?
 # @DESCRIPTION: print error message to stdout
 function error()
 {
-	print -P " %B%F{red}*%b%f $@"
+	print -P " %B%F{red}*%b%f $@" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
@@ -41,8 +52,11 @@ zparseopts -E -D -K -A opts n minimal d:: usrdir:: ucl: h help v: version: || us
 if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
 if [[ $# < 1 ]] { typeset -A opts }
 
-if [[ -f /etc/portage/make.conf ]] { source /etc/portage/make.conf 
-} else { die "no /etc/portage/make.conf found" }
+if [[ -f /etc/portage/make.conf ]] {
+	source /etc/portage/make.conf 
+} else {
+	die "no /etc/portage/make.conf found"
+}
 
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path where to get extra files
@@ -90,6 +104,6 @@ popd || die
 
 ebuild ${opts[-pkg]}.ebuild clean || die
 
-unset opts[-pkg] opts[-n] opts[-minimal] opts[-ucl]
+unset opts PKG
 
 # vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:
