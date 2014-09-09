@@ -1,13 +1,24 @@
 #!/bin/zsh
-# $Id: mkinitramfs-ll/mkinitramfs-ll.zsh,v 0.13.1 2014/08/08 11:40:11 -tclover Exp $
-basename=${(%):-%1x}
+#
+# $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.13.4 2014/09/09 12:33:03                   Exp $
+#
+
+typeset -A PKG
+PKG=(
+	[name]=mkinitramfs-ll
+	[shell]=zsh
+	[version]=0.13.4
+)
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
-  $basename-0.13.1
-  usage: $basename [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
+  ${PKG[name]}.${PKG[shell]}-${PKG[version]}
+  usage: ${PKG[name]} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
 
   -a, -all                 short hand or forme of '-g -l -L -q -t -M:zfs:zram'
   -f, -font[:ter-v14n]     include a colon separated list of fonts to the initramfs
@@ -47,7 +58,7 @@ exit $?
 # @DESCRIPTION: print error message to stdout
 function error()
 {
-    print -P " %B%F{red}*%b%f $@"
+    print -P " %B%F{red}*%b%f $@" >&2
 }
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
@@ -113,10 +124,10 @@ if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
 # hold almost every single option/variable
 if [[ $# < 1 ]] { typeset -A opts }
 
-if [[ -f mkinitramfs-ll.conf ]] {
-	source mkinitramfs-ll.conf 
+if [[ -f ${PKG[name]}.conf ]] {
+	source ${PKG[name]}.conf 
 } else {
-	die "no mkinitramfs-ll.conf found"
+	die "no ${PKG[name]}.conf found"
 }
 
 # @VARIABLE: opts[-kv]
@@ -182,7 +193,7 @@ print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 pushd ${opts[-tmpdir]} || die "no ${opts[-tmpdir]} tmpdir found"
 
 if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
-	cp -af {${opts[-usrdir]}/,}lib/mkinitramfs-ll/functions &&
+	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio /boot/${opts[-initramfs]} || die
 	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f" && exit
@@ -199,10 +210,14 @@ if [[ -d ${opts[-usrdir]} ]] {
 	die "${opts[-usrdir]} dir not found"
 }
 mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
-mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{mkinitramfs-ll,splash} || die
-mkdir -p run lib${opts[-arc]}/{modules/${opts[-kv]},mkinitramfs-ll} || die
+mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} || die
+mkdir -p run lib${opts[-arc]}/{modules/${opts[-kv]},${PKG[name]}} || die
 ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
+
+{
+	for key (name shell version) print "${PKG[$key]}"
+} >etc/${PKG[name]}/id
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || adn
 if [[ ${${(pws:.:)opts[-kv]}[1]} -eq 3 ]] &&
@@ -220,11 +235,11 @@ for bin (dmraid mdadm zfs)
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]}) {
-	if [[ -e ${opts[-usrdir]}/..\/modules/*$mod* ]] {
+	if [[ -e ${opts[-usrdir]}/../modules/*$mod* ]] {
+		cp -a ${opts[-usrdir]:h}/modules/*$mod* lib/${PKG[name]}/
+	} else {
 		warn "$mod module does not exist"
-		continue
 	}
-	cp -a ${opts[-usrdir]:h}/modules/*$mod* lib/mkinitramfs-ll/
 	opts[-bin]+=:${opts[-b$mod]}
 	opts[-mgrp]+=:$mod
 }
@@ -257,12 +272,12 @@ if [[ -x usr/bin/busybox ]] {
 	cp -a $(which busybox) bin/
 } else { die "no suitable busybox/bb binary found" }
 
-if [[ ! -f etc/mkinitramfs-ll/busybox.app ]] {
-	bin/busybox --list-full >etc/mkinitramfs-ll/busybox.app || die
+if [[ ! -f etc/${PKG[name]}/busybox ]] {
+	bin/busybox --list-full >etc/${PKG[name]}/busybox.applets || die
 }
 while read line; do
 	ln -fs /bin/busybox $line
-done <etc/mkinitramfs-ll/busybox.app
+done <etc/${PKG[name]}/busybox.applets
 
 if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] { 
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
@@ -350,13 +365,13 @@ function docp()
 	cp -a {,.}${link}
 
 	[[ -h ${link} ]] &&
-	while true; do
+	while (true) {
 	    prefix=${link%/*}
 		link=$(readlink ${link})
 		[[ ${link%/*} == ${link} ]] && link=${prefix}/${link}
 		cp -a {,.}${link} || die
 		[[ -h ${link} ]] || break
-	done
+	}
 
 	return 0
 }
@@ -386,7 +401,7 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]}) {
 for module (${(pws,:,)opts[-kmod]} ${(pws,:,)opts[-m]}) domod ${module}
 for grp (${(pws,:,)opts[-mgrp]})
 	for mod (${(pws,:,)opts[-m${grp}]})
-		domod ${mod} && echo ${mod} >>etc/mkinitramfs-ll/${grp}
+		domod ${mod} && echo ${mod} >>etc/${PKG[name]}/${grp}
 
 for lib (/usr/lib/gcc/**/lib*.so*) {
 	ln -fs $lib     lib/$lib:t
@@ -403,6 +418,6 @@ print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
 
 [[ -n ${(k)opts[-K]} ]] || [[ -n ${(k)opts[-keeptmp]} ]] || rm -rf ${opts[-tmpdir]}
 
-unset opts
+unset opts PKG
 
 # vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:
