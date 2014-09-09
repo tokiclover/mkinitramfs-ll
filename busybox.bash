@@ -1,14 +1,24 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/busybox.bash,v 0.13.0 2014/08/08 11:40:18 -tclover Exp $
-basename=${0##*/}
+#
+# $Header: mkinitramfs-ll/busybox.bash                   Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.13.4 2014/09/09 12:33:03                   Exp $
+#
+declare -A PKG
+PKG=(
+	[name]=busybox
+	[shell]=bash
+	[version]=0.13.4
+)
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 function usage()
 {
   cat <<-EOF
-  $basename-0.13.0
-  usage: $basename [-m|--minimal] [--ucl=i386]
+  ${PKG[name]}.${PKG[shell]}-${PKG[version]}
+  usage: ${PKG[name]}.${PKG[shell]} [-m|--minimal] [--ucl=i386]
 
   -d, --usrdir=usr     copy busybox binary file to usr/bin
   -n, --minimal          build busybox with minimal applets, default is full applets
@@ -23,7 +33,7 @@ exit $?
 # @DESCRIPTION: print error message to stdout
 function error()
 {
-	echo -ne " \e[1;31m* \e[0m$@\n"
+	echo -ne " \e[1;31m* \e[0m$@\n" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
@@ -100,6 +110,6 @@ cp -a busybox "${opts[-usrdir]}"/bin/ || die
 popd || die
 ebuild ${opts[-pkg]}.ebuild clean || die
 
-unset -v opts[-pkg] opts[-minimal] opts[-ucl]
+unset -v opts[-pkg] opts[-minimal] opts[-ucl] PKG
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
