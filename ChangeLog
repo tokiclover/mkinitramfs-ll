@@ -1,5 +1,6 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/09/09 12:40:11 -tclover Exp $
 
+* moved domod() from init lib/functions to make the function public;
 * mkinitramfs-ll.$shell won't enforce a static busybox binary anymore,
 only a warning will be displayed if a dynamic binary is found.
 
