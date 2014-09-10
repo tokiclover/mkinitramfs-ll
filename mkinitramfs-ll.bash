@@ -249,7 +249,7 @@ if [[ ${KV[0]} -eq 3 -a ${KV[1]} -ge 1 ]]; then
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
 		mknod -m 600 dev/loop-control c 10 237 || die
 fi
-uset KV
+unset KV
 
 cp -a "${opts[-usrdir]}"/../init . && chmod 775 init || die
 [[ -d root ]] && chmod 0700 root || mkdir -m700 root || die
