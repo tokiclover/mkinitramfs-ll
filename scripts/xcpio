@@ -1,27 +1,41 @@
 #!/bin/sh
-# $Id: mkinitramfs-ll/xcpio, 2014/08/08 10:56:45 -tclover Exp $
+#
+# $Header: mkinitramfs-ll/scripts/xcpio                  Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 2014/09/09 12:33:03                          Exp $
+#
 
-[[ -z "$@" ]] && echo "usage: ${0##*/} [{-l|-list}|{-x|-extract}] files" && exit 1
+usage='cat <<-EOH
+usage: xcpio [options] files
+  -l, --list        list files
+  -x, --extract     extract files
+  -d, --decompress  decompress files
+EOH
+exit 1'
+
+[[ -z "$@" ]] && $usage
 
 comp() {
-	local comp o
-	case $1 in
-		*.bz*2) comp=bzcat;;
-		*.gz*) comp=zcat;;
-		*.xz) comp=xzcat;;
-		*.lzma) comp=xzcat;;
-		*.lzo*) comp='lzop -cd';;
-		*.lz4) comp='lz4 -d' o=-;;
-		*.lz*) comp='lzip -cd';;
+	local comp
+	case $2 in
+		*.bz*2) comp='bzip2 -d -k';;
+		*.gz*) comp='gzip -d';;
+		*.xz|*.lzma) comp='xz -d -k';;
+		*.lzo*) comp='lzop -d -k';;
+		*.lz4) comp='lz4 -d';;
+		*.lz*) comp='lzip -d -k';;
 		*) echo "xcpio: unsupported compression format"; exit 2;;
 	esac
-	$comp $1 $o
+	$comp $@
 }
 
 case $1 in
-	-l|-ls|-list) opt=-tv
+	-l|-ls|-list) opt=-c pipe='| cpio -tv'
 		shift;;
-	-x|-*xtract) opt=-idv
+	-x|-*xtract) opt=-c pipe='cpio -idv'
+		shift;;
+	-d|*compress) opt= pipe=
 		shift;;
 	*) opt=-t;;
 esac
@@ -29,15 +43,15 @@ esac
 for file in $*; do
 	if [ -f "$file" ]; then
 		tmpdir=${file##*/}
-		tmpdir=$(mktemp -d ${tmpdir%%.cpio*}-XXXXXX)
+		tmpdir=$(mktemp -d ${tmpdir%.cpio*}-XXXXXX)
 		cd $tmpdir || exit $?
-		comp $file | cpio $opt &&
+		comp "$opt" "$file" $pipe &&
 		echo "xcpio: successfuly deflated to $tmpdir"
 	else
 		echo "xcpio: $file file not found"
 	fi
 done
 
-unset -v file opt tmpdir
+unset -v file opt pipe tmpdir
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
