@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.13.4 2014/08/31 10:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.13.6 2014/09/09 10:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -209,6 +209,14 @@ Because it'll be too troublesome to make it otherwise.
 
 *Warning*: Of course, a detached header to a device should use an UUID or a LABEL
 instead of to a block device @sd[a-z0-9]@ to avoid header mismatch!
+
+h3. 3.4. About uncompressed initramfs
+
+If one need uncompressed initramfs e.g. to integrate directly into the kernel
+to be able to self sign the kernel for UEFI, just pass @-c'none'@ to building
+script. Just remember to include the initramfs to the kernel @.config@ file:
+@CONFIG_INITRAMFS_SOURCE=/boot/initramfs-${KV}.cpio@.
+Of course, one can decompress existant initramfs for this purpose as well.
 
 h3. 4.1. RAID array support
 
