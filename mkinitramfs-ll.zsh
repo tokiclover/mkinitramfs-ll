@@ -93,20 +93,22 @@ function mktmp()
 	print "$tmp"
 }
 
-# @FUNCTION: adn
-# @DESCRIPTION: ADd the essential Nodes to be able to boot
-function adn()
+# @FUNCTION: donod
+# @DESCRIPTION: add the essential nodes to be able to boot
+function donod()
 {
-	[[ -c dev/console ]] || mknod -m 600 dev/console c 5 1 || die
-	[[ -c dev/urandom ]] || mknod -m 666 dev/urandom c 1 9 || die
-	[[ -c dev/random ]]  || mknod -m 666 dev/random  c 1 8 || die
-	[[ -c dev/mem ]]     || mknod -m 640 dev/mem     c 1 1 && chmod 0:9 || die
-	[[ -c dev/null ]]    || mknod -m 666 dev/null    c 1 3 || die
-	[[ -c dev/tty ]]     || mknod -m 666 dev/tty     c 5 0 || die
-	[[ -c dev/zero ]]    || mknod -m 666 dev/zero    c 1 5 || die
+	pushd dev || die
+	[[ -c console ]] || mknod -m 600 console c 5 1 || die
+	[[ -c urandom ]] || mknod -m 666 urandom c 1 9 || die
+	[[ -c random ]]  || mknod -m 666 random  c 1 8 || die
+	[[ -c mem ]]     || mknod -m 640 mem     c 1 1 && chmod 0:9 mem || die
+	[[ -c null ]]    || mknod -m 666 null    c 1 3 || die
+	[[ -c tty ]]     || mknod -m 666 tty     c 5 0 || die
+	[[ -c zero ]]    || mknod -m 666 zero    c 1 5 || die
 
-	for nod ($(seq 0 6)) [[ -c dev/tty${n} ]] ||
-		mknod -m 600 dev/tty${nod} c 4 ${n} || die
+	for (( i=0; i<7; i++ ))
+		[[ -c tty${i} ]] || mknod -m 600 tty${i} c 4 ${i} || die
+	popd || die
 }
 
 setopt EXTENDED_GLOB NULL_GLOB
@@ -260,7 +262,7 @@ ln -sf lib{${opts[-arc]},} &&
 	print "build=$(date +%Y-%m-%d-%T)"
 } >etc/${PKG[name]}/id
 
-cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || adn
+cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
 if [[ ${${(pws:.:)opts[-kv]}[1]} -eq 3 ]] &&
 	[[ ${${(pws:.:)opts[-kv]}[2]} -ge 1 ]] {
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
