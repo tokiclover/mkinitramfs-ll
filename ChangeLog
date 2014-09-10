@@ -1,5 +1,9 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/09/09 12:40:11 -tclover Exp $
 
+* added kernel compressor check and iterration loop to get a supported
+compressed initramfs, so now one can build an uncompressed initramfs
+as result when building with -c'none' switch;
+* rewritten adn() to donod(), zsh has a fix with this;
 * moved domod() from init lib/functions to make the function public;
 * mkinitramfs-ll.$shell won't enforce a static busybox binary anymore,
 only a warning will be displayed if a dynamic binary is found.
