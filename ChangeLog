@@ -1,5 +1,7 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/09/09 12:40:11 -tclover Exp $
 
+* now warning will be printed to stderr instead of stdout, so one can
+easily get access to no fatal warnings with something like `2>err';
 * added kernel compressor check and iterration loop to get a supported
 compressed initramfs, so now one can build an uncompressed initramfs
 as result when building with -c'none' switch;
