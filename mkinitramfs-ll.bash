@@ -26,7 +26,7 @@ function usage()
   -F, --firmware [:file]    append firmware file or directory (relative to /lib/firmware),
                             or else full path, or the whole /lib/firmware dir if empty
   -k, --kv 3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
-  -c, --comp ['gzip -9']    use 'gzip -9' command instead default compression command
+  -c, --comp ['gzip -9']    use 'gzip -9' compressor instead of default, accept 'none'
   -L, --luks                add LUKS support, require a sys-fs/cryptsetup binary
   -l, --lvm                 add LVM support, require a static sys-fs/lvm2 binary
   -b, --bin :<bin>          include a colon separated list of binar-y-ies to the initramfs
@@ -70,7 +70,7 @@ function info() {
 # @DESCRIPTION: print warning message to stdout
 function warn()
 {
-	echo -ne " \e[1;33m* \e[0m$@\n"
+	echo -ne " \e[1;33m* \e[0m$@\n" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
@@ -190,22 +190,64 @@ opts[-initramfs]=${opts[-prefix]}${opts[-kv]}
 # an initramfs compressed image
 opts[-tmpdir]="$(mktmp ${opts[-initramfs]})"
 
+declare -a comp COMP
+COMP=(bzip2 gzip lzip lzop lz4 xz)
+
 case ${opts[-comp]%% *} in
-	bzip2)	opts[-initramfs]+=.cpio.bz2;;
-	gzip) 	opts[-initramfs]+=.cpio.gz;;
-	xz) 	opts[-initramfs]+=.cpio.xz;;
-	lzma)	opts[-initramfs]+=.cpio.lzma;;
-	lzip)	opts[-initramfs]+=.cpio.lz;;
-	lzop)	opts[-initramfs]+=.cpio.lzo;;
-	lz4)    opts[-initramfs]+=.cpio.lz4;;
+	${COMP[@]// /|}) comp=(| ${opts[-comp]} -c);;
+	lzo) comp=(| lzop -9 -c);;
+	none|*) warn "initramfs will not be compressed";;
 esac
+
+if [[ -n "${comp[@]}" ]]; then
+	if [[ -e /usr/src/linux-${opts[-kv]}/.config ]]; then
+		config=/usr/src/linux-${opts[-kv]}/.config
+		xgrep=$(type -p grep)
+	elif [[ -e /proc/config.gz ]]; then
+		config=/proc/config.gz
+		xgrep=$(type -p zgrep)
+	else
+		warn "no kernel config file found"
+	fi
+fi
+
+if [[ -n "${config}" ]]; then
+	COMPRESSOR=${comp[1]}
+	CONFIG=CONFIG_INITRAMFS_COMPRESSION_${COMPRESSOR^^[a-z]}
+	if ( ! ${xgrep} -q "^${CONFIG}=y" ${config} ); then
+		warn "compressor ${comp[1]} is not supported by kernel-${opts[-kv]}"
+		for (( i=0; i<${#COMP[@]}; i++ )); do
+			COMPRESSOR=${COMP[$i]}
+			CONFIG=CONFIG_INITRAMFS_COMPRESSION_${COMPRESSOR^^[a-z]}
+			if ( ${xgrep} -q "^${CONFIG}=y" ${config} ); then
+				comp=(| ${COMP[$i]} -9 -c)
+				info "setting compressor to ${COMPRESSOR}"
+				break
+			elif (( i == (${#COMP[@]}-1) )); then
+				die "no suitable compressor support found in kernel-${opts[-kv]}"
+			fi
+		done
+	fi
+	unset config xgrep CONFIG COMP COMPRESSOR
+fi
 
 # @FUNCTION: docpio
 # @DESCRIPTION: generate an initramfs image
 function docpio()
 {
+	local ext=.cpio
+	case ${comp[2]} in
+		bzip2) ext+=.bz2;;
+		gzip)  ext+=.gz;;
+		xz)    ext+=.xz;;
+		lzma)  ext+=.lzma;;
+		lzip)  ext+=.lz;;
+		lzop)  ext+=.lzo;;
+		lz4)   ext+=.lz4;;
+	esac
+
 	local initramfs=${1:-/boot/${opts[-initramfs]}}
-	find . -print0 | cpio -0 -ov -Hnewc | ${opts[-comp]} > ${initramfs}
+	find . -print0 | cpio -0 -ov -Hnewc ${comp[@]} >${initramfs}${ext}
 }
 
 echo ">>> building ${opts[-initramfs]}..."
@@ -289,7 +331,7 @@ done
 if [[ -x usr/bin/busybox ]]; then
 	mv -f {usr/,}bin/busybox
 elif ( type -p busybox >/dev/null ); then
-	bb="$(type -p busybox)"
+	bb=$(type -p busybox)
 	if (ldd ${bb} >/dev/null); then
 		${bb} --list-full >etc/${PKG[name]}/busybox.applets
 		bin+=:${bb}
@@ -327,9 +369,9 @@ if [[ ${opts[-gpg]} ]]; then
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]]; then :;
 	elif [[ $(gpg --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
-		opts[-bin]+=":$(type -p gpg)"
+		opts[-bin]+=:$(type -p gpg)
 	else
-		die "there's no usable gpg/gnupg-1.4.x binary"
+		die "there is no usable gpg/gnupg-1.4.x binary"
 	fi
 fi
 
@@ -474,6 +516,6 @@ docpio /boot/${opts[-initramfs]} || die
 
 echo ">>> ${opts[-initramfs]} initramfs built"
 
-unset -v opt opts PKG
+unset -v comp opt opts PKG
 
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
