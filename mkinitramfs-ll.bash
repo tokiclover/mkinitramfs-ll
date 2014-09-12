@@ -15,10 +15,9 @@ PKG=(
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
-function usage()
-{
+function usage {
   cat <<-EOF
-  ${PKG[name]}.${PKG[shell]-${PKG[version}
+  ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
   -a, --all                 short hand or forme of '-l -L -g -M:zfs:zram -t -q'
@@ -57,25 +56,22 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-function error()
-{
+function error {
 	echo -ne " \e[1;31m* \e[0m$@\n" >&2
 }
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
-function info() {
+function info {
 	echo -ne " \e[1;32m* \e[0m$@\n"
 }
 # @FUNCTION: warn
 # @DESCRIPTION: print warning message to stdout
-function warn()
-{
+function warn {
 	echo -ne " \e[1;33m* \e[0m$@\n" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-function die()
-{
+function die {
 	local ret=$?
 	error "$@"
 	exit $ret
@@ -84,8 +80,7 @@ function die()
 # @FUNCTION: mktmp
 # @DESCRIPTION: make tmp dir or file in ${TMPDIR:-/tmp}
 # @ARG: -d|-f [-m <mode>] [-o <owner[:group]>] [-g <group>] TEMPLATE
-function mktmp()
-{
+function mktmp {
 	local tmp=${TMPDIR:-/tmp}/$1-XXXXXX
 	mkdir -p ${mode:+-m$mode} $tmp ||
 	die "mktmp: failed to make $tmp"
@@ -94,8 +89,7 @@ function mktmp()
 
 # @FUNCTION: donod
 # @DESCRIPTION: add the essential nodes to be able to boot
-function donod()
-{
+function donod {
 	pushd dev || die
 	[[ -c console ]] || mknod -m 600 console c 5 1 || die
 	[[ -c urandom ]] || mknod -m 666 urandom c 1 9 || die
@@ -105,7 +99,7 @@ function donod()
 	[[ -c tty ]]     || mknod -m 666 tty     c 5 0 || die
 	[[ -c zero ]]    || mknod -m 666 zero    c 1 5 || die
 
-	for (( i=0; i<7; i++ )); do
+	for (( i=0; i<8; i++ )); do
 		[[ -c tty${i} ]] || mknod -m 600 tty${i} c 4 ${i} || die
 	done
 	popd || die
@@ -181,9 +175,6 @@ done
 # @DESCRIPTION: full to initramfs compressed image
 opts[-initramfs]=${opts[-prefix]}${opts[-kv]}
 [[ "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
-# @VARIABLE: opts[-arch]
-# @DESCRIPTION: kernel architecture
-[[ "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
 # @VARIABLE: opts[-arc]
 # @DESCRIPTION: kernel bit lenght supported
 [[ "${opts[-arc]}" ]] || opts[-arc]=$(getconf LONG_BIT)
@@ -192,16 +183,10 @@ opts[-initramfs]=${opts[-prefix]}${opts[-kv]}
 # an initramfs compressed image
 opts[-tmpdir]="$(mktmp ${opts[-initramfs]})"
 
-declare -a comp COMP
-COMP=(bzip2 gzip lzip lzop lz4 xz)
+declare -a compressor
+compressor=(bzip2 gzip lzip lzop lz4 xz)
 
-case ${opts[-comp]%% *} in
-	${COMP[@]// /|}) comp=(| ${opts[-comp]} -c);;
-	lzo) comp=(| lzop -9 -c);;
-	none|*) warn "initramfs will not be compressed";;
-esac
-
-if [[ -n "${comp[@]}" ]]; then
+if [[ -n "${opts[-comp]}" ]] && [[ "${opts[-comp]}" != "none" ]]; then
 	if [[ -e /usr/src/linux-${opts[-kv]}/.config ]]; then
 		config=/usr/src/linux-${opts[-kv]}/.config
 		xgrep=$(type -p grep)
@@ -214,31 +199,33 @@ if [[ -n "${comp[@]}" ]]; then
 fi
 
 if [[ -n "${config}" ]]; then
-	COMPRESSOR=${comp[1]}
-	CONFIG=CONFIG_INITRAMFS_COMPRESSION_${COMPRESSOR^^[a-z]}
+	COMP="${opts[-comp]%% *}"
+	CONFIG=CONFIG_DECOMPRESS_${COMP^^[a-z]}
 	if ( ! ${xgrep} -q "^${CONFIG}=y" ${config} ); then
-		warn "compressor ${comp[1]} is not supported by kernel-${opts[-kv]}"
-		for (( i=0; i<${#COMP[@]}; i++ )); do
-			COMPRESSOR=${COMP[$i]}
-			CONFIG=CONFIG_INITRAMFS_COMPRESSION_${COMPRESSOR^^[a-z]}
+		warn "${opts[-comp]%% *} decompression is not supported by kernel-${opts[-kv]}"
+		for (( i=0; i<${#compressor[@]}; i++ )); do
+			COMP=${compressor[$i]}
+			CONFIG=CONFIG_DECOMPRESS_${COMP^^[a-z]}
 			if ( ${xgrep} -q "^${CONFIG}=y" ${config} ); then
-				comp=(| ${COMP[$i]} -9 -c)
-				info "setting compressor to ${COMPRESSOR}"
+				opts[-comp]="${compressor[$i]} -9"
+				info "setting compressor to ${COMP}"
 				break
-			elif (( i == (${#COMP[@]}-1) )); then
-				die "no suitable compressor support found in kernel-${opts[-kv]}"
+			elif [[ "$i" == "$((${#compressor[@]}-1))" ]]; then
+				die "no suitable decompressor support found in kernel-${opts[-kv]}"
 			fi
 		done
 	fi
-	unset config xgrep CONFIG COMP COMPRESSOR
+	unset config xgrep CONFIG COMP compressor
 fi
 
 # @FUNCTION: docpio
 # @DESCRIPTION: generate an initramfs image
-function docpio()
-{
-	local ext=.cpio
-	case ${comp[2]} in
+function docpio {
+	local ext initramfs=${1:-${opts[-initramfs]}}
+	find . -print0 | cpio -0 -ov -Hnewc >/tmp/${initramfs}.cpio ||
+		die "failed create /tmp/${initramfs}${ext}"
+
+	case ${opts[-comp]%% *} in
 		bzip2) ext+=.bz2;;
 		gzip)  ext+=.gz;;
 		xz)    ext+=.xz;;
@@ -246,10 +233,18 @@ function docpio()
 		lzip)  ext+=.lz;;
 		lzop)  ext+=.lzo;;
 		lz4)   ext+=.lz4;;
+		*) warn "initramfs will not be compressed"
+			mv /{tmp,boot}/${initramfs}${ext} &&
+			return || die "failed to move /tmp/${initramfs}${ext}";;
 	esac
 
-	local initramfs=${1:-/boot/${opts[-initramfs]}}
-	find . -print0 | cpio -0 -ov -Hnewc ${comp[@]} >${initramfs}${ext}
+	if [[ -f /boot/${opts[-initramfs]}${ext} ]]; then
+		mv /boot/${opts[-initramfs]}${old}{,.old}
+	fi
+
+	${opts[-comp]} -cz /tmp/${initramfs}.cpio >/boot/${initramfs}${ext} &&
+		rm -f /tmp/${initramfs}.cpio ||
+		warn "failed to compress /tmp/${initramfs}.cpio"
 }
 
 echo ">>> building ${opts[-initramfs]}..."
@@ -289,7 +284,7 @@ ln -sf lib{${opts[-arc]},} &&
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
 
 KV=(${kv/./ /})
-if [[ ${KV[0]} -eq 3 -a ${KV[1]} -ge 1 ]]; then
+if [[ "${KV[0]}" -eq 3 && "${KV[1]}" -ge 1 ]]; then
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
 		mknod -m 600 dev/loop-control c 10 237 || die
 fi
@@ -319,11 +314,11 @@ done
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for mod in ${opts[-module]//:/ }; do
-	if [[ -e ${opts[-usrdir]}/../modules/*$mod* ]]; then
-		cp -a ${opts[-usrdir]}/../modules/*$mod* lib/${PKG[name]}/
-	else
-		warn "$mod module does not exist"
-	fi
+	for file in ${opts[-usrdir]}/../modules/*${mod}*; do
+		cp -a "${file}" lib/${PKG[name]}/
+	done
+	(( $? != 0 )) && warn "$mod module does not exist"
+
 	opts[-bin]+=:${opts[-b$mod]}
 	opts[-mgrp]+=:$mod
 done
@@ -389,8 +384,7 @@ fi
 
 # @FUNCTION: domod
 # @DESCRIPTION: copy kernel module
-function domod()
-{
+function domod {
 	local mod module ret
 	for mod in "$@"; do
 		module=$(find /lib/modules/${opts[-kv]} -name ${mod}.ko -or -name ${mod}.o)
@@ -450,8 +444,7 @@ fi
 
 # @FUNCTION: docp
 # @DESCRIPTION: follow and copy link until binary/library is copied
-function docp()
-{
+function docp {
 	local link=${1} prefix
 	[[ -n ${link} ]] || return
 	cp -a {,.}${link}
@@ -470,8 +463,7 @@ function docp()
 
 # @FUNCTION: dobin
 # @DESCRIPTION: copy binary with libraries if not static
-function dobin()
-{
+function dobin {
 	local lib
 	docp ${bin} || return
 
@@ -508,11 +500,7 @@ for lib in $(find usr/lib/gcc -iname 'lib*'); do
 	ln -fs /$lib usr/lib/${lib##*/}
 done
 
-if [[ -f /boot/${opts[-initramfs]} ]]; then
-	mv /boot/${opts[-initramfs]}{,.old}
-fi
-
-docpio /boot/${opts[-initramfs]} || die
+docpio || die
 
 [[ ${opts[-keeptmp]} ]] || rm -rf ${opts[-dir]}
 

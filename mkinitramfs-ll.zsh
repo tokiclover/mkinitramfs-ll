@@ -8,14 +8,14 @@
 
 typeset -A PKG
 PKG=(
-	[name]=mkinitramfs-ll
-	[shell]=zsh
-	[version]=0.13.4
+	name mkinitramfs-ll
+	shell zsh
+	version 0.13.4
 )
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
-usage() {
+function usage {
   cat <<-EOF
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
@@ -56,26 +56,22 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-function error()
-{
+function error {
     print -P " %B%F{red}*%b%f $@" >&2
 }
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
-function info()
-{
+function info {
     print -P " %B%F{green}*%b%f $@"
 }
 # @FUNCTION: warn
 # @DESCRIPTION: print warning message to stdout
-function warn()
-{
+function warn {
 	print -P " %B%F{red}*%b%f $@" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-function die()
-{
+function die {
 	local ret=$?
 	error $@
 	exit $ret
@@ -85,8 +81,7 @@ alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 # @FUNCTION: mktmp
 # @DESCRIPTION: make tmp dir or file in ${TMPDIR:-/tmp}
 # @ARG: -d|-f [-m <mode>] [-o <owner[:group]>] [-g <group>] TEMPLATE
-function mktmp()
-{
+function mktmp {
 	local tmp=${TMPDIR:-/tmp}/$1-XXXXXX
 	mkdir -p ${mode:+-m$mode} $tmp ||
 	die "mktmp: failed to make $tmp"
@@ -95,8 +90,7 @@ function mktmp()
 
 # @FUNCTION: donod
 # @DESCRIPTION: add the essential nodes to be able to boot
-function donod()
-{
+function donod {
 	pushd dev || die
 	[[ -c console ]] || mknod -m 600 console c 5 1 || die
 	[[ -c urandom ]] || mknod -m 666 urandom c 1 9 || die
@@ -106,8 +100,9 @@ function donod()
 	[[ -c tty ]]     || mknod -m 666 tty     c 5 0 || die
 	[[ -c zero ]]    || mknod -m 666 zero    c 1 5 || die
 
-	for (( i=0; i<7; i++ ))
+	for (( i=0; i<8; i++ )) {
 		[[ -c tty${i} ]] || mknod -m 600 tty${i} c 4 ${i} || die
+	}
 	popd || die
 }
 
@@ -119,12 +114,12 @@ zparseopts -E -D -K -A opts a all q squashd g gpg l lvm t toi c:: comp:: \
 	mgpg+:: mremdev+:: msquashd+:: mtuxonice+:: L luks r regen K keetmp ||
 	usage
 
-if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
+if (( ${+opts[-h]} || ${+opts[-help]} )) { usage }
 
 # @VARIABLE: opts [associative array]
 # @DESCRIPTION: declare if not declared while arsing options,
 # hold almost every single option/variable
-if [[ $# < 1 ]] { typeset -A opts }
+if (( $# < 1 )) { typeset -A opts }
 
 if [[ -f ${PKG[name]}.conf ]] {
 	source ${PKG[name]}.conf 
@@ -147,9 +142,6 @@ if [[ -f ${PKG[name]}.conf ]] {
 # @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
 :	${opts[-initramfs]:=${opts[-prefix]}${opts[-kv]}}
-# @VARIABLE: opts[-arch]
-# @DESCRIPTION: kernel architecture
-:	${opts[-arch]:=$(uname -m)}
 # @VARIABLE: opts[-arc]
 # @DESCRIPTION: kernel bit lenght supported
 :	${opts[-arc]:=$(getconf LONG_BIT)}
@@ -158,65 +150,60 @@ if [[ -f ${PKG[name]}.conf ]] {
 # an initramfs compressed image
 :	${opts[-tmpdir]:=$(mktmp ${opts[-initramfs]:t})}
 
-if [[ -n ${(k)opts[-a]} ]] || [[ -n ${(k)opts[-all]} ]] { 
-	opts[-f]=; opts[-g]=; opts[-l]=; opts[-q]=; opts[-t]=; opts[-L]=; opts[-y]=;
-	opts[-M]+=:zfs:zram;
+if (( ${+opts[-a]} || ${+opts[-all]} )) {
+	opts[-f]= opts[-g]= opts[-l]= opts[-q]= opts[-t]= opts[-L]= opts[-y]=
+	opts[-M]+=:zfs:zram
 }
 
-if [[ -n ${(k)opts[-y]} ]] || [[ -n ${(k)opts[-keymap]} ]] {
+if (( ${+opts[-y]} || ${+opts[-keymap]} )) {
 	[[ -e /etc/conf.d/keymaps ]] &&
 	opts[-y]+=:$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' /etc/conf.d/keymaps)
 }
 
-if [[ -n ${(k)opts[-f]} ]] || [[ -n ${(k)opts[-font]} ]] {
+if (( ${+opts[-f]} || ${+opts[-font]} )) {
 	[[ -e /etc/conf.d/consolefont ]] &&
 	opts[-f]+=:$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' /etc/conf.d/consolefont)
 }
 
-typeset -a comp COMP
-COMP=(bzip2 gzip lzip lzop lz4 xz)
+typeset -a compressor
+compressor=(bzip2 gzip lzip lzop lz4 xz)
 
-case ${opts[-comp][(w)1]} in
-	${COMP[@]// /|}) comp=(| ${opts[-comp]} -c);;
-	none|*) info "initramfs will not be compressed";;
-esac
-
-if [[ -n ${comp[@]} ]] {
+if (( ${+comp} )) {
 	if [[ -e /usr/src/linux-${opts[-kv]}/.config ]] {
 		config=/usr/src/linux-${opts[-kv]}/.config
-		xgrep=$(type -p grep)
+		xgrep=${commands[grep]}
 	} elif [[ -e /proc/config.gz ]] {
 		config=/proc/config.gz
-		xgrep=$(type -p zgrep)
+		xgrep=${commands[zgrep]}
 	} else { warn "no kernel config file found" }
 }
 
 if [[ -n ${config} ]] {
-	COMPRESSOR=${comp[1]}
-	CONFIG=CONFIG_INITRAMFS_COMPRESSION_${COMPRESSOR^^[a-z]}
+	CONFIG=CONFIG_DECOMPRESS_${$opts[-comp][(w)1]:u}
 	if ( ! ${(Q)xgrep} -q "^${(Q)CONFIG}=y" ${config} ) {
-		warn "compressor ${comp[1]} is not supported by kernel-${opts[-kv]}"
-		for (( i=1; i<=${#COMP[@]}; i++ )) {
-			COMPRESSOR=${COMP[$i]}
-			CONFIG=CONFIG_INITRAMFS_COMPRESSION_${COMPRESSOR^^[a-z]}
-			if ( ${(Q)xgrep} -q "^${(Q)CONFIG}=y" ${config} ) {
-				comp=(| ${COMP[$i]} -9 -c)
-				info "setting compressor to ${COMPRESSOR}"
+		warn "${opts[-comp][(w)1]} decompression is not supported by kernel-${opts[-kv]}"
+		for comp (${compressor[@]}) {
+			CONFIG=CONFIG_DECOMPRESS_${comp:u}
+			if ( ${xgrep} -q "^${CONFIG}=y" ${config} ) {
+				opts[-comp]="${comp} -9"
+				info "setting compressor to ${comp}"
 				break
-			} elif (( i == ${#COMP[@]} )) {
+			} elif [[ ${comp} == "xz" ]] {
 				die "no suitable compressor support found in kernel-${opts[-kv]}"
 			}
 		}
 	}
-	unset config xgrep CONFIG COMP COMPRESSOR
+	unset config xgrep CONFIG comp compressor
 }
 
 # @FUNCTION: docpio
 # @DESCRIPTION: generate an initramfs image
-function docpio()
-{
-	local ext=.cpio
-	case ${comp[2]} in
+function docpio {
+	local ext=.cpio initramfs=${1:-${opts[-initramfs]}}
+	find . -print0 | cpio -0 -ov -Hnewc >/tmp/${initramfs}${ext} ||
+		die "failed create /tmp/${initramfs}${ext}"
+
+	case ${opts[-comp][(w)1]} in
 		bzip2) ext+=.bz2;;
 		gzip)  ext+=.gz;;
 		xz)    ext+=.xz;;
@@ -224,10 +211,18 @@ function docpio()
 		lzip)  ext+=.lz;;
 		lzop)  ext+=.lzo;;
 		lz4)   ext+=.lz4;;
+		*) warn "initramfs will not be compressed"
+			mv /{tmp,boot}/${initramfs}${ext} &&
+			return || die "failed to move /tmp/${initramfs}${ext}";;
 	esac
 
-	local initramfs=${1:-/boot/${opts[-initramfs]}}
-	find . -print0 | cpio -0 -ov -Hnewc ${(Q)comp[@]} >${initramfs}${ext}
+	if [[ -f /boot/${opts[-initramfs]}${ext} ]] {
+		mv /boot/${opts[-initramfs]}${ext}{,.old}
+	}
+
+	${=opts[-comp]} -cz /tmp/${initramfs}.cpio >/boot/${initramfs}${ext} &&
+		rm -f /tmp/${initramfs}.cpio ||
+		warn "failed to compress /tmp/${initramfs}.cpio"
 }
 
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
@@ -257,8 +252,7 @@ ln -sf lib{${opts[-arc]},} &&
 	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
 
 {
-	for key (${(k)PKG[@]})
-		print "${key}=${PKG[$key]}"
+	for key (${(k)PKG[@]}) print "${key}=${PKG[$key]}"
 	print "build=$(date +%Y-%m-%d-%T)"
 } >etc/${PKG[name]}/id
 
@@ -278,11 +272,11 @@ for bin (dmraid mdadm zfs)
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]}) {
-	if [[ -e ${opts[-usrdir]}/../modules/*$mod* ]] {
-		cp -a ${opts[-usrdir]:h}/modules/*$mod* lib/${PKG[name]}/
-	} else {
-		warn "$mod module does not exist"
+	for file (${opts[-usrdir]:h}/modules/*${mod}*) {
+		cp -a ${file} lib/${PKG[name]}
 	}
+	(( $? != 0 )) && warn "$mod module does not exist"
+
 	opts[-bin]+=:${opts[-b$mod]}
 	opts[-mgrp]+=:$mod
 }
@@ -292,7 +286,7 @@ cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||
 
 [ -f /etc/issue.logo ] && cp {/,}etc/issue.logo
 
-if [[ -n ${(k)opts[-F]} ]] || [[ -n ${(k)opts[-firmware]} ]] { 
+if (( ${+opts[-F]} || ${+opts[-firmware]} )) {
 :   ${opts[-firmware]:=${opts[-F]:-/lib/firmware}}
 	mkdir -p lib/firmware
 	for f (${(pws,:,)opts[-firmware]}) {
@@ -311,13 +305,12 @@ if [[ -n ${(k)opts[-F]} ]] || [[ -n ${(k)opts[-firmware]} ]] {
 
 if [[ -x usr/bin/busybox ]] {
 	mv -f {usr/,}bin/busybox
-} elif (type -p busybox >/dev/null) {
-	bb=$(type -p busybox)
-	if (ldd ${bb} >/dev/null) {
-		${bb} --list-full >etc/${PKG[name]}/busybox.applets
-		bin+=:${bb}
+} elif (( ${+commands[busybox]} )) {
+	if (ldd ${commands[busybox]} >/dev/null) {
+		busybox --list-full >etc/${PKG[name]}/busybox.applets
+		bin+=:${commands[busybox]}
 		warn "busybox is not a static binary"
-	} else { cp -a ${bb} bin/ }
+	} else { cp -a ${commands[busybox]} bin/ }
 	unset bb
 } else { die "no busybox binary found" }
 
@@ -334,19 +327,19 @@ while read line; do
 	ln -fs /bin/busybox $line
 done <etc/${PKG[name]}/busybox.applets
 
-if [[ -n ${(k)opts[-L]} ]] || [[ -n ${(k)opts[-luks]} ]] { 
+if (( ${+opts[-L]} || ${+opts[-luks]} )) {
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 }
 
-if [[ -n ${(k)opts[-gpg]} ]] || [[ -n ${(k)opts[-g]} ]] {
+if (( ${+opts[-gpg]} || ${+opts[-g]} )) {
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]] { :;
 	} elif [[ $(gpg --version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
-		opts[-bin]+=:$(type -p gpg)
+		opts[-bin]+=:${commands[gpg]}
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
 }
 
-if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
+if (( ${+opts[-lvm]} || ${+opts[-l]} )) {
 	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
@@ -354,14 +347,13 @@ if [[ -n ${(k)opts[-lvm]} ]] || [[ -n ${(k)opts[-l]} ]] {
 	popd
 }
 
-if [[ -n ${(k)opts[-squashd]} ]] || [[ -n ${(k)opts[-q]} ]] { 
+if (( ${+opts[-q]} || ${+opts[-squashd]} )) {
 	opts[-bin]+=:mount.aufs:umount.aufs opts[-mgrp]+=:squashd
 }
 
 # @FUNCTION: domod
 # @DESCRIPTION: copy kernel module
-function domod()
-{
+function domod {
 	local mod module ret
 	for mod ($*) {
 		module=(/lib/modules/${opts[-kv]}/**/${mod}.(ko|o))
@@ -397,10 +389,10 @@ for font (${(pws,:,)opts[-font]} ${(pws,:,)opts[-f]}) {
 	}
 }
 
-if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] { 
+if (( ${+opts[-splash]} || ${+opts[-s]} )) { 
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
 	
-	if [[ -n ${(k)opts[-toi]} ]] || [[ -n ${(k)opts[-t]} ]] {
+	if (( ${+opts[-toi]} || ${+opts[-t]} )) {
 		opts[-bin]+=:tuxoniceui_text
 	}
 	
@@ -413,8 +405,7 @@ if [[ -n ${opts[-splash]} ]] || [[ -n ${opts[-s]} ]] {
 
 # @FUNCTION: docp
 # @DESCRIPTION: follow and copy link until binary/library is copied
-function docp()
-{
+function docp {
 	local link=${1} prefix
 	[[ -n ${link} ]] || return
 	cp -a {,.}${link}
@@ -433,8 +424,7 @@ function docp()
 
 # @FUNCTION: dobin
 # @DESCRIPTION: copy binary with libraries if not static
-function dobin()
-{
+function dobin {
 	local lib
 	docp ${bin} || return
 
@@ -449,7 +439,7 @@ for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]}) {
 	for b ({usr/,}{,s}bin/${bin}) { [[ -x ${b} ]] && continue 2 }
 
 	[[ -x ${bin} ]] && dobin ${bin}
-	bin=$(type -p ${bin})
+	bin=${commands[$bin]}
 	dobin ${bin} || warn "no ${bin} binary found"
 }
 
@@ -463,16 +453,12 @@ for lib (/usr/lib/gcc/**/lib*.so*) {
 	ln -fs $lib usr/lib/$lib:t
 }
 
-if [[ -f /boot/${opts[-initramfs]} ]] {
-	mv /boot/${opts[-initramfs]}{,.old}
-}
-
-docpio /boot/${opts[-initramfs]} || die
+docpio || die
 
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
 
-[[ -n ${(k)opts[-K]} ]] || [[ -n ${(k)opts[-keeptmp]} ]] || rm -rf ${opts[-tmpdir]}
+(( ${+opts[-K]} || ${+opts[-keeptmp]} )) || rm -rf ${opts[-tmpdir]}
 
 unset comp opts PKG
 
-# vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:
+# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
