@@ -43,10 +43,10 @@ install_bash:
 	$(shell) install -pd $(datadir)
 	$(shell) sed -e 's:"$${PWD}"/usr:${prefix}/share/$(PACKAGE)/usr:g' \
 		         -e 's:$${PKG[name]}.conf:/etc/$(PACKAGE).conf:g' \
-		         -i busybox.bash gnupg.bash $(PACKAGE).bash
+		         -i scripts/{busybox,gnupg}.bash $(PACKAGE).bash
 	$(shell) install -pd $(sys_confdir)
 	$(shell) install -pd $(bindir)
-	$(shell) install -pm 755 {busybox,gnupg}.bash -t $(datadir)/scripts
+	$(shell) install -pm 755 scripts/{busybox,gnupg}.bash -t $(datadir)/scripts
 	$(shell) install -pm 644 $(PACKAGE).conf   $(sys_confdir)
 	$(shell) install -pm 755 $(PACKAGE).bash   $(bindir)
 	$(shell) install -pm 755 svc/sdr.bash      $(bindir)
@@ -55,10 +55,10 @@ install_zsh:
 	$(shell) install -pd $(datadir)
 	$(shell) sed -e 's:$${PWD}/usr:${prefix}/share/$(PACKAGE)/usr:g' \
 		         -e 's:${PKG[name]}.conf:/etc/$(PACKAGE).conf:g' \
-    	         -i busybox.zsh gnupg.zsh $(PACKAGE).zsh
+		         -i scripts/{busybox,gnupg}.zsh $(PACKAGE).zsh
 	$(shell) install -pd $(sys_confdir)
 	$(shell) install -pd $(bindir)
-	$(shell) install -pm 755 {busybox,gnupg}.zsh -t $(datadir)/scripts
+	$(shell) install -pm 755 scripts/{busybox,gnupg}.zsh -t $(datadir)/scripts
 	$(shell) install -pm 644 $(PACKAGE).conf   $(sys_confdir)
 	$(shell) install -pm 755 $(PACKAGE).zsh    $(bindir)
 	$(shell) install -pm 755 svc/sdr.zsh       $(bindir)
