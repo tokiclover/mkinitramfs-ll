@@ -8,15 +8,14 @@
 
 typeset -A PKG
 PKG=(
-	[name]=gnupg
-	[shell]=zsh
-	[version]=0.13.4
+	name gnupg
+	shell zsh
+	version 0.13.4
 )
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
-function usage()
-{
+function usage {
   cat <<-EOF
   $PKG[name].$PKG[shell]-$PKG[version]
   usage: $PKG[name].$PKG[shell] -d|--usrdir[usr] [options]
@@ -31,14 +30,12 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-function error()
-{
+function error {
 	print -P " %B%F{red}*%b%f $@" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-function die()
-{
+function die {
 	local ret=$?
 	error $@
 	exit $ret

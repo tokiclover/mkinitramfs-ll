@@ -8,15 +8,14 @@
 
 typset -A PKG
 PKG=(
-	[name]=busybox
-	[shell]=zsh
-	[version]=0.13.4
+	name busybox
+	shell zsh
+	version 0.13.4
 )
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
-function usage()
-{
+function usage {
   cat <<-EOF
   $PKG[name].$PKG[shell]-$PKG[version]
   usage: $PKG[name].$PKG[shell] [-m|-minimal] [-ucli386]
@@ -32,14 +31,12 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-function error()
-{
+function error {
 	print -P " %B%F{red}*%b%f $@" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-function die()
-{
+function die {
 	local ret=$?
 	error $@
 	exit $ret
@@ -84,8 +81,8 @@ pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/${opts[-pkg]}/work/${opts[-pk
 
 if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-minimal]} ]] {
 	make allnoconfig || die
-	for cfg ($(< ${opts[-usrdir]}/busybox.cfg))
-	sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
+	for cfg ($(< ${0:h}/busybox.cfg))
+        sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
 } else {
 	make defconfig || die "defconfig failed" 
 	sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \

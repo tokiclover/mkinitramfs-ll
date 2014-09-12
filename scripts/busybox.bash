@@ -14,8 +14,7 @@ PKG=(
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
-function usage()
-{
+function usage {
   cat <<-EOF
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-m|--minimal] [--ucl=i386]
@@ -31,14 +30,12 @@ exit $?
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
-function error()
-{
+function error {
 	echo -ne " \e[1;31m* \e[0m$@\n" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-function die()
-{
+function die {
 	local ret=$?
 	error "$@"
 	exit $ret
@@ -91,7 +88,7 @@ if [[ ${opts[-minimal]} ]]; then
 	make allnoconfig || die
 	while read cfg; do
 		sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
-	done <"${opts[-usrdir]}"/busybox.cfg
+	done <"${0%/*}"/busybox.cfg
 else
 	make defconfig || die "defconfig failed"
 	sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
