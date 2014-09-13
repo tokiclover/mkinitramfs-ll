@@ -41,8 +41,8 @@ install:
 
 install_bash:
 	$(shell) install -pd $(datadir)
-	$(shell) sed -e 's:"$${PWD}"/usr:${prefix}/share/$(PACKAGE)/usr:g' \
-		         -e 's:$${PKG[name]}.conf:/etc/$(PACKAGE).conf:g' \
+	$(shell) sed -e 's:"$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
+		         -e 's:"$${PKG[name]}".conf:/etc/"$${PKG[name]}".conf:g' \
 		         -i scripts/{busybox,gnupg}.bash $(PACKAGE).bash
 	$(shell) install -pd $(sys_confdir)
 	$(shell) install -pd $(bindir)
@@ -53,8 +53,8 @@ install_bash:
 
 install_zsh:
 	$(shell) install -pd $(datadir)
-	$(shell) sed -e 's:$${PWD}/usr:${prefix}/share/$(PACKAGE)/usr:g' \
-		         -e 's:${PKG[name]}.conf:/etc/$(PACKAGE).conf:g' \
+	$(shell) sed -e 's:$${PWD}/usr:${prefix}/share/"$$(PKG[name]}"/usr:g' \
+		         -e 's:"$${PKG[name]}".conf:/etc/"$${PKG[name]}".conf:g' \
 		         -i scripts/{busybox,gnupg}.zsh $(PACKAGE).zsh
 	$(shell) install -pd $(sys_confdir)
 	$(shell) install -pd $(bindir)

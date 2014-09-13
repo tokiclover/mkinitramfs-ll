@@ -158,8 +158,8 @@ while [[ $# > 0 ]]; do
 	esac
 done
 
-[[ -f ${PKG[name]}.conf ]] &&
-	source ${PKG[name]}.conf ||
+[[ -f "${PKG[name]}".conf ]] &&
+	source "${PKG[name]}".conf ||
 	die "no ${PKG[name]}.conf found"
 
 # @VARIABLE: opts[-kv]

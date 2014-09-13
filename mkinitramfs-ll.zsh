@@ -121,8 +121,8 @@ if (( ${+opts[-h]} || ${+opts[-help]} )) { usage }
 # hold almost every single option/variable
 if (( $# < 1 )) { typeset -A opts }
 
-if [[ -f ${PKG[name]}.conf ]] {
-	source ${PKG[name]}.conf 
+if [[ -f "${PKG[name]}".conf ]] {
+	source "${PKG[name]}".conf 
 } else {
 	die "no ${PKG[name]}.conf found"
 }
