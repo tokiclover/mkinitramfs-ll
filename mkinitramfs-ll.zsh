@@ -203,6 +203,9 @@ if [[ -n ${config} ]] {
 # @DESCRIPTION: generate an initramfs image
 function docpio {
 	local ext=.cpio initramfs=${1:-${opts[-initramfs]}}
+
+	for file (/boot/${initramfs}${ext}*(.)) mv ${file}{,.old}
+
 	find . -print0 | cpio -0 -ov -Hnewc >/tmp/${initramfs}${ext} ||
 		die "failed create /tmp/${initramfs}${ext}"
 
@@ -217,10 +220,6 @@ function docpio {
 		*) warn "initramfs will not be compressed"
 			mv /{tmp,boot}/${initramfs}${ext} &&
 			return || die "failed to move /tmp/${initramfs}${ext}";;
-	}
-
-	if [[ -f /boot/${opts[-initramfs]}${ext} ]] {
-		mv /boot/${opts[-initramfs]}${ext}{,.old}
 	}
 
 	${=opts[-comp]} -cz /tmp/${initramfs}.cpio >/boot/${initramfs}${ext} &&

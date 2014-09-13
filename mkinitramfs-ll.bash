@@ -143,13 +143,13 @@ while [[ $# > 0 ]]; do
 		-m|--kmod) opts[-kmod]+=":${2}"; shift 2;;
 		-p|--prefix) opts[-prefix]=${2}; shift 2;;
 		-y|--keymap) opts[-keymap]+=:"${2}"
-			[[ ${2} ]] || [[ -e /etc/conf.d/keymaps ]] &&
-			opts[-keymap]+=$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
+			[[ -n "${2}" ]] || [[ -e /etc/conf.d/keymaps ]] &&
+			opts[-keymap]+=:$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
 				/etc/conf.d/keymaps)
 			shift 2;;
 		-f|--font) opts[-font]+=":${2}"
-			[[ ${2} ]] || [[ -e /etc/conf.d/consolefont ]] &&
-			opts[-font]+=$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' \
+			[[ -n "${2}" ]] || [[ -e /etc/conf.d/consolefont ]] &&
+			opts[-font]+=:$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' \
 				/etc/conf.d/consolefont)
 			shift 2;;
 		-F|--firmware) opts[-firmware]+=:"${2:-/lib/firmware}"; shift 2;;
@@ -224,7 +224,12 @@ fi
 # @FUNCTION: docpio
 # @DESCRIPTION: generate an initramfs image
 function docpio {
-	local ext initramfs=${1:-${opts[-initramfs]}}
+	local ext=.cpio initramfs=${1:-${opts[-initramfs]}}
+
+	for file in /boot/${initramfs}${ext}*; do
+		mv ${file}{,.old}
+	done
+
 	find . -print0 | cpio -0 -ov -Hnewc >/tmp/${initramfs}.cpio ||
 		die "failed create /tmp/${initramfs}${ext}"
 
@@ -240,10 +245,6 @@ function docpio {
 			mv /{tmp,boot}/${initramfs}${ext} &&
 			return || die "failed to move /tmp/${initramfs}${ext}";;
 	esac
-
-	if [[ -f /boot/${opts[-initramfs]}${ext} ]]; then
-		mv /boot/${opts[-initramfs]}${old}{,.old}
-	fi
 
 	${opts[-comp]} -cz /tmp/${initramfs}.cpio >/boot/${initramfs}${ext} &&
 		rm -f /tmp/${initramfs}.cpio ||
