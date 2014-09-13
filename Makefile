@@ -24,7 +24,7 @@ install:
 	$(shell) find . -name '.keep*' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
 	$(shell) install -pm 755 init        $(datadir)
 	$(shell) install -pd                 $(datadir)/scripts
-	$(shell) install -pm 644 busybox.cfg $(datadir)/scripts
+	$(shell) install -pm 644 {,$(datadir)/}scripts/busybox.cfg
 	$(shell) for script in $(SCRIPTS); do \
 		install -pm 755 scripts/$${script}    $(datadir)/scripts; done
 	$(shell) for module in $(MODULES); do \
