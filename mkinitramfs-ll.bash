@@ -175,6 +175,9 @@ done
 # @DESCRIPTION: full to initramfs compressed image
 opts[-initramfs]=${opts[-prefix]}${opts[-kv]}
 [[ "${opts[-comp]}" ]] || opts[-comp]="xz -9 --check=crc32"
+# @VARIABLE: opts[-arch]
+# @DESCRIPTION: kernel architecture
+[[ "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
 # @VARIABLE: opts[-arc]
 # @DESCRIPTION: kernel bit lenght supported
 [[ "${opts[-arc]}" ]] || opts[-arc]=$(getconf LONG_BIT)

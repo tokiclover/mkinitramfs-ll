@@ -142,6 +142,9 @@ if [[ -f ${PKG[name]}.conf ]] {
 # @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
 :	${opts[-initramfs]:=${opts[-prefix]}${opts[-kv]}}
+# @VARIABLE: opts[-arch]
+# @DESCRIPTION: kernel architecture
+:	${opts[-arch]:=$(uname -m)}
 # @VARIABLE: opts[-arc]
 # @DESCRIPTION: kernel bit lenght supported
 :	${opts[-arc]:=$(getconf LONG_BIT)}
@@ -203,7 +206,7 @@ function docpio {
 	find . -print0 | cpio -0 -ov -Hnewc >/tmp/${initramfs}${ext} ||
 		die "failed create /tmp/${initramfs}${ext}"
 
-	case ${opts[-comp][(w)1]} in
+	case ${opts[-comp][(w)1]} {
 		bzip2) ext+=.bz2;;
 		gzip)  ext+=.gz;;
 		xz)    ext+=.xz;;
@@ -214,7 +217,7 @@ function docpio {
 		*) warn "initramfs will not be compressed"
 			mv /{tmp,boot}/${initramfs}${ext} &&
 			return || die "failed to move /tmp/${initramfs}${ext}";;
-	esac
+	}
 
 	if [[ -f /boot/${opts[-initramfs]}${ext} ]] {
 		mv /boot/${opts[-initramfs]}${ext}{,.old}
