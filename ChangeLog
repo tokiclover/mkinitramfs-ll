@@ -1,5 +1,12 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/09/09 12:40:11 -tclover Exp $
 
+0.13.6:
+
+* fix root mount option (broken with an old variable rename);
+* fix new way of moving old mkinitramfs in docpio() to avoid
+having an infinite old files;
+* fix busybox applets list generating with a dynamic binary;
+* clean up: init/mkinitramfs-ll.zsh;
 * now warning will be printed to stderr instead of stdout, so one can
 easily get access to no fatal warnings with something like `2>err';
 * added kernel compressor check and iterration loop to get a supported
