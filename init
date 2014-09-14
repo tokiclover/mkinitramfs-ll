@@ -3,58 +3,58 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.4 2014/09/09 12:33:03                   Exp $
+# $Version: 0.13.6 2014/09/14 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 
 # @VARIABLE: ECK
-# @DEFAUT_SET
-# @DESCRIPTION: Environment ChecK, whether or not to check binaries
-# and busybox applets
+# @DESCRIPTION: Environment ChecK, check binaries/busybox applets
+:   ${ECK=true}
 
 # @VAIABLE: init
-# @DEFAULT_SET
 # @DESCRIPTION: real init
+:   ${init=/sbin/init}
 
 # @VARIABLE: CONFDIR
-# @DEFAULT_SET
 # @DESCRIPTION: path to default mkinitramfs-ll configuration dir
+:   ${CONFDIR=/etc/initramfs-ll}
 
 # @VARIABLE: LIBDIR
-# @DEFAULT_SET
 # @DESCRIPTION: path to default mkinitramfs-ll library dir
+:   ${LIBDIR=/lib/mkinitramfs-ll}
 
 # @VARIABLE: sh
-# @DEFAULT_SET
 # @DESCRIPTION: shell for scripts and user scripts execution and rescue shell
+:   ${sh=/bin/sh}
 
 # @VARIABLE: LOGFILE
-# @DEFAULT_SET
 # @DESCRIPTION: log file to log execution commands for debugging
+:   ${LOGFILE=$0.log}
 
 # @VARIABLE: RSH
-# @DEFAULT_UNSET
 # @DESCRIPTION: Rescue SHell level to be dropped into, see LVL
 
 # @VARIABLE: LVL
 # @DESCRIPTION: auto setted variable, lvl(), to hold the running shell LeVeL
 
 # @VARIABLE: RIL
-# @DEFAULT_UNSET
 # @DESCRIPTION: Real Init run-Level to be passed to real init
 
 # @VARIABLE: MNTDIR
-# @DEFAULT_SET
 # @DESCRIPTION: mount point for removable token or device
+:   ${MNTDIR=/mnt/tok}
 
 # @VARIABLE: NEWROOT
-# @DEFAULT_SET
 # @DESCRIPTION: new root directory to switch root
+:   ${NEWROOT=/newroot}
 
-export LIBDIR=/lib/mkinitramfs-ll CONFDIR=/etc/initramfs-ll MNTDIR=/mnt/tok
-export ECK=true LOGFILE=$0.log SPLD=false init=/sbin/init sh=/bin/sh
-export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin NEWROOT=/newroot
+# @VARIABLE: SPLD
+# @DESCRIPTION: hold SPLash Daemon running state
+:   ${SPLD=false}
+
+export CONFDIR LIBDIR LOGFILE MNTDIR NEWROOT SPLD init sh
+export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin
 export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
 
 source $LIBDIR/functions || $sh -a
@@ -179,7 +179,7 @@ debug -d mount -t proc proc /proc
 for arg in $(cat /proc/cmdline); do
    	case $arg in
 		rescue*|RSH*) export RSH=1;;
-		ro|rw) export imtopt="${imtopt:+$imtopt,}$arg";;
+		ro|rw) export imopt="${imopt:+$imopt,}$arg";;
 		single) export RIL=2;;
 		irsh=*) arg "RSH" "${arg#*=}" ":" "1"
 			arg "RIL" "${arg#*=}" ":" "2" "-s";;

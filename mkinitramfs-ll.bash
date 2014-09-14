@@ -226,10 +226,6 @@ fi
 function docpio {
 	local ext=.cpio initramfs=${1:-${opts[-initramfs]}}
 
-	for file in /boot/${initramfs}${ext}*; do
-		mv ${file}{,.old}
-	done
-
 	find . -print0 | cpio -0 -ov -Hnewc >/tmp/${initramfs}.cpio ||
 		die "failed create /tmp/${initramfs}${ext}"
 
@@ -241,11 +237,16 @@ function docpio {
 		lzip)  ext+=.lz;;
 		lzop)  ext+=.lzo;;
 		lz4)   ext+=.lz4;;
-		*) warn "initramfs will not be compressed"
-			mv /{tmp,boot}/${initramfs}${ext} &&
-			return || die "failed to move /tmp/${initramfs}${ext}";;
+		*) warn "initramfs will not be compressed";;
 	esac
 
+	if [[ -f /boot/${initramfs}${ext} ]]; then
+	    mv /boot/${initramfs}${ext}{,.old}
+	fi
+	if [[ -z "${ext#.cpio}" ]]; then
+		mv /{tmp,boot}/${initramfs}${ext} &&
+		return || die "failed to move /tmp/${initramfs}${ext}"
+	fi
 	${opts[-comp]} -cz /tmp/${initramfs}.cpio >/boot/${initramfs}${ext} &&
 		rm -f /tmp/${initramfs}.cpio ||
 		warn "failed to compress /tmp/${initramfs}.cpio"
@@ -254,10 +255,10 @@ function docpio {
 echo ">>> building ${opts[-initramfs]}..."
 pushd "${opts[-tmpdir]}" || die "${opts[-tmpdir]} not found"
 
-if [[ ${opts[-regen]} ]]; then
+if [[ "${opts[-regen]}" ]]; then
 	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
-	docpio /boot/${opts[-initramfs]} || die
+	docpio "${opts[-initramfs]}" || die
 	echo ">>> regenerated ${opts[-initramfs]}..." && exit
 else
 	rm -fr *
@@ -331,21 +332,19 @@ done
 
 if [[ -x usr/bin/busybox ]]; then
 	mv -f {usr/,}bin/busybox
-elif ( type -p busybox >/dev/null ); then
+elif type -p busybox >/dev/null; then
 	bb=$(type -p busybox)
-	if (ldd ${bb} >/dev/null); then
-		${bb} --list-full >etc/${PKG[name]}/busybox.applets
+	if ldd ${bb} >/dev/null; then
 		bin+=:${bb}
 		warn "busybox is not a static binary"
-	else
-		cp -a ${bb} bin/
 	fi
+	cp -a ${bb} bin/
 	unset bb
 else
 	die "no busybox binary found"
 fi
 
-if [[ ! -f etc/${PKG[name]}/busybox ]]; then
+if [[ ! -f etc/${PKG[name]}/busybox.applets ]]; then
 	bin/busybox --list-full >etc/${PKG[name]}/busybox.applets || die
 fi
 
@@ -369,7 +368,7 @@ fi
 if [[ ${opts[-gpg]} ]]; then
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]]; then :;
-	elif [[ $(gpg --version | grep 'gpg (GnuPG)' | cut -c13) == 1 ]]; then
+	elif [[ "$(gpg --version | sed -nre '/^gpg/s/.* ([0-9]{1})\..*$/\1/p')" -eq 1 ]]; then
 		opts[-bin]+=:$(type -p gpg)
 	else
 		die "there is no usable gpg/gnupg-1.4.x binary"

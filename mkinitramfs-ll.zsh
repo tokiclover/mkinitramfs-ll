@@ -204,8 +204,6 @@ if [[ -n ${config} ]] {
 function docpio {
 	local ext=.cpio initramfs=${1:-${opts[-initramfs]}}
 
-	for file (/boot/${initramfs}${ext}*(.)) mv ${file}{,.old}
-
 	find . -print0 | cpio -0 -ov -Hnewc >/tmp/${initramfs}${ext} ||
 		die "failed create /tmp/${initramfs}${ext}"
 
@@ -217,11 +215,16 @@ function docpio {
 		lzip)  ext+=.lz;;
 		lzop)  ext+=.lzo;;
 		lz4)   ext+=.lz4;;
-		*) warn "initramfs will not be compressed"
-			mv /{tmp,boot}/${initramfs}${ext} &&
-			return || die "failed to move /tmp/${initramfs}${ext}";;
+		*) warn "initramfs will not be compressed";;
 	}
 
+	if [[ -f /boot/${initramfs}${ext} ]] {
+	    mv /boot/${initramfs}${ext}{,.old}
+	}
+	if [[ -z ${ext#.cpio} ]] {
+		mv /{tmp,boot}/${initramfs}${ext} &&
+		return || die "failed to move /tmp/${initramfs}${ext}"
+	}
 	${=opts[-comp]} -cz /tmp/${initramfs}.cpio >/boot/${initramfs}${ext} &&
 		rm -f /tmp/${initramfs}.cpio ||
 		warn "failed to compress /tmp/${initramfs}.cpio"
@@ -230,10 +233,10 @@ function docpio {
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 pushd ${opts[-tmpdir]} || die "no ${opts[-tmpdir]} tmpdir found"
 
-if [[ -n ${(k)opts[-regen]} ]] || [[ -n ${(k)opts[-r]} ]] {
+if (( ${+opts[-regen]} || ${+opts[-r]} )) {
 	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
-	docpio /boot/${opts[-initramfs]} || die
+	docpio ${opts[-initramfs]} || die
 	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f" && exit
 } else {
 	rm -fr *
@@ -269,8 +272,8 @@ cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 [[ -d root ]] && chmod 0700 root || mkdir -m700 root || die
 
 for bin (dmraid mdadm zfs)
-	if [[ -n $(echo ${opts[-b]} | grep $bin) ]] ||
-	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] { opts[-mgrp]+=:$bin }
+	for opt (${opts[-b]} ${opts[-bin]})
+		if [[ -n $(echo $opt | grep $bin) ]] { opts[-mgrp]+=:$bin }
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
 for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]}) {
@@ -309,14 +312,13 @@ if [[ -x usr/bin/busybox ]] {
 	mv -f {usr/,}bin/busybox
 } elif (( ${+commands[busybox]} )) {
 	if (ldd ${commands[busybox]} >/dev/null) {
-		busybox --list-full >etc/${PKG[name]}/busybox.applets
 		bin+=:${commands[busybox]}
 		warn "busybox is not a static binary"
-	} else { cp -a ${commands[busybox]} bin/ }
-	unset bb
+	}
+	cp -a ${commands[busybox]} bin/
 } else { die "no busybox binary found" }
 
-if [[ ! -f etc/${PKG[name]}/busybox ]] {
+if [[ ! -f etc/${PKG[name]}/busybox.applets ]] {
 	bin/busybox --list-full >etc/${PKG[name]}/busybox.applets || die
 }
 
@@ -336,7 +338,7 @@ if (( ${+opts[-L]} || ${+opts[-luks]} )) {
 if (( ${+opts[-gpg]} || ${+opts[-g]} )) {
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]] { :;
-	} elif [[ $(gpg --version | grep 'gpg (GnuPG)' | cut -c13) = 1 ]] {
+	} elif [[ $(gpg --version | sed -nre '/^gpg/s/.* ([0-9]{1})\..*$/\1/p') -eq 1 ]] {
 		opts[-bin]+=:${commands[gpg]}
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
 }
@@ -371,8 +373,10 @@ function domod {
 }
 
 for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
-	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] { :;
-	} elif [[ -f ${keymap} ]] { cp -a ${keymap} usr/share/keymaps/
+	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] {
+		:;
+	} elif [[ -f ${keymap} ]] {
+		cp -a ${keymap} usr/share/keymaps/
 	} else { 
 		loadkeys -b -u ${keymap} > usr/share/keymaps/${keymap}-${opts[-arch]}.bin ||
 			die "failed to build ${keymap} keymap"
@@ -380,8 +384,10 @@ for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
 }
 
 for font (${(pws,:,)opts[-font]} ${(pws,:,)opts[-f]}) {
-	if [[ -f usr/share/consolefonts/${font} ]] { :;
-	} elif [[ -f ${font} ]] { cp -a ${font} usr/share/consolefonts/
+	if [[ -f usr/share/consolefonts/${font} ]] {
+		:;
+	} elif [[ -f ${font} ]] {
+		cp -a ${font} usr/share/consolefonts/
 	} else {
 		for file (/usr/share/consolefonts/${font}*.gz) {
 			cp ${file} . 
@@ -399,9 +405,12 @@ if (( ${+opts[-splash]} || ${+opts[-s]} )) {
 	}
 	
 	for theme (${(pws,:,)opts[-splash]} ${(pws,:,)opts[-s]})
-		if [[ -d etc/splash/${theme} ]] { :;  
-		} elif [[ -d /etc/splash/${theme} ]] { cp -ar {/,}etc/splash/${theme}
-		} elif [[ -d ${theme} ]] { cp -r ${theme} etc/splash/ 
+		if [[ -d etc/splash/${theme} ]] {
+			:;
+		} elif [[ -d /etc/splash/${theme} ]] {
+			cp -ar {/,}etc/splash/${theme}
+		} elif [[ -d ${theme} ]] {
+			cp -r ${theme} etc/splash/
 		} else { warn "splash themes does not exist" }
 }
 
