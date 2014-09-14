@@ -335,6 +335,7 @@ if [[ -x usr/bin/busybox ]]; then
 elif type -p busybox >/dev/null; then
 	bb=$(type -p busybox)
 	if ldd ${bb} >/dev/null; then
+		busybox --list-full >etc/${PKG[name]}/busybox.applets
 		bin+=:${bb}
 		warn "busybox is not a static binary"
 	fi

@@ -312,6 +312,7 @@ if [[ -x usr/bin/busybox ]] {
 	mv -f {usr/,}bin/busybox
 } elif (( ${+commands[busybox]} )) {
 	if (ldd ${commands[busybox]} >/dev/null) {
+		busybox --list-full >etc/${PKG[name]}/busybox.applets
 		bin+=:${commands[busybox]}
 		warn "busybox is not a static binary"
 	}
