@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/scripts/xcpio                  Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 2014/09/09 12:33:03                          Exp $
+# $Version: 2014/09/14 12:33:03                          Exp $
 #
 
 usage='cat <<-EOH
@@ -31,11 +31,11 @@ comp() {
 }
 
 case $1 in
-	-l|-ls|-list) opt=-c pipe='| cpio -tv'
+	-l|-ls|-list) opt=-t
 		shift;;
-	-x|-*xtract) opt=-c pipe='cpio -idv'
+	-x|-*xtract) opt=-id
 		shift;;
-	-d|*compress) opt= pipe=
+	-d|*compress) opt=
 		shift;;
 	*) opt=-t;;
 esac
@@ -45,8 +45,13 @@ for file in $*; do
 		tmpdir=${file##*/}
 		tmpdir=$(mktemp -d ${tmpdir%.cpio*}-XXXXXX)
 		cd $tmpdir || exit $?
-		comp "$opt" "$file" $pipe &&
-		echo "xcpio: successfuly deflated to $tmpdir"
+		if [ -n "$opt" ]; then
+			comp "-c" "$file" | cpio $opt -v
+		else
+			comp "$file"
+		fi
+		[ "$?" = 0 ] && echo "xcpio: successfuly deflated to $tmpdir" ||
+			echo "xcpio: failed to process file"
 	else
 		echo "xcpio: $file file not found"
 	fi
