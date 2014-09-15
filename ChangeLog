@@ -2,6 +2,7 @@
 
 0.13.6:
 
+* synced to current mdev files (conf/lib);
 * fix root mount option (broken with an old variable rename);
 * fix new way of moving old mkinitramfs in docpio() to avoid
 having an infinite old files;
