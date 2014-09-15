@@ -260,6 +260,7 @@ ln -sf lib{${opts[-arc]},} &&
 	for key (${(k)PKG[@]}) print "${key}=${PKG[$key]}"
 	print "build=$(date +%Y-%m-%d-%T)"
 } >etc/${PKG[name]}/id
+touch etc/{fs,m}tab
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
 if [[ ${${(pws:.:)opts[-kv]}[1]} -eq 3 ]] &&
@@ -313,7 +314,7 @@ if [[ -x usr/bin/busybox ]] {
 } elif (( ${+commands[busybox]} )) {
 	if (ldd ${commands[busybox]} >/dev/null) {
 		busybox --list-full >etc/${PKG[name]}/busybox.applets
-		bin+=:${commands[busybox]}
+		opts[-bin]+=:${commands[busybox]}
 		warn "busybox is not a static binary"
 	}
 	cp -a ${commands[busybox]} bin/
@@ -323,14 +324,14 @@ if [[ ! -f etc/${PKG[name]}/busybox.applets ]] {
 	bin/busybox --list-full >etc/${PKG[name]}/busybox.applets || die
 }
 
-while read line; do
-	grep -q ${line} etc/${PKG[name]}/busybox.applets ||
-	die "${line} applet not found, no suitable busybox found"
-done <etc/${PKG[name]}/minimal.applets
-
-while read line; do
-	ln -fs /bin/busybox $line
-done <etc/${PKG[name]}/busybox.applets
+pushd bin || die
+for applet ($(grep '^bin' ../etc/${PKG[name]}/busybox.applets))
+	ln -s busybox ${applet:t}
+popd
+pushd sbin || die
+for applet ($(grep '^sbin' ../etc/${PKG[name]}/busybox.applets))
+	ln -s ../bin/busybox ${applet:t}
+popd
 
 if (( ${+opts[-L]} || ${+opts[-luks]} )) {
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
@@ -348,7 +349,7 @@ if (( ${+opts[-lvm]} || ${+opts[-l]} )) {
 	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
-		{lv,vg}reduce lvresize vgmerge) ln -sf lvm ${lpv} || die
+		{lv,vg}reduce lvresize vgmerge) ln -s lvm ${lpv} || die
 	popd
 }
 

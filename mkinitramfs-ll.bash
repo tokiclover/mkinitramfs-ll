@@ -285,6 +285,7 @@ ln -sf lib{${opts[-arc]},} &&
 	done
 	echo "build=$(date +%Y-%m-%d-%T)"
 } >etc/${PKG[name]}/id
+touch etc/{fs,m}tab
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
 
@@ -336,7 +337,7 @@ elif type -p busybox >/dev/null; then
 	bb=$(type -p busybox)
 	if ldd ${bb} >/dev/null; then
 		busybox --list-full >etc/${PKG[name]}/busybox.applets
-		bin+=:${bb}
+		opts[-bin]+=:${bb}
 		warn "busybox is not a static binary"
 	fi
 	cp -a ${bb} bin/
@@ -354,9 +355,16 @@ while read line; do
 	die "${line} applet not found, no suitable busybox found"
 done <etc/${PKG[name]}/minimal.applets
 
-while read line; do
-	ln -fs /bin/busybox $line
-done <etc/${PKG[name]}/busybox.applets
+pushd bin || die
+for applet in $(grep '^bin' ../etc/${PKG[name]}/busybox.applets); do
+	ln -s busybox ${applet#bin/}
+done
+popd
+pushd sbin || die
+for applet in $(grep '^sbin' ../etc/${PKG[name]}/busybox.applets); do
+	ln -s ../bin/busybox ${applet#sbin/}
+done
+popd
 
 if [[ ${opts[-luks]} ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
@@ -381,7 +389,7 @@ if [[ ${opts[-lvm]} ]]; then
 	pushd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
 		{lv,vg}reduce lvresize vgmerge
-		do ln -sf lvm ${lpv} || die
+		do ln -s lvm ${lpv} || die
 	done
 	popd
 fi
