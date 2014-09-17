@@ -124,8 +124,9 @@ ack() {
 		while read _line; do
 			[ -h /$_line ] || ( debug -d busybox --install -s && return )
 		done <$CONFDIR/busybox.applets
+	else
+		debug -d busybox --install -s
 	fi
-	debug -d busybox --install -s
 }
 
 # @FUNCTION: domod
