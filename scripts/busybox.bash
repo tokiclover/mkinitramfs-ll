@@ -19,10 +19,10 @@ function usage {
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-m|--minimal] [--ucl=i386]
 
-  -d, --usrdir=usr     copy busybox binary file to usr/bin
+  -d, --usrdir=usr       copy busybox binary file to usr/bin
   -n, --minimal          build busybox with minimal applets, default is full applets
-      --ucl i386         arch string needed to build busybox against uClibc	
-  -v, --version 1.20.0   use 1.20.0 instead of latest version of busybox
+      --ucl=i386         arch string needed to build busybox against uClibc	
+  -v, --version=1.20.0   use 1.20.0 instead of latest version of busybox
   -h, --help, -?         print the usage/help and exit
 EOF
 exit $?
