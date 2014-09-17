@@ -2,10 +2,10 @@
 
 0.13.6:
 
+* fix copying binaries which have busybox applets that end up by
+corrupting/overriding busybox binary;
 * synced to current mdev files (conf/lib);
 * fix root mount option (broken with an old variable rename);
-* fix new way of moving old mkinitramfs in docpio() to avoid
-having an infinite old files;
 * fix busybox applets list generating with a dynamic binary;
 * clean up: init/mkinitramfs-ll.zsh;
 * now warning will be printed to stderr instead of stdout, so one can
