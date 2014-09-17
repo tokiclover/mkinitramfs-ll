@@ -247,7 +247,7 @@ function docpio {
 		mv /{tmp,boot}/${initramfs}${ext} &&
 		return || die "failed to move /tmp/${initramfs}${ext}"
 	fi
-	${opts[-comp]} -cz /tmp/${initramfs}.cpio >/boot/${initramfs}${ext} &&
+	${opts[-comp]} -c /tmp/${initramfs}.cpio >/boot/${initramfs}${ext} &&
 		rm -f /tmp/${initramfs}.cpio ||
 		warn "failed to compress /tmp/${initramfs}.cpio"
 }
@@ -315,7 +315,7 @@ if [[ ${opts[-firmware]} ]]; then
 fi
 
 for bin in dmraid mdadm zfs; do
-	[[ -n $(echo ${opts[-bin]} | grep $bin) ]] && opts[-mgrp]+=:$bin
+	[[ "${opts[-bin]/$bin}" != "$bin" ]] && opts[-mgrp]+=":$bin"
 done
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
@@ -459,14 +459,14 @@ fi
 function docp {
 	local link=${1} prefix
 	[[ -n ${link} ]] || return
-	cp -a {,.}${link}
+	rm -f .${link} && cp -a {,.}${link} || die
 
 	[[ -h ${link} ]] &&
 	while true; do
 	    prefix=${link%/*}
 		link=$(readlink ${link})
 		[[ ${link%/*} == ${link} ]] && link=${prefix}/${link}
-		cp -a {,.}${link} || die
+		rm -f .${link} && cp -a {,.}${link} || die
 		[[ -h ${link} ]] || break
 	done
 
