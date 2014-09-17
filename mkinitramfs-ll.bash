@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/14 12:33:03                   Exp $
+# $Version: 0.13.6 2014/09/17 12:33:03                   Exp $
 #
 
 declare -A PKG
@@ -21,29 +21,29 @@ function usage {
   usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
   -a, --all                 short hand or forme of '-l -L -g -M:zfs:zram -t -q'
-  -f, --font [:ter-v14n]    include a colon separated list of fonts to the initramfs
+  -f, --font=[:ter-v14n]    include a colon separated list of fonts to the initramfs
   -F, --firmware [:file]    append firmware file or directory (relative to /lib/firmware),
                             or else full path, or the whole /lib/firmware dir if empty
-  -k, --kv 3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
-  -c, --comp ['gzip -9']    use 'gzip -9' compressor instead of default, accept 'none'
+  -k, --kv=3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
+  -c, --comp=['gzip -9']    use 'gzip -9' compressor instead of default, accept 'none'
   -L, --luks                add LUKS support, require a sys-fs/cryptsetup binary
   -l, --lvm                 add LVM support, require a static sys-fs/lvm2 binary
-  -b, --bin :<bin>          include a colon separated list of binar-y-ies to the initramfs
-  -d, --usrdir [usr]        use usr dir for user extra files, binaries, scripts, fonts...
+  -b, --bin=:<bin>          include a colon separated list of binar-y-ies to the initramfs
+  -d, --usrdir=[usr]        use usr dir for user extra files, binaries, scripts, fonts...
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
-  -p, --prefix initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
-  -M, --module :<name>      include <name> module or script from modules directory
-  -m, --kmod [:<mod>]       include a colon separated list of kernel modules to the initramfs
-      --mtuxonice [:<mod>]  include a colon separated list of kernel modules to tuxonice group
-      --mremdev [:<mod>]    include a colon separated list of kernel modules to remdev  group
-      --msquashd [:<mod>]   include a colon separated list of kernel modules to squashd group
-      --mgpg [:<mod>]       include a colon separated list of kernel modules to gpg     group
-      --mboot [:<mod>]      include a colon separated list of kernel modules to boot   group
-  -s, --splash [:<theme>]   include a colon separated list of splash themes to the initramfs
+  -p, --prefix=initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
+  -M, --module=:<name>      include <name> module or script from modules directory
+  -m, --kmod=[:<mod>]       include a colon separated list of kernel modules to the initramfs
+      --mtuxonice=[:<mod>]  include a colon separated list of kernel modules to tuxonice group
+      --mremdev=[:<mod>]    include a colon separated list of kernel modules to remdev  group
+      --msquashd=[:<mod>]   include a colon separated list of kernel modules to squashd group
+      --mgpg=[:<mod>]       include a colon separated list of kernel modules to gpg     group
+      --mboot=[:<mod>]      include a colon separated list of kernel modules to boot   group
+  -s, --splash=[:<theme>]   include a colon separated list of splash themes to the initramfs
   -t, --toi                 add tuxonice support, require tuxoniceui_text binary for splash
   -q, --squashd             add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
   -r, --regen               regenerate a new initramfs from an old dir with newer init
-  -y, --keymap :fr-latin1   include a colon separated list of keymaps to the initramfs
+  -y, --keymap=:fr-latin1   include a colon separated list of keymaps to the initramfs
   -K, --keeptmp             keep temporary files instead of removing the tmpdir
   -h, --help, -?            print this help or usage message and exit
 
