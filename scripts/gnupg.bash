@@ -20,9 +20,9 @@ function usage {
   $${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-d|--usrdir=usr] [options]
 
-  -d, --usrdir [usr]     copy binary and options.skel files to usr/
-  -u, --useflag flags    extra USE flags to append to USE="nls static"
-  -v, --version <str>    build gpg-<str> version instead of gpg-1.4.x
+  -d, --usrdir=[usr]     copy binary and options.skel files to usr/
+  -u, --useflag=flags    extra USE flags to append to USE="nls static"
+  -v, --version=<str>    build gpg-<str> version instead of gpg-1.4.x
   -h, --help, -?         print this help/uage and exit
 EOF
 exit $?
