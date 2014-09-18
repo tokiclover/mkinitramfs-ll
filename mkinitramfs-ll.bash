@@ -225,9 +225,7 @@ fi
 # @DESCRIPTION: generate an initramfs image
 function docpio {
 	local ext=.cpio initramfs=${1:-${opts[-initramfs]}}
-
-	find . -print0 | cpio -0 -ov -Hnewc >/tmp/${initramfs}.cpio ||
-		die "failed create /tmp/${initramfs}${ext}"
+	local cmd="find . -print0 | cpio -0 -ov -Hnewc"
 
 	case ${opts[-comp]%% *} in
 		bzip2) ext+=.bz2;;
@@ -237,19 +235,18 @@ function docpio {
 		lzip)  ext+=.lz;;
 		lzop)  ext+=.lzo;;
 		lz4)   ext+=.lz4;;
-		*) warn "initramfs will not be compressed";;
+		*) opts[-comp]=; warn "initramfs will not be compressed";;
 	esac
 
 	if [[ -f /boot/${initramfs}${ext} ]]; then
 	    mv /boot/${initramfs}${ext}{,.old}
 	fi
-	if [[ -z "${ext#.cpio}" ]]; then
-		mv /{tmp,boot}/${initramfs}${ext} &&
-		return || die "failed to move /tmp/${initramfs}${ext}"
+	if [[ -n "${ext#.cpio}" ]]; then
+		cmd+=" | ${opts[-comp]} -c"
 	fi
-	${opts[-comp]} -c /tmp/${initramfs}.cpio >/boot/${initramfs}${ext} &&
-		rm -f /tmp/${initramfs}.cpio ||
-		warn "failed to compress /tmp/${initramfs}.cpio"
+
+	eval ${cmd} >/boot/${initramfs}${ext} ||
+		die "failed to generate /tmp/${initramfs}${ext}"
 }
 
 echo ">>> building ${opts[-initramfs]}..."
