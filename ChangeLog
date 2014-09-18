@@ -1,5 +1,9 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/09/09 12:40:11 -tclover Exp $
 
+* mkinitramfs-ll.zsh: fix parsing -b|-bin,-F|-firmware,-y|-keymap, so next
+occurences will rightly append options;
+* fix help formating for bash scripts regarding white space issue (getopt(1)).
+
 0.13.6:
 
 * fix copying binaries which have busybox applets that end up by
