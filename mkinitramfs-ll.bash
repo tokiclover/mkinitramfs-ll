@@ -6,7 +6,7 @@
 # $Version: 0.13.6 2014/09/17 12:33:03                   Exp $
 #
 
-declare -A PKG
+typeset -A PKG
 PKG=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
@@ -105,7 +105,7 @@ function donod {
 	popd || die
 }
 
-shopt nullglob
+shopt -qs extglob nullglob
 
 opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msquashd::,mremdev:: \
 	  -l keeptmp,module:,mtuxonice::,squashd,toi,help,usrdir:: \
