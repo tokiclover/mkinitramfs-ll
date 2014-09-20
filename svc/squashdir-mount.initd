@@ -1,15 +1,17 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.4 2014/08/08 23:06:10 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.4 2014/09/09 23:06:10 -tclover Exp $
 
-conf_file="/etc/conf.d/${SVCNAME}"
+conf_file=/etc/conf.d/${RC_SVCNAME}
 description="manage (AUFS+squashfs) squashed directories"
 
 depend()
 {
 	after localmount
-	before consolefont bootmisc acpid keymaps
+	if [[ "${RC_RUNLEVEL}" == "boot" ]]; then
+		before consolefont bootmisc acpid keymaps
+	fi
 }
 
 start()
