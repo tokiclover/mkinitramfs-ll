@@ -1,9 +1,9 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the 2-clause BSD or GPL-2 license
-# $Header: ~/scr/zram.initd,v 1.2 2014/08/08 13:05:23 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/zram.initd,v 1.2 2014/09/09 13:05:23 -tclover Exp $
 
-conf_file="/etc/conf.d/${SVCNAME}"
+conf_file=/etc/conf.d/${RC_SVCNAME}
 description="set up zram devices and initialize zram if necessary"
 
 depend()
