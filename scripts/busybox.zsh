@@ -81,7 +81,7 @@ pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/${opts[-pkg]}/work/${opts[-pk
 
 if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-minimal]} ]] {
 	make allnoconfig || die
-	for cfg ($(< ${0:h}/busybox.cfg))
+	for cfg ($(< ${0:h}/busybox-minimal.config))
         sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
 } else {
 	make defconfig || die "defconfig failed" 
