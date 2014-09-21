@@ -1,5 +1,5 @@
 PACKAGE     = mkinitramfs-ll
-VERSION     = $(shell grep Header init | awk '{print $$4}')
+VERSION     = $(sed -nre '5,s/.*: ([0-9].*) .*/\1/p' init)
 
 prefix      = /usr/local
 bindir      = ${DESTDIR}${prefix}/sbin
@@ -12,102 +12,121 @@ docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 DOCS        = AUTHORS BUGS COPYING README.textile ChangeLog
 
 MODULES     = zfs zram
-SCRIPTS     = xcpio
+FILES       = usr/etc/mdev.conf usr/etc/$(PACKAGE)/minimal.applets \
+			  usr/lib/$(PACKAGE)/functions scripts/busybox-minimal.config \
+			  usr/root/.gnupg/gpg.conf usr/share/gnupg/options.skel
+EXEC_FILES  = init scripts/xcpio \
+			  usr/lib/mdev/ide_links usr/lib/mdev/usbdev usr/lib/mdev/usbdisk_link
+
 
 all:
 
 instal_all: install install_aufs_squashfs install_bash install_zsh install_zram
 
 install:
-	$(shell) install -pd $(datadir)/usr/lib/{mdev,$(PACKAGE)}
-	$(shell) install -pd $(datadir)/usr/etc/{splash,$(PACKAGE)}
-	$(shell) find . -name '.keep*' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
-	$(shell) install -pm 755 init        $(datadir)
-	$(shell) install -pd                 $(datadir)/scripts
-	$(shell) install -pm 644 {,$(datadir)/}scripts/busybox.cfg
-	$(shell) for script in $(SCRIPTS); do \
-		install -pm 755 scripts/$${script}    $(datadir)/scripts; done
+	install -pd $(datadir)/usr/etc/$(PACKAGE)
+	install -pd $(datadir)/usr/lib/$(PACKAGE)
+	install -pd $(datadir)/usr/etc/splash
+	install -pd $(datadir)/usr/lib/mdev
+	install -pd $(datadir)/usr/.root/gnupg
+	install -pd $(datadir)/scripts
+	find . -name '.keep*' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
+	$(shell) for file in $(EXEC_FILES); do \
+		install -D -pm 755 $${file} $(datadir)/$${file}; \
+	done
+	$(shell) for file in $(FILES); do \
+		install -D -pm 644 $${file} $(datadir)/$${file}; \
+	done
 	$(shell) for module in $(MODULES); do \
 		for file in modules/*$${module}*; do \
-			install -Dpm644 $${file} $(datadir)/$${file}; \
+			install -D -pm 644 $${file} $(datadir)/$${file}; \
 		done; done
-	$(shell) install -pm 644 {,$(datadir)/}usr/lib/$(PACKAGE)/functions
-	$(shell) install -Dpm644 {,$(datadir)/}usr/root/.gnupg/gpg.conf
-	$(shell) install -pm 644 {,$(datadir)/}usr/etc/mdev.conf
-	$(shell) install -pm 644 {,$(datadir)/}usr/etc/$(PACKAGE)/minimal.applets
-	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/ide_links
-	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/usbdev
-	$(shell) install -pm 755 {,$(datadir)/}usr/lib/mdev/usbdisk_link
 
 install_bash:
-	$(shell) install -pd $(datadir)
-	$(shell) sed -e 's:"$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
+	install -pd $(sys_confdir)
+	install -pd $(bindir)
+	install -pd $(datadir)/scripts
+	sed -e 's:"$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
 		         -e 's:"$${PKG[name]}".conf:/etc/"$${PKG[name]}".conf:g' \
 		         -i scripts/{busybox,gnupg}.bash $(PACKAGE).bash
-	$(shell) install -pd $(sys_confdir)
-	$(shell) install -pd $(bindir)
-	$(shell) install -pm 755 scripts/{busybox,gnupg}.bash -t $(datadir)/scripts
-	$(shell) install -pm 644 $(PACKAGE).conf   $(sys_confdir)
-	$(shell) install -pm 755 $(PACKAGE).bash   $(bindir)
-	$(shell) install -pm 755 svc/sdr.bash      $(bindir)
+	install -pm 755 scripts/busybox.bash $(datadir)/scripts
+	install -pm 755 scripts/gnupg.bash   $(datadir)/scripts
+	install -pm 644 $(PACKAGE).conf      $(sys_confdir)
+	install -pm 755 $(PACKAGE).bash      $(bindir)
+	install -pm 755 svc/sdr.bash         $(bindir)
 
 install_zsh:
-	$(shell) install -pd $(datadir)
-	$(shell) sed -e 's:$${PWD}/usr:${prefix}/share/"$$(PKG[name]}"/usr:g' \
+	install -pd $(sys_confdir)
+	install -pd $(bindir)
+	install -pd $(datadir)/scripts
+	sed -e 's:$${PWD}/usr:${prefix}/share/"$$(PKG[name]}"/usr:g' \
 		         -e 's:"$${PKG[name]}".conf:/etc/"$${PKG[name]}".conf:g' \
 		         -i scripts/{busybox,gnupg}.zsh $(PACKAGE).zsh
-	$(shell) install -pd $(sys_confdir)
-	$(shell) install -pd $(bindir)
-	$(shell) install -pm 755 scripts/{busybox,gnupg}.zsh -t $(datadir)/scripts
-	$(shell) install -pm 644 $(PACKAGE).conf   $(sys_confdir)
-	$(shell) install -pm 755 $(PACKAGE).zsh    $(bindir)
-	$(shell) install -pm 755 svc/sdr.zsh       $(bindir)
+	install -pm 755 scripts/busybox.zsh $(datadir)/scripts
+	install -pm 755 scripts/gnupg.zsh   $(datadir)/scripts
+	install -pm 644 $(PACKAGE).conf     $(sys_confdir)
+	install -pm 755 $(PACKAGE).zsh      $(bindir)
+	install -pm 755 svc/sdr.zsh         $(bindir)
 
 install_aufs_squashfs:
-	$(shell) install -pd $(svc_confdir)
-	$(shell) install -pd $(svc_initdir)
-	$(shell) install -pm 755 svc/squashdir-mount.initd $(svc_initdir)/squashdir-mount
-	$(shell) install -pm 644 svc/squashdir-mount.confd $(svc_confdir)/squashdir-mount
+	install -pd $(svc_confdir)
+	install -pd $(svc_initdir)
+	install -pm 755 svc/squashdir-mount.initd $(svc_initdir)/squashdir-mount
+	install -pm 644 svc/squashdir-mount.confd $(svc_confdir)/squashdir-mount
 
 install_zram:
-	$(shell) install -pd $(svc_confdir)
-	$(shell) install -pd $(svc_initdir)
-	$(shell) install -pm 755 svc/zram.initd $(svc_initdir)/zram
-	$(shell) install -pm 644 svc/zram.confd $(svc_confdir)/zram
+	install -pd $(svc_confdir)
+	install -pd $(svc_initdir)
+	install -pm 755 svc/zram.initd $(svc_initdir)/zram
+	install -pm 644 svc/zram.confd $(svc_confdir)/zram
 
 postinstall:
 
 uninstall_all: unintsall uninstall_bash uninstall_zsh uninstall_aufs_squashfs uninstall_zram
 
 uninstall:
-	$(shell) rm -f $(datadir)/{init,usr/etc/mdev.conf,scripts/{busybox.cfg,xcpio}}
-	$(shell) rm -f $(datadir)/usr/{root/.gnupg/gpg.conf,share/gnupg/options.skel}
-	$(shell) find ${datadir}/usr -name '.keep' -exec rm -f '{}' \;
+	find ${datadir}/usr -name '*.keep*' -exec rm -f '{}' \;
+	$(shell) for file in $(EXEC_FILES); do \
+		rm -f $(datadir)/$${file}; \
+	done
+	$(shell) for file in $(FILES); do \
+		rm -f $(datadir)/$${file}; \
+	done
 	$(shell) for file in $(MODULES); do \
-			rm -f $(datadir)/modules/*$${file}*; \
-		done
-	$(shell) rm -f $(datadir)/usr/lib/mdev/{ide_links,usbdev,usbdisk_link}
-	$(shell) rm -f $(datadir)/usr/lib/$(PACKAGE)/functions
-	$(shell) rmdir $(datadir)/usr/{lib/{mdev,$(PACKAGE)},etc/{$(PACKAGE),splash}}
-	$(shell) rmdir $(datadir)/usr/{lib,{,s}bin,root/{.gnupg,},etc/{$(PACKAGE),splash,}}
-	$(shell) rmdir $(datadir)/{usr/{share/{consolefonts,keymaps,gnupg,},},modules}
+		rm -f $(datadir)/modules/*$${file}*; \
+	done
+	rmdir $(datadir)/usr/etc/$(PACKAGE)
+	rmdir $(datadir)/usr/lib/$(PACKAGE)
+	rmdir $(datadir)/usr/etc/splash
+	rmdir $(datadir)/usr/lib/mdev
+	rmdir $(datadir)/scripts
+	rmdir $(datadir)/usr/lib
+	rmdir $(datadir)/usr/bin
+	rmdir $(datadir)/usr/sbin
+	rmdir $(datadir)/usr/.root/gnupg
+	rmdir $(datadir)/usr/.root
+	rmdir $(datadir)/usr/share/consolefonts
+	rmdir $(datadir)/usr/share/gnupg
+	rmdir $(datadir)/usr/share/keymaps
 
 uninstall_bash:
-	$(shell) rm -f $(bindir)/$(PACKAGE).bash
-	$(shell) rm -f $(datadir)/scripts/{busybox,gnupg}.bash
-	$(shell) rm -f $(sys_confdir)/$(PACKAGE).conf
+	rm -f $(bindir)/$(PACKAGE).bash
+	rm -f $(datadir)/scripts/busybox.bash
+	rm -f $(datadir)/scripts/gnupg.bash
+	rm -f $(sys_confdir)/$(PACKAGE).conf
 
 uninstall_zsh:
-	$(shell) rm -f $(bindir)/$(PACKAGE).zsh
-	$(shell) rm -f $(datadir)/scripts/{busybox,gnupg}.zsh
-	$(shell) rm -f $(sys_confdir)/$(PACKAGE).conf
+	rm -f $(bindir)/$(PACKAGE).zsh
+	rm -f $(datadir)/scripts/busybox.zsh
+	rm -f $(datadir)/scripts/gnupg.zsh
+	rm -f $(sys_confdir)/$(PACKAGE).conf
 
 uninstall_aufs_squashfs:
-	$(shell) rm -f $(svc_confdir)/squashdir-mount
-	$(shell) rm -f $(svc_initdir)/squashdir-mount
+	rm -f $(svc_confdir)/squashdir-mount
+	rm -f $(svc_initdir)/squashdir-mount
 
 uninstall_zram:
-	$(shell) rm -f $(svc_confdir)/zram
-	$(shell) rm -f $(svc_initdir)/zram
+	rm -f $(svc_confdir)/zram
+	rm -f $(svc_initdir)/zram
 
 clean:
