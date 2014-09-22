@@ -1,12 +1,23 @@
 #!/bin/bash
-# $Id: mkinitramfs-ll/svc/sdr.bash,v 0.13.1 2014/08/08 13:59:42 -tclover Exp $
-basename=${0##*/}
+#
+# $Header: mkinitramfs-ll/svc/sdr.bash                   Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+#
+
+typeset -A PKG
+PKG=(
+	[name]=sdr
+	[shell]=bash
+	[version]=0.13.6
+)
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
   cat <<-EOF
-  $basename-0.13.0
+  ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: $basename [{-u|--update}|{-r|--remove}] [-q|--squashroot=<dir>] -d|--squashdir=<dir>:<dir>
 
   -q, --squashroot <dir>    overide default value of squashed rootdir 'squashroot=/var/aufs'
