@@ -61,7 +61,7 @@ stop()
 		fi
 	fi
 
-	sync; sync
+	sync
 
 	[[ ${squash_localdir}  ]] && einfo "umounting local wide squashed dirs"
 	for dir in ${squash_localdir}; do
