@@ -270,7 +270,6 @@ done </etc/msg
 
 # -*- Module -*-
 
-[ -n "$ibcache" ] && MODULES+=:bcache
 [ -n "$izram" ] && MODULES+=:zram
 for mod in $MODULES; do
 	[ -e $LIBDIR/$mod ] && debug domod $LIBDIR/$mod || error "module: $mod not found"
