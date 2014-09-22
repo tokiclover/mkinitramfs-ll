@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.13.6 2014/09/09 10:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.13.6 2014/09/20 10:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -350,6 +350,16 @@ This module/script take care of basic zram initialisation:
 the related mkfs.$fs binaries!
 
 Just appand -M:zram to mkinitramfs-ll.$shell to get support for this module.
+
+h3. 4.7. bcache - block cache - support
+
+bcache cache *and* backing device are grouped as a colon separated list of block
+device, registered using: echo device >/sys/fs/bcache/register_quiet
+
+KERNEL-COMMAND-LIE-ARG: @ibcache=sda:sdb2:sdc2,sdd:sde1@
+DESCRIPTION: bcache cache:backing-device block device list, multiple *pairs* are
+comma ',' separated.
+EXEMPLE: ibcache=sda:sdb1 for a single block device (cache:backing-device)
 
 h3. 5. Kernel parameters example
 
