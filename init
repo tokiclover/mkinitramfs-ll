@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/14 12:33:03                   Exp $
+# $Version: 0.13.6 2014/09/20 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -185,7 +185,7 @@ for arg in $(cat /proc/cmdline); do
 			arg "RIL" "${arg#*=}" ":" "2" "-s";;
 		splash*|console*|CONSOLE*) export "$arg";;
 		imodule=*) MODULES+=:${arg#*=};;
-		i[dklmnrsz]*) export "$arg";;
+		i[bdklmnrsz]*) export "$arg";;
 	 esac
 done
 
@@ -270,6 +270,7 @@ done </etc/msg
 
 # -*- Module -*-
 
+[ -n "$ibcache" ] && MODULES+=:bcache
 [ -n "$izram" ] && MODULES+=:zram
 for mod in $MODULES; do
 	[ -e $LIBDIR/$mod ] && debug domod $LIBDIR/$mod || error "module: $mod not found"
