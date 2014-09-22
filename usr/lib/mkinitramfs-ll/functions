@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.4 2014/09/09 12:33:03                   Exp $
+# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
 #
 
 # @FUNCTION: arg
@@ -366,13 +366,10 @@ bkd() {
 	[ -n "$ilvm"  ] && debug arg "_lvm" "$ilvm" "," "$_grp" "$_cut"
 	
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
-	if [ -n "$_lvm" ]; then
-		debug -d lvopen "$_dev" "$_lvm" "_bkd"
-	elif [ "$KEYMODE" != "none" ]; then
-		debug -d dmopen "$_dev" "_bkd"
-	elif [ "$KEYMODE" == "none" ]; then
+	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "_bkd"
+
+	[ "$KEYMODE" != "none" ] && debug -d dmopen "$_dev" "_bkd" ||
 		debug -d blk "$_dev" "_bkd"
-	fi
 
 	eval ${2:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
 }
@@ -417,6 +414,9 @@ dmopen() {
 	arg "_hdr" "$1" "+" "2" "-s"
 	blk "$(echo "$1" | cut -d'-' -f2 -s | cut -d'+' -f1)" "_dev"
 
+	_ctx=/dev/mapper/$_map
+	[ -b "$_ctx" ] && eval ${2:-CTX}=$_ctx && return
+
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | grep -E '(UUID|LABEL|sd[a-z])')" ]; then 
 			blk "$_hdr" "_hdr"
@@ -444,7 +444,6 @@ dmopen() {
 		debug cryptsetup $_arg -d "$KEYFILE"
 	fi
 
-	_ctx=/dev/mapper/$_map
 	[ -b "$_ctx" ] || debug -d cryptsetup $_arg
 	debug -d test -b $_ctx && eval ${2:-CTX}=$_ctx
 }
