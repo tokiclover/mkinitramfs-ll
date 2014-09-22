@@ -1,4 +1,9 @@
-# $Id: modules/zfs,v 0.13.1 2014/08/08 14:48:07 -tclover Exp $
+#
+# $Header: mkinitramfs-ll/modules/zfs                    Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+#
 
 set -e +x
 source $LIBDIR/functions || return $?
