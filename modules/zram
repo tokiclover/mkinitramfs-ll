@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/modules/zram                   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+# $Version: 0.13.6 2014/09/20 12:33:03                   Exp $
 #
 
 set -e +x
@@ -13,6 +13,7 @@ source $LIBDIR/functions
 dozram() {
 	local num dev fs size
 	echo $$ >/run/${0##*/}.pid
+
 	arg "NUM" "$izram" "," "1"
 	arg "DEV" "$izram" "," "2" "-s"
 	debug -d modprobe zram num_devices=$NUM
@@ -21,12 +22,16 @@ dozram() {
 		[ "$num" == "$NUM" ] && break
 		arg "dev" "$DEV" ":" "$(expr $num + 1)"
 		[ -n "$dev" ] || continue
+
 		arg "size" "$dev" "-" "1"
 		arg "fs" "$dev" "-" "2" "-s"
 		echo $size >/sys/block/zram$num/disksize
-		bin="$(ls /sbin/mkfs.$fs 2>/dev/null)"
-		if [ -n "$fs" ] && [ -n "$bin" ]; then
+
+		if [ -x /sbin/mkfs.$fs ]; then
 			debug -d $bin /dev/zram$num
+		else
+			die "dozram: mkfs.$fs nout found"
+			continue
 		fi
 	done
 
