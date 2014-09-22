@@ -1,4 +1,9 @@
-# $Id: modules/zram,v 0.13.1 2014/08/08 09:40:11 -tclover Exp $
+#
+# $Header: mkinitramfs-ll/modules/zram                   Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+#
 
 set -e +x
 source $LIBDIR/functions
@@ -6,7 +11,7 @@ source $LIBDIR/functions
 [ -z "$izram" ] && _getopt "izram"
 
 dozram() {
-	local NUM DEV num dev fs size
+	local num dev fs size
 	echo $$ >/run/${0##*/}.pid
 	arg "NUM" "$izram" "," "1"
 	arg "DEV" "$izram" "," "2" "-s"
@@ -29,5 +34,7 @@ dozram() {
 }
 
 [ -n "$izram" ] && dozram
+
+unset DEV NUM
 
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
