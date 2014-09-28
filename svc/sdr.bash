@@ -43,15 +43,22 @@ exit $?
 }
 
 (( $# == 0 )) && usage
-opt=$(getopt -o ?x::b:c:d:X:fo:nhruq: -l block-size:,compressor:,exclude: \
-	-l fstab,offset,no-remount,busybox::,squash-root:,squash-dir:,remove \
-	-l update,help,version -n ${PKG[name]}.${PKG[shell]} -- "$@" || usage)
-eval set -- "$opt"
 
 # @VARIABLE: opts [associative array]
 # @DESCRIPTION: declare if not declared while arsing options,
 # hold almost every single option/variable
 declare -A opts
+
+declare -a opt
+opt=(
+	"-o" "?b:c:d:o:nhruq:X:x::"
+	"-l" "block-size:,busybox::,compressor:,exclude:,offset,help"
+	"-l" "no-remount,squash-root:,squash-dir:,remove,update"
+	"-n" "${PKG[name]}.${PKG[shell]}"
+	"-s" "${PKG[shell]}"
+)
+opt=($(getopt "${opt[@]}" -- "$@" || usage))
+eval set -- "${opt[@]}"
 
 for (( ; $# > 0; )); do
 	case $1 in
