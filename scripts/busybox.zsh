@@ -3,36 +3,36 @@
 # $Header: mkinitramfs-ll/busybox.zsh                    Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.4 2014/09/09 12:33:03                   Exp $
+# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
 #
 
-typset -A PKG
+typeset -A PKG
 PKG=(
 	name busybox
 	shell zsh
-	version 0.13.4
+	version 0.13.6
 )
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 function usage {
-  cat <<-EOF
+  cat <<-EOH
   $PKG[name].$PKG[shell]-$PKG[version]
-  usage: $PKG[name].$PKG[shell] [-m|-minimal] [-ucli386]
+  usage: ${PKG[name]}.${PKG[shell]} [options]
 
-  -d, -usrdir[usr]        copy busybox binary file to usr/bin
-  -n, -minimal            build busybox with minimal applets, default is full applets
-      -ucli386            arch string needed to build busybox against uClibc	
-  -v, -version1.20.0      use 1.20.0 instead of latest version of busybox
-  -h, -help               print the usage/help and exit
-EOF
+  -d, --usrdir=usr       copy busybox binary file to usr/bin
+  -n, --minimal          build busybox with minimal applets, default is all applets
+      --abi=i386         ABI string needed to build busybox against uClibc	
+  -v, --version=1.20.0   use 1.20.0 instead of latest version of busybox
+  -h, --help, -?         print the usage/help and exit
+EOH
 exit $?
 }
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
 function error {
-	print -P " %B%F{red}*%b%f $@" >&2
+	print -P " %B%F{red}*%b %1x: %F{yellow}%U%I%u%f: $@" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
@@ -41,13 +41,35 @@ function die {
 	error $@
 	exit $ret
 }
-alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
-zmodload zsh/zutil
-zparseopts -E -D -K -A opts n minimal d:: usrdir:: ucl: h help v: version: || usage
+opt=$(getopt -l usrdir:,minimal,abi:,help,version: -o ?nd::v: \
+	-n ${PKG[name]}.${PKG[shell]} -- "$@" || usage)
+eval set -- "$opt"
 
-if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
-if [[ $# < 1 ]] { typeset -A opts }
+typeset -A opts
+for (( ; $# > 0; ))
+	case $1 {
+		(-n|--minimal)
+			opts[-minimal]=true
+			shift;;
+		(--abi)
+			opts[-abi]=$2
+			shift 2;;
+		(-d|--usrdir)
+			opts[-usrdir]=$2
+			shift 2;;
+		(-y|--keymap)
+			opts[-keymap]=$2
+			shift 2;;
+		(-v|--version)
+			opts[-version]=$2
+			shift 2;;
+		(--)
+			shift
+			break;;
+		(-?|-h|--help|*)
+			usage;;
+	}
 
 if [[ -f /etc/portage/make.conf ]] {
 	source /etc/portage/make.conf 
@@ -65,7 +87,7 @@ if [[ -f /etc/portage/make.conf ]] {
 # @DESCRIPTION: busybox package to build
 opts[-pkg]=busybox
 
-if [[ -n ${(k)opts[-v]} ]] || [[ -n ${(k)opts[-version]} ]] { 
+if (( ${+opts[-version]} )) {
 	opts[-pkg]=${opts[-pkg]-${opts[-version]:-${opts[-v]}}
 } else {
 	opts[-pkg]=$(emerge -pvO ${opts[-pkg]} | grep -o "busybox-[-0-9.r]*")
@@ -79,7 +101,7 @@ ebuild ${opts[-pkg]}.ebuild clean || die "clean failed"
 ebuild ${opts[-pkg]}.ebuild unpack || die "unpack failed"
 pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/${opts[-pkg]}/work/${opts[-pkg]} || die
 
-if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-minimal]} ]] {
+if (( ${+opts[-minimal]} )) {
 	make allnoconfig || die
 	for cfg ($(< ${0:h}/busybox-minimal.config))
         sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
@@ -90,8 +112,8 @@ if [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-minimal]} ]] {
 		-i .config || die
 }
 
-if [[ -n ${opts[-ucl]} ]] {
-	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[-ucl]}\"|" \
+if (( ${+opts[-abi]} )) {
+	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[-abi]}\"|" \
 	-i .config || die "setting uClib ARCH failed"
 }
 
@@ -103,4 +125,6 @@ ebuild ${opts[-pkg]}.ebuild clean || die
 
 unset opts PKG
 
+#
 # vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:
+#
