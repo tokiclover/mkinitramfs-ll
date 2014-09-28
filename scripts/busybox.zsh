@@ -20,9 +20,9 @@ function usage {
   $PKG[name].$PKG[shell]-$PKG[version]
   usage: ${PKG[name]}.${PKG[shell]} [options]
 
-  -d, --usrdir=usr       copy busybox binary file to usr/bin
+  -u, --usrdir=usr       copy busybox binary file to usr/bin
   -n, --minimal          build busybox with minimal applets, default is all applets
-      --abi=i386         ABI string needed to build busybox against uClibc	
+  -a, --abi=i386         ABI string needed to build busybox against uClibc	
   -v, --version=1.20.0   use 1.20.0 instead of latest version of busybox
   -h, --help, -?         print the usage/help and exit
 EOH
@@ -42,24 +42,27 @@ function die {
 	exit $ret
 }
 
-opt=$(getopt -l usrdir:,minimal,abi:,help,version: -o ?nd::v: \
-	-n ${PKG[name]}.${PKG[shell]} -- "$@" || usage)
-eval set -- "$opt"
-
 typeset -A opts
+typeset -a opt
+
+opt=(
+	"-o" "?a:hnu::v:"
+	"-l" "abi:,help,minimal,usrdir::,version:"
+	"-n" ${PKG[name]}.${PKG[shell]}
+)
+opt=($(getopt ${opt} -- ${argv} || usage))
+eval set -- ${opt}
+
 for (( ; $# > 0; ))
 	case $1 {
 		(-n|--minimal)
 			opts[-minimal]=true
 			shift;;
-		(--abi)
+		(-a|--abi)
 			opts[-abi]=$2
 			shift 2;;
-		(-d|--usrdir)
+		(-u|--usrdir)
 			opts[-usrdir]=$2
-			shift 2;;
-		(-y|--keymap)
-			opts[-keymap]=$2
 			shift 2;;
 		(-v|--version)
 			opts[-version]=$2
