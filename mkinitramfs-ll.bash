@@ -22,14 +22,14 @@ function usage {
 
   -a, --all                 short hand or forme of '-l -L -g -M:zfs:zram -t -q'
   -f, --font=[:ter-v14n]    include a colon separated list of fonts to the initramfs
-  -F, --firmware [:file]    append firmware file or directory (relative to /lib/firmware),
+  -F, --firmware=[:file]    append firmware file or directory (relative to /lib/firmware),
                             or else full path, or the whole /lib/firmware dir if empty
   -k, --kv=3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
   -c, --comp=['gzip -9']    use 'gzip -9' compressor instead of default, accept 'none'
   -L, --luks                add LUKS support, require a sys-fs/cryptsetup binary
   -l, --lvm                 add LVM support, require a static sys-fs/lvm2 binary
   -b, --bin=:<bin>          include a colon separated list of binar-y-ies to the initramfs
-  -d, --usrdir=[usr]        use usr dir for user extra files, binaries, scripts, fonts...
+  -u, --usrdir=[usr]        use usr dir for user extra files, binaries, scripts, fonts...
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p, --prefix=initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
   -M, --module=:<name>      include <name> module or script from modules directory
@@ -42,9 +42,9 @@ function usage {
   -s, --splash=[:<theme>]   include a colon separated list of splash themes to the initramfs
   -t, --toi                 add tuxonice support, require tuxoniceui_text binary for splash
   -q, --squashd             add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
-  -r, --regen               regenerate a new initramfs from an old dir with newer init
+  -r, --rebuild             regenerate a new initramfs from an old dir with newer init
   -y, --keymap=:fr-latin1   include a colon separated list of keymaps to the initramfs
-  -K, --keeptmp             keep temporary files instead of removing the tmpdir
+  -K, --keep-tmpdir         keep temporary files instead of removing the tmpdir
   -h, --help, -?            print this help or usage message and exit
 
   usage: build an initramfs for kernel \$(uname -r) if run without an argument
@@ -106,11 +106,18 @@ function donod {
 
 shopt -qs extglob nullglob
 
-opt=$(getopt  -l all,bin:,comp::,font::,gpg,mboot::,kmod::,mgpg::,msquashd:: \
-	  -l mremdev::,keeptmp,module:,mtuxonice::,squashd,toi,help,usrdir:: \
-	  -l firmware::,keymap::,luks,lvm,kv::,prefix::,splash::,regen \
-	  -o ?ab:c::d::f::F::gk::lKLM:m::np::qrs::thy:: -n ${0##*/} -- "$@" || usage)
-eval set -- "$opt"
+declare -a opt
+opt=(
+	"-o" "ab:c::f::F::gk::lKLM:m::np::qrs::thu::y::?"
+	"-l" "all,bin:,comp::,firmware::,font::,gpg,help"
+	"-l" "luks,lvm,keeptmp,kmod::,keymap::,kv::"
+	"-l" "mboot::,mgpg::,mremdev::,msquashd::,module:,mtuxonice::"
+	"-l" "prefix::,regen,splash::,squashd,toi,usrdir::"
+	"-n" "${PKG[name]}.${PKG[shell]}"
+	"-s" "${PKG[shell]}"
+)
+opt=($(getopt "${opt[@]}" -- "$@" || usage))
+eval set -- "${opt[@]}"
 
 # @VARIABLE: opts [associative array]
 # @DESCRIPTION: declare if not declared while arsing options,
@@ -183,15 +190,9 @@ for (( ; $# > 0; )); do
 			shift 2;;
 		(-y|--keymap)
 			opts[-keymap]+=:"$2"
-			[[ -n "${2}" ]] || [[ -e /etc/conf.d/keymaps ]] &&
-			opts[-keymap]+=:$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
-				/etc/conf.d/keymaps)
 			shift 2;;
 		(-f|--font)
 			opts[-font]+=":$2"
-			[[ -n "${2}" ]] || [[ -e /etc/conf.d/consolefont ]] &&
-			opts[-font]+=:$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' \
-				/etc/conf.d/consolefont)
 			shift 2;;
 		(-F|--firmware)
 			opts[-firmware]+=":${2:-/lib/firmware}"
@@ -204,15 +205,33 @@ for (( ; $# > 0; )); do
 	esac
 done
 
+if [[ "${opts[-all]}" ]]; then
+	opts[-font]+=: opts[-gpg]=true opts[-lvm]=true opts[-squashd]=true
+	opts[-toi]=true opts[-luks]=true opts[-keymap]+=:
+	opts[-module]+=:zfs:zram
+fi
+
+if [[ "${opts[-font]}" ]] && [[ "${opts[-font]}" == ":" ]]; then
+	if [[ -e /etc/conf.d/consolefont ]]; then
+		opts[-font]+=$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' \
+			/etc/conf.d/consolefont)
+	else
+		warn "no console font found"
+	fi
+fi
+
+if [[ "${opts[-keymap]}" ]] && [[ "${opts[-keymap]}" == ":" ]]; then
+	if [[ -e /etc/conf.d/keymaps ]]; then
+		opts[-keymap]+=:$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
+			/etc/conf.d/keymaps)
+	else
+		warn "no console keymap found"
+	fi
+fi
+
 [[ -f "${PKG[name]}".conf ]] &&
 	source "${PKG[name]}".conf ||
 	die "no ${PKG[name]}.conf found"
-
-if [[ "${opts[-all]}" ]]; then
-	opts[-font]=true opts[-gpg]=true opts[-lvm]=true opts[-squashd]=true
-	opts[-toi]=true opts[-luks]=true opts[-keymap]=true
-	opts[-module]+=:zfs:zram
-fi
 
 # @VARIABLE: opts[-kv]
 # @DESCRIPTION: kernel version to pick up
@@ -526,7 +545,7 @@ function docp {
 # @FUNCTION: dobin
 # @DESCRIPTION: copy binary with libraries if not static
 function dobin {
-	local lib
+	local bin=$1 lib
 	docp ${bin} || return
 
 	ldd ${bin} >/dev/null || return 0
