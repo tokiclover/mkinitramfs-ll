@@ -25,11 +25,11 @@ function usage {
   -F, --firmware=[:file]    append firmware file or directory (relative to /lib/firmware),
                             or else full path, or the whole /lib/firmware dir if empty
   -k, --kv=3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
-  -c, --comp=['gzip -9']    use 'gzip -9' compressor instead of default, accept 'none'
+  -c, --compressor='gzip -9' use 'gzip -9' compressor instead of default, accept 'none'
   -L, --luks                add LUKS support, require a sys-fs/cryptsetup binary
   -l, --lvm                 add LVM support, require a static sys-fs/lvm2 binary
   -b, --bin=:<bin>          include a colon separated list of binar-y-ies to the initramfs
-  -u, --usrdir=[usr]        use usr dir for user extra files, binaries, scripts, fonts...
+  -d, --usrdir=[usr]        use usr dir for user extra files, binaries, scripts, fonts...
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p, --prefix=initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
   -M, --module=:<name>      include <name> module or script from modules directory
@@ -44,7 +44,7 @@ function usage {
   -q, --squashd             add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
   -r, --rebuild             regenerate a new initramfs from an old dir with newer init
   -y, --keymap=:fr-latin1   include a colon separated list of keymaps to the initramfs
-  -K, --keep-tmpdir         keep temporary files instead of removing the tmpdir
+  -K, --keep-tmpdir         keep temporary the directory instead of removing it
   -h, --help, -?            print this help or usage message and exit
 
   usage: build an initramfs for kernel \$(uname -r) if run without an argument
@@ -108,11 +108,11 @@ shopt -qs extglob nullglob
 
 declare -a opt
 opt=(
-	"-o" "ab:c::f::F::gk::lKLM:m::np::qrs::thu::y::?"
-	"-l" "all,bin:,comp::,firmware::,font::,gpg,help"
-	"-l" "luks,lvm,keeptmp,kmod::,keymap::,kv::"
+	"-o" "ab:c::f::F::gk::lKLM:m::p::qrs::thu::y::?"
+	"-l" "all,bin:,compressor::,firmware::,font::,gpg,help"
+	"-l" "luks,lvm,keep-tmpdir,kmod::,keymap::,kv::"
 	"-l" "mboot::,mgpg::,mremdev::,msquashd::,module:,mtuxonice::"
-	"-l" "prefix::,regen,splash::,squashd,toi,usrdir::"
+	"-l" "prefix::,rebuild,splash::,squashd,toi,usrdir::"
 	"-n" "${PKG[name]}.${PKG[shell]}"
 	"-s" "${PKG[shell]}"
 )
@@ -126,76 +126,17 @@ declare -A opts
 
 for (( ; $# > 0; )); do
 	case $1 in
-		(-a|--all)
-			opts[-all]=true
+		(-[KLaglqrt])
+			opts[$1]=true
 			shift;;
-		(-r|--regen)
-			opts[-regen]=true
+		(--[aglrt]*|--sq*|--keep*)
+			opts[${1/--/-}]=true
 			shift;;
-		(-q|--squashd)
-			opts[-squashd]=true
-			shift;;
-		(-K|--keeptmp)
-			opts[-keeptmp]=true
-			shift;;
-		(-b|--bin) opts[-bin]+=":$2"
+		(-[FMbcfkmpsuy])
+			opts[$1]+=:$2
 			shift 2;;
-		(-c|--comp)
-			opts[-compressor]="$2"
-			shift 2;;
-		(-d|--usrdir)
-			opts[-usrdir]="$2"
-			shift 2;;
-		(-k|--kv)
-			opts[-kv]="$2"
-			shift 2;;
-		(-g|--gpg)
-			opts[-gpg]=true
-			shift;;
-		(-t|--toi)
-			opts[-toi]=true
-			shift;;
-		(-l|--lvm)
-			opts[-lvm]=true
-			shift;;
-		(-L|--luks)
-			opts[-luks]=true
-			shift;;
-		(--mgpg)
-			opts[-mgpg]+=":$2"
-			shift 2;;
-		(--mboot)
-			opts[-mboot]+=":$2"
-			shift 2;;
-		(--msquashd)
-			opts[-msquashd]+=":$2"
-			shift 2;;
-		(--mremdev)
-			opts[-mremdev]+=":$2"
-			shift 2;;
-		(--mtuxonice)
-			opts[-tuxonice]+=":$2"
-			shift 2;;
-		(-s|--splash)
-			opts[-splash]+=":$2"
-			shift 2;;
-		(-M|--module)
-			opts[-module]+=":$2"
-			shift 2;;
-		(-m|--kmod)
-			opts[-kmod]+=":$2"
-			shift 2;;
-		(-p|--prefix)
-			opts[-prefix]="$2"
-			shift 2;;
-		(-y|--keymap)
-			opts[-keymap]+=:"$2"
-			shift 2;;
-		(-f|--font)
-			opts[-font]+=":$2"
-			shift 2;;
-		(-F|--firmware)
-			opts[-firmware]+=":${2:-/lib/firmware}"
+		(--[bcfkmpsu]*)
+			opts[${2/--/-}]=$2
 			shift 2;;
 		(--)
 			shift
@@ -205,13 +146,14 @@ for (( ; $# > 0; )); do
 	esac
 done
 
-if [[ "${opts[-all]}" ]]; then
+if [[ "${opts[-a]}" ]] || [[ "${opts[-all]}" ]]; then
 	opts[-font]+=: opts[-gpg]=true opts[-lvm]=true opts[-squashd]=true
 	opts[-toi]=true opts[-luks]=true opts[-keymap]+=:
 	opts[-module]+=:zfs:zram
 fi
 
-if [[ "${opts[-font]}" ]] && [[ "${opts[-font]}" == ":" ]]; then
+for key in f{,ont}; do
+if [[ "${opts[-$key]}" ]] && [[ "${opts[-$key]}" == ":" ]]; then
 	if [[ -e /etc/conf.d/consolefont ]]; then
 		opts[-font]+=$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' \
 			/etc/conf.d/consolefont)
@@ -219,8 +161,10 @@ if [[ "${opts[-font]}" ]] && [[ "${opts[-font]}" == ":" ]]; then
 		warn "no console font found"
 	fi
 fi
+done
 
-if [[ "${opts[-keymap]}" ]] && [[ "${opts[-keymap]}" == ":" ]]; then
+for key in y keymap; do
+if [[ "${opts[-$key]}" ]] && [[ "${opts[-$key]}" == ":" ]]; then
 	if [[ -e /etc/conf.d/keymaps ]]; then
 		opts[-keymap]+=:$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
 			/etc/conf.d/keymaps)
@@ -228,6 +172,7 @@ if [[ "${opts[-keymap]}" ]] && [[ "${opts[-keymap]}" == ":" ]]; then
 		warn "no console keymap found"
 	fi
 fi
+done
 
 [[ -f "${PKG[name]}".conf ]] &&
 	source "${PKG[name]}".conf ||
@@ -235,17 +180,28 @@ fi
 
 # @VARIABLE: opts[-kv]
 # @DESCRIPTION: kernel version to pick up
-[[ "${opts[-kv]}" ]] || opts[-kv]="$(uname -r)"
+if [[ -z "${opts[-kv]}" ]]; then
+	[[ "${opts[-k]}" ]] && opts[-kv]="${opts[-k]}" || opts[-kv]="$(uname -r)"
+fi
 # @VARIABLE: opts[-prefix]
 # @DESCRIPTION: initramfs prefx name <$prefix-$kv.$ext>
-[[ "${opts[-prefix]}" ]] || opts[-prefix]=initramfs-
+if [[ -z "${opts[-prefix]}" ]]; then
+	[[ "${opts[-p]}" ]] && opts[-prefix]="${opts[-p]}" ||
+		opts[-prefix]=initramfs-
+fi
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path, to get extra files
-[[ "${opts[-usrdir]}" ]] || opts[-usrdir]="${PWD}"/usr
+if [[ -z "${opts[-usrdir]}" ]]; then
+	[[ "${opts[-u]}" ]] && opts[-usrdir]="${opts[-u]}" ||
+		opts[-usrdir]="${PWD}"/usr
+fi
 # @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
 opts[-initramfs]=${opts[-prefix]}${opts[-kv]}
-[[ "${opts[-compressor]}" ]] || opts[-compressor]="xz -9 --check=crc32"
+if [[ -z "${opts[-compressor]}" ]]; then
+	[[ "${opts[-c]}" ]] && opts[-compressor]="${opts[-c]}" ||
+		opts[-compressor]="xz -9 --check=crc32"
+fi
 # @VARIABLE: opts[-arch]
 # @DESCRIPTION: kernel architecture
 [[ "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
@@ -323,7 +279,7 @@ function docpio {
 echo ">>> building ${opts[-initramfs]}..."
 pushd "${opts[-tmpdir]}" || die "${opts[-tmpdir]} not found"
 
-if [[ "${opts[-regen]}" ]]; then
+if [[ "${opts[-r]}" ]] || [[ "${opts[-regen]}" ]]; then
 	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio "${opts[-initramfs]}" || die
@@ -370,7 +326,7 @@ cp -a "${opts[-usrdir]}"/../init . && chmod 775 init || die
 cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
-if [[ "${opts[-firmware]}" ]]; then
+if [[ "${opts[-F]}" ]] || [[ "${opts[-firmware]}" ]]; then
 	mkdir -p lib/firmware
 	for f in ${opts[-firmware]//:/ }; do
 		if [[ -e $f ]] || [[ -d $f ]]; then
@@ -384,11 +340,12 @@ if [[ "${opts[-firmware]}" ]]; then
 fi
 
 for bin in dmraid mdadm zfs; do
-	[[ "${opts[-bin]/$bin}" != "$bin" ]] && opts[-mgrp]+=":$bin"
+	[[ "${opts[-bin]/$bin}" != "${opts[bin]}" ]] ||
+		[[ "${opts[-b]/$bin}" != "${opts[-b]}" ]] && opts[-mgrp]+=":$bin"
 done
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
-for mod in ${opts[-module]//:/ }; do
+for mod in ${opts[-M]//:/ } ${opts[-module]//:/ }; do
 	for file in ${opts[-usrdir]}/../modules/*${mod}*; do
 		cp -a "${file}" lib/${PKG[name]}/
 	done
@@ -435,15 +392,15 @@ for applet in $(grep '^sbin' ../etc/${PKG[name]}/busybox.applets); do
 done
 popd
 
-if [[ "${opts[-luks]}" ]]; then
+if [[ "${opts[-L]}" ]] || [[ "${opts[-luks]}" ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 fi
 
-if [[ "${opts[-squashd]}" ]]; then
+if [[ "${opts[-q]}" ]] || [[ "${opts[-squashd]}" ]]; then
 	opts[-bin]+=:umount.aufs:mount.aufs opts[-mgrp]+=:squashd
 fi
 
-if [[ "${opts[-gpg]}" ]]; then
+if [[ "${opts[-g]}" ]] || [[ "${opts[-gpg]}" ]]; then
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]]; then :;
 	elif [[ "$(gpg --version | sed -nre '/^gpg/s/.* ([0-9]{1})\..*$/\1/p')" -eq 1 ]]; then
@@ -453,7 +410,7 @@ if [[ "${opts[-gpg]}" ]]; then
 	fi
 fi
 
-if [[ "${opts[-lvm]}" ]]; then
+if [[ "${opts[-l]}" ]] || [[ "${opts[-lvm]}" ]]; then
 	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
 	pushd sbin
 	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
@@ -467,7 +424,7 @@ fi
 # @DESCRIPTION: copy kernel module
 function domod {
 	local mod module ret
-	for mod in "$@"; do
+	for mod in "$*"; do
 		module=$(find /lib/modules/${opts[-kv]} -name ${mod}.ko -or -name ${mod}.o)
 		if [[ "${module}" ]]; then
 			mkdir -p .${module%/*} && cp -ar {,.}${module} ||
@@ -480,7 +437,7 @@ function domod {
 	return ${ret}
 }
 
-for keymap in ${opts[-keymap]//:/ }; do
+for keymap in ${opts[-y]//:/ } ${opts[-keymap]//:/ }; do
 	if [[ -f usr/share/keymaps/"${keymap}" ]]; then :;
 	elif [[ -f "${keymap}" ]]; then
 		cp -a "${keymap}" usr/share/keymaps/
@@ -490,7 +447,7 @@ for keymap in ${opts[-keymap]//:/ }; do
 	fi
 done
 
-for font in ${opts[-font]//:/ }; do
+for font in ${opts[-f]//:/ } ${opts[-font]//:/ }; do
 	if [[ -f usr/share/consolefonts/${font} ]]; then :;
 	elif [[ -f ${font} ]]; then
 		cp -a ${font} usr/share/consolefonts/ 
@@ -505,7 +462,7 @@ for font in ${opts[-font]//:/ }; do
 	fi
 done
 
-if [[ "${opts[-splash]}" ]]; then
+if [[ "${opts[-s]}" ]] || [[ "${opts[-splash]}" ]]; then
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
 	
 	[[ "${opts[-toi]}" ]] &&
@@ -556,7 +513,7 @@ function dobin {
 	done
 }
 
-for bin in ${opts[-bin]//:/ }; do
+for bin in ${opts[-b]//:/ } ${opts[-bin]//:/ }; do
 	for b in {usr/,}{,s}bin/${bin}; do
 		[[ -x ${b} ]] && continue 2
 	done
@@ -568,7 +525,7 @@ for bin in ${opts[-bin]//:/ }; do
 done
 unset binary
 
-domod ${opts[-kmod]//:/ }
+domod "${opts[-m]//:/ }" "${opts[-kmod]//:/ }"
 
 for grp in ${opts[-mgrp]//:/ }; do
 	if [[ -n "${opts[-m${grp}]}" ]]; then
@@ -585,7 +542,7 @@ done
 
 docpio || die
 
-[[ "${opts[-keeptmp]}" ]] || rm -rf ${opts[-dir]}
+[[ "${opts[-K]}" ]] || [[ "${opts[-keep-tmpdir]}" ]] || rm -rf ${opts[-dir]}
 
 echo ">>> ${opts[-initramfs]} initramfs built"
 
