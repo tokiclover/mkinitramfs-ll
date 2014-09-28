@@ -3,35 +3,35 @@
 # $Header: mkinitramfs-ll/gnupg.zsh                      Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.4 2014/09/09 12:33:03                   Exp $
+# $Version: 0.13.6 2014/09/26 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	name gnupg
 	shell zsh
-	version 0.13.4
+	version 0.13.6
 )
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 function usage {
-  cat <<-EOF
-  $PKG[name].$PKG[shell]-$PKG[version]
-  usage: $PKG[name].$PKG[shell] -d|--usrdir[usr] [options]
+  cat <<-EOH
+  $${PKG[name]}.${PKG[shell]}-${PKG[version]}
+  usage: ${PKG[name]}.${PKG[shell]} [options]
 
-  -d, -usrdir[usr]       copy binary and options.skel files to usr/
-  -u, -useflag<flags>    extra USE flags to append to USE="nls static"
-  -v, -version<str>      build gpg-<str> version instead of gpg-1.4.x
-  -h, -help              print this help/uage and exit
-EOF
+  -d, --usrdir=[usr]     copy binary and options.skel files to usr/
+  -u, --useflag=flags    extra USE flags to append to USE="nls static"
+  -v, --version=<str>    build gpg-<str> version instead of gpg-1.4.x
+  -h, --help, -?         print this help/uage and exit
+EOH
 exit $?
 }
 
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
 function error {
-	print -P " %B%F{red}*%b%f $@" >&2
+	print -P " %B%F{red}*%b %1x: %F{yellow}%U%I%u%f: $@" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
@@ -40,16 +40,32 @@ function die {
 	error $@
 	exit $ret
 }
-alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
-zmodload zsh/zutil
-zparseopts -E -D -K -A opts u:: useflag:: v:: version:: d:: usrdir:: h help || usage
+opt=$(getopt -l help,useflag::,usrdir::,version:: -o ?d::u::v:: \
+	-n ${PKG[name]}.${PKG[shell]} -- "$@" || usage)
+eval set -- "$opt"
 
-if [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
-if [[ $# < 1 ]] { typeset -A opts }
+declare -A opts
+for (( ; $# > 0; ))
+	case $1 {
+		(-d|--usrdir)
+			opts[-usrdir]="$2"
+			shift 2;;
+		(-u|--useflag)
+			opts[-useflag]="$2"
+			shift 2;;
+		(-v|--version)
+			opts[-version]="$2"
+			shift 2;;
+		(-?|-h|--help|*)
+			usage;;
+	}
 
-if [[ -f /etc/portage/make.conf ]] { source /etc/portage/make.conf 
-} else { die "no /etc/portage/make.conf found" }
+if [[ -f /etc/portage/make.conf ]] {
+	source /etc/portage/make.conf 
+} else {
+	die "no /etc/portage/make.conf found"
+}
 
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path where to get extra files
@@ -76,4 +92,6 @@ ebuild ${opts[-gpg]}.ebuild clean || die
 
 unset opts PKG
 
+#
 # vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:
+#
