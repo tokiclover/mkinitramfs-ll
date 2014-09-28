@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/svc/sdr.bash                   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+# $Version: 0.13.6 2014/09/26 12:33:03                   Exp $
 #
 
 typeset -A PKG
@@ -16,28 +16,27 @@ PKG=(
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
 usage() {
-  cat <<-EOF
+  cat <<-EOH
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
-  usage: $basename [-update|-remove] [-r|-squashroot<dir>] -d|-squashdir:<dir>:<dir>
+  usage: ${PKG[name]}.${PKG[sehll]} [options] [-r|-squashroot<dir>] -d|-squashdir:<dir>:<dir>
 
-  -q, -squashroot<dir>    overide default value of squashed rootdir 'squashdirir=/var/aufs'
-  -d, -squashdir<dir>     squash colon seperated list of dir
-  -f, -fstab              whether to write the necessary mount lines to '/etc/fstab'
-  -b, -bsize131072        use [128k] 131072 bytes block size, which is the default
-  -x, -busyboxbusybox     path to a static busybox binary, default is \$(which bb)
-  -c, -com'gzip'          use lzo compressor with compression option, default to lzo
-  -e, -exclude:<dir>      collon separated list of directories to exlude from image
-  -o, -offset0            overide default [10%] offset used to rebuild squashed dir
-  -u, -update             update the underlying source directory e.g. bin:sbin:lib32
-  -r, -remove             remove the underlying source directory e.g. usr:\${PORTDIR}
-  -n, -nomount            do not remount squashed dir nor aufs after rebuilding 
-  -h, -help               print this help/usage and exit
+  -q, --squash-root=<dir>   overide default value of squashed rootdir squash-root=/aufs
+  -d, --squash-dir=<dir>    squashed directory-ies, colon seperated list of dir
+  -b, --block-size=131072   use [128k] 131072 bytes block size, which is the default
+  -x, --busybox=busybox     path to a static busybox binary, default is \$commands[busybox]
+  -c, --compressor=gzip     use gzip compressor with compression option, default to lzo
+  -X, --exclude=:<dir>      collon separated list of directories to exlude from image
+  -o, --offset=0            overide default [10%] offset used to rebuild squashed dir
+  -u, --update              update the underlying source directory e.g. bin:sbin:lib32
+  -r, --remove              remove the underlying source directory e.g. usr:\$PORTDIR
+  -n, --no-remount          do not remount squashed dir nor aufs after rebuilding
+  -h, --help, -?            print this help/usage and exit
 
  usage: AUFS+squahfs or *squash* and remove underlying src directories:
- $basename -r -d/var/db:/var/cache/edb:\$PORTDIR:/var/lib/layman
+ $PKG[name].$PKG[shell] -r -d/var/db:/var/cache/edb:\$PORTDIR:/var/lib/layman
  usage: squash system related directories and update the underlaying src dir:
- $basename -u -d/bin:/sbin:/lib32:/lib64:/usr
-EOF
+ $PKG[name].$PKG[shell] -u -d/bin:/sbin:/lib32:/lib64:/usr
+EOH
 exit $?
 }
 
@@ -45,64 +44,99 @@ exit $?
 # @DESCRIPTION: declare if not declared while arsing options,
 # hold almost every single option/variable
 
-if [[ $# == 0 ]] || [[ -n ${(k)opts[-h]} ]] || [[ -n ${(k)opts[-help]} ]] { usage }
-zmodload zsh/zutil
-zparseopts -E -D -K -A opts q: squashroot: d: squashdir: f fstab b: bsize: \
-	n nomount x:: busybox:: c: comp: e: excl: o: offset: u update r remove \
-	h help || usage
+(( $# == 0 )) && usage
+opt=$(getopt -o ?x::b:c:d:X:fo:nhruq: -l block-size:,compressor:,exclude: \
+	-l fstab,offset,no-remount,busybox::,squash-root:,squash-dir:,remove \
+	-l update,help,version -n ${PKG[name]}.${PKG[shell]} -- "$argv[@]" || usage)
+eval set -- $opt
+
+# @VARIABLE: opts [associative array]
+# @DESCRIPTION: declare if not declared while arsing options,
+# hold almost every single option/variable
+typeset -A opts
+
+for (( ; $# > 0; ))
+	case $1 {
+		(-b|--block-size)
+			opts[-bsize]=$2
+			shift 2;;
+		(-x|--busybox)
+			opts[-busybox]=${2:-$commands[busybox]}
+			shift 2;;
+		(-o|--offset)
+			opts[-offset]=$2
+			shift 2;;
+		(-X|--exclude) opts[-exclude]+=:$2
+			shift 2;;
+		(-q|--squashroot)
+			opts[-squashroot]=$2
+			shift 2;;
+		(-d|--squashdir)
+			opts[-squashdir]+=:$2
+			shift 2;;
+		(-c|--compressor)
+			opts[-comp]=$2
+			shift 2;;
+		(-u|--update)
+			opts[-update]=
+			shift;;
+		(-r|--remove)
+			opts[-remove]=
+			shift;;
+		(-n|--nomount)
+			opts[-nomount]=
+			shift;;
+		(--)
+			shift
+			break;;
+		(-h|--help|-?|*)
+			usage;;
+	}
 
 # @VARIABLE: opts[-arc]
 # @DESCRIPTION: LONG_BIT, word length, supported
 opts[-arc]=$(getconf LONG_BIT)
-# @VARIABLE: opts[-squashroot] | opts[-q]
+# @VARIABLE: opts[-root]
 # @DESCRIPTION: root of squashed dir
-:	${opts[-squashroot]:=${opts[-r]:-/aufs}}
-# @VARIABLE: opts[-offset] | opts[-o]
+:	${opts[-root]:=${opts[-r]:-/aufs}}
+# @VARIABLE: opts[-offset]
 # @DESCRIPTION: offset or rw/rr or ro branch ratio
-:	${opts[-offset]:=$opts[-o]}
-# @VARIABLE: opts[-exclude] | opts[-e]
-# @DESCRIPTION: colon separated list of excluded dir
-:	${opts[-exclude]:=$opts[-e]}
-# @VARIABLE: opts[-bsize] | opts[-b]
+:	${opts[-offset]:=10}
+# @VARIABLE: opts[-bsize]
 # @DESCRIPTION: Block SIZE of squashfs underlying filesystem block
-:	${opts[-bsize]:=${opts[-b]:-131072}}
-# @VARIABLE: opts[-comp] | opts[-c]
+:	${opts[-bsize]:=131072}
+# @VARIABLE: opts[-comp]
 # @DESCRIPTION: COMPression command with optional option
-:	${opts[-comp]:=${opts[-c]:-lzo -Xcompression-level 1}}
-# @VARIABLE: opts[-busybox] | opts[-b]
+:	${opts[-comp]:=lzo -Xcompression-level 1}
+# @VARIABLE: opts[-busybox]
 # @DESCRIPTION: full path to a static busysbox binary needed for updtating 
 # system wide dir
-:	${opts[-busybox]:=${opts[-x]:-$(which busyboxb 2>/dev/null)}}
+:	${opts[-busybox]:=$commands[busyboxb]}
 
+# @FUNCTION: error
+# @DESCRIPTION: print info message to stderr
+function error {
+    print -P " %B%F{red}*%b %1x: %F{yellow}%U%I%u%f: $@" >&2
+}
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
-function info()
-{
-    print -P " %B%F{green}*%b%f $@"
-}
-# @FUNCTION: error
-# @DESCRIPTION: print error message to stdout
-function error()
-{
-    print -P " %B%F{red}*%b%f $@"
+function info {
+    print -P " %B%F{green}*%b%f %1x: $@"
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
-function die()
-{
+function die {
 	local ret=$?
 	error $@
 	return $ret
 }
-alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
-setopt NULL_GLOB
+setopt EXTENDED_GLOB
 
-# @FUNCTION: squash_mount
+# @FUNCTION: squash-mount
 # @DESCRIPTION: mount squashed dir
-function squash_mount()
-{
-	if [[ ${dir} == /*bin ]] || [[ ${dir} == /lib* ]] {
+function squash-mount {
+	if [[ ${dir} == /(|s)bin || ${dir} == /lib(32|64) ]] {
 		ldd ${opts[-busybox]} >/dev/null && die "no static busybox binary found"
 		local busybox=/tmp/busybox
 		cp ${opts[-busybox]} /tmp/busybox || die 
@@ -130,11 +164,11 @@ function squash_mount()
 	die "sdr: failed to move ${base}.tmp.squashfs"
 
 	if ${=mount} -t squashfs -o nodev,loop,ro ${base}.squashfs ${base}/rr; then
-		if [[ -n ${(k)opts[-r]} ]] || [[ -n ${(k)opts[-remove]} ]] { 
+		if (( ${+opts[-remove]} )) {
 			${=rm} ${dir} && ${=mkdir} ${dir} ||
 			die "sdr: failed to clean up ${dir}"
 		} 
-		if [[ -n ${(k)opts[-u]} ]] || [[ -n ${(k)opts[-update]} ]] { 
+		if (( ${+opts[-update]} )) {
 			${=rm} ${dir} && ${=mkdir} ${dir} && ${=cp} ${base}/rr /${dir} ||
 			die "sdr: failed to update ${dir}"
 		}
@@ -145,98 +179,61 @@ function squash_mount()
 	fi
 }
 
-# @FUNCTION: squash_dir
+# @FUNCTION: squash-dir
 # @DESCRIPTION: squash-dir
-function squash_dir()
-{
-	local svcdir splashdir
-
-	if [[ -n ${(k)opts[-f]} || -n ${(k)opts[-fstab]} ]] {
-		echo "${base}.squashfs ${base}/rr squashfs nodev,loop,rr 0 0" >>/etc/fstab ||
-			die "sdr: failed to write squasshfs fstab line"
-		echo "${dir} ${dir} aufs nodev,udba=reval,br:${base}/rw:${base}/rr 0 0" >>/etc/fstab ||
-			die "sdr: failed to write aufs fstab line" 
-	}
+function squash-dir {
 	mkdir -p -m 0755 ${base}/{rr,rw} || die "sdr: failed to create ${dir}/{rr,rw}"
+
 	mksquashfs ${dir} ${base}.tmp.squashfs -b ${opts[-bsize]} -comp ${=opts[-comp]} \
 		${=opts[-exclude]:+-wildcards -regex -e ${(pws,:,)opts[-exclude]}} ||
 		die "sdr: failed to build ${dir}.squashfs"
-	if [[ ${dir} == /lib${opts[-arc]} ]] {
-		# move rc-svcdir cachedir if mounted
-		mkdir -p /var/{lib/init.d,cache/splash}
-		if grep -q ${dir}/splash/cache /proc/mounts; then
-			mount --move ${dir}/splash/cache /var/cache/splash &&
-			splashdir=1 || die "sdr: failed to move cachedir"
-		fi
-		if grep -q ${dir}/rc/init.d /proc/mounts; then
-			mount --move ${dir}/rc/init.d /var/lib/init.d &&
-			rcdir=1 || die "sdr: failed to move rc-svcdir"
-		fi
-	}
 
-	{ [[ -n ${(k)opts[-n]} ]] || [[ -n ${(k)opts[-nomount]} ]] } || squash_mount
-
-	if [[ -n ${splashdir} ]] { 
-		mount --move /var/cache/splash ${dir}/splash/cache ||
-		die "sdr: failed to move back cachedir"
-	}
-
-	if [[ -n ${svcdir} ]] { 
-		mount --move /var/lib/init.d ${dir}/rc/init.d ||
-		die "sdr: failed to move back rc-svcdir"
-	}
+	(( ${+opts[-mount]} )) || squash-mount
 
 	print ">>> sdr:...squashed ${dir} sucessfully [re]build"
 }
 
-# @FUNCTION: squash_init
-# @DESCRIPTION: initialize aufs+squashfs if need be, or exit if no support found
-squash_init() {
-	local n=/dev/null
-
-	grep -q aufs /proc/filesystems ||
-	if ! grep -q aufs /proc/modules; then
-	    if ! modprobe aufs >${n} 2>&1; then
-	        error "failed to initialize aufs kernel module, exiting"
-	        opts[-nomount]=1
-	    fi
+# Check wether aufs is filesystem is available
+grep -q aufs /proc/filesystems ||
+	if ! modprobe aufs >/dev/null 2>&1; then
+		error "failed to initialize aufs kernel module, using nomount option"
+		opts[-nomount]=1
 	fi
 
-    grep -q squashfs /proc/filesystems ||
-	if ! grep -q squashfs /proc/modules; then
-	    if ! modprobe squashfs >${n} 2>&1; then
-	        die "failed to initialize squashfs kernel module, exiting"
-	    fi
-	fi
-}
-squash_init
+# Check wether squashfs filesystem is available
+grep -q squashfs /proc/filesystems ||
+	modprobe squashfs >/dev/null 2>&1 ||
+	die "failed to initialize squashfs kernel module, exiting"
 
-for dir (${(pws,:,)opts[-squashdir]} ${(pws,:,)opts[-d]}) {
-	base=${opts[-squashroot]}/${dir}
+for dir (${(pws,:,)opts[-dir]}) {
+	base=${opts[-root]}/${dir}
 	base=${base//\/\//\/}
 	dir=/${dir}
 	dir=${dir//\/\//\/}
-	if [[ -e ${opts[-squashroot]}/${dir}.squashfs ]] { 
-		if [[ ${opts[-offset]:-10} != 0 ]] {
+
+	if [[ -e ${base}.squashfs ]]; then
+		if (( ${opts[-offset]} != 0 )); then
 			rr=${$(du -sk ${base}/rr)[1]}
 			rw=${$(du -sk ${base}/rw)[1]}
-			if (( (${rw}*100/${rr}) < ${opts[-offset]:-10} )) { 
+			if (( (${rw}*100/${rr}) < ${opts[-offset]} )); then
 				info "sdr: skiping... ${dir}, or append -o|-offset option"
-			} else {
+			else
 				print ">>> sdr: updating squashed ${dir}..."
-				squash_dir
-			}
-		} else {
+				squash-dir
+			fi
+		else
 			print ">>> sdr: updating squashed ${dir}..."
-			squash_dir
-		}
-	} else {
+			squash-dir
+		fi
+	else
 		print ">>> sdr: building squashed ${dir}..."
-		squash_dir
-	}
+		squash-dir
+	fi
 }
 
 [[ -f $busybox ]] && rm -f $busybox
 unset base dir opts rr rw
 
+#
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
+#
