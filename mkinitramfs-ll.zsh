@@ -20,36 +20,36 @@ function usage {
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
 
-  -a, -all                 short hand or forme of '-g -l -L -q -t -M:zfs:zram'
-  -f, -font[:ter-v14n]     include a colon separated list of fonts to the initramfs
-  -k, -kv3.4.4-git         build an initramfs for kernel 3.4.4-git, or else \$(uname -r)
-  -F, -firmware[:file]     append firmware file or directory (relative to /lib/firmware),
-                           or else full path, or the whole /lib/firmware dir if empty
-  -c, -comp['gzip -9']     use 'gzip -9' compressor instead of default, accept 'none'
-  -L, -luks                add LUKS support, require a sys-fs/cryptsetup binary
-  -l, -lvm                 add LVM support, require a static sys-fs/lvm2 binary
-  -b, -bin:<bin>           include a colon separated list of binar-y-ies to the initramfs
-  -d, -usrdir[usr]         use usr dir for user extra files, binaries, scripts, fonts...
-  -g, -gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
-  -p, -prefix[initrd-]     use 'initrd-' initramfs prefix instead of default ['initramfs-']
-  -M, -module:<name>       include <name> module or script from modules directory
-  -m, -kmod[:<mod>]        include a colon separated list of kernel modules to the initramfs
-      -mtuxonice[:<mod>]   include a colon separated list of kernel modules to tuxonice group
-      -mremdev[:<mod>]     include a colon separated list of kernel modules to remdev  group
-      -msquashd[:<mod>]    include a colon separated list of kernel modules to squashd group
-      -mgpg[:<mod>]        include a colon separated list of kernel modules to gpg     group
-      -mboot[:<mod>]       include a colon separated list of kernel modules to boot   group
-  -s, -splash[:<theme>]    include a colon separated list of splash themes to the initramfs
-  -t, -toi                 add tuxonice support, require tuxoniceui_text binary for splash
-  -q, -squashd             add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
-  -r, -regen               regenerate a new initramfs from an old dir with newer init
-  -y, -keymap:fr-latin1    include a colon separated list of keymaps to the initramfs
-  -K, -keeptmp             keep temporary files instead of removing the tmpdir
-  -h, -help                print this help or usage message and exit
+  -a, --all                 short hand or forme of '-l -L -g -M:zfs:zram -t -q'
+  -f, --font=[:ter-v14n]    include a colon separated list of fonts to the initramfs
+  -F, --firmware=[:file]    append firmware file or directory (relative to /lib/firmware),
+                            or else full path, or the whole /lib/firmware dir if empty
+  -k, --kv=3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
+  -c, --comp=['gzip -9']    use 'gzip -9' compressor instead of default, accept 'none'
+  -L, --luks                add LUKS support, require a sys-fs/cryptsetup binary
+  -l, --lvm                 add LVM support, require a static sys-fs/lvm2 binary
+  -b, --bin=:<bin>          include a colon separated list of binar-y-ies to the initramfs
+  -d, --usrdir=[usr]        use usr dir for user extra files, binaries, scripts, fonts...
+  -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
+  -p, --prefix=initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
+  -M, --module=:<name>      include <name> module or script from modules directory
+  -m, --kmod=[:<mod>]       include a colon separated list of kernel modules to the initramfs
+      --mtuxonice=[:<mod>]  include a colon separated list of kernel modules to tuxonice group
+      --mremdev=[:<mod>]    include a colon separated list of kernel modules to remdev  group
+      --msquashd=[:<mod>]   include a colon separated list of kernel modules to squashd group
+      --mgpg=[:<mod>]       include a colon separated list of kernel modules to gpg     group
+      --mboot=[:<mod>]      include a colon separated list of kernel modules to boot   group
+  -s, --splash=[:<theme>]   include a colon separated list of splash themes to the initramfs
+  -t, --toi                 add tuxonice support, require tuxoniceui_text binary for splash
+  -q, --squashd             add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
+  -r, --regen               regenerate a new initramfs from an old dir with newer init
+  -y, --keymap=:fr-latin1   include a colon separated list of keymaps to the initramfs
+  -K, --keeptmp             keep temporary files instead of removing the tmpdir
+  -h, --help, -?            print this help or usage message and exit
 
   usage: build an initramfs for kernel \$(uname -r) if run without an argument
   usgae: generate an initramfs with LUKS, GnuPG, LVM2 and AUFS+squashfs support
-  $basename -a -k$(uname -r)
+  ${PKG[name]}.${PKG[shell]} -a -k$(uname -r)
 EOF
 exit $?
 }
@@ -57,17 +57,17 @@ exit $?
 # @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
 function error {
-    print -P " %B%F{red}*%b%f $@" >&2
+	print -P " %B%F{red}*%b %1x: %F{yellow}%U%I%u%f: $@" >&2
 }
 # @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
 function info {
-    print -P " %B%F{green}*%b%f $@"
+	print -P " %B%F{green}*%b%f %1x: $@"
 }
 # @FUNCTION: warn
 # @DESCRIPTION: print warning message to stdout
 function warn {
-	print -P " %B%F{red}*%b%f $@" >&2
+	print -P " %B%F{red}*%b%f %1x: $@" >&2
 }
 # @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
@@ -76,15 +76,13 @@ function die {
 	error $@
 	exit $ret
 }
-alias die='die "%F{yellow}%1x:%U${(%):-%I}%u:%f" $@'
 
 # @FUNCTION: mktmp
 # @DESCRIPTION: make tmp dir or file in ${TMPDIR:-/tmp}
-# @ARG: -d|-f [-m <mode>] [-o <owner[:group]>] [-g <group>] TEMPLATE
+# @ARG: TEMPLATE
 function mktmp {
 	local tmp=${TMPDIR:-/tmp}/$1-XXXXXX
-	mkdir -p ${mode:+-m$mode} $tmp ||
-	die "mktmp: failed to make $tmp"
+	mkdir -p $tmp || die "mktmp: failed to make $tmp"
 	print "$tmp"
 }
 
@@ -107,19 +105,127 @@ function donod {
 }
 
 setopt EXTENDED_GLOB NULL_GLOB
-zmodload zsh/zutil
-zparseopts -E -D -K -A opts a all q squashd g gpg l lvm t toi c:: comp:: \
-	k: kv: m+:: kmod+:: f+:: font+:: s:: splash:: h help M: module: \
-	b+:: bin+:: p:: prefix:: y+:: keymap+:: d:: usrdir:: mboot+:: F+:: firmware+:: \
-	mgpg+:: mremdev+:: msquashd+:: mtuxonice+:: L luks r regen K keetmp ||
-	usage
-
-if (( ${+opts[-h]} || ${+opts[-help]} )) { usage }
 
 # @VARIABLE: opts [associative array]
 # @DESCRIPTION: declare if not declared while arsing options,
 # hold almost every single option/variable
-if (( $# < 1 )) { typeset -A opts }
+typeset -A opts
+
+typeset -a opt
+opt=(
+	"-o" "ab:c::f::F::gk::lKLM:m::np::qrs::thu::y::?"
+	"-l" "all,bin:,comp::,firmware::,font::,gpg,help"
+	"-l" "luks,lvm,keeptmp,kmod::,keymap::,kv::"
+	"-l" "mboot::,mgpg::,mremdev::,msquashd::,module:,mtuxonice::"
+	"-l" "prefix::,regen,splash::,squashd,toi,usrdir::"
+	"-n" ${PKG[name]}.${PKG[shell]}
+)
+opt=($(getopt ${opt} -- ${argv} || usage))
+eval set -- ${opt}
+
+for (( ; $# > 0; ))
+	case $1 {
+		(-a|--all)
+			opts[-all]=
+			shift;;
+		(-r|--regen)
+			opts[-regen]=
+			shift;;
+		(-q|--squashd)
+			opts[-squashd]=
+			shift;;
+		(-K|--keeptmp)
+			opts[-keeptmp]=
+			shift;;
+		(-b|--bin) opts[-bin]+=:$2
+			shift 2;;
+		(-c|--comp)
+			opts[-compressor]=$2
+			shift 2;;
+		(-d|--usrdir)
+			opts[-usrdir]=$2
+			shift 2;;
+		(-k|--kv)
+			opts[-kv]=$2
+			shift 2;;
+		(-g|--gpg)
+			opts[-gpg]=
+			shift;;
+		(-t|--toi)
+			opts[-toi]=
+			shift;;
+		(-l|--lvm)
+			opts[-lvm]=
+			shift;;
+		(-L|--luks)
+			opts[-luks]=
+			shift;;
+		(--mgpg)
+			opts[-mgpg]+=:$2
+			shift 2;;
+		(--mboot)
+			opts[-mboot]+=:$2
+			shift 2;;
+		(--msquashd)
+			opts[-msquashd]+=:$2
+			shift 2;;
+		(--mremdev)
+			opts[-mremdev]+=:$2
+			shift 2;;
+		(--mtuxonice)
+			opts[-tuxonice]+=:$2
+			shift 2;;
+		(-s|--splash)
+			opts[-splash]+=:$2
+			shift 2;;
+		(-M|--module)
+			opts[-module]+=:$2
+			shift 2;;
+		(-m|--kmod)
+			opts[-kmod]+=:$2
+			shift 2;;
+		(-p|--prefix)
+			opts[-prefix]=$2
+			shift 2;;
+		(-y|--keymap)
+			opts[-keymap]+=:$2
+			shift 2;;
+		(-f|--font)
+			opts[-font]+=:$2
+			shift 2;;
+		(-F|--firmware)
+			opts[-firmware]+=:${2:-/lib/firmware}
+			shift 2;;
+		(--)
+			shift
+			break;;
+		(-?|-h|--help|*)
+			usage;;
+	}
+
+if (( ${+opts[-all]} )) {
+	opts[-font]+=: opts[-gpg]= opts[-lvm]= opts[-squashd]=
+	opts[-toi]= opts[-luks]= opts[-keymap]+=:
+	opts[-M]+=:zfs:zram
+}
+
+if (( ${+opts[-keymap]} )) && [[ ${opts[-keymap]} == ":" ]] {
+	if [[ -e /etc/conf.d/keymaps ]] {
+		opts[-keymap]+=$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
+			/etc/conf.d/keymaps)
+	} else {
+		warn "no console keymap found"
+	}
+}
+
+if (( ${+opts[-font]} )) && [[ ${opts[-font]} == ":" ]] {
+	if [[ -e /etc/conf.d/consolefont ]] {
+		opts[-font]+=$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' \
+			/etc/conf.d/consolefont)
+	} else {
+		warn "no console font found"
+	}
+}
 
 if [[ -f "${PKG[name]}".conf ]] {
 	source "${PKG[name]}".conf 
@@ -129,16 +235,16 @@ if [[ -f "${PKG[name]}".conf ]] {
 
 # @VARIABLE: opts[-kv]
 # @DESCRIPTION: kernel version to pick up
-:	${opts[-kv]:=${opts[-k]:-$(uname -r)}}
+:	${opts[-kv]:=$(uname -r)}
 # @VARIABLE: opts[-prefix]
 # @DESCRIPTION: initramfs prefx name <$prefix-$kv.$ext>
-:	${opts[-prefix]:=${opts[-p]:-initramfs-}}
+:	${opts[-prefix]:=-initramfs-}
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path, to get extra files
-:	${opts[-usrdir]:=${opts[-d]:-${PWD}/usr}}
-# @VARIABLE: opts[-comp]
+:	${opts[-usrdir]:=${PWD}/usr}
+# @VARIABLE: opts[-compressor]
 # @DESCRIPTION: compression command
-:	${opts[-comp]:=${opts[-c]:-xz -9 --check=crc32}}
+:	${opts[-compressor]:=xz -9 --check=crc32}
 # @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
 :	${opts[-initramfs]:=${opts[-prefix]}${opts[-kv]}}
@@ -153,25 +259,10 @@ if [[ -f "${PKG[name]}".conf ]] {
 # an initramfs compressed image
 :	${opts[-tmpdir]:=$(mktmp ${opts[-initramfs]:t})}
 
-if (( ${+opts[-a]} || ${+opts[-all]} )) {
-	opts[-f]= opts[-g]= opts[-l]= opts[-q]= opts[-t]= opts[-L]= opts[-y]=
-	opts[-M]+=:zfs:zram
-}
-
-if (( ${+opts[-y]} || ${+opts[-keymap]} )) {
-	[[ -e /etc/conf.d/keymaps ]] &&
-	opts[-y]+=:$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' /etc/conf.d/keymaps)
-}
-
-if (( ${+opts[-f]} || ${+opts[-font]} )) {
-	[[ -e /etc/conf.d/consolefont ]] &&
-	opts[-f]+=:$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' /etc/conf.d/consolefont)
-}
-
 typeset -a compressor
 compressor=(bzip2 gzip lzip lzop lz4 xz)
 
-if (( ${+comp} )) {
+if (( ${+opts[-compressor]} )) && [[ ${opts[-compressor]} != "none" ]] {
 	if [[ -e /usr/src/linux-${opts[-kv]}/.config ]] {
 		config=/usr/src/linux-${opts[-kv]}/.config
 		xgrep=${commands[grep]}
@@ -181,21 +272,21 @@ if (( ${+comp} )) {
 	} else { warn "no kernel config file found" }
 }
 
-if [[ -n ${config} ]] {
-	CONFIG=CONFIG_DECOMPRESS_${$opts[-comp][(w)1]:u}
-	if ( ! ${(Q)xgrep} -q "^${(Q)CONFIG}=y" ${config} ) {
-		warn "${opts[-comp][(w)1]} decompression is not supported by kernel-${opts[-kv]}"
+if (( ${+config} )) {
+	CONFIG=CONFIG_DECOMPRESS_${${opts[-compressor][(w)1]}:u}
+	if ! ${=xgrep} -q "^${CONFIG}=y" ${config}; then
+		warn "${opts[-compressor][(w)1]} decompression is not supported by kernel-${opts[-kv]}"
 		for comp (${compressor[@]}) {
 			CONFIG=CONFIG_DECOMPRESS_${comp:u}
-			if ( ${xgrep} -q "^${CONFIG}=y" ${config} ) {
-				opts[-comp]="${comp} -9"
+			if ${=xgrep} -q "^${CONFIG}=y" ${config}; then
+				opts[-compressor]="${comp} -9"
 				info "setting compressor to ${comp}"
 				break
-			} elif [[ ${comp} == "xz" ]] {
+			elif [[ ${comp} == "xz" ]]; then
 				die "no suitable compressor support found in kernel-${opts[-kv]}"
-			}
+			fi
 		}
-	}
+	fi
 	unset config xgrep CONFIG comp compressor
 }
 
@@ -205,22 +296,22 @@ function docpio {
 	local ext=.cpio initramfs=${1:-${opts[-initramfs]}}
 	local cmd="find . -print0 | cpio -0 -ov -Hnewc"
 
-	case ${opts[-comp][(w)1]} {
-		bzip2) ext+=.bz2;;
-		gzip)  ext+=.gz;;
-		xz)    ext+=.xz;;
-		lzma)  ext+=.lzma;;
-		lzip)  ext+=.lz;;
-		lzop)  ext+=.lzo;;
-		lz4)   ext+=.lz4;;
-		*) opts[-comp]=; warn "initramfs will not be compressed";;
+	case ${opts[-compressor][(w)1]} {
+		(bzip2) ext+=.bz2;;
+		(gzip)  ext+=.gz;;
+		(xz)    ext+=.xz;;
+		(lzma)  ext+=.lzma;;
+		(lzip)  ext+=.lz;;
+		(lzop)  ext+=.lzo;;
+		(lz4)   ext+=.lz4;;
+		(*) opts[-compressor]=; warn "initramfs will not be compressed";;
 	}
 
 	if [[ -f /boot/${initramfs}${ext} ]] {
 	    mv /boot/${initramfs}${ext}{,.old}
 	}
 	if [[ -n ${ext#.cpio} ]] {
-		cmd+=" | ${=opts[-comp]} -c"
+		cmd+=" | ${=opts[-compressor]} -c"
 	}
 	eval ${=cmd} >/boot/${initramfs}${ext} ||
 		die "failed to generate /tmp/${initramfs}${ext}"
@@ -229,7 +320,7 @@ function docpio {
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 pushd ${opts[-tmpdir]} || die "no ${opts[-tmpdir]} tmpdir found"
 
-if (( ${+opts[-regen]} || ${+opts[-r]} )) {
+if (( ${+opts[-regen]} )) {
 	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio ${opts[-initramfs]} || die
@@ -246,6 +337,7 @@ if [[ -d ${opts[-usrdir]} ]] {
 } else {
 	die "${opts[-usrdir]} dir not found"
 }
+
 mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
 mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} || die
 mkdir -p run lib${opts[-arc]}/{modules/${opts[-kv]},${PKG[name]}} || die
@@ -256,7 +348,8 @@ ln -sf lib{${opts[-arc]},} &&
 	for key (${(k)PKG[@]}) print "${key}=${PKG[$key]}"
 	print "build=$(date +%Y-%m-%d-%T)"
 } >etc/${PKG[name]}/id
-touch etc/{fs,m}tab
+touch etc/fstab
+ln -fs /proc/mounts etc/mtab
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
 if [[ ${${(pws:.:)opts[-kv]}[1]} -eq 3 ]] &&
@@ -286,9 +379,9 @@ for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]}) {
 cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
-[ -f /etc/issue.logo ] && cp {/,}etc/issue.logo
+[[ -f /etc/issue.logo ]] && cp {/,}etc/issue.logo
 
-if (( ${+opts[-F]} || ${+opts[-firmware]} )) {
+if (( ${+opts[-firmware]} )) {
 :   ${opts[-firmware]:=${opts[-F]:-/lib/firmware}}
 	mkdir -p lib/firmware
 	for f (${(pws,:,)opts[-firmware]}) {
@@ -329,11 +422,11 @@ for applet ($(grep '^sbin' ../etc/${PKG[name]}/busybox.applets))
 	ln -s ../bin/busybox ${applet:t}
 popd
 
-if (( ${+opts[-L]} || ${+opts[-luks]} )) {
+if (( ${+opts[-luks]} )) {
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 }
 
-if (( ${+opts[-gpg]} || ${+opts[-g]} )) {
+if (( ${+opts[-gpg]} )) {
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]] { :;
 	} elif [[ $(gpg --version | sed -nre '/^gpg/s/.* ([0-9]{1})\..*$/\1/p') -eq 1 ]] {
@@ -341,7 +434,7 @@ if (( ${+opts[-gpg]} || ${+opts[-g]} )) {
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
 }
 
-if (( ${+opts[-lvm]} || ${+opts[-l]} )) {
+if (( ${+opts[-lvm]} )) {
 	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
@@ -349,7 +442,7 @@ if (( ${+opts[-lvm]} || ${+opts[-l]} )) {
 	popd
 }
 
-if (( ${+opts[-q]} || ${+opts[-squashd]} )) {
+if (( ${+opts[-squashd]} )) {
 	opts[-bin]+=:mount.aufs:umount.aufs opts[-mgrp]+=:squashd
 }
 
@@ -359,7 +452,7 @@ function domod {
 	local mod module ret
 	for mod ($*) {
 		module=(/lib/modules/${opts[-kv]}/**/${mod}.(ko|o))
-		if [[ -n ${module} ]] { 
+		if [[ -n ${module} ]] {
 			mkdir -p .${module:h} && cp -ar {,.}${module} ||
 				die "failed to copy ${module} module"
 		} else {
@@ -370,18 +463,18 @@ function domod {
 	return ${ret}
 }
 
-for keymap (${(pws,:,)opts[-keymap]} ${(pws,:,)opts[-y]}) {
+for keymap (${(pws,:,)opts[-keymap]}) {
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] {
 		:;
 	} elif [[ -f ${keymap} ]] {
 		cp -a ${keymap} usr/share/keymaps/
-	} else { 
+	} else {
 		loadkeys -b -u ${keymap} > usr/share/keymaps/${keymap}-${opts[-arch]}.bin ||
 			die "failed to build ${keymap} keymap"
 	}
 }
 
-for font (${(pws,:,)opts[-font]} ${(pws,:,)opts[-f]}) {
+for font (${(pws,:,)opts[-font]}) {
 	if [[ -f usr/share/consolefonts/${font} ]] {
 		:;
 	} elif [[ -f ${font} ]] {
@@ -395,14 +488,14 @@ for font (${(pws,:,)opts[-font]} ${(pws,:,)opts[-f]}) {
 	}
 }
 
-if (( ${+opts[-splash]} || ${+opts[-s]} )) { 
+if (( ${+opts[-splash]} )) {
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
 	
 	if (( ${+opts[-toi]} || ${+opts[-t]} )) {
 		opts[-bin]+=:tuxoniceui_text
 	}
 	
-	for theme (${(pws,:,)opts[-splash]} ${(pws,:,)opts[-s]})
+	for theme (${(pws,:,)opts[-splash]})
 		if [[ -d etc/splash/${theme} ]] {
 			:;
 		} elif [[ -d /etc/splash/${theme} ]] {
@@ -420,13 +513,13 @@ function docp {
 	rm -f .${link} && cp -a {,.}${link} || die
 
 	[[ -h ${link} ]] &&
-	while (true) {
+	while true; do
 	    prefix=${link%/*}
 		link=$(readlink ${link})
 		[[ ${link%/*} == ${link} ]] && link=${prefix}/${link}
 		rm -f .${link} && cp -f {,.}${link} || die
 		[[ -h ${link} ]] || break
-	}
+	done
 
 	return 0
 }
@@ -434,7 +527,7 @@ function docp {
 # @FUNCTION: dobin
 # @DESCRIPTION: copy binary with libraries if not static
 function dobin {
-	local lib
+	local bin=$1 lib
 	docp ${bin} || return
 
 	ldd ${bin} >/dev/null || return 0
@@ -444,15 +537,15 @@ function dobin {
 		mkdir -p .${lib%/*} && docp ${lib} || die
 }
 
-for bin (${(pws,:,)opts[-bin]} ${(pws,:,)opts[-b]}) {
+for bin (${(pws,:,)opts[-bin]}) {
 	for b ({usr/,}{,s}bin/${bin}) { [[ -x ${b} ]] && continue 2 }
 
 	[[ -x ${bin} ]] && dobin ${bin}
-	bin=${commands[$bin]}
-	dobin ${bin} || warn "no ${bin} binary found"
+	(( ${+commands[$bin]} )) && dobin ${commands[$bin]} ||
+		warn "no ${bin} binary found"
 }
 
-for module (${(pws,:,)opts[-kmod]} ${(pws,:,)opts[-m]}) domod ${module}
+for module (${(pws,:,)opts[-kmod]}) domod ${module}
 for grp (${(pws,:,)opts[-mgrp]})
 	for mod (${(pws,:,)opts[-m${grp}]})
 		domod ${mod} && echo ${mod} >>etc/${PKG[name]}/${grp}
@@ -466,8 +559,10 @@ docpio || die
 
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
 
-(( ${+opts[-K]} || ${+opts[-keeptmp]} )) || rm -rf ${opts[-tmpdir]}
+(( ${+opts[-keeptmp]} )) || rm -rf ${opts[-tmpdir]}
 
 unset comp opts PKG
 
+#
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
+#
