@@ -25,7 +25,7 @@ function usage {
   -F, --firmware=[:file]    append firmware file or directory (relative to /lib/firmware),
                             or else full path, or the whole /lib/firmware dir if empty
   -k, --kv=3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
-  -c, --comp=['gzip -9']    use 'gzip -9' compressor instead of default, accept 'none'
+  -c, --compressor='gzip -9' use 'gzip -9' compressor instead of default, accept 'none'
   -L, --luks                add LUKS support, require a sys-fs/cryptsetup binary
   -l, --lvm                 add LVM support, require a static sys-fs/lvm2 binary
   -b, --bin=:<bin>          include a colon separated list of binar-y-ies to the initramfs
@@ -42,9 +42,9 @@ function usage {
   -s, --splash=[:<theme>]   include a colon separated list of splash themes to the initramfs
   -t, --toi                 add tuxonice support, require tuxoniceui_text binary for splash
   -q, --squashd             add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
-  -r, --regen               regenerate a new initramfs from an old dir with newer init
+  -r, --rebuild             regenerate a new initramfs from an old dir with newer init
   -y, --keymap=:fr-latin1   include a colon separated list of keymaps to the initramfs
-  -K, --keeptmp             keep temporary files instead of removing the tmpdir
+  -K, --keep-tmpdir         keep temporary the directory instead of removing it
   -h, --help, -?            print this help or usage message and exit
 
   usage: build an initramfs for kernel \$(uname -r) if run without an argument
@@ -113,11 +113,11 @@ typeset -A opts
 
 typeset -a opt
 opt=(
-	"-o" "ab:c::f::F::gk::lKLM:m::np::qrs::thu::y::?"
-	"-l" "all,bin:,comp::,firmware::,font::,gpg,help"
-	"-l" "luks,lvm,keeptmp,kmod::,keymap::,kv::"
+	"-o" "ab:c::f::F::gk::lKLM:m::p::qrs::thu::y::?"
+	"-l" "all,bin:,compressor::,firmware::,font::,gpg,help"
+	"-l" "luks,lvm,keep-tmpdir,kmod::,keymap::,kv::"
 	"-l" "mboot::,mgpg::,mremdev::,msquashd::,module:,mtuxonice::"
-	"-l" "prefix::,regen,splash::,squashd,toi,usrdir::"
+	"-l" "prefix::,rebuild,splash::,squashd,toi,usrdir::"
 	"-n" ${PKG[name]}.${PKG[shell]}
 )
 opt=($(getopt ${opt} -- ${argv} || usage))
@@ -125,76 +125,17 @@ eval set -- ${opt}
 
 for (( ; $# > 0; ))
 	case $1 {
-		(-a|--all)
-			opts[-all]=
+		(-[KLaglqrt])
+			opts[$1]=
 			shift;;
-		(-r|--regen)
-			opts[-regen]=
+		(--[aglrt]*|--sq*|--keep*)
+			opts[${1/--/-}]=
 			shift;;
-		(-q|--squashd)
-			opts[-squashd]=
-			shift;;
-		(-K|--keeptmp)
-			opts[-keeptmp]=
-			shift;;
-		(-b|--bin) opts[-bin]+=:$2
+		(-[FMbcfkmpsuy])
+			opts[$1]+=:$2
 			shift 2;;
-		(-c|--comp)
-			opts[-compressor]=$2
-			shift 2;;
-		(-d|--usrdir)
-			opts[-usrdir]=$2
-			shift 2;;
-		(-k|--kv)
-			opts[-kv]=$2
-			shift 2;;
-		(-g|--gpg)
-			opts[-gpg]=
-			shift;;
-		(-t|--toi)
-			opts[-toi]=
-			shift;;
-		(-l|--lvm)
-			opts[-lvm]=
-			shift;;
-		(-L|--luks)
-			opts[-luks]=
-			shift;;
-		(--mgpg)
-			opts[-mgpg]+=:$2
-			shift 2;;
-		(--mboot)
-			opts[-mboot]+=:$2
-			shift 2;;
-		(--msquashd)
-			opts[-msquashd]+=:$2
-			shift 2;;
-		(--mremdev)
-			opts[-mremdev]+=:$2
-			shift 2;;
-		(--mtuxonice)
-			opts[-tuxonice]+=:$2
-			shift 2;;
-		(-s|--splash)
-			opts[-splash]+=:$2
-			shift 2;;
-		(-M|--module)
-			opts[-module]+=:$2
-			shift 2;;
-		(-m|--kmod)
-			opts[-kmod]+=:$2
-			shift 2;;
-		(-p|--prefix)
-			opts[-prefix]=$2
-			shift 2;;
-		(-y|--keymap)
-			opts[-keymap]+=:$2
-			shift 2;;
-		(-f|--font)
-			opts[-font]+=:$2
-			shift 2;;
-		(-F|--firmware)
-			opts[-firmware]+=:${2:-/lib/firmware}
+		(--[bcfkmpsu]*)
+			opts[${2/--/-}]=$2
 			shift 2;;
 		(--)
 			shift
@@ -203,13 +144,14 @@ for (( ; $# > 0; ))
 			usage;;
 	}
 
-if (( ${+opts[-all]} )) {
+if (( ${+opts[-a]} )) || (( ${+opts[-all]} )) {
 	opts[-font]+=: opts[-gpg]= opts[-lvm]= opts[-squashd]=
 	opts[-toi]= opts[-luks]= opts[-keymap]+=:
 	opts[-M]+=:zfs:zram
 }
 
-if (( ${+opts[-keymap]} )) && [[ ${opts[-keymap]} == ":" ]] {
+if (( ${opts[-y]} )) || (( ${+opts[-keymap]} )) &&
+	[[ ${opts[-keymap]:-$opts[-y]} == ":" ]] {
 	if [[ -e /etc/conf.d/keymaps ]] {
 		opts[-keymap]+=$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
 			/etc/conf.d/keymaps)
@@ -218,7 +160,8 @@ if (( ${+opts[-keymap]} )) && [[ ${opts[-keymap]} == ":" ]] {
 	}
 }
 
-if (( ${+opts[-font]} )) && [[ ${opts[-font]} == ":" ]] {
+if (( ${+opts[-f]} )) || (( ${+opts[-font]} )) &&
+	[[ ${opts[-font]:-$opts[-f]} == ":" ]] {
 	if [[ -e /etc/conf.d/consolefont ]] {
 		opts[-font]+=$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' \
 			/etc/conf.d/consolefont)
@@ -235,16 +178,16 @@ if [[ -f "${PKG[name]}".conf ]] {
 
 # @VARIABLE: opts[-kv]
 # @DESCRIPTION: kernel version to pick up
-:	${opts[-kv]:=$(uname -r)}
+:	${opts[-kv]:=${opts[-k]:-$(uname -r)}}
 # @VARIABLE: opts[-prefix]
 # @DESCRIPTION: initramfs prefx name <$prefix-$kv.$ext>
-:	${opts[-prefix]:=-initramfs-}
+:	${opts[-prefix]:=${opts[-p]:-initramfs-}}
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path, to get extra files
-:	${opts[-usrdir]:=${PWD}/usr}
+:	${opts[-usrdir]:=${opts[-u]:-${PWD}/usr}}
 # @VARIABLE: opts[-compressor]
 # @DESCRIPTION: compression command
-:	${opts[-compressor]:=xz -9 --check=crc32}
+:	${opts[-compressor]:=${opts[-c]:-xz -9 --check=crc32}}
 # @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
 :	${opts[-initramfs]:=${opts[-prefix]}${opts[-kv]}}
@@ -320,7 +263,7 @@ function docpio {
 print -P "%F{green}>>> building ${opts[-initramfs]}...%f"
 pushd ${opts[-tmpdir]} || die "no ${opts[-tmpdir]} tmpdir found"
 
-if (( ${+opts[-regen]} )) {
+if (( ${+opts[-r]} )) || (( ${+opts[-rebuild]} )) {
 	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio ${opts[-initramfs]} || die
@@ -381,7 +324,7 @@ cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||
 
 [[ -f /etc/issue.logo ]] && cp {/,}etc/issue.logo
 
-if (( ${+opts[-firmware]} )) {
+if (( ${+opts[-F]} || ${+opts[-firmware]} )) {
 :   ${opts[-firmware]:=${opts[-F]:-/lib/firmware}}
 	mkdir -p lib/firmware
 	for f (${(pws,:,)opts[-firmware]}) {
@@ -422,11 +365,11 @@ for applet ($(grep '^sbin' ../etc/${PKG[name]}/busybox.applets))
 	ln -s ../bin/busybox ${applet:t}
 popd
 
-if (( ${+opts[-luks]} )) {
+if (( ${+opts[-L]} )) || (( ${+opts[-luks]} )) {
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 }
 
-if (( ${+opts[-gpg]} )) {
+if (( ${+opts[-g]} )) || (( ${+opts[-gpg]} )) {
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]] { :;
 	} elif [[ $(gpg --version | sed -nre '/^gpg/s/.* ([0-9]{1})\..*$/\1/p') -eq 1 ]] {
@@ -434,7 +377,7 @@ if (( ${+opts[-gpg]} )) {
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
 }
 
-if (( ${+opts[-lvm]} )) {
+if (( ${+opts[-l]} )) || (( ${+opts[-lvm]} )) {
 	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
 	pushd sbin
 	for lpv ({vg,pv,lv}{change,create,re{move,name},s{,can}} \
@@ -442,7 +385,7 @@ if (( ${+opts[-lvm]} )) {
 	popd
 }
 
-if (( ${+opts[-squashd]} )) {
+if (( ${+opts[-q]} )) || (( ${+opts[-squashd]} )) {
 	opts[-bin]+=:mount.aufs:umount.aufs opts[-mgrp]+=:squashd
 }
 
@@ -463,7 +406,7 @@ function domod {
 	return ${ret}
 }
 
-for keymap (${(pws,:,)opts[-keymap]}) {
+for keymap (${(pws,:,)opts[-y]} ${(pws,:,)opts[-keymap]}) {
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] {
 		:;
 	} elif [[ -f ${keymap} ]] {
@@ -474,7 +417,7 @@ for keymap (${(pws,:,)opts[-keymap]}) {
 	}
 }
 
-for font (${(pws,:,)opts[-font]}) {
+for font (${(pws,:,)opts[-f]} ${(pws,:,)opts[-font]}) {
 	if [[ -f usr/share/consolefonts/${font} ]] {
 		:;
 	} elif [[ -f ${font} ]] {
@@ -488,7 +431,7 @@ for font (${(pws,:,)opts[-font]}) {
 	}
 }
 
-if (( ${+opts[-splash]} )) {
+if (( ${+$opts[-s]} )) || (( ${+opts[-splash]} )) {
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
 	
 	if (( ${+opts[-toi]} || ${+opts[-t]} )) {
@@ -537,7 +480,7 @@ function dobin {
 		mkdir -p .${lib%/*} && docp ${lib} || die
 }
 
-for bin (${(pws,:,)opts[-bin]}) {
+for bin (${(pws,:,)opts[-b]} ${(pws,:,)opts[-bin]}) {
 	for b ({usr/,}{,s}bin/${bin}) { [[ -x ${b} ]] && continue 2 }
 
 	[[ -x ${bin} ]] && dobin ${bin}
@@ -545,7 +488,7 @@ for bin (${(pws,:,)opts[-bin]}) {
 		warn "no ${bin} binary found"
 }
 
-for module (${(pws,:,)opts[-kmod]}) domod ${module}
+for module (${(pws,:,)opts[-m]}${(pws,:,)opts[-kmod]}) domod ${module}
 for grp (${(pws,:,)opts[-mgrp]})
 	for mod (${(pws,:,)opts[-m${grp}]})
 		domod ${mod} && echo ${mod} >>etc/${PKG[name]}/${grp}
@@ -559,7 +502,7 @@ docpio || die
 
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
 
-(( ${+opts[-keeptmp]} )) || rm -rf ${opts[-tmpdir]}
+(( ${+opts[-K]} )) || (( ${+opts[-keeptmp]} )) || rm -rf ${opts[-tmpdir]}
 
 unset comp opts PKG
 
