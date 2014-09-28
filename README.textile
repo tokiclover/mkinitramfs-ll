@@ -1,8 +1,17 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.13.6 2014/09/20 10:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.13.6 2014/09/26 10:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
 with a handfull zsh and bash set of scripts to get going easily and quickly."
+
+BIG FAT NOTE: SUPPORTED BLOCK DEVICE STACK IS:
+    [RAID]+[LUKS]+[LVM] or [LUKS]+[ZFS]
+
+It is possible to add ZFS on the first stack variant, but it does not make any
+sense and expect horrible performance with such a mix bag. And this variant is
+not implemented although it could be done easily.
+
+The order of LUKS/LVM can be changed, that is LUKS+LVM or LVM+LUKS is possible.
 
 *WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN "AS IS", SEE COPYRIGHT FILE*
 
@@ -355,6 +364,10 @@ h3. 4.7. bcache - block cache - support
 
 bcache cache *and* backing device are grouped as a colon separated list of block
 device, registered using: echo device >/sys/fs/bcache/register_quiet
+
+Supported block device stack is to use bcache near the physical block devices
+for the moment untill a sane and simple way is found to be able in insert bcache
+in any block stack order.
 
 KERNEL-COMMAND-LIE-ARG: @ibcache=sda:sdb2:sdc2,sdd:sde1@
 DESCRIPTION: bcache cache:backing-device block device list, multiple *pairs* are
