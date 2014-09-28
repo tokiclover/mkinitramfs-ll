@@ -1,5 +1,6 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/09/26 12:40:11 -tclover Exp $
 
+* cmdline clean for bash/zsh scripts (there were many left overs...);
 * now mkinitramfs-ll.bash will pick up opts[-<single-letter>] options found
 in mkinitramfs-ll.conf (zsh variant always honored it);
 * removed openrc and splash specific bits from sdr.$shell, new openrc has
