@@ -1,5 +1,9 @@
 # $Id: mkinitramfs-ll/ChangeLog, 2014/09/09 12:40:11 -tclover Exp $
 
+* removed openrc and splash specific bits from sdr.$shell, new openrc has
+runtime temporary files in /run, it think splash-utils is unmaintained...;
+* now zsh scripts use getopt(1) to parse optional arguments, (zsh/zutil)
+zparseopts is awfull for long options;
 * mkinitramfs-ll.zsh: fix parsing -b|-bin,-F|-firmware,-y|-keymap, so next
 occurences will rightly append options;
 * fix help formating for bash scripts regarding white space issue (getopt(1)).
