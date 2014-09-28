@@ -20,8 +20,8 @@ function usage {
   $${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [options]
 
-  -d, --usrdir=[usr]     copy binary and options.skel files to usr/
-  -u, --useflag=flags    extra USE flags to append to USE="nls static"
+  -u, --usrdir=[usr]     copy binary and options.skel files to usr/
+  -U, --useflag=flags    extra USE flags to append to USE="nls static"
   -v, --version=<str>    build gpg-<str> version instead of gpg-1.4.x
   -h, --help, -?         print this help/uage and exit
 EOH
@@ -41,17 +41,24 @@ function die {
 	exit $ret
 }
 
-opt=$(getopt -l help,useflag::,usrdir::,version:: -o ?d::u::v:: \
-	-n ${PKG[name]}.${PKG[shell]} -- "$@" || usage)
-eval set -- "$opt"
-
 declare -A opts
+declare -a opt
+
+opt=(
+	"-o" "?hu::U::v::"
+	"-l" "help,useflag::,usrdir::,version::"
+	"-n" ${PKG[name]}.${PKG[shell]}
+	"-s" ${PKG[shell]}
+)
+opt=($(getopt ${opt} -- ${argv} || usage))
+eval set -- ${opt}
+
 for (( ; $# > 0; ))
 	case $1 {
-		(-d|--usrdir)
+		(-u|--usrdir)
 			opts[-usrdir]="$2"
 			shift 2;;
-		(-u|--useflag)
+		(-U|--useflag)
 			opts[-useflag]="$2"
 			shift 2;;
 		(-v|--version)
