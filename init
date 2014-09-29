@@ -7,6 +7,7 @@
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
+#
 
 # @VARIABLE: ECK
 # @DESCRIPTION: Environment ChecK, check binaries/busybox applets
@@ -98,15 +99,11 @@ spld() {
 	export BOOT_MSG SPLASH_FIFO
 	
 	for _opt in $splash; do
-		case ${_opt%:*} in
-			fad*) _opts="set effects $_opt"
-				;;
-			silent|verbose) mode=$_opt
-				;;
-			tty) export CONSOLE=/dev/${_opt/:/}
-				;;
-			theme) theme=${_opt#*:}
-				;;
+		case "${_opt%:*}" in
+			(fad*) _opts="set effects $_opt"      ;;
+			(silent|verbose) mode="$_opt"         ;;
+			(tty) export CONSOLE=/dev/"${_opt/:/}";;
+			(theme) theme="${_opt#*:}"            ;;
 		esac
 	done
 
@@ -177,15 +174,15 @@ debug -d mkdir -p dev/pts proc run sys $NEWROOT $MNTDIR
 debug -d mount -t proc proc /proc
 
 for arg in $(cat /proc/cmdline); do
-   	case $arg in
-		rescue*|RSH*) export RSH=1;;
-		ro|rw) export imopt="${imopt:+$imopt,}$arg";;
-		single) export RIL=2;;
-		irsh=*) arg "RSH" "${arg#*=}" ":" "1"
-			arg "RIL" "${arg#*=}" ":" "2" "-s";;
-		splash*|console*|CONSOLE*) export "$arg";;
-		imodule=*) MODULES+=:${arg#*=};;
-		i[bdklmnrsz]*) export "$arg";;
+	case "$arg" in
+		(rescue*|RSH*) export RSH=1                 ;;
+		(ro|rw) export imopt="${imopt:+$imopt,}$arg";;
+		(single) export RIL=2                       ;;
+		(irsh=*) arg "RSH" "${arg#*=}" ":" "1"
+		         arg "RIL" "${arg#*=}" ":" "2" "-s" ;;
+		(splash*|console*|CONSOLE*) export "$arg"   ;;
+		(imodule=*) MODULES+=":${arg#*=}"           ;;
+		(i[bdklmnrsz]*) export "$arg"               ;;
 	 esac
 done
 
@@ -313,9 +310,9 @@ if [ -z "$ROOT" ]; then
 	lvl 3f
 	if [ -n "$CK" ]; then 
 		case $CK in
-			n*|N*) CK=-e;;
-			c*|y*|Y*) CK=-d;;
-			*) CK=;;
+			(n*|N*)    CK=-e;;
+			(c*|y*|Y*) CK=-d;;
+			(*)        CK=  ;;
 		esac
 		debug $CK fsck ${FS:+-t$FS} $ROOT
 	fi
@@ -372,4 +369,6 @@ lvl 4s
 
 debug -d exec switch_root $NEWROOT ${init:-/sbin/init} $RIL
 
+#
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
+#
