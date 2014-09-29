@@ -1,7 +1,7 @@
 #!/sbin/openrc-run
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the 2-clause BSD or GPL-2 license
-# $Header: mkinitramfs-ll/svc/zram.initd,v 1.2 2014/09/09 13:05:23 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/zram.initd,v 1.3 2014/09/30 13:05:23 -tclover Exp $
 
 conf_file=/etc/conf.d/${RC_SVCNAME}
 description="set up zram devices and initialize zram if necessary"
@@ -35,7 +35,7 @@ start()
 				[ -d "$mtpt" ] || mkdir -p $mtpt
 				mount -t $fsys ${mopt:+-o $mopt} /dev/zram$num $mtpt
 				eend "$?" "failed to mount /dev/zram$num to $mtpt"
-				[ -d "$mode" ] || chmod $mode $mtpt
+				[ -n "$mode" ] || chmod $mode $mtpt
 			fi
 		fi
 		num=$(expr $num + 1)
@@ -46,14 +46,18 @@ start()
 
 zram_init()
 {
-	local dev n=/dev/null num=0 size
+	local dev num=0 size
 	if grep -q zram /proc/modules; then
-		rmmod zram >$n 2>&1
-		eend "$?" "failed to remove zram kernel module"
+		if ! rmmod zram >/dev/null 2>&1; then
+			eend "$?" "failed to remove zram kernel module"
+			return 1
+		fi
 	fi
 
-	modprobe zram num_devices=${num_devices:-4} >$n 2>&1
-	eend "$?" "failed to initialize zram kernel module"
+	if ! modprobe zram num_devices=${num_devices:-4} >/dev/null 2>&1; then
+		eend "$?" "failed to initialize zram kernel module"
+		return 2
+	fi
 
 	for dev in $(sed -nre 's/^zram_device=(.*$)/\1/p' $conf_file); do
 		[ -b /dev/zram$num ] || break
@@ -63,4 +67,6 @@ zram_init()
 	done
 }
 
+#
 # vim:fenc=utf-8:ft=gentoo-init-d:ci:pi:sts=0:sw=4:ts=4:
+#
