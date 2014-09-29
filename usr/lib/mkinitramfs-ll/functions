@@ -272,7 +272,7 @@ blk() {
 				[ sda5 | UUID=<uuid> | LABEL=<label> ]"
 			shread _asw
 			sleep 1
-			_blk=$(blkid | grep "${_asw:-1}" | cut -d: -f1)
+			_blk=$(blkid | grep "${_asw:-$1}" | cut -d: -f1)
 			[ -n "$_blk" ] && [ -b "$_blk" ] && break
 		done
 	fi
@@ -393,7 +393,7 @@ bkd() {
 dmclose() {
 	local IFS="${IFS}:" 
 	for _p in $@; do 
-		debug cryptsetup remove ${_p%-*}
+		debug cryptsetup close ${_p%-*}
 	done
 }
 
@@ -403,7 +403,7 @@ dmclose() {
 # @DESCRIPTION: get DM-Crypt LUKS block device or detached header
 dmcrypt() {
 	local _asw _ldh=$1
-	while ! debug cryptsetup $_arg "$_ldh"; do
+	while ! debug cryptsetup isLuks "$_ldh"; do
 		msg -i "Type in a valid cyphertext device e.g. \
 			[ sda5 | UUID=<uuid> | LABEL=<label> ], or avalid detached header"
 		shread _asw
@@ -421,7 +421,7 @@ dmopen() {
 	$ECK && debug -d bck cryptsetup
 	debug _modprobe dm-crypt
 
-	local _arg=isLuks _ctx _dev _hdr _header
+	local _arg _ctx _dev _hdr _header
 	arg "_map" "$1" "-" "1"
 	arg "_hdr" "$1" "+" "2" "-s"
 	blk "$(echo "$1" | cut -d'-' -f2 -s | cut -d'+' -f1)" "_dev"
@@ -443,7 +443,7 @@ dmopen() {
 		debug dmcrypt "$_dev" "_dev"
 	fi
 
-	_arg="luksOpen $_dev $_map $_header"
+	_arg="open $_dev $_map $_header"
 
 	if [ "$KEYMODE" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
@@ -595,4 +595,6 @@ fmount() {
 	done
 }
 
+#
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
+#
