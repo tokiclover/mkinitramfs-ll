@@ -1,7 +1,7 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.5 2014/09/30 23:06:10 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.5 2014/09/30 -tclover Exp $
 
 conf_file="/etc/conf.d/${RC_SVCNAME}"
 description="manage (AUFS+squashfs) squashed directories"
@@ -9,7 +9,7 @@ description="manage (AUFS+squashfs) squashed directories"
 depend()
 {
 	after localmount
-	if [[ "${RC_RUNLEVEL}" == "boot" ]]; then
+	if [ "${RC_RUNLEVEL}" == "boot" ]; then
 		before consolefont bootmisc acpid keymaps
 	fi
 }
@@ -33,14 +33,14 @@ start()
 	fi
 
 	local IFS="${IFS}:"
-	if [[ -n "${squash_sysdir}" ]]; then
+	if [ -n "${squash_sysdir}" ]; then
 		einfo "mounting system wide squashed dirs"
 	fi
 	for dir in ${squash_sysdir}; do 
 		squash_mount "${squash_rootdir}" "${dir}"
 	done
 
-	if [[ -n "${squash_localdir}" ]]; then
+	if [ -n "${squash_localdir}" ]; then
 		einfo "mounting local wide squashed dirs"
 	fi
 	for dir in ${squash_localdir} ${squash_rebuild_dir}; do 
@@ -54,28 +54,29 @@ stop()
 {
 	local IFS="${IFS}:"
 
-	if [[ -n "${squash_rebuild_dir}" ]]; then
+	if [ -n "${squash_rebuild_dir}" ]; then
 		eeinfo "sdr: rebuilding ${squash_rebuild_dir} squashed directories"
-		if which sdr 1>/dev/null 2>&1; then
-			sdr -o0 -d"${squash_rebuild_dir}" 1>/dev/null 2>&1
+		[ -n "${sdr}" ] || sdr="$(which sdr)"
+		if test -n "${sdr}" -a -x "${sdr}"; then
+			${sdr} -o0 -d"${squash_rebuild_dir}" 1>/dev/null 2>&1
 		else
 			eerror "sdr: there is not a sdr script in PATH"
 		fi
 	fi
 
-	sync; sync
+	sync
 
-	if [[ -n "${squash_localdir}" ]]; then
+	if [ -n "${squash_localdir}" ]; then
 		einfo "umounting local wide squashed dirs"
 	fi
 	for dir in ${squash_localdir}; do
 		squash_umount "${dir}"
 	done
 
-	if [[ -n "${squash_sysdir}" ]]; then
+	if [ -n "${squash_sysdir}" ]; then
 		einfo "remounting in ro mode system squashed dirs"
 	fi
-	if [[ -n "${umount_sysdir}" == "yes" ]]; then
+	if [ -n "${umount_sysdir}" = "yes" ]; then
 		for dir in ${squashdir_sysdir}; do
 			squash_remount "${dir}" "ro"
 		done
@@ -102,7 +103,6 @@ restart()
 squash_mount()
 {
 	local base="${1}/${dir}" ret
-	base="${base//\/\//\/}"
 
 	if grep -q "aufs:${dir}" /proc/mounts; then 
 		einfo "squash-ed aufs:${dir} already mounted"
@@ -114,7 +114,7 @@ squash_mount()
 			mount -t squashfs "${base}.squashfs" "${base}/rr" -o loop,ro
 			ret="${?}"
 			eend "${ret}" "failed to mount ${base}.squashfs image"
-			(( ${ret} != 0 )) && return
+			[ ${ret} != 0 ] && return
 		fi
 		mount -t aufs "aufs:${dir}" "${dir}" -o \
 			"nodev,udba=reval,br:${base}/rw:${base}/rr"
@@ -127,8 +127,7 @@ squash_mount()
 squash_umount()
 {
 	local base="${1}/${dir}" no_netdev
-	base="${base//\/\//\/}"
-	[[ "${RC_UNAME}" == "Linux" ]] && no_netdev="-O no_netdev"
+	[ "${RC_UNAME}" == "Linux" ] && no_netdev="-O no_netdev"
 
 	auplink "${dir}" flush
 	ebegin "umounting squashed ${dir}"
