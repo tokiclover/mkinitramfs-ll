@@ -394,10 +394,12 @@ if (( ${+opts[-q]} )) || (( ${+opts[-squashd]} )) {
 function domod {
 	local mod module ret
 	for mod ($*) {
-		module=(/lib/modules/${opts[-kv]}/**/${mod}.(ko|o))
-		if [[ -n ${module} ]] {
-			mkdir -p .${module:h} && cp -ar {,.}${module} ||
-				die "failed to copy ${module} module"
+		typeset -a modules
+		modules=(/lib/modules/${opts[-kv]}/**/*${mod}*.ko(.))
+		if (( ${#modules} > 0 )) {
+			for module (${modules})
+				mkdir -p .${module:h} && cp -ar {,.}${module} ||
+					die "failed to copy ${module} module"
 		} else {
 			warn "${mod} does not exist"
 			((ret=${ret}+1))

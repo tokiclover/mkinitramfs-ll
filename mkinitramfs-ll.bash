@@ -425,10 +425,13 @@ fi
 function domod {
 	local mod module ret
 	for mod in "$*"; do
-		module=$(find /lib/modules/${opts[-kv]} -name ${mod}.ko -or -name ${mod}.o)
-		if [[ "${module}" ]]; then
-			mkdir -p .${module%/*} && cp -ar {,.}${module} ||
-				die "failed to copy ${odulem} module"
+		declare -a modules
+		modules=($(find /lib/modules/${opts[-kv]} -name "*${mod}*.ko"))
+		if (( "${#modules[@]}" > 0 )); then
+			for module in "${modules[@]}"; do
+				mkdir -p .${module%/*} && cp -ar {,.}${module} ||
+					die "failed to copy ${module} module"
+			done
 		else
 			warn "${mod} does not exist"
 			((ret=${ret}+1))
