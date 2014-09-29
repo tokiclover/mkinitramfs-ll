@@ -33,4 +33,6 @@ dozfs() {
 	zfs list 2>/dev/null | grep "$1" && rm /run/${0##*/}.pid
 }
 
+#
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
+#
