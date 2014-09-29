@@ -15,7 +15,7 @@ PKG=(
 
 # @FUNCTION: usage
 # @DESCRIPTION: print usages message
-usage() {
+function usage {
   cat <<-EOH
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[sehll]} [options] [-r|-squashroot<dir>] -d|-squashdir:<dir>:<dir>
@@ -71,10 +71,10 @@ for (( ; $# > 0; ))
 		(-X|--exclude) opts[-exclude]+=:$2
 			shift 2;;
 		(-q|--squashroot)
-			opts[-squashroot]=$2
+			opts[-root]=$2
 			shift 2;;
 		(-d|--squashdir)
-			opts[-squashdir]+=:$2
+			opts[-dir]+=:$2
 			shift 2;;
 		(-c|--compressor)
 			opts[-comp]=$2
@@ -133,7 +133,7 @@ function die {
 	return $ret
 }
 
-setopt EXTENDED_GLOB
+setopt EXTENDED_GLOB NULL_GLOB
 
 # @FUNCTION: squash-mount
 # @DESCRIPTION: mount squashed dir
