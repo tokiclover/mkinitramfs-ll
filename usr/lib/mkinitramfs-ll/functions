@@ -38,17 +38,17 @@ msg() {
 
 	while [ $# -ge 1 ]; do
 		case $1 in
-			-e|-i) _opt="$1"
-				shift;;
-			--) shift;;
-			*) _msg="$@"
-				shift $#;;
+			(-e|-i) _opt="$1"
+			     shift;;
+			(--) shift;;
+			(*) _msg="$@"
+			     break;;
 		esac
 	done
 
 	case $_opt in
-		-e) error "${_msg}";;
-		-i) info  "${_msg}";;
+		(-e) error "${_msg}";;
+		(-i) info  "${_msg}";;
 	esac
 
 	$SPLD && debug spld_cmd "set message $_msg" && debug spld_cmd "repaint"
@@ -63,11 +63,11 @@ debug() {
 
 	while [ $# -ge 1 ]; do
 		case $1 in
-			-d|-e|-i) _opt="$1"
-				shift;;
-			--) shift;;
-			*) _cmd="$@"
-				shift $#;;
+			(-d|-e|-i) _opt="$1"
+			     shift;;
+			(--) shift;;
+			(*) _cmd="$@"
+			     break;;
 		esac
 	done
 
@@ -78,9 +78,9 @@ debug() {
 	
 	if [ ! "$_ret" ]; then
 		case $_opt in
-			-d) die "${_msg:-cmd: $_cmd}";;
-			-e) msg -e "${_msg:-cmd: $_cmd}";;
-			-i) msg -i "${_msg:-cmd: $_cmd}";;
+			(-d) die    "${_msg:-cmd: $_cmd}";;
+			(-e) msg -e "${_msg:-cmd: $_cmd}";;
+			(-i) msg -i "${_msg:-cmd: $_cmd}";;
 		esac
 	fi
 
@@ -340,18 +340,13 @@ stk() {
 	fi
 
 	case $_km in
-		gpg) $ECK && debug -d bck gpg
-			export KEYFILE="$MNTDIR/$_fp" KEYMODE=gpg
-			;;
-		reg) export KEYFILE="$MNTDIR/$_fp" KEYMODE=reg
-			;;
-		ldk) ldk "$MNTDIR/$_fp"
-			export KEYFILE="/dev/mapper/$_fn" KEYMODE=ldk
-			;;
-		pwd) export KEYMODE=pwd
-			;;
-		*) die "$_km: invalid key mode"
-			;;
+		(gpg) $ECK && debug -d bck gpg
+		      export KEYFILE="$MNTDIR/$_fp" KEYMODE=gpg    ;;
+		(reg) export KEYFILE="$MNTDIR/$_fp" KEYMODE=reg    ;;
+		(ldk) ldk "$MNTDIR/$_fp"
+		      export KEYFILE="/dev/mapper/$_fn" KEYMODE=ldk;;
+		(pwd) export KEYMODE=pwd                           ;;
+		(*) die "$_km: invalid key mode"                   ;;
 	esac
 }
 
