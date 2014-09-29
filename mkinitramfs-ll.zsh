@@ -216,11 +216,11 @@ if (( ${+opts[-compressor]} )) && [[ ${opts[-compressor]} != "none" ]] {
 }
 
 if (( ${+config} )) {
-	CONFIG=CONFIG_DECOMPRESS_${${opts[-compressor][(w)1]}:u}
+	CONFIG=CONFIG_RD_${${opts[-compressor][(w)1]}:u}
 	if ! ${=xgrep} -q "^${CONFIG}=y" ${config}; then
 		warn "${opts[-compressor][(w)1]} decompression is not supported by kernel-${opts[-kv]}"
 		for comp (${compressor[@]}) {
-			CONFIG=CONFIG_DECOMPRESS_${comp:u}
+			CONFIG=CONFIG_RD_${comp:u}
 			if ${=xgrep} -q "^${CONFIG}=y" ${config}; then
 				opts[-compressor]="${comp} -9"
 				info "setting compressor to ${comp}"

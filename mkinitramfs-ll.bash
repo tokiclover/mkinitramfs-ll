@@ -230,12 +230,12 @@ fi
 
 if [[ "${config}" ]]; then
 	COMP="${opts[-compressor]%% *}"
-	CONFIG=CONFIG_DECOMPRESS_${COMP^^[a-z]}
+	CONFIG=CONFIG_RD_${COMP^^[a-z]}
 	if ! ${xgrep} -q "^${CONFIG}=y" ${config}; then
 		warn "${opts[-compressor]%% *} decompression is not supported by kernel-${opts[-kv]}"
 		for (( i=0; i<${#compressor[@]}; i++ )); do
 			COMP=${compressor[$i]}
-			CONFIG=CONFIG_DECOMPRESS_${COMP^^[a-z]}
+			CONFIG=CONFIG_RD_${COMP^^[a-z]}
 			if ${xgrep} -q "^${CONFIG}=y" ${config}; then
 				opts[-compressor]="${compressor[$i]} -9"
 				info "setting compressor to ${COMP}"
