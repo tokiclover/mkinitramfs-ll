@@ -79,6 +79,8 @@ install_zram:
 	install -pd $(svc_initdir)
 	install -pm 755 svc/zram.initd $(svc_initdir)/zram
 	install -pm 644 svc/zram.confd $(svc_confdir)/zram
+	install -pm 755 svc/zramdir.initd $(svc_initdir)/zramdir
+	install -pm 644 svc/zramdir.confd $(svc_confdir)/zramdir
 
 postinstall:
 
