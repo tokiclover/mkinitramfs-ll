@@ -76,7 +76,7 @@ stop()
 	if [ -n "${squash_sysdir}" ]; then
 		einfo "remounting in ro mode system squashed dirs"
 	fi
-	if [ -n "${umount_sysdir}" = "yes" ]; then
+	if yesno "${umount_sysdir}"; then
 		for dir in ${squashdir_sysdir}; do
 			squash_remount "${dir}" "ro"
 		done
