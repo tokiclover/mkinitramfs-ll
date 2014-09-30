@@ -28,18 +28,20 @@ install:
 	install -pd $(datadir)/usr/lib/$(PACKAGE)
 	install -pd $(datadir)/usr/etc/splash
 	install -pd $(datadir)/usr/lib/mdev
-	install -pd $(datadir)/usr/.root/gnupg
+	install -pd $(datadir)/usr/share/gnupg
+	install -pd $(datadir)/usr/root/.gnupg
+	install -pd $(datadir)/modules
 	install -pd $(datadir)/scripts
 	find . -name '.keep*' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
 	$(shell) for file in $(EXEC_FILES); do \
-		install -D -pm 755 $${file} $(datadir)/$${file}; \
+		install -pm 755 $${file} $(datadir)/$${file}; \
 	done
 	$(shell) for file in $(FILES); do \
-		install -D -pm 644 $${file} $(datadir)/$${file}; \
+		install -pm 644 $${file} $(datadir)/$${file}; \
 	done
 	$(shell) for module in $(MODULES); do \
 		for file in modules/*$${module}*; do \
-			install -D -pm 644 $${file} $(datadir)/$${file}; \
+			install -pm 644 $${file} $(datadir)/$${file}; \
 		done; done
 
 install_bash:
@@ -47,8 +49,8 @@ install_bash:
 	install -pd $(bindir)
 	install -pd $(datadir)/scripts
 	sed -e 's:"$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
-		         -e 's:"$${PKG[name]}".conf:/etc/"$${PKG[name]}".conf:g' \
-		         -i scripts/{busybox,gnupg}.bash $(PACKAGE).bash
+	    -e 's:"$${PKG[name]}".conf:/etc/"$${PKG[name]}".conf:g' \
+	    -i scripts/busybox.bash scripts/gnupg.bash $(PACKAGE).bash
 	install -pm 755 scripts/busybox.bash $(datadir)/scripts
 	install -pm 755 scripts/gnupg.bash   $(datadir)/scripts
 	install -pm 644 $(PACKAGE).conf      $(sys_confdir)
@@ -59,9 +61,9 @@ install_zsh:
 	install -pd $(sys_confdir)
 	install -pd $(bindir)
 	install -pd $(datadir)/scripts
-	sed -e 's:$${PWD}/usr:${prefix}/share/"$$(PKG[name]}"/usr:g' \
-		         -e 's:"$${PKG[name]}".conf:/etc/"$${PKG[name]}".conf:g' \
-		         -i scripts/{busybox,gnupg}.zsh $(PACKAGE).zsh
+	sed -e 's:$${PWD}/usr:${prefix}/share/$${PKG[name]}/usr:g' \
+	    -e 's:"$${PKG[name]}".conf:/etc/$${PKG[name]}.conf:g' \
+	    -i scripts/busybox.zsh scripts/gnupg.zsh $(PACKAGE).zsh
 	install -pm 755 scripts/busybox.zsh $(datadir)/scripts
 	install -pm 755 scripts/gnupg.zsh   $(datadir)/scripts
 	install -pm 644 $(PACKAGE).conf     $(sys_confdir)
