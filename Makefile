@@ -11,7 +11,7 @@ docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
 DOCS        = AUTHORS BUGS COPYING README.textile ChangeLog
 
-MODULES     = zfs zram
+MODULES     = bcache zfs zram
 FILES       = usr/etc/mdev.conf usr/etc/$(PACKAGE)/minimal.applets \
 			  usr/lib/$(PACKAGE)/functions scripts/busybox-minimal.config \
 			  usr/root/.gnupg/gpg.conf usr/share/gnupg/options.skel
