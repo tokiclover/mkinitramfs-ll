@@ -98,8 +98,6 @@ restart()
 	return 0
 }
 
-# @FUNCTION:squash_mount
-# @DESCRIPTION: Squashed dir MOUNT
 squash_mount()
 {
 	local base="${1}/${dir}" ret
@@ -122,8 +120,6 @@ squash_mount()
 	fi
 }
 
-# @FUNCTION: squash_umount
-# @DESCRIPTION: Squashed dir UMOUNT
 squash_umount()
 {
 	local base="${1}/${dir}" no_netdev
@@ -138,8 +134,6 @@ squash_umount()
 	eend "${?}" "failed to umount ${base}.squashfs image"
 }
 
-# @FUNCTION: squash_remount
-# @DESCRIPTION: Squashed dir RE-MOUNT in ro mode
 squash_remount()
 {
 	local opt="${2:-ro}"
