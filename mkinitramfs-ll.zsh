@@ -394,7 +394,7 @@ function domod {
 	local mod module ret
 	for mod ($*) {
 		typeset -a modules
-		modules=(/lib/modules/${opts[-kv]}/**/*${mod}*.ko(.))
+		modules=(/lib/modules/${opts[-kv]}/**/${mod}(|-*).ko(.))
 		if (( ${#modules} > 0 )) {
 			for module (${modules})
 				mkdir -p .${module:h} && cp -ar {,.}${module} ||
