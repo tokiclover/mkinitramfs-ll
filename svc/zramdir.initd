@@ -75,9 +75,9 @@ restore()
 		fi
 		${decompress} -cd "${tarball}" | tar -xp
 		eend "${?}" "failed to deflate ${dir}"
-
-		cd "${swd}" > /dev/null 2>&1
 	done
+
+	cd "${swd}" > /dev/null 2>&1
 }
 
 save()
@@ -93,9 +93,9 @@ save()
 		fi
 		tar -Ocp ${dir##*/} | ${compressor} "${dir}${extension}"
 		eend "${?}" "failed to inflate ${dir}"
-
-		cd "${swd}" > /dev/null 2>&1
 	done
+
+	cd "${swd}" > /dev/null 2>&1
 }
 
 #
