@@ -1,5 +1,7 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/09/30
 
+0.13.7:
+
 * added svc/zramdir.{conf,init}d, a service to take extra zram backed device
 stuff to not stuff zram service script with numerous devices;
 * clean up svc/* scripts and removed bashisms from service scripts;
