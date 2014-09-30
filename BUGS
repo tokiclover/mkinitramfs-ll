@@ -1,9 +1,19 @@
-# $Header: mkinitramfs-ll/BUGS,v 0.13.1 2014/08/08 22:03:32 -tclover Exp $
+Header: mkinitramfs-ll/BUGS, 2014/09/30
 
-* a die do not work properly in a script/module (rsh is ignored);
+---
+/etc/mtab:
+    this file should be readable, or else a `/mtab' whould be created.
+---
+die (helper):
+   die() does not work properly in a script/module (rsh is ignored all together).
+___
+squashdir-mount.initd:
+    this init service cannot manage mounting in time with newer >=udev-182, so
+    some depend() hacks were added, still system directories should listed first
+    especially `usr'.
+___
+echo:
+    echo-ing return values is problematic, this should be minimized or replaced
+    by global variables.
+___
 
-* squashdir-mount.initd cannot manage mounting in time with newer udev[-182?];
-
-* _echo-ing_ return values is problematic, minimize or replace by global variables;
-
-# vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
