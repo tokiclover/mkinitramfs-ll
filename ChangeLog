@@ -1,5 +1,8 @@
-# $Id: mkinitramfs-ll/ChangeLog, 2014/09/26 12:40:11 -tclover Exp $
+Header: mkinitramfs-ll/ChangeLog, 2014/09/30
 
+* added svc/zramdir.{conf,init}d, a service to take extra zram backed device
+stuff to not stuff zram service script with numerous devices;
+* clean up svc/* scripts and removed bashisms from service scripts;
 * cmdline clean for bash/zsh scripts (there were many left overs...);
 * now mkinitramfs-ll.bash will pick up opts[-<single-letter>] options found
 in mkinitramfs-ll.conf (zsh variant always honored it);
@@ -114,3 +117,4 @@ just type @sh@ or @shell@ and then hit Enter.
 * now one can *exit* the rescue shell after beiing dropped there,
 or simply after a @rescue[shell]/RSH[ELL]@ or @irsh=<n>@ on kernel
 cmdline and the init will resume booting from there.
+
