@@ -309,8 +309,7 @@ ln -sf lib{${opts[-arc]},} &&
 	done
 	echo "build=$(date +%Y-%m-%d-%T)"
 } >etc/${PKG[name]}/id
-touch etc/fstab
-ln -fs /proc/mounts etc/mtab
+touch etc/{fs,m}tab
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
 
