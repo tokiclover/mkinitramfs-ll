@@ -13,7 +13,7 @@ depend()
 
 start()
 {
-	[ "x$zram_init" == "xyes" ] && zram_init
+	yesno "$zram_init" && zram_init
 	
 	local dev fsys mtpt num=0 opt ret
 	for dev in $(sed -nre 's/^zram_device=(.*$)/\1/p' $conf_file); do
