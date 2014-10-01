@@ -6,38 +6,41 @@
 # $Version: 2014/09/14 12:33:03                          Exp $
 #
 
-usage='cat <<-EOH
+usage() {
+	cat <<-EOH
 usage: xcpio [options] files
   -l, --list        list files
   -x, --extract     extract files
   -d, --decompress  decompress files
 EOH
-exit 1'
+exit
+}
 
-[[ -z "$@" ]] && $usage
+[ "$#" = 0 ] && usage
 
 comp() {
 	local comp
-	case $2 in
-		*.bz*2) comp='bzip2 -d -k';;
-		*.gz*) comp='gzip -d';;
-		*.xz|*.lzma) comp='xz -d -k';;
-		*.lzo*) comp='lzop -d -k';;
-		*.lz4) comp='lz4 -d';;
-		*.lz*) comp='lzip -d -k';;
-		*) echo "xcpio: unsupported compression format"; exit 2;;
+	case "$2" in
+		(*.bz*2) comp='bzip2 -d -k'  ;;
+		(*.gz*)  comp='gzip -d'      ;;
+		(*.xz|*.lzma) comp='xz -d -k';;
+		(*.lzo*) comp='lzop -d -k'   ;;
+		(*.lz4)  comp='lz4 -d'       ;;
+		(*.lz*)  comp='lzip -d -k'   ;;
+		(*) echo "xcpio: unsupported compression format"
+		    exit 2;;
 	esac
 	$comp $@
 }
 
-case $1 in
-	-l|-ls|-list) opt=-t
+case "$1" in
+	(-l|-ls|-list) opt=-t
 		shift;;
-	-x|-*xtract) opt=-id
+	(-x|-*xtract)  opt=-id
 		shift;;
-	-d|*compress) opt=
+	(-d|*compress) opt=
 		shift;;
-	*) opt=-t;;
+	(*)            opt=-t;;
 esac
 
 for file in $*; do
@@ -59,4 +62,6 @@ done
 
 unset -v file opt pipe tmpdir
 
+#
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
+#
