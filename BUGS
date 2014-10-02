@@ -1,13 +1,5 @@
-Header: mkinitramfs-ll/BUGS, 2014/09/30
+Header: mkinitramfs-ll/BUGS, 2014/10/02
 
----
-kernel module search:
-    Kernel module should be properly listed in mkinitramfs-ll.conf or passed
-	to building script with a regular expression name.
-	zsh script will match <module-name>(|-*) and bash only <module-name>.
-	There is no way the same could be done for bash script because searching
-	is done with finduitils. So an extensive list is required for bash script
-	because *<module-name>* match to many module for e.g. video.
 ---
 /etc/mtab:
     this file should be readable, or else a `/mtab' whould be created.
