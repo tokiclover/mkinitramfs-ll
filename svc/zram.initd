@@ -1,7 +1,7 @@
 #!/sbin/openrc-run
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the 2-clause BSD or GPL-2 license
-# $Header: mkinitramfs-ll/svc/zram.initd,v 1.3 2014/09/30 13:05:23 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/zram.initd,v 1.4 2014/10/01 13:05:23 -tclover Exp $
 
 conf_file=/etc/conf.d/${RC_SVCNAME}
 description="set up zram devices and initialize zram if necessary"
@@ -13,10 +13,9 @@ depend()
 
 start()
 {
-	yesno "$zram_init" && zram_init
-	
 	local dev fsys mtpt num=0 opt ret
-	for dev in $(sed -nre 's/^zram_device=(.*$)/\1/p' $conf_file); do
+
+	for dev in $(sed -nre 's/^device=(.*$)/\1/p' $conf_file); do
 		[ -b /dev/zram$num ] || break
 		fsys=$(echo "$dev" | cut -d: -f2 -s)
 		mtpt=$(echo "$dev" | cut -d: -f3 -s)
@@ -31,6 +30,7 @@ start()
 			ret=$?
 			eend "$ret" "failed to formate zram$num to $fsys"
 			[ "x$ret" == "x0" ] || continue
+
 			if [ -n "$mtpt" ]; then
 				[ -d "$mtpt" ] || mkdir -p $mtpt
 				mount -t $fsys ${mopt:+-o $mopt} /dev/zram$num $mtpt
@@ -44,8 +44,10 @@ start()
 	return 0
 }
 
-zram_init()
+start_pre()
 {
+	yesno "$initialize" || return 0
+
 	local dev num=0 size
 	if grep -q zram /proc/modules; then
 		if ! rmmod zram >/dev/null 2>&1; then
@@ -59,10 +61,20 @@ zram_init()
 		return 2
 	fi
 
-	for dev in $(sed -nre 's/^zram_device=(.*$)/\1/p' $conf_file); do
+	case "$comp_algorithm" in
+		(lz4|lzo)         :;;
+		(*) comp_algorithm=;;
+	esac
+	[ -w /sys/block/zram0/comp_algorithm ] || comp_algorithm=
+
+	for dev in $(sed -nre 's/^device=(.*$)/\1/p' $conf_file); do
 		[ -b /dev/zram$num ] || break
 		size=${dev%%:*}
+
 		echo $size > /sys/block/zram$num/disksize
+		[ -n "$comp_algorithm" ] &&
+			echo "$comp_algorithm" > /sys/block/zram$num/comp_algorithm
+
 		num=$(expr $num + 1)
 	done
 }

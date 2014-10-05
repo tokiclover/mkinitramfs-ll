@@ -1,18 +1,20 @@
 #
-# $Header: zram.confd, 2014/09/30 -tclover Exp $
+# $Header: zram.confd, 2014/10/01 13:05:19 -tclover Exp $
 #
 
-# Number of zram devices (standard option name passed to modprobe)
+# number of zram devices (standard name passed to modprobe)
 num_devices=4
+# compressor algorithm
+comp_algorithm=lz4
 
 # whether to initialize zram devices if not previously initialized
-zram_init=yes
+initialize=yes
 
-# zram device definition which is defined by <size>:<file-system>:
-# <mount-point>:<mount-options>:<moded-to-be-passed-to-chmod>
-zram_device=512M:swap
-zram_device=4G:ext4:/var/tmp:user_xattr:1777
-zram_device=512M:ext4:/tmp:user_xattr:1777
+# zram device definition which is defined by:
+# <size>:<file-system>:<mount-point>:<mount-options>:<octal-mode>
+device=512M:swap
+device=12G:ext4:/var/tmp:user_xattr:1777
+device=512M:ext4:/tmp:user_xattr:1777
 
 #
 # vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:
