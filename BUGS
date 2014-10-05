@@ -1,6 +1,10 @@
 Header: mkinitramfs-ll/BUGS, 2014/10/02
 
 ---
+/etc/mdev.conf:
+    group name should replaced by group id (gid) because there is no `/etc/group'
+	file bundled in the initramfs.
+---
 /etc/mtab:
     this file should be readable, or else a `/mtab' whould be created.
 ---
