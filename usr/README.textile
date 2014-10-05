@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/usr/README.textile,v 0.13.2 2014/08/31 15:10:59 -tclover Exp $@
+Header: mkinitramfs-ll/usr/README.textile,v 0.13.6 2014/10/01 15:10:59 -tclover Exp
 
 Binaries and extra files can be putted in this directory to facilitate building initramfs.
 So this would limite file seeking and movings... like busybox and GnuPG related files.
@@ -6,9 +6,10 @@ So this would limite file seeking and movings... like busybox and GnuPG related 
 * busybox:
 
 - @usr/bin/busybox@ binary and its optional
-- @usr/etc/mkinitramfs-ll/busybox.app@ applet file
-- @usr/etc/mdev.conf@ and mdev conf file
-are stored in this directory following the previous scheme.
+- @usr/etc/mkinitramfs-ll/busybox.applets@ applet file (there is no need to have
+  this file as it will be generated when building initramfs)
+- @usr/etc/mdev.conf@ and mdev conf file are stored in this directory following
+  the previous scheme mdev related scripts are in @usr/lib/mdev@
 
 * GnuPG:
 
@@ -16,4 +17,3 @@ are stored in this directory following the previous scheme.
 - @usr/share/gnupg/options.skel@ file
 are stored here following the previous scheme.
 
-@vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
