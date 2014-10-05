@@ -1,7 +1,7 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.5 2014/09/30 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.6 2014/10/01 -tclover Exp $
 
 conf_file="/etc/conf.d/${RC_SVCNAME}"
 description="manage (AUFS+squashfs) squashed directories"
@@ -33,6 +33,7 @@ start()
 	fi
 
 	local IFS="${IFS}:"
+
 	if [ -n "${squash_sysdir}" ]; then
 		einfo "mounting system wide squashed dirs"
 	fi
@@ -53,16 +54,6 @@ start()
 stop()
 {
 	local IFS="${IFS}:"
-
-	if [ -n "${squash_rebuild_dir}" ]; then
-		eeinfo "sdr: rebuilding ${squash_rebuild_dir} squashed directories"
-		[ -n "${sdr}" ] || sdr="$(which sdr)"
-		if test -n "${sdr}" -a -x "${sdr}"; then
-			${sdr} -o0 -d"${squash_rebuild_dir}" 1>/dev/null 2>&1
-		else
-			eerror "sdr: there is not a sdr script in PATH"
-		fi
-	fi
 
 	sync
 
@@ -96,6 +87,21 @@ restart()
 	done
 
 	return 0
+}
+
+stop_pre()
+{
+	[ -n "${squash_rebuild_dir}" ] || return 0
+
+	local IFS="${IFS}:"
+:	${sdr:=$(which sdr)}
+
+	eeinfo "rebuilding ${squash_rebuild_dir} squashed directories"
+	if test -n "${sdr}" -a -x "${sdr}"; then
+		${sdr} -o0 -d"${squash_rebuild_dir}" >/dev/null 2>&1
+	else
+		eerror "sdr: there is not a sdr script in PATH"
+	fi
 }
 
 squash_mount()
