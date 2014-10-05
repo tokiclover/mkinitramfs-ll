@@ -153,46 +153,46 @@ function squash-mount {
 
 	if ${=grep} -q aufs:${dir} /proc/mounts; then
 		auplink ${dir} flush
-		${=umount} -l ${dir} || die "$sdr: failed to umount aufs:${dir}"
+		${=umount} -l ${dir} || die "$failed to umount aufs:${dir}"
 	fi
 	if ${=grep} -q ${base}/rr /proc/mounts; then
-		${=umount} -l ${base}/rr || die "sdr: failed to umount ${base}.squashfs" 
+		${=umount} -l ${base}/rr || die "failed to umount ${base}.squashfs" 
 	fi
 
-	${=rm} ${base}/rw/* || die "sdr: failed to clean up ${base}/rw"
+	${=rm} ${base}/rw/* || die "failed to clean up ${base}/rw"
 
 	[[ -e ${base}.squashfs ]] && [[ -e ${base}.tmp.squahfs ]] && ${=rm} ${base}.squashfs 
 	${=mv} ${base}.tmp.squashfs ${base}.squashfs ||
-	die "sdr: failed to move ${base}.tmp.squashfs"
+	die "failed to move ${base}.tmp.squashfs"
 
 	if ${=mount} -t squashfs -o nodev,loop,ro ${base}.squashfs ${base}/rr; then
 		if (( ${+opts[-remove]} )) {
 			${=rm} ${dir} && ${=mkdir} ${dir} ||
-			die "sdr: failed to clean up ${dir}"
+			die "failed to clean up ${dir}"
 		} 
 		if (( ${+opts[-update]} )) {
 			${=rm} ${dir} && ${=mkdir} ${dir} && ${=cp} ${base}/rr /${dir} ||
-			die "sdr: failed to update ${dir}"
+			die "failed to update ${dir}"
 		}
 		${=mount} -t aufs -o nodev,udba=reval,br:${base}/rw:${base}/rr aufs:${dir} ${dir} ||
-		die "sdr: failed to mount aufs:${dir}"
+		die "failed to mount aufs:${dir}"
 	else
-	    die "sdr: failed to mount ${base}.squashfs"
+	    die "failed to mount ${base}.squashfs"
 	fi
 }
 
 # @FUNCTION: squash-dir
 # @DESCRIPTION: squash-dir
 function squash-dir {
-	mkdir -p -m 0755 ${base}/{rr,rw} || die "sdr: failed to create ${dir}/{rr,rw}"
+	mkdir -p -m 0755 ${base}/{rr,rw} || die "failed to create ${dir}/{rr,rw}"
 
 	mksquashfs ${dir} ${base}.tmp.squashfs -b ${opts[-bsize]} -comp ${=opts[-comp]} \
 		${=opts[-exclude]:+-wildcards -regex -e ${(pws,:,)opts[-exclude]}} ||
-		die "sdr: failed to build ${dir}.squashfs"
+		die "failed to build ${dir}.squashfs"
 
 	(( ${+opts[-mount]} )) || squash-mount
 
-	print ">>> sdr:...squashed ${dir} sucessfully [re]build"
+	print -P ">>> %1x:...squashed ${dir} sucessfully [re]build"
 }
 
 # Check wether aufs is filesystem is available
@@ -218,17 +218,17 @@ for dir (${(pws,:,)opts[-dir]}) {
 			rr=${$(du -sk ${base}/rr)[1]}
 			rw=${$(du -sk ${base}/rw)[1]}
 			if (( (${rw}*100/${rr}) < ${opts[-offset]} )); then
-				info "sdr: skiping... ${dir}, or append -o|-offset option"
+				info "skiping... ${dir}, or append -o|-offset option"
 			else
-				print ">>> sdr: updating squashed ${dir}..."
+				print -P ">>> %1x: updating squashed ${dir}..."
 				squash-dir
 			fi
 		else
-			print ">>> sdr: updating squashed ${dir}..."
+			print -P ">>> %1x: updating squashed ${dir}..."
 			squash-dir
 		fi
 	else
-		print ">>> sdr: building squashed ${dir}..."
+		print -P ">>> %1x: building squashed ${dir}..."
 		squash-dir
 	fi
 }
