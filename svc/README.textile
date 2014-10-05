@@ -1,4 +1,4 @@
-@$Id: mkinitramfs-ll/svc/README.textile,v 0.13.0 2014/08/08 10:21:37 -tclover Exp $@
+Header: mkinitramfs-ll/svc/README.textile, 2014/10/01
 
 * squashdir-mount.initd:
 
@@ -23,11 +23,16 @@ and it now uses lzo as default compressor for efficiency/speed, one can use
 *Warning*: sdr.$shell now should works when updating system dirs, it needs
 a copy of a @static busybox@ to @/tmp/busybox@ to function properly.
 
-* zram.init.d:
+* zram.initd:
 
 zram init service can initialize, if not done with the included initramfs, and
 set up a few zram devices to use (for swap {/var,}/tmp).
 
+* zramdir.initd:
+
+zramdir init service takes advantages of of zram init script and use it for
+mounting/binding directory-ies to a source file system backed by zram device.
+
+
 *Note*: Read the configuration file for the differents config variables.
 
-@vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:@
