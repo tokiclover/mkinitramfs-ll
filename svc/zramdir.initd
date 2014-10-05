@@ -1,15 +1,18 @@
 #!/sbin/openrc-run
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the 2-clause BSD or GPL-2 license
-# $Header: zramdir.initd,v 3.2 2014/09/30 -tclover Exp $
+# $Header: zramdir.initd,v 3.3 2014/10/01 -tclover Exp $
 
 conf_file="/etc/conf.d/${RC_SVCNAME}"
 description="use zram and optional tarball archive for directories /var/{log,...}"
 
-extra_commands="restore save"
-
 :	${compressor:=lz4 -1 -}
 extension=".tar.${compressor%% *}"
+
+extra_commands="restore save"
+
+description_restore="restore directory contents using dir$extension"
+description_restore="archive directory contents using dir$extension"
 
 depend()
 {
@@ -24,11 +27,6 @@ start()
 		eend "${?}" "no suitable zram backed root dir found"
 		return 0
 	fi
-	
-	# Check if archives exist for compressed directory-ies
-	for dir in ${uncompressed_dir}; do
-		chkdir "${dir}"
-	done
 	
 	for dir in ${compressed_dir} ${uncompressed_dir}; do
 		mkdir -p "${zramdir_root}${dir}"
@@ -49,10 +47,14 @@ stop()
 	return 0
 }
 
-chkdir()
+start_pre()
 {
-	[ -e "${1}${extension}" ] && return
-	[ -d "${1}" ] && save "${1}" || mkdir -p "${1}"
+	local IFS=":${IFS}"
+
+	for dir in ${compressed_dir}; do
+		[ -e "${dir}${extension}" ] && continue
+		[ -d "${dir}" ] && save "${dir}" || mkdir -p "${dir}"
+	done
 }
 
 restore()
