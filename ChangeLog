@@ -1,4 +1,11 @@
-Header: mkinitramfs-ll/ChangeLog, 2014/09/30
+Header: mkinitramfs-ll/ChangeLog, 2014/10/01
+
+* version bumped zram hook/module (almost feature complete);
+* version bumped functions to use fewer arg() calls (+efficiency);
+* bumped version for init script that now use start|stop_pre() instead of
+stuffing start() and stop();
+* refined zram.initd which is now feature comple;
+* fixed mkinitramfs-ll.{ba,z}sh (new) commands line switches (parsing).
 
 0.13.7:
 
