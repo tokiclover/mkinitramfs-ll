@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/20 12:33:03                   Exp $
+# $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -230,7 +230,7 @@ fi
 [ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
 
 :	${CONSOLE:=${console:-/dev/console}}
-[ -n "$(echo $CONSOLE | grep /dev)" ] || CONSOLE="/dev/$CONSOLE"
+[ "${CONSOLE/dev}" != "$CONSOLE" ] || CONSOLE="/dev/$CONSOLE"
 exec 0<$CONSOLE 1>$CONSOLE 2>&1
 export CONSOLE
 
