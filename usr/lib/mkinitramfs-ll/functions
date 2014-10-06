@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/20 12:33:03                   Exp $
+# $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
 #
 
 # @FUNCTION: arg
@@ -249,10 +249,12 @@ spld_stop() {
 # @USAGE: <var>
 # @DESCRIPTION: read line from stdin and drop to rescue shell if a word match
 shread() {
-	read _asw
-	case $_asw in
+	local _buffer
+	read _buffer
+	case $_buffer in
 		sh|SH|shell|SHELL|rsh|RSH) die;;
 	esac
+	eval "$1"="$_buffer"
 }
 
 # @FUNCTION: blk
@@ -314,11 +316,8 @@ ldk() {
 # @USAGE: <mode:dev:/path/to/file>
 # @DESCRIPTION: SeT Key [file] mode for decryptiong
 stk() {
-	local _fp _fn _kd _km
-	arg "_fp" "$1" ":" "3" "-s"
-	arg "_kd" "$1" ":" "2" "-s"
-	arg "_km" "$1" ":" "1"
-	_fn=${_fp##*/}
+	eval set -- $(echo "$1" | sed -e 's/:/ /g')
+	local _fn="${3##*/}" _fp="$3" _kd="$2" _km="$1"
 
 	if [ -z "$_km" ];then
 		export KEYMODE=none
@@ -356,17 +355,15 @@ stk() {
 # @DESCRIPTION: get BlocK Device (dm|md-raid, dm-crypt, lvm)
 bkd() {
 	debug -d test -n "$1"
-	[ -n "$3" ] && debug -d stk "$4"
+	local _ilvm _iraid _name="$2"
+	debug -d stk "$4"
 
-	local _bkd _dev _grp="$3" _ilvm _iraid _sig _typ
-
-	if [ "$_grp" = "1" ]; then
-		arg "_dev" "$1" ":" "1"
+	local _bkd _grp="$3"
+	if [ $_grp -ge 2 ]; then
+		eval set -- $(echo "$1" | sed -e 's/:/ /g')
+		local _typ="$1" _dev="$2" _sig="$3"
 	else
-		_cut=-s
-		arg "_typ" "$1" ":" "1" "$_cut"
-		arg "_dev" "$1" ":" "2" "$_cut"
-		arg "_sig" "$1" ":" "3" "$_cut"
+		local _dev="${1%%:*}"
 	fi
 
 	[ -n "$iraid" ] && debug arg "_raid" "$iraid" "," "$_grp" "$_cut"
@@ -378,7 +375,7 @@ bkd() {
 	[ "$KEYMODE" != "none" ] && debug -d dmopen "$_dev" "_bkd" ||
 		debug -d blk "$_dev" "_bkd"
 
-	eval ${2:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
+	eval ${_name:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
 }
 
 # @FUNCTION: dmclose
@@ -416,13 +413,13 @@ dmopen() {
 	$ECK && debug -d bck cryptsetup
 	debug _modprobe dm-crypt
 
-	local _arg _ctx _dev _hdr _header
-	arg "_map" "$1" "-" "1"
-	arg "_hdr" "$1" "+" "2" "-s"
-	blk "$(echo "$1" | cut -d'-' -f2 -s | cut -d'+' -f1)" "_dev"
+	local _name="$2"
+	eval set -- ${1/+/ }
+	local _dev="${1#*-}" _hdr="$2" _header _map="${1%-*}"
+	blk "$_dev" "_dev"
 
-	_ctx=/dev/mapper/$_map
-	[ -b "$_ctx" ] && eval ${2:-CTX}=$_ctx && return
+	local _ctx=/dev/mapper/$_map
+	[ -b "$_ctx" ] && eval ${_name:-CTX}=$_ctx && return
 
 	if [ -n "$_hdr" ]; then
 		if [ -n "$(echo "$_hdr" | grep -E '(UUID|LABEL|sd[a-z])')" ]; then 
@@ -438,7 +435,7 @@ dmopen() {
 		debug dmcrypt "$_dev" "_dev"
 	fi
 
-	_arg="open $_dev $_map $_header"
+	local _arg="open $_dev $_map $_header"
 
 	if [ "$KEYMODE" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
@@ -452,7 +449,7 @@ dmopen() {
 	fi
 
 	[ -b "$_ctx" ] || debug -d cryptsetup $_arg
-	debug -d test -b $_ctx && eval ${2:-CTX}=$_ctx
+	debug -d test -b $_ctx && eval ${_name:-CTX}=$_ctx
 }
 
 # @FUNCTION: lvopen
@@ -491,13 +488,11 @@ lvopen() {
 # @USAGE: <mdn-opt>
 # @DESCRIPTION: open md-raid block device
 mdopen() {
-	local _dev _conf _opt _set _uuid
-	arg "_dev" "$1" "+" "1"
-	arg "_opt" "$1" "+" "2" "-s"
-	[ -n "$(echo "$_opt" | grep -i uuid)" ] && _uuid=$_opt
+	local _conf _dev="${1%+*}" _opt="${2#*+}" _set _uuid
+	[ "${_opt/UUID}" != "$_opt" ] && _uuid=$_opt
 
 	if [ -n "$_uuid" ] || [ -n "$(echo "$_opt" | grep -E '^(\[|[0-9])')" ]; then
-		[ -n "$(echo $_dev | grep dev)" ] || _dev=/dev/$_dev
+		[ "${_dev/dev}" != "$_dev" ] || _dev=/dev/$_dev
 		[ -b "$_dev" ] && return
 		$ECK && debug -d bck mdadm
 		debug _modprobe raid
@@ -571,18 +566,19 @@ squashd() {
 # @DESCRIPTION: mount /usr:... using embeded /etc/fstab before switching root
 fmount() {
 	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
-	[ -f $NEWROOT/etc/fstab ] || die "mnt: no /etc/fstab file found"
+	[ -f $NEWROOT/etc/fstab ] || die "fmount: no /etc/fstab file found"
+
 	for _x in $imount; do
 		_y="$(grep $_x $NEWROOT/etc/fstab)"
+
 		if [ -n "${y}" ]; then
-			 _fs=$(echo "$_y" | awk '{print $3}')
-			_dev=$(echo "$_y" | awk '{print $1}')
-			_mpt=$(echo "$_y" | awk '{print $2}')
-			_opt=$(echo "$_y" | awk '{print $4}')
+			eval set -- $y
+			_fs="$3" _dev="$1" _mpt="$2" _opt="$3"
 		else
-			msg -e "mnt: $_x not found in /etc/fstab"
-			break
+			msg -e "fmount: $_x not found in /etc/fstab"
+			continue
 		fi
+
 		blk "$_dev" "_dev"
 		debug -d test -b $_dev
 		[ -d $NEWROOT/$_mpt ] || mkdir -p $NEWROOT/$_mpt
