@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.13.6 2014/09/26 10:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.13.8 2014/10/01 10:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -349,14 +349,18 @@ Extra actions can be taken care with a *user script* if needed.
 
 Enter zram module. 
 
-KERNEL-COMMAND-LIE-ARG: @izram=4,1G:4G-ext4@
+KERNEL-COMMAND-LIE-ARG: @izram=4-2-lzo:512M:4G-ext4@
 DESCRIPTION: zram basic initialisation kernel command line argument
-EXEMPLE: see above
+EXEMPLE: :512M:4G:512M
 
 This module/script take care of basic zram initialisation:
 * First integer: passed as num_devices=<int> to modprobe;
+* Second integer is passed to max_comp_streams;
+* Third string is passed comp_algorithm (compressor);
 * Following arguments are pair of size-filesystem: just make sure to include
-the related mkfs.$fs binaries!
+the related mkfs.$fs binaries if the fie system string is appended!
+* Lastly, the first *string* @4-2-lzo@ can be omited so the default will be
+  picked up @4-2-lz4@ as in the last kernel cmdline example.
 
 Just appand -M:zram to mkinitramfs-ll.$shell to get support for this module.
 
