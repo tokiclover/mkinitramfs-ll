@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/26 12:33:03                   Exp $
+# $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
-	[version]=0.13.6
+	[version]=0.13.8
 )
 
 # @FUNCTION: usage
@@ -126,17 +126,14 @@ declare -A opts
 
 for (( ; $# > 0; )); do
 	case $1 in
-		(-[KLaglqrt])
-			opts[$1]=true
-			shift;;
-		(--[aglrt]*|--sq*|--keep*)
+		(-[KLaglqrt]|--[aglrt]*|--sq*|--keep*)
 			opts[${1/--/-}]=true
 			shift;;
-		(-[FMbcfkmpsuy])
-			opts[$1]+=:$2
+		(-[dkp]|--[pu]*|-kv)
+			opts[${2/--/-}]="$2"
 			shift 2;;
-		(--[bcfkmpsu]*)
-			opts[${2/--/-}]=$2
+		(-[FMbcfmsy]|--[bcfkms]*)
+			opts[${1/--/-}]+=":$2"
 			shift 2;;
 		(--)
 			shift
