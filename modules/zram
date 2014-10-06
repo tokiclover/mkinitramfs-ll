@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/modules/zram                   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/20 12:33:03                   Exp $
+# $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
 #
 
 set -e +x
@@ -11,36 +11,47 @@ source $LIBDIR/functions
 [ -z "$izram" ] && _getopt "izram"
 
 dozram() {
-	local num dev fs size
 	echo $$ >/run/${0##*/}.pid
 
-	arg "NUM" "$izram" "," "1"
-	arg "DEV" "$izram" "," "2" "-s"
-	debug -d modprobe zram num_devices=$NUM
+	eval set -- $(echo "${izram%%*:}" | sed -e 's/-/ /g')
 
-	for num in $(seq 0 1 $NUM); do
-		[ "$num" == "$NUM" ] && break
-		arg "dev" "$DEV" ":" "$(expr $num + 1)"
-		[ -n "$dev" ] || continue
+	local compressor="$3" num_devices="${1:-4}" streams="${2:-2}"
+	debug -d modprobe zram num_devices=$num_devices
 
-		arg "size" "$dev" "-" "1"
-		arg "fs" "$dev" "-" "2" "-s"
+	case "$compressor" in
+		(lz4|lzo)        :;;
+		(*) compressor=lz4;;
+	esac
+	[ -w /sys/block/zram0/comp_algorithm ] || compressor=
+	[ -w /sys/block/zram0/max_comp_streams ] || streams=
+
+	local num=0 dev device fs mopt size
+	for device in $(echo "${izram#*:}" | sed -e 's/:/ /g'); do
+		eval set -- $(echo "$device" | sed -e 's/-/ /g')
+		size="$1" fs="$2" dev=/dev/zram$num
+		[ -n "$size" ] || continue
+		[ -b "$dev" ] || break
+
+		[ -n "$compressor" ] &&
+		echo $compressor > /sys/block/zram$num/comp_algorithm
+		[ -n "$streams" ] &&
+		echo $streams > /sys/block/zram$num/max_comp_streams
 		echo $size >/sys/block/zram$num/disksize
 
 		if [ -x /sbin/mkfs.$fs ]; then
-			debug -d $bin /dev/zram$num
+			debug -d /sbin/mkfs.$fs /dev/zram$num
 		else
 			die "dozram: mkfs.$fs nout found"
-			continue
 		fi
+
+		num=$(expr $num + 1)
+		[ "$num" == "$num_devices" ] && break
 	done
 
 	rm -f /run/${0##*/}.pid
 }
 
 [ -n "$izram" ] && dozram
-
-unset DEV NUM
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
