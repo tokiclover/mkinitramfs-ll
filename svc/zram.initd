@@ -26,12 +26,13 @@ start()
 		mtpt=$(echo "$dev" | cut -d: -f3 -s)
 		mopt=$(echo "$dev" | cut -d: -f4 -s)
 		mode=$(echo "$dev" | cut -d: -f5 -s)
-		[ -n" $fsys" ] || continue
+		[ -n "$fsys" ] || continue
 		
 		if [ "x$fsys" == "xswap" ]; then
-			mkswap /dev/zram$num && swapon
+			mkswap /dev/zram$num > /dev/null 2>&1 &&
+			swapon > /dev/null 2>&1
 		else
-			mkfs -t $fsys /dev/zram$num 2>/dev/null
+			mkfs -t $fsys /dev/zram$num >/dev/null 2>&1
 			ret=$?
 			eend "$ret" "failed to formate zram$num to $fsys"
 			[ "x$ret" == "x0" ] || continue
