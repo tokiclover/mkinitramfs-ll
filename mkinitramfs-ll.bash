@@ -129,7 +129,7 @@ for (( ; $# > 0; )); do
 		(-[KLaglqrt]|--[aglrt]*|--sq*|--keep*)
 			opts[${1/--/-}]=true
 			shift;;
-		(-[dkp]|--[pu]*|-kv)
+		(-[dkp]|--[pu]*|--kv)
 			opts[${2/--/-}]="$2"
 			shift 2;;
 		(-[FMbcfmsy]|--[bcfkms]*)
