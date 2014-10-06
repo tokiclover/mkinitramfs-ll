@@ -425,7 +425,7 @@ function domod {
 	local mod module ret
 	for mod in "$*"; do
 		declare -a modules
-		modules=($(find /lib/modules/${opts[-kv]} -name "${mod}.ko" -name "${mod}-*.ko"))
+		modules=($(find /lib/modules/${opts[-kv]} -name "${mod}.ko" -or -name "${mod}-*.ko"))
 		if (( "${#modules[@]}" > 0 )); then
 			for module in "${modules[@]}"; do
 				mkdir -p .${module%/*} && cp -ar {,.}${module} ||
