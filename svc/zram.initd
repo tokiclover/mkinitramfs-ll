@@ -1,10 +1,15 @@
 #!/sbin/openrc-run
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the 2-clause BSD or GPL-2 license
-# $Header: mkinitramfs-ll/svc/zram.initd,v 1.4 2014/10/01 13:05:23 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/zram.initd,v 1.4 2014/10/02 13:05:23 -tclover Exp $
 
 conf_file=/etc/conf.d/${RC_SVCNAME}
 description="set up zram devices and initialize zram if necessary"
+
+:	${num_devices:=4}
+
+extra_started_commands="reset"
+description_reset="Reset zram devices (WARNING: THIS WILL RESET EVERY DEVICE!)"
 
 depend()
 {
@@ -48,17 +53,19 @@ start_pre()
 {
 	yesno "$initialize" || return 0
 
-	local dev num=0 size
+	local started=0
+	service_started || started=1
+
 	if grep -q zram /proc/modules; then
 		if ! rmmod zram >/dev/null 2>&1; then
-			eend "$?" "failed to remove zram kernel module"
-			return 1
+			reset "$started" && rmmod zram >/dev/null 2>&1 ||
+			ewarn "Failed to remove zram kernel module"
 		fi
-	fi
-
-	if ! modprobe zram num_devices=${num_devices:-4} >/dev/null 2>&1; then
-		eend "$?" "failed to initialize zram kernel module"
-		return 2
+	else
+		if ! modprobe zram num_devices=$num_devices >/dev/null 2>&1; then
+			ewarn "Failed to load zram kernel module, falling back to resetting zram devices"
+			reset "$started"
+		fi
 	fi
 
 	case "$comp_algorithm" in
@@ -66,17 +73,42 @@ start_pre()
 		(*) comp_algorithm=;;
 	esac
 	[ -w /sys/block/zram0/comp_algorithm ] || comp_algorithm=
+	[ -w /sys/block/zram0/max_comp_streams ] || max_comp_streams=
 
+	local dev num=0 size
 	for dev in $(sed -nre 's/^device=(.*$)/\1/p' $conf_file); do
 		[ -b /dev/zram$num ] || break
 		size=${dev%%:*}
 
-		echo $size > /sys/block/zram$num/disksize
 		[ -n "$comp_algorithm" ] &&
-			echo "$comp_algorithm" > /sys/block/zram$num/comp_algorithm
+		echo $comp_algorithm > /sys/block/zram$num/comp_algorithm
+		[ -n "$max_comp_streams" ] &&
+		echo $max_comp_streams > /sys/block/zram$num/max_comp_streams
+		echo $size > /sys/block/zram$num/disksize
 
 		num=$(expr $num + 1)
 	done
+}
+
+reset()
+{
+	local dev force=$1 ret=0
+
+	ewarn "Reseting existant zram devices!"
+	for dev in /sys/block/zram[0-9]*; do
+		if grep -q /dev/${dev##*/} /proc/mounts; then
+			if yesno "$force"; then
+				umount -l /dev/${dev##*/}
+			else
+				einfo "$dev zram device is in use, skipping device"
+				ret=$(expr $ret + 1)
+				continue
+			fi
+		fi
+		echo 1 > $dev/reset
+	done
+
+	return $ret
 }
 
 #
