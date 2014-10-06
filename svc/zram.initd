@@ -13,7 +13,7 @@ description_reset="Reset zram devices (WARNING: THIS WILL RESET EVERY DEVICE!)"
 
 depend()
 {
-	before bootmisc acpid
+	before bootmisc
 }
 
 start()
@@ -21,11 +21,12 @@ start()
 	local dev fsys mtpt num=0 opt ret
 
 	for dev in $(sed -nre 's/^device=(.*$)/\1/p' $conf_file); do
-		[ -b /dev/zram$num ] || break
-		fsys=$(echo "$dev" | cut -d: -f2 -s)
-		mtpt=$(echo "$dev" | cut -d: -f3 -s)
-		mopt=$(echo "$dev" | cut -d: -f4 -s)
-		mode=$(echo "$dev" | cut -d: -f5 -s)
+		if [ ! -b /dev/zram$num ]; then
+			ewarn "No device available, skipping the rest of device definitions"
+			break
+		fi
+		eval set -- $(echo "$dev" | sed -e 's/:/ /g')
+		fsys="$1" mtpt="$2" mopt="$2" mode="$2"
 		[ -n "$fsys" ] || continue
 		
 		if [ "x$fsys" == "xswap" ]; then
@@ -35,9 +36,8 @@ start()
 			mkfs -t $fsys /dev/zram$num >/dev/null 2>&1
 			ret=$?
 			eend "$ret" "failed to formate zram$num to $fsys"
-			[ "x$ret" == "x0" ] || continue
 
-			if [ -n "$mtpt" ]; then
+			if test $ret -eq 0 -a -n "$mtpt"; then
 				[ -d "$mtpt" ] || mkdir -p $mtpt
 				mount -t $fsys ${mopt:+-o $mopt} /dev/zram$num $mtpt
 				eend "$?" "failed to mount /dev/zram$num to $mtpt"
