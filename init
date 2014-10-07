@@ -199,14 +199,13 @@ for arg in $(cat /proc/cmdline); do
 	 esac
 done
 
-[ -n "$idebug" ] &&
-arg "DEBUG" "$idebug" "," "1" &&
-arg "DMESG" "$idebug" "," "2" "-s"
-[ -n "$DEBUG" ] &&
-for _o in $(echo "$DEBUG" | sed 's/:/ /g'); do
-	set -$_o
-done
-[ -n "$DMESG" ] && debug dmesg -n $DMESG
+dodebug() {
+	eval set -- ${idebug/:/ }
+	DEBUG="$1" DMESG="$2"
+}
+[ -n "$idebug" ] && dodebug
+[ -n "$DEBUG" ]  && set -${DEBUG/e/}
+[ -n "$DMESG" ]  && debug dmesg -n $DMESG
 
 debug -d mount -t sysfs sysfs /sys
 debug -d mount -t tmpfs -o mode=755 tmpfs /run
@@ -286,7 +285,8 @@ lvl 2
 export HOOKS
 for hook in $HOOKS; do
 	if [ -e "$LIBDIR/$hook" ]; then
-		debug dohook "$LIBDIR/$hook" || error "hook: $hook failed to excecute hook"
+		debug dohook "$LIBDIR/$hook" ||
+		error "hook: $hook failed to excecute hook"
 	else
 		error "hook: $hook not found"
 	fi
