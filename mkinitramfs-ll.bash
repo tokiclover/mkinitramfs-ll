@@ -146,7 +146,7 @@ done
 if [[ "${opts[-a]}" ]] || [[ "${opts[-all]}" ]]; then
 	opts[-font]+=: opts[-gpg]=true opts[-lvm]=true opts[-squashd]=true
 	opts[-toi]=true opts[-luks]=true opts[-keymap]+=:
-	opts[-module]+=:zfs:zram
+	opts[-hook]+=:zfs:zram
 fi
 
 for key in f{,ont}; do
@@ -310,7 +310,7 @@ touch etc/{fs,m}tab
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
 
-KV=(${kv/./ /})
+KV=(${opts[-kv]//./ /})
 if [[ "${KV[0]}" -eq 3 && "${KV[1]}" -ge 1 ]]; then
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
 		mknod -m 600 dev/loop-control c 10 237 || die

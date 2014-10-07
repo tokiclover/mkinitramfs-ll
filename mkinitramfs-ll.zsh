@@ -144,10 +144,10 @@ for (( ; $# > 0; ))
 if (( ${+opts[-a]} )) || (( ${+opts[-all]} )) {
 	opts[-font]+=: opts[-gpg]= opts[-lvm]= opts[-squashd]=
 	opts[-toi]= opts[-luks]= opts[-keymap]+=:
-	opts[-M]+=:zfs:zram
+	opts[-hook]+=:zfs:zram
 }
 
-if (( ${opts[-y]} )) || (( ${+opts[-keymap]} )) &&
+if (( ${+opts[-y]} )) || (( ${+opts[-keymap]} )) &&
 	[[ ${opts[-keymap]:-$opts[-y]} == ":" ]] {
 	if [[ -e /etc/conf.d/keymaps ]] {
 		opts[-keymap]+=$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
