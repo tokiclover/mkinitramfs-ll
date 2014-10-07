@@ -232,7 +232,7 @@ echo /sbin/mdev >/proc/sys/kernel/hotplug
 	
 if [ -n "$imod" ]; then
 	for _m in $(echo $imod | sed 's/:/ /g'); do 
-		debug _modprobe $_m 1>/dev/null 2>&1
+		debug _modprobe -q $_m
 	done
 fi
 	
