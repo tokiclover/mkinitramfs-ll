@@ -29,7 +29,7 @@ start()
 		fsys="$2" mtpt="$3" mopt="$4" mode="$5"
 		[ -n "$fsys" ] || continue
 		
-		if [ "$fsys" == "swap" ]; then
+		if [ "$fsys" = "swap" ]; then
 			mkswap /dev/zram$num > /dev/null 2>&1 &&
 			swapon > /dev/null 2>&1
 		else
@@ -62,11 +62,10 @@ start_pre()
 			reset "$started" && rmmod zram >/dev/null 2>&1 ||
 			ewarn "Failed to remove zram kernel module"
 		fi
-	else
-		if ! modprobe zram num_devices=$num_devices >/dev/null 2>&1; then
-			ewarn "Failed to load zram kernel module, falling back to resetting zram devices"
-			reset "$started"
-		fi
+	fi
+	if ! modprobe zram num_devices=$num_devices >/dev/null 2>&1; then
+		ewarn "Failed to load zram kernel module, falling back to resetting zram devices"
+		reset "$started"
 	fi
 
 	case "$comp_algorithm" in
@@ -78,8 +77,12 @@ start_pre()
 
 	local dev num=0 size
 	for dev in $(sed -nre 's/^device=(.*$)/\1/p' $conf_file); do
-		[ -b /dev/zram$num ] || break
+		if [ ! -b /dev/zram$num ]; then
+			ewarn "No zram free device left"
+			break
+		fi
 		size=${dev%%:*}
+		[ -n "$size" ] || continue
 
 		[ -n "$comp_algorithm" ] &&
 		echo $comp_algorithm > /sys/block/zram$num/comp_algorithm
