@@ -317,7 +317,7 @@ fi
 
 # -*- Root -*-
 
-lvl 3d
+lvl 3
 
 # @VARIABLE: ROOT
 # @DESCRIPTION: if rootfs is mounted, this variable should be set
@@ -329,7 +329,7 @@ dorootfs() {
 
 	debug -d bkd "$iroot" "ROOT" "1" "$ikroot"
 
-	lvl 3f
+	lvl 2f
 	if [ -n "$CHK" ]; then
 		case $CHK in
 			([NnFfOo]*|0) CHK=-e;;
@@ -339,7 +339,7 @@ dorootfs() {
 		debug $CHK fsck ${FS:+-t$FS} $ROOT
 	fi
 
-	lvl 3m
+	lvl 2m
 	if ! debug mount ${imopt:+-o$imopt} ${FS:+-t$FS} $ROOT $NEWROOT; then
 		[ "$KEYMODE" != "none" ] && debug -d dmclose "${ROOT##*/}"
 		die "failed to mount rootfs"
@@ -359,7 +359,7 @@ dorootfs() {
 
 # -*- Clean up and switch -*-
 
-lvl 4c
+lvl 4
 
 [ -n "$LBK" ] &&
 for _k in $(echo $LBK | sed '/:/ /g'); do
@@ -370,26 +370,28 @@ for _d in $(echo $LBD | sed 's/:/ /g'); do
 	debug losetup -d $_d
 done
 
-[ -n "$imount" ] && lvl 4m && debug fmount
-
 [ "$KEYMODE" = "gpg" ] && debug _rmmod gpg
 if grep -q $MNTDIR /proc/mounts; then
 	debug -d umount -l $MNTDIR
 	debug _rmmod remdev
 fi
 
+[ -n "$imount" ] && lvl 4m && debug fmount
+
+lvl 4u
+
 echo >/proc/sys/kernel/hotplug
 msg -i "Switching / ..."
 $SPLD && debug spld_stop
 sleep 1
 
-lvl 4u
 debug -d umount -l /sys
 debug -d umount -l /dev/pts
 debug -d umount -l /dev
 export LOGFILE=/$0.log
 debug -d umount -l /run
 debug -d umount -l /proc
+
 lvl 4s
 
 debug -d exec switch_root $NEWROOT ${init:-/sbin/init} $RIL

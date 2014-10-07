@@ -308,11 +308,10 @@ line in mkinitramfs-ll.conf, the modules and module group will be added!
 Each script  should have a @$level-@ prefix as the follwing $level values if the
 execution is bound to a specific init shell run level.
 
-* runlevel 1:  initialization - splash - keymap - font - print boot msg - @1@
-* runlevel 2?: @2s@ - swap - @2r@ - resume - rootfs -
-* runlevel 3?: @3d@ - decrypt - @3f@ - rootfs fsck - @3m@ - root mount -
-* runlevel 4?: @4c@ - clean up - @4m@ - mount /usr:/var... - @4u@ -
-	umount - @4s@ - switch root
+* runlevel 1: initialization - splash - keymap - font - boot logo/message -
+* runlevel 2: 2 - hooks  - @2s@ - swap        - @3r@ - resume     -
+* runlevel 3: 3 - rootfs - @3f@ - rootfs fsck - @3m@ - root mount -
+* runlevel 4: 4 - clean up @4m@ - extra mount - @4u@ - umount - @4s@ - switch root
 
 Else, @ihook@ kernel command line could be used to execute a hook/script now and
 then e.g. @ihook=zram@ append zram to script execution.
