@@ -388,6 +388,12 @@ if (( ${+opts[-q]} )) || (( ${+opts[-squashd]} )) {
 # @FUNCTION: domod
 # @DESCRIPTION: copy kernel module
 function domod {
+	case $1 in
+		(-v|--verbose)
+			local verbose=$2
+			shift 2;;
+	esac
+
 	local mod module ret
 	for mod ($*) {
 		typeset -a modules
@@ -396,6 +402,10 @@ function domod {
 			for module (${modules})
 				mkdir -p .${module:h} && cp -ar {,.}${module} ||
 					die "failed to copy ${module} module"
+
+			if (( ${+verbose} )) {
+				print ${${modules:t}//.ko} >> ${verbose} || die
+			}
 		} else {
 			warn "${mod} does not exist"
 			((ret=${ret}+1))
@@ -488,8 +498,7 @@ for bin (${(pws,:,)opts[-b]} ${(pws,:,)opts[-bin]}) {
 
 for module (${(pws,:,)opts[-m]}${(pws,:,)opts[-kmod]}) domod ${module}
 for grp (${(pws,:,)opts[-mgrp]})
-	for mod (${(pws,:,)opts[-m${grp}]})
-		domod ${mod} && echo ${mod} >>etc/${PKG[name]}/${grp}
+	domod -v etc/${PKG[name]}/${grp} ${(pws,:,)opts[-m${grp}]}
 
 for lib (/usr/lib/gcc/**/lib*.so*) {
 	ln -fs $lib     lib/$lib:t

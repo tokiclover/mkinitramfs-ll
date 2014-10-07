@@ -419,6 +419,12 @@ fi
 # @FUNCTION: domod
 # @DESCRIPTION: copy kernel module
 function domod {
+	case $1 in
+		(-v|--verbose)
+			local verbose=$2
+			shift 2;;
+	esac
+
 	local mod module ret
 	for mod in $*; do
 		declare -a modules
@@ -429,6 +435,10 @@ function domod {
 				mkdir -p .${module%/*} && cp -ar {,.}${module} ||
 					die "failed to copy ${module} module"
 			done
+
+			if [[ "${verbose}" ]]; then
+				echo "${modules[@]##*/}" | sed -e 's/.ko//g' >> ${verbose} || die
+			fi
 		else
 			warn "${mod} does not exist"
 			((ret=${ret}+1))
@@ -528,11 +538,7 @@ unset binary
 domod ${opts[-m]//:/ } ${opts[-kmod]//:/ }
 
 for grp in ${opts[-mgrp]//:/ }; do
-	if [[ -n "${opts[-m${grp}]}" ]]; then
-		for mod in ${opts[-m${grp}]//:/ }; do 
-			domod ${mod} && echo ${mod} >>etc/${PKG[name]}/${grp}
-		done
-	fi
+	domod -v etc/${PKG[name]}/${grp} ${opts[-m${grp}]//:/ }
 done
 
 for lib in $(find usr/lib/gcc -iname 'lib*'); do
