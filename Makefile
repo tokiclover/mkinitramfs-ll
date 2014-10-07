@@ -11,7 +11,7 @@ docdir      = ${DESTDIR}${prefix}/share/doc/$(PACKAGE)-${VERSION}
 
 DOCS        = AUTHORS BUGS COPYING README.textile ChangeLog
 
-MODULES     = bcache zfs zram
+HOOKS       = bcache zfs zram
 FILES       = usr/etc/mdev.conf usr/etc/$(PACKAGE)/minimal.applets \
 			  usr/lib/$(PACKAGE)/functions scripts/busybox-minimal.config \
 			  usr/root/.gnupg/gpg.conf usr/share/gnupg/options.skel
@@ -39,7 +39,7 @@ install:
 	$(shell) for file in $(FILES); do \
 		install -pm 644 $${file} $(datadir)/$${file}; \
 	done
-	$(shell) for module in $(MODULES); do \
+	$(shell) for module in $(HOOKS); do \
 		for file in modules/*$${module}*; do \
 			install -pm 644 $${file} $(datadir)/$${file}; \
 		done; done
@@ -96,7 +96,7 @@ uninstall:
 	$(shell) for file in $(FILES); do \
 		rm -f $(datadir)/$${file}; \
 	done
-	$(shell) for file in $(MODULES); do \
+	$(shell) for file in $(HOOKS); do \
 		rm -f $(datadir)/modules/*$${file}*; \
 	done
 	rmdir $(datadir)/usr/etc/$(PACKAGE)
