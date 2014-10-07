@@ -336,9 +336,13 @@ include zfs module or build an initramfs with something like:
 to @iswap@ or @iresume@ argument for unencrypted vdev(s); or else, @izfs@ is
 required and is enough for encrypted vdev(s) (or both for this later case).
 
-*IMPORTANT*: The @zfs@ suffix should be the 4th field for @iswap@ and @iresume@,
-so append @::zfs@ to @swap:POOL/VOL::zfs@ which means that no signature is present in
-this case; or else @file:POOL/VOL:sign:zfs@ when a signature is present and required. 
+*IMPORTANT*: The @zfs@ suffix should be the *3rd* field for @iswap@ and @iresume@,
+so append @:zfs@ to @swap:POOL/VOL:zfs@ which means that no signature is present in
+this case; or else @file:POOL/VOL:zfs:sign@ when a signature is present and required.
+
+This is change the default *signature* postion which should be *3rd*. This change
+is necessary because a signature is *optional* and *zfs* could be a requirement
+(un-encrypted vdev(s)!).
 
 h3. 4.6. ZRAM support
 
