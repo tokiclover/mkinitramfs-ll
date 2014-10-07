@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.0 2014/10/01 12:33:03                   Exp $
 #
 
 # @FUNCTION: arg
@@ -98,19 +98,6 @@ rsh() {
 	else
 		debug $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
 	fi
-}
-
-# @FUNCTION: die
-# @EXTERNAL
-# @USAGE: <msg>
-# @DESCRIPTION: drop into a rescue shell after a command failure
-die() {
-	local _ret=$?
-	[ -n "$@" ] && msg -e "[$_ret]: $@"
-	msg -i "Dropping into a rescueshell..."
-
-	$SPLD && spld_stop
-	debug rsh || debug exec $sh -aim
 }
 
 # @FUNCTION: bck
