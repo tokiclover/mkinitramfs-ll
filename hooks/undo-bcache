@@ -2,14 +2,27 @@
 # $Header: mkinitramfs-ll/modules/bacache                Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+# $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
 #
 
+set -e +x
+source $LIBDIR/functions || return
+source $LIBDIR/helpers   || return
+
+[ -z "$ibcache" ] && _getopt "ibcache"
+
 undobcahe() {
-	for dev in $@; do
+	echo $$ >/run/${0##*/}.pid
+
+	for dev in $(echo "$ibcache" | sed -e 's/:/ /g'); do
+		[ "${dev/dev}" != "dev" ] && dev=${dev/\/dev\/}
 		echo 1 > /sys/block/${dev:0:3}/$dev/bcache/running
 	done
+
+	rm -f /run/${0##*/}.pid
 }
+
+[ -n "$ibcache" ] && dobcache
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:

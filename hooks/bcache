@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/modules/bacache                Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+# $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
 #
 
 set -e +x
@@ -12,28 +12,18 @@ source $LIBDIR/helpers   || return
 [ -z "$ibcache" ] && _getopt "ibcache"
 
 dobcache() {
-	local device dev num=1
 	echo $$ >/run/${0##*/}.pid
-	arg "BCACHE"  "$ibcache" "," "$num"
+	debug _modprobe bcache
 
-	while [ -n "$BCACHE" ]; do
-		device="${BCACHE#*-}"
-
-		for dev in $(echo "$device" | sed 's/:/ /g'); do
-			blk "$dev" "DEV"
-			echo "$DEV" >/sys/fs/bcache/register_quiet
-		done
-
-		num=$(expr $num + 1)
-		arg "BCACHE"  "$ibcache" "," "$num" "-s"
+	for dev in $(echo "$ibcache" | sed -e 's/:/ /g'); do
+		[ "${dev/dev}" = "dev" ] && dev=/dev/$dev
+		echo $dev >/sys/fs/bcache/register_quiet
 	done
 
 	rm -f /run/${0##*/}.pid
 }
 
-[ -n "$bcache" ] && dobcache
-
-unset BCACHE DEV
+[ -n "$ibcache" ] && dobcache
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
