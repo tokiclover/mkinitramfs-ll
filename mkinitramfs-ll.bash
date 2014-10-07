@@ -420,9 +420,10 @@ fi
 # @DESCRIPTION: copy kernel module
 function domod {
 	local mod module ret
-	for mod in "$*"; do
+	for mod in $*; do
 		declare -a modules
-		modules=($(find /lib/modules/${opts[-kv]} -name "${mod}.ko" -or -name "${mod}-*.ko"))
+		modules=($(find /lib/modules/${opts[-kv]} -name "${mod}.ko" \
+			-or -name "${kmod}_*.ko" -or -name "${mod}-*.ko"))
 		if (( "${#modules[@]}" > 0 )); then
 			for module in "${modules[@]}"; do
 				mkdir -p .${module%/*} && cp -ar {,.}${module} ||
@@ -524,7 +525,7 @@ for bin in ${opts[-b]//:/ } ${opts[-bin]//:/ }; do
 done
 unset binary
 
-domod "${opts[-m]//:/ }" "${opts[-kmod]//:/ }"
+domod ${opts[-m]//:/ } ${opts[-kmod]//:/ }
 
 for grp in ${opts[-mgrp]//:/ }; do
 	if [[ -n "${opts[-m${grp}]}" ]]; then
