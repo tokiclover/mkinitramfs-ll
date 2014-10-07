@@ -311,8 +311,8 @@ for hook (${(pws,:,)opts[-H]} ${(pws,:,)opts[-hook]}) {
 	}
 	(( $? != 0 )) && warn "$mod module does not exist"
 
-	opts[-bin]+=:${opts[-b$mod]}
-	opts[-mgrp]+=:$mod
+	opts[-bin]+=:${opts[-b$hook]}
+	opts[-mgrp]+=:$hook
 }
 
 cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||

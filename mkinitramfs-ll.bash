@@ -310,7 +310,7 @@ touch etc/{fs,m}tab
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
 
-KV=(${opts[-kv]//./ /})
+KV=(${opts[-kv]//./ })
 if [[ "${KV[0]}" -eq 3 && "${KV[1]}" -ge 1 ]]; then
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
 		mknod -m 600 dev/loop-control c 10 237 || die
@@ -347,8 +347,8 @@ for hook in ${opts[-H]//:/ } ${opts[-hook]//:/ }; do
 	done
 	(( $? != 0 )) && warn "$mod module does not exist"
 
-	opts[-bin]+=:${opts[-b$mod]}
-	opts[-mgrp]+=:$mod
+	opts[-bin]+=:${opts[-b$hook]}
+	opts[-mgrp]+=:$hook
 done
 
 [[ -f /etc/issue.logo ]] && cp {/,}etc/issue.logo
