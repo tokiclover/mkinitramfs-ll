@@ -136,12 +136,11 @@ KERNEL-COMMAND-LINE-ARG: @isquashd=y[|/squashdir],y[|[n|a]:<dir>]@
 DESCRIPTION: squashed directories, see below for more info
 EXAMPLE: @isquashd=y,a:lib64@ use default squashed dirs and append @lib64@
 
-KERNEL-COMMAND-LINE-ARG: @idebug=<x:...>[,<log_level>]@
-DESCRIPTION: optionaly enable a colon separated list of sh (set) option,
+KERNEL-COMMAND-LINE-ARG: @idebug=ax[:2]@
+DESCRIPTION: optionaly enable a list of sh (set) options string,
 like shell tracing etc.; and otptional dmesg console log level
-EXAMPLE: @idebug=x@ enable shell tracing
-EXAMPLE: @idebug=x:e,debug@ enable shell tracing, export every assigned variable
-and set debug console log level
+EXAMPLE: @idebug=ax:3@ enable shell tracing, export every variable
+and set log level to error.
 
 KERNEL-COMMAND-LINE: ihook
 DESCRIPTION: execute colon separated list of named hooks or scripts
