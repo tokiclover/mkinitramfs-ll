@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/modules/2s-zfs                 Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+# $Version: 0.14.0 2014/10/01 12:33:03                   Exp $
 #
 
 set -e +x
@@ -10,17 +10,18 @@ source $LIBDIR/zfs || return $?
 
 [ -n "$izfs" ] || _getopt izfs
 [ -n "$izfs" ] && arg "VDEV" "$izfs" "," "2" "-s"
-[ -n "$FS" ] || arg "FS" "$iswap" ":" "4" "-s"
 
-if [ -n "$VDEV" ] || [ "$FS" == "zfs" ]; then
-	arg "SWAP" "$iswap" ":" "2" "-s"
-	arg "type" "$iswap" ":" "1"
-	arg "sign" "$iswap" ":" "3" "-s"
+eval set -- $(echo "$iresume" | sed -e 's/:/ /g')
+FS="$3" SWAP="$2" sign="$4" type="$1"
+
+if [ -n "$VDEV" ] || [ "$FS" = "zfs" ]; then
 	debug stk "$ikswap"
 	debug -d dozfs "$SWAP" "$VDEV" "-N" &&
 	echo "SWAP=$type:/dev/$SWAP${sign:+$sign}" >>/run/env
 	unset FS sign type
 fi
+
+unset FS SWAP sign type
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:

@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/modules/2r-zfs                 Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+# $Version: 0.14.0 2014/10/01 12:33:03                   Exp $
 #
 
 set -e +x
@@ -10,17 +10,17 @@ source $LIBDIR/zfs || return $?
 
 [ -n "$izfs" ] || _getopt izfs
 [ -n "$izfs" ] && arg "VDEV" "$izfs" "," "3" "-s"
-[ -n "$FS" ] || arg "FS"  "$iresume" ":" "4" "-s"
 
-if [ -n "$VDEV" ] || [ "$FS" == "zfs" ]; then
-	arg "RESU" "$iresume" ":" "2" "-s"
-	arg "type" "$iresume" ":" "1"
-	arg "sign" "$iresume" ":" "3" "-s"
+eval set -- $(echo "$iresume" | sed -e 's/:/ /g')
+FS="$3" RESU="$2" sign="$4" type="$1"
+
+if [ -n "$VDEV" ] || [ "$FS" = "zfs" ]; then
 	debug stk "$ikresume"
 	debug -d dozfs "$RESU" "$VDEV" "-N" &&
 	echo "RESU=$type:/dev/$RESU${sign:+$sign}" >>/run/env
-	unset FS sign type
 fi
+
+unset FS RESU sign type
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
