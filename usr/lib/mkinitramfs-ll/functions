@@ -358,7 +358,7 @@ bkd() {
 	local _ilvm _iraid _name="$2"
 	debug -d stk "$4"
 
-	local _bkd _grp="$3"
+	local _bkd _grp="${3:-1}"
 	if [ $_grp -ge 2 ]; then
 		eval set -- $(echo "$1" | sed -e 's/:/ /g')
 		local _typ="$1" _dev="$2" _sig="$3"
