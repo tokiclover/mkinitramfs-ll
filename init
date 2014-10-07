@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.0 2014/10/01 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -302,19 +302,21 @@ lvl 3d
 # @VARIABLE: ROOT
 # @DESCRIPTION: if rootfs is mounted, this variable should be set
 
-if [ -z "$ROOT" ]; then
-	arg "CK" "$iroot" ":" "2" "-s"
-	arg "FS" "$iroot" ":" "3" "-s"
+dorootfs() {
+	local FS CHK ROOT
+	eval set -- $(echo "$iroot" | sed -e 's/:/ /g')
+	FS="$2" CHK="$3" ROOT="$1"
+
 	debug -d bkd "$iroot" "ROOT" "1" "$ikroot"
 
 	lvl 3f
-	if [ -n "$CK" ]; then 
-		case $CK in
-			(n*|N*)    CK=-e;;
-			(c*|y*|Y*) CK=-d;;
-			(*)        CK=  ;;
+	if [ -n "$CHK" ]; then
+		case $CHK in
+			([NnFfOo]*|0) CHK=-e;;
+			([CcYyTt]*|1) CHK=-d;;
+			(*)           CHK=  ;;
 		esac
-		debug $CK fsck ${FS:+-t$FS} $ROOT
+		debug $CHK fsck ${FS:+-t$FS} $ROOT
 	fi
 
 	lvl 3m
@@ -322,7 +324,8 @@ if [ -z "$ROOT" ]; then
 		[ "$KEYMODE" != "none" ] && debug -d dmclose "${ROOT##*/}"
 		die "failed to mount rootfs"
 	fi
-fi
+}
+[ -z "$ROOT" ] && dorootfs
 
 # @VARIABLE: SQUASHDIR
 # @DEFAULT_SET
