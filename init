@@ -60,6 +60,19 @@ export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
 
 source $LIBDIR/functions || $sh -a
 
+# @FUNCTION: die
+# @INTERNAL
+# @USAGE: <msg>
+# @DESCRIPTION: drop into a rescue shell after a command failure
+die() {
+	local _ret=$?
+	[ -n "$@" ] && msg -e "[$_ret]: $@"
+	msg -i "Dropping into a rescueshell..."
+
+	$SPLD && spld_stop
+	debug rsh || debug exec $sh -aim
+}
+
 # @FUNCTION: lvl
 # @INTERNAL
 # @DESCRIPTION: make LeVeL and drop to rescue shell if $LVL = $RSH
@@ -359,9 +372,11 @@ done
 
 [ -n "$imount" ] && lvl 4m && debug fmount
 
-debug _rmmod gpg
-debug -d umount -f -l $MNTDIR
-debug _rmmod remdev
+[ "$KEYMODE" = "gpg" ] && debug _rmmod gpg
+if grep -q $MNTDIR /proc/mounts; then
+	debug -d umount -l $MNTDIR
+	debug _rmmod remdev
+fi
 
 echo >/proc/sys/kernel/hotplug
 msg -i "Switching / ..."
