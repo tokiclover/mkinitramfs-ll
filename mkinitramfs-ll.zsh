@@ -32,7 +32,7 @@ function usage {
   -d, --usrdir=[usr]        use usr dir for user extra files, binaries, scripts, fonts...
   -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
   -p, --prefix=initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
-  -M, --module=:<name>      include <name> module or script from modules directory
+  -H, --hook=:<name>        include <name> hook or script from the hooks directory
   -m, --kmod=[:<mod>]       include a colon separated list of kernel modules to the initramfs
       --mtuxonice=[:<mod>]  include a colon separated list of kernel modules to tuxonice group
       --mremdev=[:<mod>]    include a colon separated list of kernel modules to remdev  group
@@ -113,10 +113,10 @@ typeset -A opts
 
 typeset -a opt
 opt=(
-	"-o" "ab:c::f::F::gk::lKLM:m::p::qrs::thu::y::?"
+	"-o" "ab:c::f::F::gk::lH:KLm::p::qrs::thu::y::?"
 	"-l" "all,bin:,compressor::,firmware::,font::,gpg,help"
-	"-l" "luks,lvm,keep-tmpdir,kmod::,keymap::,kv::"
-	"-l" "mboot::,mgpg::,mremdev::,msquashd::,module:,mtuxonice::"
+	"-l" "hook:,luks,lvm,keep-tmpdir,kmod::,keymap::,kv::"
+	"-l" "mboot::,mgpg::,mremdev::,msquashd::,mtuxonice::"
 	"-l" "prefix::,rebuild,splash::,squashd,toi,usrdir::"
 	"-n" ${PKG[name]}.${PKG[shell]}
 )
@@ -131,7 +131,7 @@ for (( ; $# > 0; ))
 		(-[dkp]|--[pu]*|--kv)
 			opts[${2/--/-}]=$2
 			shift 2;;
-		(-[FMbcfmsy]|--[bcfkms]*)
+		(-[FHbcfmsy]|--[bcfks]*|--ho*)
 			opts[${1/--/-}]+=:$2
 			shift 2;;
 		(--)
@@ -305,8 +305,8 @@ for bin (dmraid mdadm zfs)
 		if [[ ${opt/$bin} != $opt ]] { opts[-mgrp]+=:$bin }
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
-for mod (${(pws,:,)opts[-M]} ${(pws,:,)opts[-module]}) {
-	for file (${opts[-usrdir]:h}/modules/*${mod}*) {
+for hook (${(pws,:,)opts[-H]} ${(pws,:,)opts[-hook]}) {
+	for file (${opts[-usrdir]:h}/hooks/*${hook}*) {
 		cp -a ${file} lib/${PKG[name]}
 	}
 	(( $? != 0 )) && warn "$mod module does not exist"
