@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.13.8 2014/10/01 10:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.14.0 2014/10/01 10:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -50,13 +50,13 @@ h3. 2.1 _Optional_ kernel cmdline option or arguments
 And of course, when using this script, one does not need @root=<arg>@
 nor @resume=<arg>@ kernel command line options.
 
-KERNEL-COMMAND-LINE-ARG: @iroot=<PV|VG-LV>[:c:<fs>]@
+KERNEL-COMMAND-LINE-ARG: @iroot=<PV|VG-LV>[:<fs>:chk]@
 DESCRIPTION: root block device, required,
-	recommanded optional file system check @:[c|chk|y|..]:[<filesystem>]@
-EXAMPLE: @iroot=vg-root:c:ext4@ for an ext4 rootfs in LVM (Volume Group is named vg),
-	or @iroot=POOL/ROOT::zfs@ for a zfs rootfs (ROOT) in a pool called POOL.
+	recommanded optional file system check @:[<filesystem>]:[c|chk|yes|1|...]@
+EXAMPLE: @iroot=vg-root:ext4:1@ for an ext4 rootfs in LVM (Volume Group is named vg),
+	or @iroot=POOL/ROOT:zfs@ for a zfs rootfs (ROOT) in a pool called POOL.
 
-*Note*: @:[n*|N*]:@ instead of @[c*|y*|Y*:]@
+*Note*: @:[no|NO:No:false:FALSE:0]@ instead of @:[c|chk|true|TRUE|yes|YES:1]@
 will disable a die after fsck failure.
 
 KERNEL-COMMAND-LINE-ARG: @imopt=<ro,inode64,...>@
@@ -326,14 +326,14 @@ KERNEL-COMMAND-LINE-ARG: @izfs=zva-sda:zvb-sdb@
 DESCRIPTION: Required argument for crypted zfs vdev (devices)
 EXEMPLE: read the following
 
-One can use something like @iroot=POOL/ROOT[::zfs][ izfs=zva-sda:zvb-sdb]@.
+One can use something like @iroot=POOL/ROOT[:zfs][ izfs=zva-sda:zvb-sdb]@.
 Notice that @izfs@ argument is required for crypted vdev(s). Do not forget to
 include zfs module or build an initramfs with something like:
 @mkinitramfs-ll.$shell -a -fter-g12v -y -M:zfs@
 (kernel modules and binaries would be rightly added).
 
-*IMPORTANT*: So either way, one should append @::zfs@ to @iroot@, or only @:zfs@
-to @iswap@ or @iresume@ argument for unencrypted vdev(s); or else, @izfs@ is 
+*IMPORTANT*: So either way, one should append @:zfs@ to @iroot@ and/or
+to @iswap@ or @iresume@ argument for unencrypted vdev(s); or else, @izfs@ is
 required and is enough for encrypted vdev(s) (or both for this later case).
 
 *IMPORTANT*: The @zfs@ suffix should be the 4th field for @iswap@ and @iresume@,
