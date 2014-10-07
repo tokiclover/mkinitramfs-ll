@@ -2,6 +2,7 @@ Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
 0.14.0:
 
+* clean up bcache hooks, now provide a simple and functional hooks;
 * renamed (internal) module to hook which is more appropriate;
 * fix mkinitramfs-ll.bash kernel module dealing (with *globbing everywhere*);
 * file system position change for *iroot* (see README);
