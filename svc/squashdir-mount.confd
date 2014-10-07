@@ -1,5 +1,5 @@
 #
-# $Header: mkinitramfs-ll/svc/squashdir-mount.confd, 2014/09/30 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/squashdir-mount.confd, 2014/10/01 -tclover Exp $
 #
 # WARNING: NO TRAILING '/' SLASHES ALLOWED! OR ELSE, EXXPECT SERVICE FAILURE!
 #
@@ -18,9 +18,8 @@ squash_rebuild_dir=
 
 # Full path to sdr.$shell script, else default to $(which sdr)
 sdr=/usr/sbin/sdr.bash
-
-# Whether to try or not to umount system wide squash-ed dirs
-umount_sysdir=yes
+# Offset to use when rebuilding (in percent)
+offset=10
 
 #
 # vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:

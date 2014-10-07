@@ -67,11 +67,9 @@ stop()
 	if [ -n "${squash_sysdir}" ]; then
 		einfo "remounting in ro mode system squashed dirs"
 	fi
-	if yesno "${umount_sysdir}"; then
-		for dir in ${squashdir_sysdir}; do
-			squash_remount "${dir}" "ro"
-		done
-	fi
+	for dir in ${squashdir_sysdir}; do
+		squash_remount "${dir}" "ro"
+	done
 
 	return 0
 }
@@ -98,7 +96,7 @@ stop_pre()
 
 	eeinfo "rebuilding ${squash_rebuild_dir} squashed directories"
 	if test -n "${sdr}" -a -x "${sdr}"; then
-		${sdr} -o0 -d"${squash_rebuild_dir}" >/dev/null 2>&1
+		${sdr} -o${offset:-5} -d"${squash_rebuild_dir}" >/dev/null 2>&1
 	else
 		eerror "sdr: there is not a sdr script in PATH"
 	fi
