@@ -73,7 +73,7 @@ However, if using LVM and/or LUKS and/or RAID array, one should make sure
 that the underlaying volume are available before level @4m@.
 
 KERNEL-COMMAND-LINE-ARG: @imod=<uvesafb:kms:...>@
-DESCRIPTION: optional modules to load (in the boot group)
+DESCRIPTION: optional kernel modules to load (in the boot group)
 EXAMPLE: @imod=kms:uvesafb@
 EXAMPLE: if using the building scripts one can append @imod=kms@ for basic 
 kms related drivers group (one can append extra modules to opts[-mkms] in 
@@ -143,12 +143,12 @@ EXAMPLE: @idebug=x@ enable shell tracing
 EXAMPLE: @idebug=x:e,debug@ enable shell tracing, export every assigned variable
 and set debug console log level
 
-KERNEL-COMMAND-LINE: imodule
-DESCRIPTION: execute colon separated list of named modules or scripts
-EXAMPLE: @imodule=zram@
+KERNEL-COMMAND-LINE: ihook
+DESCRIPTION: execute colon separated list of named hooks or scripts
+EXAMPLE: @ihook=zram@
 
-*Note*: Nobody would ever want to append zram module to @imodule@ as zram
-module would be executed if @izram@ kernel cmdline argument is present.
+*Note*: Nobody would ever want to append zram hook to @ihook@ as zram
+script would be executed if @izram@ kernel cmdline argument is present.
 
 init script accept also @single@, @ro@, @rw@ and @init=/path/to/real/init@
 kernel cmdline argument and will append single runlevel to real init. 
@@ -300,9 +300,9 @@ Squashed directories argument:
 
 h3. 4.4. Optional user scripts support
 
-Now one can add scripts to @modules/@ directory, or else directly in
+Now, one can add hooks/scripts to @hooks/@ directory, or else directly in
 @$gitdir/usr/lib/mkinitramfs-ll@ if using mkinitramfs-ll.$shell generating script.
-Basically, each script is considered to be a module! So one can append -M$script
+Basically, each script is considered to be a hook! So one can append -H$script
 to mkinitramfs-ll.$shell; and if there is a opts[-m$script] kernel module group
 line in mkinitramfs-ll.conf, the modules and module group will be added!
 
@@ -315,10 +315,10 @@ execution is bound to a specific init shell run level.
 * runlevel 4?: @4c@ - clean up - @4m@ - mount /usr:/var... - @4u@ -
 	umount - @4s@ - switch root
 
-Else, @imodule@ kernel command line could be used to execute a script now and
-then e.g. @imodule=zram@ append zram to module execution.
+Else, @ihook@ kernel command line could be used to execute a hook/script now and
+then e.g. @ihook=zram@ append zram to script execution.
 
-*Info*: See zfs/zram module for more info and a praticable examples.
+*Info*: See zfs/zram hook for more info and a praticable examples.
 
 h3. 4.5. ZFS support
 
@@ -328,8 +328,8 @@ EXEMPLE: read the following
 
 One can use something like @iroot=POOL/ROOT[:zfs][ izfs=zva-sda:zvb-sdb]@.
 Notice that @izfs@ argument is required for crypted vdev(s). Do not forget to
-include zfs module or build an initramfs with something like:
-@mkinitramfs-ll.$shell -a -fter-g12v -y -M:zfs@
+include zfs hook or build an initramfs with something like:
+@mkinitramfs-ll.$shell -a -fter-g12v -y -H:zfs@
 (kernel modules and binaries would be rightly added).
 
 *IMPORTANT*: So either way, one should append @:zfs@ to @iroot@ and/or
@@ -351,13 +351,13 @@ one need only to append @zram@ kernel module to @imod@ argument and optionaly
 zram.num_devices=<int> kernel command line argument.
 Extra actions can be taken care with a *user script* if needed.
 
-Enter zram module. 
+Enter zram hook. 
 
 KERNEL-COMMAND-LIE-ARG: @izram=4-2-lzo:512M:4G-ext4@
 DESCRIPTION: zram basic initialisation kernel command line argument
 EXEMPLE: :512M:4G:512M
 
-This module/script take care of basic zram initialisation:
+This hook/script take care of basic zram initialisation:
 * First integer: passed as num_devices=<int> to modprobe;
 * Second integer is passed to max_comp_streams;
 * Third string is passed comp_algorithm (compressor);
@@ -366,7 +366,7 @@ the related mkfs.$fs binaries if the fie system string is appended!
 * Lastly, the first *string* @4-2-lzo@ can be omited so the default will be
   picked up @4-2-lz4@ as in the last kernel cmdline example.
 
-Just appand -M:zram to mkinitramfs-ll.$shell to get support for this module.
+Just appand -H:zram to mkinitramfs-ll.$shell to get support for this hook.
 
 h3. 4.7. bcache - block cache - support
 
