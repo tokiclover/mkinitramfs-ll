@@ -26,10 +26,10 @@ start()
 			break
 		fi
 		eval set -- $(echo "$dev" | sed -e 's/:/ /g')
-		fsys="$1" mtpt="$2" mopt="$2" mode="$2"
+		fsys="$2" mtpt="$3" mopt="$4" mode="$5"
 		[ -n "$fsys" ] || continue
 		
-		if [ "x$fsys" == "xswap" ]; then
+		if [ "$fsys" == "swap" ]; then
 			mkswap /dev/zram$num > /dev/null 2>&1 &&
 			swapon > /dev/null 2>&1
 		else
