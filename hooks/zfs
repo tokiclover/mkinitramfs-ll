@@ -6,7 +6,8 @@
 #
 
 set -e +x
-source $LIBDIR/functions || return $?
+source $LIBDIR/functions || return
+source $LIBDIR/helpers   || return
 
 # @FUNCTION: dozfs
 # @DESCRIPTION: import a zfs pool

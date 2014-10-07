@@ -6,7 +6,8 @@
 #
 
 set -e +x
-source $LIBDIR/functions
+source $LIBDIR/functions || return
+source $LIBDIR/helpers   || return
 
 [ -z "$ibcache" ] && _getopt "ibcache"
 
