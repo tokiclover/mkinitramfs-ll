@@ -19,7 +19,7 @@
 
 # @VARIABLE: CONFDIR
 # @DESCRIPTION: path to default mkinitramfs-ll configuration dir
-:   ${CONFDIR=/etc/initramfs-ll}
+:   ${CONFDIR=/etc/mkinitramfs-ll}
 
 # @VARIABLE: LIBDIR
 # @DESCRIPTION: path to default mkinitramfs-ll library dir
@@ -68,7 +68,7 @@ lvl() {
 	export LVL=$1
 
 	for _f in $(ls $LIBDIR/${1}-* 2>/dev/null); do
-		domod "$_f"
+		dohook "$_f"
 	done
 
 	[ "$LVL" = "$RSH" ] && debug die
@@ -181,7 +181,7 @@ for arg in $(cat /proc/cmdline); do
 		(irsh=*) arg "RSH" "${arg#*=}" ":" "1"
 		         arg "RIL" "${arg#*=}" ":" "2" "-s" ;;
 		(splash*|console*|CONSOLE*) export "$arg"   ;;
-		(imodule=*) MODULES+=" ${arg#*=}"           ;;
+		(ihook=*) HOOKS="$HOOKS ${arg#*=}"          ;;
 		(i[bdklmnrsz]*) export "$arg"               ;;
 	 esac
 done
@@ -265,11 +265,18 @@ while read _line; do
 	msg -i "$_line"
 done </etc/msg
 
-# -*- Module -*-
+# -*- Hooks -*-
 
-[ -n "$izram" ] && MODULES+=" zram"
-for mod in $MODULES; do
-	[ -e $LIBDIR/$mod ] && debug domod $LIBDIR/$mod || error "module: $mod not found"
+lvl 2
+
+[ -n "$izram" ] && HOOKS="zram $HOOKS"
+export HOOKS
+for hook in $HOOKS; do
+	if [ -e "$LIBDIR/$hook" ]; then
+		debug dohook "$LIBDIR/$hook" || error "hook: $hook failed to excecute hook"
+	else
+		error "hook: $hook not found"
+	fi
 done
 
 # -*- Swap -*-
