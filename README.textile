@@ -371,14 +371,9 @@ h3. 4.7. bcache - block cache - support
 bcache cache *and* backing device are grouped as a colon separated list of block
 device, registered using: echo device >/sys/fs/bcache/register_quiet
 
-Supported block device stack is to use bcache near the physical block devices
-for the moment untill a sane and simple way is found to be able in insert bcache
-in any block stack order.
-
-KERNEL-COMMAND-LIE-ARG: @ibcache=sda:sdb2:sdc2,sdd:sde1@
-DESCRIPTION: bcache cache:backing-device block device list, multiple *pairs* are
-comma ',' separated.
-EXEMPLE: ibcache=sda:sdb1 for a single block device (cache:backing-device)
+KERNEL-COMMAND-LIE-ARG: @ibcache=sda:sdb2:sdc2@
+DESCRIPTION: bcache cache:backing-device block device list
+EXEMPLE: ibcache=sda:sdb1
 
 h3. 5. Kernel parameters example
 
