@@ -1,0 +1,16 @@
+#
+# $Header: mkinitramfs-ll/lib/mkinitramfs-ll/helpers   Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.14.0 2014/10/01 12:33:03                   Exp $
+#
+
+die() {
+	local ret=$?
+	[ -n "$@" ] && msg -e "$@"
+	exit $ret
+}
+
+#
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
+#
