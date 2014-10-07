@@ -30,7 +30,7 @@ install:
 	install -pd $(datadir)/usr/lib/mdev
 	install -pd $(datadir)/usr/share/gnupg
 	install -pd $(datadir)/usr/root/.gnupg
-	install -pd $(datadir)/modules
+	install -pd $(datadir)/hooks
 	install -pd $(datadir)/scripts
 	find . -name '.keep*' -exec install -Dpm 644 '{}' $(datadir)/'{}' \;
 	$(shell) for file in $(EXEC_FILES); do \
@@ -39,8 +39,8 @@ install:
 	$(shell) for file in $(FILES); do \
 		install -pm 644 $${file} $(datadir)/$${file}; \
 	done
-	$(shell) for module in $(HOOKS); do \
-		for file in modules/*$${module}*; do \
+	$(shell) for hook in $(HOOKS); do \
+		for file in hooks/*$${hook}*; do \
 			install -pm 644 $${file} $(datadir)/$${file}; \
 		done; done
 
@@ -97,7 +97,7 @@ uninstall:
 		rm -f $(datadir)/$${file}; \
 	done
 	$(shell) for file in $(HOOKS); do \
-		rm -f $(datadir)/modules/*$${file}*; \
+		rm -f $(datadir)/hooks/*$${file}*; \
 	done
 	rmdir $(datadir)/usr/etc/$(PACKAGE)
 	rmdir $(datadir)/usr/lib/$(PACKAGE)
