@@ -139,10 +139,10 @@ ack() {
 	fi
 }
 
-# @FUNCTION: domod
+# @FUNCTION: dohook
 # @EXTERNAL
 # @DESCRIPTION: execute a module or user script passed as arg 1
-domod() {
+dohook() {
 	msg -i "exec: $sh -aex $1..."
 	debug $sh -aex $1
 
@@ -512,7 +512,7 @@ mdopen() {
 		[ -b "$_dev" ] && return
 
 		for _f in $(echo "$_opt" | sed 's/:/ /g'); do
-			_set+=" $(dmraid -s -c $_f)"
+			_set="$_set $(dmraid -s -c $_f)"
 		done
 		
 		for _s in ${_dev##*/} $_set; do

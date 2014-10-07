@@ -181,7 +181,7 @@ for arg in $(cat /proc/cmdline); do
 		(irsh=*) arg "RSH" "${arg#*=}" ":" "1"
 		         arg "RIL" "${arg#*=}" ":" "2" "-s" ;;
 		(splash*|console*|CONSOLE*) export "$arg"   ;;
-		(imodule=*) MODULES+=":${arg#*=}"           ;;
+		(imodule=*) MODULES+=" ${arg#*=}"           ;;
 		(i[bdklmnrsz]*) export "$arg"               ;;
 	 esac
 done
@@ -267,7 +267,7 @@ done </etc/msg
 
 # -*- Module -*-
 
-[ -n "$izram" ] && MODULES+=:zram
+[ -n "$izram" ] && MODULES+=" zram"
 for mod in $MODULES; do
 	[ -e $LIBDIR/$mod ] && debug domod $LIBDIR/$mod || error "module: $mod not found"
 done
