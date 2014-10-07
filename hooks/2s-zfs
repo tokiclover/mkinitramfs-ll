@@ -18,7 +18,6 @@ if [ -n "$VDEV" ] || [ "$FS" = "zfs" ]; then
 	debug stk "$ikswap"
 	debug -d dozfs "$SWAP" "$VDEV" "-N" &&
 	echo "SWAP=$type:/dev/$SWAP${sign:+$sign}" >>/run/env
-	unset FS sign type
 fi
 
 unset FS SWAP sign type
