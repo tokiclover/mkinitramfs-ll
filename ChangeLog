@@ -1,5 +1,6 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+* fix mkinitramfs-ll.bash kernel module dealing (with *globbing everywhere*);
 * file system position change for *iroot* (see README);
 * version bumped zram hook/module (almost feature complete);
 * version bumped functions to use fewer arg() calls (+efficiency);
