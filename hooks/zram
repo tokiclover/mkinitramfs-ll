@@ -6,14 +6,14 @@
 #
 
 set -e +x
-source $LIBDIR/functions
+source $LIBDIR/functions || return
 
 [ -z "$izram" ] && _getopt "izram"
 
 dozram() {
 	echo $$ >/run/${0##*/}.pid
 
-	eval set -- $(echo "${izram%%*:}" | sed -e 's/-/ /g')
+	eval set -- $(echo "${izram%%:*}" | sed -e 's/-/ /g')
 
 	local compressor="$3" num_devices="${1:-4}" streams="${2:-2}"
 	debug -d modprobe zram num_devices=$num_devices
@@ -27,6 +27,8 @@ dozram() {
 
 	local num=0 dev device fs mopt size
 	for device in $(echo "${izram#*:}" | sed -e 's/:/ /g'); do
+		[ "$num" = "$num_devices" ] && break
+
 		eval set -- $(echo "$device" | sed -e 's/-/ /g')
 		size="$1" fs="$2" dev=/dev/zram$num
 		[ -n "$size" ] || continue
@@ -38,14 +40,14 @@ dozram() {
 		echo $streams > /sys/block/zram$num/max_comp_streams
 		echo $size >/sys/block/zram$num/disksize
 
+		num=$(expr $num + 1)
+
+		[ -n "$fs" ] || continue
 		if [ -x /sbin/mkfs.$fs ]; then
 			debug -d /sbin/mkfs.$fs /dev/zram$num
 		else
 			die "dozram: mkfs.$fs nout found"
 		fi
-
-		num=$(expr $num + 1)
-		[ "$num" == "$num_devices" ] && break
 	done
 
 	rm -f /run/${0##*/}.pid
