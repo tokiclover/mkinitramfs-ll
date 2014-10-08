@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.14.0 2014/10/01 10:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.14.1 2014/10/01 10:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -34,11 +34,11 @@ Or if you run Gentoo you can run either gnupg.{ba,z}sh to generate one.
 or else in /usr/local/mkiniramfs-ll/ directory if installed.
 Or else, run the bash script counterpart to get build a binary.
 
-And then run @mkinitramfs-ll.zsh -font -keymap -gpg@
-or the bash counterpart @mkinitramfs-ll.bash --font --keymap --gpg@
-to generate an initramfs.
+And then run @mkinitramfs-ll.$shell -a -fter-g14n -yfr@ to build an initramfs.
+The appended font and keymap will be the default if there is no *ikmap* kernel
+cmdline argument.
 
-Of course, one can append extra fonts and keymaps with @-fter-g12n -yfr-latin1@
+Of course, one can append extra fonts and keymaps with @-f:ter-g12n -y:fr-latin1@
 etc. and the @-a@ option depend on @mkinitramfs-ll.conf@
 so one can put many sane default values there.
 
@@ -132,9 +132,10 @@ KERNEL-COMMAND-LINE-ARG: @ikresume=<mode>:<device>:</path/to/key/file>@
 DESCRIPTION: key [file] mode for @iresume@ group
 EXAMPLE: @ikresume=pwd@ for a password mode
 
-KERNEL-COMMAND-LINE-ARG: @isquashd=y[|/squashdir],y[|[n|a]:<dir>]@
+KERNEL-COMMAND-LINE-ARG: @isquashd=/var/aufs:LOCAL:<dir>]@
 DESCRIPTION: squashed directories, see below for more info
-EXAMPLE: @isquashd=y,a:lib64@ use default squashed dirs and append @lib64@
+EXAMPLE: @isquashd=:L:var/portage@ use default local squashed directories,
+append @var/portage@ and use default @/aufs@ squash root directory.
 
 KERNEL-COMMAND-LINE-ARG: @idebug=ax[:2]@
 DESCRIPTION: optionaly enable a list of sh (set) options string,
@@ -277,25 +278,28 @@ One can use multiple lists up to three, one for each group.
 
 h3. 4.3 Squashed (AUFS+squashfs) directories support
 
-One can use squashfs+aufs to squash directories like @$PORTDIR:var/lib/layamn@,
+One can use squashfs+aufs to squash *local* directories like
+@$PORTDIR:var/lib/layamn:var/db:var/cache/edb@,
 or system related directories like @usr:lib32:lib64:bin:sbin@. Advantages are
 system speed, responsiveness and very small disk size footprint. To favor speed,
 one should use 'lzo -Xcompression-level 1', which is the default, until lz4 get
-proper support in squashfs-tools.
+proper support in squashfs-tools and in kernel (squashfs module).
 
-SQUASHDIR=<squashed-dir-root> default to @/aufs@
-SQUASHD=<colon-sperated-list-of-squashed-dirs> default to @usr:bin:sbin@
+* default squashed root directory is @/aufs@
+* default system wide squashed directories is @usr:bin:sbin:lib32:lib64@
+* default local wide squashed directories is @var/cache/edb:var/db:var/lib/layman@
 
-Squashed directories argument:
+* @isquashd=:sys:local:[<dir1>:<dirn>]@
+	use default root directory, and sytem/local wide directories and optionaly
+	append directories to the list of squashed directories;
+* @isquashd=/var/aufs:<dir 1>:<dir n>@
+	no default directory-ies used, and append everything on kernel commmand line;
+* @isquashd=:l@
+	use default root directory and local squashed directories (no extra argument);
+* @isquashd=:l:var/portage@
+	same as above and append @var/portage@ to squashed directories.
 
-* @isquashd=y[|/squashdir],y[|[n|a]:<dir1>:<dirn>]@
-	using default or append directories after a @[n|a]:@
-* @isquashd=/squashdir,n:<dir 1>:<dir n>@
-	neither SQUASHDIR nor SQUASHD default is used, so everything is required;
-* @isquashd=y,y@
-	using SQUASHD and SQUASHDIR default values do not require any additional argument;
-* @isquashd=y,a:<dir 1>[:<dir n>]@
-	same as above, however, @<dir 1>[:<dir n>]@ is  appended to SQUASHD variable.
+* lastly, sys|local are case insensitive and the first character is valid.
 
 h3. 4.4. Optional user scripts support
 
