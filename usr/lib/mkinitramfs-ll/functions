@@ -522,10 +522,10 @@ squashd() {
 
 	while [ $# -ge 1 ]; do
 		case "$1" in
-			([Ss]*)
+			(+[Ss]*)
 				_squashd="usr bin sbin $_squashd"
 				shift;;
-			([Ll]*)
+			(+[Ll]*)
 				_squashd="var/cache/edb var/db var/lib/layman $_squashd"
 				shift;;
 			(*)
