@@ -256,8 +256,7 @@ lvl 1
 # -*- Font and keymap -*-
 
 dokmap() {
-	eval set -- ${ikmap/:/ }
-	local font="$2" kmap="$1"
+	local font="${ikmap#*:}" kmap="${ikmap%:*}"
 
 	[ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
 	[ -z "$kmap" ] && [ -f "$CONFDIR/kmap" ] && kmap=$(cat $CONFDIR/kmap)
@@ -265,10 +264,13 @@ dokmap() {
 	FONTDIR=/usr/share/consolefonts
 	KMAPDIR=/usr/share/keymaps
 
-	[ -n "$font" ] && [ -f $FONTDIR/$font ] &&
-		debug -d loadfont < $FONTDIR/$font
-	[ -n "$kmap" ] && [ -f $KMAPDIR/$kmap ] &&
-		debug -d loadkmap < $KMAPDIR/$kmap
+	for file in $FONTDIR/$font*; do
+		[ -e "$file" ] && debug -d loadfont < $file && break
+	done
+
+	for file in $KMAPDIR/$kmap*; do
+		[ -e "$file" ] && debug -d loadkmap < $file && break
+	done
 }
 dokmap
 
