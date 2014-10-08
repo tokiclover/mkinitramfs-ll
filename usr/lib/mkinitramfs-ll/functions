@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.0 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.1 2014/10/01 12:33:03                   Exp $
 #
 
 # @FUNCTION: arg
@@ -516,29 +516,39 @@ mdopen() {
 # @USAGE: indirectly given by isquashd cmdline arg and/or SQUASHD, SQUASHDIR variables
 # @DESCRIPTION: mount squashed, AUFS+squashfs, directories
 squashd() {
-	[ "${isquashd%,*}" = "y" ] || SQUASHDIR="${isquashd%,*}"
-	if [ "${isquashd#*,}" = "y" ]; then :;
-	elif [ "$(echo ${isquashd#*,}|cut -d: -f1)" = "a" ]; then
-		SQUASHD="${SQUASHD}:$(echo ${isquashd#*,} | cut -c3-)"
-	else
-		SQUASHD="$(echo ${isquashd#*,} | cut -c3-)"
-	fi
+	local _squashdir="${isquashd%%:*}" _squashd
+:	${_squashdir:=/aufs}
+	eval set -- $(echo "${isquashd#*:}" | sed -e 's/:/ /g')
 
-	debug -d test -d $NEWROOT/$SQUASHDIR
+	while [ $# -ge 1 ]; do
+		case "$1" in
+			([Ss]*)
+				_squashd="usr bin sbin $_squashd"
+				shift;;
+			([Ll]*)
+				_squashd="var/cache/edb var/db var/lib/layman $_squashd"
+				shift;;
+			(*)
+				_squashd="$* $_squashd"
+				break;;
+		esac
+	done
+
+	debug -d test -d $NEWROOT/$_squashdir
 	debug _modprobe squashd
 	cd $NEWROOT
 
-	local IFS="${IFS}:" _base _dir _n=/dev/null
-	for _dir in $SQUASHD; do
-		_base=/"$SQUASHDIR"/$_dir
+	local _base _dir
+	for _dir in $_squashd; do
+		_base=/"$_squashdir"/$_dir
 		_base=$(echo $_base | sed -e 's,//,/,g')
 		_dir=$( echo /$_dir | sed -e 's,//,/,g')
 
 		debug -d test -f $_base.squashfs
 		debug mkdir -p -m 0755 .$_base/rw .$_base/rr .$_dir
 
-		if ! grep aufs:$_dir /proc/mounts >$_n 2>&1; then
-			if ! grep $_base/rr /proc/mounts >$_n 2>&1; then
+		if ! grep -q aufs:$_dir /proc/mounts; then
+			if ! grep -q $_base/rr /proc/mounts; then
 				debug -d mount -t squashfs -o nodev,loop,ro .$_base.squashfs .$_base/rr ||
 				continue
 			fi
