@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.0 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.1 2014/10/01 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -253,21 +253,24 @@ debug _modprobe remdev
 
 lvl 1
 
-# -*- Font -*-
+# -*- Font and keymap -*-
 
-arg "FONT" "$ikmap" ":" "2" "-s"
-if [ -n "$FONT" ]; then
-	CSFDIR=/usr/share/consolefonts
-	[ -f $CSFDIR/$FONT ] && debug -d loadfont <$CSFDIR/$FONT
-fi
+dokmap() {
+	eval set -- ${ikmap/:/ }
+	local font="$2" kmap="$1"
 
-# -*- Keymap -*-
+	[ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
+	[ -z "$kmap" ] && [ -f "$CONFDIR/kmap" ] && kmap=$(cat $CONFDIR/kmap)
 
-arg "KEYMAP" "$ikmap" ":" "1"
-if [ -n "$KEYMAP" ]; then
-	KMPDIR=/usr/share/keymaps
-	[ -f $KMPDIR/$KEYMAP ] && debug -d loadkmap <$KMPDIR/$KEYMAP
-fi
+	FONTDIR=/usr/share/consolefonts
+	KMAPDIR=/usr/share/keymaps
+
+	[ -n "$font" ] && [ -f $FONTDIR/$font ] &&
+		debug -d loadfont < $FONTDIR/$font
+	[ -n "$kmap" ] && [ -f $KMAPDIR/$kmap ] &&
+		debug -d loadkmap < $KMAPDIR/$kmap
+}
+dokmap
 
 # -*- Logo and or boot message -*-
 
