@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.0 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.1 2014/10/01 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
-	[version]=0.14.0
+	[version]=0.14.1
 )
 
 # @FUNCTION: usage
@@ -447,6 +447,7 @@ function domod {
 	return ${ret}
 }
 
+declare -a KEYMAP
 for keymap in ${opts[-y]//:/ } ${opts[-keymap]//:/ }; do
 	if [[ -f usr/share/keymaps/"${keymap}" ]]; then :;
 	elif [[ -f "${keymap}" ]]; then
@@ -455,8 +456,12 @@ for keymap in ${opts[-y]//:/ } ${opts[-keymap]//:/ }; do
 		loadkeys -b -u ${keymap} >usr/share/keymaps/${keymap}-${opts[-arch]}.bin ||
 			die "failed to build ${keymap} keymap"
 	fi
+	(( $? == 0 )) && KEYMAP+=(${keymap}-${opts[-arch]}.bin)
 done
+echo "${KEYMAP[0]}" > etc/${PKG[name]}/kmap
+unset KEYMAP
 
+declare -a FONT
 for font in ${opts[-f]//:/ } ${opts[-font]//:/ }; do
 	if [[ -f usr/share/consolefonts/${font} ]]; then :;
 	elif [[ -f ${font} ]]; then
@@ -470,7 +475,11 @@ for font in ${opts[-f]//:/ } ${opts[-font]//:/ }; do
 		done
 		mv ${font}* usr/share/consolefonts/
 	fi
+	(( $? == 0 )) && FONT+=(${font})
 done
+echo "${FONT[0]}" > etc/${PKG[name]}/font
+unset FONT
+
 
 if [[ "${opts[-s]}" ]] || [[ "${opts[-splash]}" ]]; then
 	opts[-bin]+=:splash_util.static:fbcondecor_helper

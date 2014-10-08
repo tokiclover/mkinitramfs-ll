@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.0 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.1 2014/10/01 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	name mkinitramfs-ll
 	shell zsh
-	version 0.14.0
+	version 0.14.1
 )
 
 # @FUNCTION: usage
@@ -105,6 +105,7 @@ function donod {
 }
 
 setopt EXTENDED_GLOB NULL_GLOB
+unsetopt KSH_ARRAYS
 
 # @VARIABLE: opts [associative array]
 # @DESCRIPTION: declare if not declared while arsing options,
@@ -414,6 +415,7 @@ function domod {
 	return ${ret}
 }
 
+typeset -a KEYMAP
 for keymap (${(pws,:,)opts[-y]} ${(pws,:,)opts[-keymap]}) {
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]] {
 		:;
@@ -423,8 +425,12 @@ for keymap (${(pws,:,)opts[-y]} ${(pws,:,)opts[-keymap]}) {
 		loadkeys -b -u ${keymap} > usr/share/keymaps/${keymap}-${opts[-arch]}.bin ||
 			die "failed to build ${keymap} keymap"
 	}
+	(( $? == 0 )) && KEYMAP+=(${keymap}-${opts[-arch]}.bin)
 }
+print ${KEYMAP[1]} > etc/${PKG[name]}/kmap
+unset KEYMAP
 
+typeset -a FONT
 for font (${(pws,:,)opts[-f]} ${(pws,:,)opts[-font]}) {
 	if [[ -f usr/share/consolefonts/${font} ]] {
 		:;
@@ -437,7 +443,10 @@ for font (${(pws,:,)opts[-f]} ${(pws,:,)opts[-font]}) {
 		}
 		mv ${font}* usr/share/consolefonts/
 	}
+	(( $? == 0 )) && FONT+=(${font})
 }
+print ${FONT[1]} > etc/${PKG[name]}/font
+unset FONT
 
 if (( ${+$opts[-s]} )) || (( ${+opts[-splash]} )) {
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
