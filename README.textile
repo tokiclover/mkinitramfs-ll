@@ -132,9 +132,9 @@ KERNEL-COMMAND-LINE-ARG: @ikresume=<mode>:<device>:</path/to/key/file>@
 DESCRIPTION: key [file] mode for @iresume@ group
 EXAMPLE: @ikresume=pwd@ for a password mode
 
-KERNEL-COMMAND-LINE-ARG: @isquashd=/var/aufs:LOCAL:<dir>]@
+KERNEL-COMMAND-LINE-ARG: @isquashd=/var/aufs:+LOCAL:<dir>]@
 DESCRIPTION: squashed directories, see below for more info
-EXAMPLE: @isquashd=:L:var/portage@ use default local squashed directories,
+EXAMPLE: @isquashd=:+L:var/portage@ use default local squashed directories,
 append @var/portage@ and use default @/aufs@ squash root directory.
 
 KERNEL-COMMAND-LINE-ARG: @idebug=ax[:2]@
@@ -289,14 +289,14 @@ proper support in squashfs-tools and in kernel (squashfs module).
 * default system wide squashed directories is @usr:bin:sbin:lib32:lib64@
 * default local wide squashed directories is @var/cache/edb:var/db:var/lib/layman@
 
-* @isquashd=:sys:local:[<dir1>:<dirn>]@
+* @isquashd=:+sys:+local:[<dir1>:<dirn>]@
 	use default root directory, and sytem/local wide directories and optionaly
 	append directories to the list of squashed directories;
 * @isquashd=/var/aufs:<dir 1>:<dir n>@
 	no default directory-ies used, and append everything on kernel commmand line;
-* @isquashd=:l@
+* @isquashd=:+l@
 	use default root directory and local squashed directories (no extra argument);
-* @isquashd=:l:var/portage@
+* @isquashd=:+l:var/portage@
 	same as above and append @var/portage@ to squashed directories.
 
 * lastly, sys|local are case insensitive and the first character is valid.
