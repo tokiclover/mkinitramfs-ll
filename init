@@ -352,14 +352,6 @@ dorootfs() {
 }
 [ -z "$ROOT" ] && dorootfs
 
-# @VARIABLE: SQUASHDIR
-# @DEFAULT_SET
-# @DESCRIPTION: squashed dirs (AUFS+squashfs) root directory
-:	${SQUASHDIR:=/aufs}
-# @VARIABLE: SQUASHD
-# @DEFAULT_SET
-# @DESCRIPTION: colon separated list of squashed dir
-:	${SQUASHD:=usr:bin:sbin}
 [ -n "$isquashd" ] && lvl 3s && debug -d squashd
 
 # -*- Clean up and switch -*-
