@@ -304,7 +304,7 @@ ln -sf lib{${opts[-arc]},} &&
 	for key in "${!PKG[@]}"; do
 		echo "${key}=${PKG[$key]}"
 	done
-	echo "build=$(date +%Y-%m-%d-%T)"
+	echo "build=$(date +%Y-%m-%d-%H-%M-%S)"
 } >etc/${PKG[name]}/id
 touch etc/{fs,m}tab
 
@@ -426,7 +426,9 @@ function domod {
 	esac
 
 	local mod module ret
-	for mod in $*; do
+	local dep prefix mdep
+
+	for mod in "$@"; do
 		declare -a modules
 		modules=($(find /lib/modules/${opts[-kv]} -name "${mod}.ko" \
 			-or -name "${kmod}_*.ko" -or -name "${mod}-*.ko"))
@@ -434,6 +436,17 @@ function domod {
 			for module in "${modules[@]}"; do
 				mkdir -p .${module%/*} && cp -ar {,.}${module} ||
 					die "failed to copy ${module} module"
+
+				# Copy module dependencies
+				prefix=/lib/modules/${opts[-kv]}
+				mdep="${module#${prefix}/}"
+
+				for dep in $(sed -nre "s,^${mdep}:(.*$),\1,p" ${prefix}/modules.dep); do
+					if [[ ! -e .${prefix}/${dep} ]]; then
+						mkdir -p .${prefix}/${dep%/*} &&
+						cp -a {,.}${prefix}/${dep} || die "Failed to copy ${dep}"
+					fi
+				done
 			done
 
 			if [[ "${verbose}" ]]; then
