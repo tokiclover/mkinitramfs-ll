@@ -1,5 +1,6 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+* ability to copy kernel module dependencies for building scripts;
 * cleaned up squashd() to have a nice and user friendly api, see README;
 * added default font/keymap to building scripts, so init script can pick up
 a font/keymap pair if *ikmap* kernel cmdline argument is not present.
