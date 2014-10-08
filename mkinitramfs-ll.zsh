@@ -395,29 +395,22 @@ function domod {
 			shift 2;;
 	esac
 
-	local mod module ret
-	local dep prefix mdep
+	local mod module ret prefix=/lib/modules/${opts[-kv]}/
 
 	for mod (${argv}) {
-		typeset -a modules
-		modules=(/lib/modules/${opts[-kv]}/**/${mod}(|[_-]*).ko(.))
+		local -a modules
+		modules=($(grep -E "${mod}(|[_-]*)" ${prefix}modules.dep))
+
 		if (( ${#modules} > 0 )) {
 			for module (${modules}) {
-				mkdir -p .${module:h} && cp -ar {,.}${module} ||
-					die "failed to copy ${module} module"
-
-				# Copy module dependencies
-				prefix=/lib/modules/${opts[-kv]}
-				mdep=${module#${prefix}/}
-
-				for dep ($(sed -nre "s,^${mdep}:(.*$),\1,p" ${prefix}/modules.dep))
-					if [[ ! -e .${prefix}/${dep} ]] {
-						mkdir -p .${prefix}/${dep:h} &&
-						cp -a {,.}${prefix}/${dep} || die "Failed to copy ${dep}"
+				if [[ ${module%:} != ${module} ]] {
+					module="${module%:}"
+					if (( ${+verbose} )) {
+						print ${${module:t}/.ko} >> ${verbose} || die
 					}
-			}
-			if (( ${+verbose} )) {
-				print ${${modules:t}//.ko} >> ${verbose} || die
+				}
+				mkdir -p .${prefix}${module:h} && cp -ar {,.}${prefix}${module} ||
+					die "failed to copy ${module} module"
 			}
 		} else {
 			warn "${mod} does not exist"

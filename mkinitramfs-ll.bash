@@ -425,33 +425,24 @@ function domod {
 			shift 2;;
 	esac
 
-	local mod module ret
-	local dep prefix mdep
+	local mod module ret name prefix=/lib/modules/${opts[-kv]}/
 
 	for mod in "$@"; do
-		declare -a modules
-		modules=($(find /lib/modules/${opts[-kv]} -name "${mod}.ko" \
-			-or -name "${kmod}_*.ko" -or -name "${mod}-*.ko"))
+		local -a modules
+		modules=($(grep -E "${mod}(|[_-]*)" ${prefix}modules.dep))
+
 		if (( "${#modules[@]}" > 0 )); then
 			for module in "${modules[@]}"; do
-				mkdir -p .${module%/*} && cp -ar {,.}${module} ||
-					die "failed to copy ${module} module"
-
-				# Copy module dependencies
-				prefix=/lib/modules/${opts[-kv]}
-				mdep="${module#${prefix}/}"
-
-				for dep in $(sed -nre "s,^${mdep}:(.*$),\1,p" ${prefix}/modules.dep); do
-					if [[ ! -e .${prefix}/${dep} ]]; then
-						mkdir -p .${prefix}/${dep%/*} &&
-						cp -a {,.}${prefix}/${dep} || die "Failed to copy ${dep}"
+				if [[ "${module%:}" != "${module}" ]]; then
+					module="${module%:}"
+					if [[ "${verbose}" ]]; then
+						name="${module##*/}"
+						echo "${name/.ko}" >> ${verbose} || die
 					fi
-				done
+				fi
+				mkdir -p .${prefix}${module%/*} && cp -ar {,.}${prefix}${module} ||
+					die "failed to copy ${module} module"
 			done
-
-			if [[ "${verbose}" ]]; then
-				echo "${modules[@]##*/}" | sed -e 's/.ko//g' >> ${verbose} || die
-			fi
 		else
 			warn "${mod} does not exist"
 			((ret=${ret}+1))
