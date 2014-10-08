@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+* cleaned up squashd() to have a nice and user friendly api, see README;
+* added default font/keymap to building scripts, so init script can pick up
+a font/keymap pair if *ikmap* kernel cmdline argument is not present.
+
 0.14.0:
 
 * clean up bcache hooks, now provide a simple and functional hooks;
