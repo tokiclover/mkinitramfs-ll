@@ -199,10 +199,12 @@ for arg in $(cat /proc/cmdline); do
 done
 
 RSH="${irsh%:*}"
-arg "RIL" "${irsh}" ":" "2" "-s"
+RIL="${irsh#*:}"
+[ "$RIL" = "$RSH" ] && RIL=
 
 DEBUG="${idebug%:*}"
-arg "DMESG" "${idebug}" "2" "-s"
+DMESG="${idebug#*:}"
+[ "$DMESG" = "$DEBUG" ] && DMESG=
 
 [ -n "$DEBUG" ]  && set -${DEBUG/e/}
 [ -n "$DMESG" ]  && debug dmesg -n $DMESG
@@ -255,6 +257,7 @@ lvl 1
 
 dokmap() {
 	local font="${ikmap#*:}" kmap="${ikmap%:*}"
+	[ "$font" = "$kmap" ] && font=
 
 	[ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
 	[ -z "$kmap" ] && [ -f "$CONFDIR/kmap" ] && kmap=$(cat $CONFDIR/kmap)
