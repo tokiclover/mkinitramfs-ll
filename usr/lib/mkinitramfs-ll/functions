@@ -239,7 +239,7 @@ shread() {
 	local _buffer
 	read _buffer
 	case $_buffer in
-		sh|SH|shell|SHELL|rsh|RSH) die;;
+		([Rr][Ss][Hh]|[Ss][Hh]|[Ss][Hh][Ee][Ll][Ll]|[Rr][Ee][Ss][Cc][Uu][Ee]) die;;
 	esac
 	eval "$1"="$_buffer"
 }
