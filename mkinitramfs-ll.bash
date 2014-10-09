@@ -425,23 +425,23 @@ function domod {
 			shift 2;;
 	esac
 
-	local mod module ret name prefix=/lib/modules/${opts[-kv]}/
+	local mod ret name prefix=/lib/modules/${opts[-kv]}/
 
 	for mod in "$@"; do
 		local -a modules
-		modules=($(grep -E "${mod}(|[_-]*)" ${prefix}modules.dep))
+		modules=($(grep -E "${mod}(|[_-]*)" .${prefix}modules.dep))
 
 		if (( "${#modules[@]}" > 0 )); then
-			for module in "${modules[@]}"; do
-				if [[ "${module%:}" != "${module}" ]]; then
-					module="${module%:}"
+			for (( i=0; i < "${#modules[@]}"; i++ )); do
+				if [[ "${modules[i]%:}" != "${modules[i]}" ]]; then
+					modules[$i]="${modules[i]%:}"
 					if [[ "${verbose}" ]]; then
-						name="${module##*/}"
+						name="${modules[i]##*/}"
 						echo "${name/.ko}" >> ${verbose} || die
 					fi
 				fi
-				mkdir -p .${prefix}${module%/*} && cp -ar {,.}${prefix}${module} ||
-					die "failed to copy ${module} module"
+				mkdir -p .${prefix}${modules[i]%/*} && cp -ar {,.}${prefix}${modules[i]} ||
+					die "failed to copy ${modules[i]} module"
 			done
 		else
 			warn "${mod} does not exist"

@@ -395,22 +395,22 @@ function domod {
 			shift 2;;
 	esac
 
-	local mod module ret prefix=/lib/modules/${opts[-kv]}/
+	local mod ret prefix=/lib/modules/${opts[-kv]}/
 
 	for mod (${argv}) {
 		local -a modules
-		modules=($(grep -E "${mod}(|[_-]*)" ${prefix}modules.dep))
+		modules=($(grep -E "${mod}(|[_-]*)" .${prefix}modules.dep))
 
 		if (( ${#modules} > 0 )) {
-			for module (${modules}) {
-				if [[ ${module%:} != ${module} ]] {
-					module="${module%:}"
+			for (( i=1; i <= ${#modules}; i++ )) {
+				if [[ ${modules[i]%:} != ${modules[i]} ]] {
+					modules[$i]="${modules[i]%:}"
 					if (( ${+verbose} )) {
-						print ${${module:t}/.ko} >> ${verbose} || die
+						print ${${modules[i]:t}/.ko} >> ${verbose} || die
 					}
 				}
-				mkdir -p .${prefix}${module:h} && cp -ar {,.}${prefix}${module} ||
-					die "failed to copy ${module} module"
+				mkdir -p .${prefix}${modules[i]:h} && cp -ar {,.}${prefix}${modules[i]} ||
+					die "failed to copy ${modules[i]} module"
 			}
 		} else {
 			warn "${mod} does not exist"
