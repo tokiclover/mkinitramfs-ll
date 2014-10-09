@@ -189,21 +189,21 @@ debug -d mount -t proc proc /proc
 for arg in $(cat /proc/cmdline); do
 	case "$arg" in
 		(rescue*|RSH*) export RSH=1                 ;;
-		(ro|rw) export imopt="${imopt:+$imopt,}$arg";;
+		(ro|rw)   imopt="${imopt:+$imopt,}$arg"     ;;
+		(imopt=*) imopt="${imopt:+$imopt,}${arg#*=}";;
 		(single) export RIL=2                       ;;
-		(irsh=*) arg "RSH" "${arg#*=}" ":" "1"
-		         arg "RIL" "${arg#*=}" ":" "2" "-s" ;;
 		(splash*|console*|CONSOLE*) export "$arg"   ;;
 		(ihook=*) HOOKS="$HOOKS ${arg#*=}"          ;;
 		(i[bdklmnrsz]*) export "$arg"               ;;
 	 esac
 done
 
-dodebug() {
-	eval set -- ${idebug/:/ }
-	DEBUG="$1" DMESG="$2"
-}
-[ -n "$idebug" ] && dodebug
+RSH="${irsh%:*}"
+arg "RIL" "${irsh}" ":" "2" "-s"
+
+DEBUG="${idebug%:*}"
+arg "DMESG" "${idebug}" "2" "-s"
+
 [ -n "$DEBUG" ]  && set -${DEBUG/e/}
 [ -n "$DMESG" ]  && debug dmesg -n $DMESG
 
@@ -217,10 +217,10 @@ $ECK && debug ack
 
 debug _modprobe boot
 
-if grep devtmpfs /proc/filesystems 1>/dev/null 2>&1; then
+if grep -q devtmpfs /proc/filesystems; then
 	debug -d mount -t devtmpfs devtmpfs /dev
 else
-	debug -d mount -t tmpfs tmpfs /dev
+	debug -d mount -t tmpfs -o mode=755 tmpfs /dev
 fi
 
 debug mkdir /dev/pts
@@ -230,11 +230,9 @@ echo >/dev/mdev.seq
 debug -d mdev -s
 echo /sbin/mdev >/proc/sys/kernel/hotplug
 	
-if [ -n "$imod" ]; then
-	for _m in $(echo $imod | sed 's/:/ /g'); do 
-		debug _modprobe -q $_m
-	done
-fi
+for _m in $(echo "$imod" | sed 's/:/ /g'); do
+	debug _modprobe -q $_m
+done
 	
 [ -h /dev/fd     ] || debug ln -fs /proc/self/fd   /dev/fd
 [ -n /dev/stderr ] || debug ln -fs /proc/self/fd/2 /dev/stderr
