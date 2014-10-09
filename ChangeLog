@@ -1,5 +1,7 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+* inproved shread(), now support case insensitive [r]sh|shell|rescue;
+* fix issue when ro|rw and imopt=<something> are appended on cmdline;
 * ability to copy kernel module dependencies for building scripts;
 * cleaned up squashd() to have a nice and user friendly api, see README;
 * added default font/keymap to building scripts, so init script can pick up
