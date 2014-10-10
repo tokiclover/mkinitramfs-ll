@@ -154,7 +154,7 @@ _rmmod() {
 			debug rmmod -q $_mod
 		done <$CONFDIR/$1
 	else
-		rmmod $*
+		rmmod -q $*
 	fi
 }
 
@@ -168,7 +168,7 @@ _modprobe() {
 			debug modprobe -q $_mod
 		done <$CONFDIR/$1
 	else
-		modprobe $*
+		modprobe -q $*
 	fi
 }
 
