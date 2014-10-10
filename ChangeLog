@@ -1,5 +1,10 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+* allow only case insensitive +s|+sys|+system and +l|+local (short/long
+options) to squashd();
+* improved dmopen() to be sure to boot with variations of iraid;
+* added an environment profile to be able to boot with an empty kernel cmdline.
+
 0.14.1:
 
 * fixed broken -F switch and removed redundant firmware bits;
