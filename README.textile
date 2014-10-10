@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.14.1 2014/10/01 10:59:54 -tclover Exp $@
+@$Header: mkinitramfs-ll/README.textile,v 0.14.2 2014/10/10 10:59:54 -tclover Exp $@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
@@ -313,7 +313,7 @@ Each script  should have a @$level-@ prefix as the follwing $level values if the
 execution is bound to a specific init shell run level.
 
 * runlevel 1: initialization - splash - keymap - font - boot logo/message -
-* runlevel 2: 2 - hooks  - @2s@ - swap        - @3r@ - resume     -
+* runlevel 2: 2 - hooks  - @2s@ - swap        - @2r@ - resume     -
 * runlevel 3: 3 - rootfs - @3f@ - rootfs fsck - @3m@ - root mount -
 * runlevel 4: 4 - clean up @4m@ - extra mount - @4u@ - umount - @4s@ - switch root
 
@@ -410,7 +410,7 @@ EXAMPLE: @iswap=file:swap-sda3:0x4400 iresume=toi[|CHAR|WORD]
 
 DESCRIPTION: crypted volume [root,swap] using LVM--ldk crypted keyfile and--
 _and_ mount options for rootfs
-EXAMPLE: @iroot=vgr-lvr:c:xfs iswap=file:vgs-lvs:0x4400 
+EXAMPLE: @iroot=vgr-lvr:xfs:chk iswap=file:vgs-lvs:0x4400
 	imopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier 
 	ilvm=pva1-UUID=uuida:pvb2-UUID=uuidb,pvc1-UID=uuidc 
 	ikroot=ldk:LABEL=PENDRIVE:/path/to/keyfile 
@@ -419,12 +419,16 @@ EXAMPLE: @iroot=vgr-lvr:c:xfs iswap=file:vgs-lvs:0x4400
 *NOTE*: multiple key-files (one for each group) are supported along with single
 a key file. 
 
+init script support an environment profile that can be used to define every
+kernel cmdline option (and boot with an empty cmdline). See the configuration file.
+
 h3. 6. Kernel module groups
 
-To load kernel modules, one could either create needed groups in
-mknitramfs-ll.conf as the kms kernel module group example.
+To load kernel modules, one could either create needed groups in the configuration
+file as the kms kernel module group example.
 Afterwards, one only need to append generaed groups as @imod=kms@ instead of
-append a long list of modules like @imod=
+appending a long list to @imod@. Module group name can be used in the boot group
+like the kms group.
 
 Supported groups:
 
