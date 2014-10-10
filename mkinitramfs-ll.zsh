@@ -20,10 +20,9 @@ function usage {
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [-f|-font [font]] [-y|-keymap [keymap]] [options]
 
-  -a, --all                 short hand or forme of '-l -L -g -M:zfs:zram -t -q'
+  -a, --all                 short hand or forme of '-l -L -g -H:zfs:zram -t -q'
   -f, --font=[:ter-v14n]    include a colon separated list of fonts to the initramfs
-  -F, --firmware=[:file]    append firmware file or directory (relative to /lib/firmware),
-                            or else full path, or the whole /lib/firmware dir if empty
+  -F, --firmware=[:file]    add firmware file/dir full path or relative to firmware dir
   -k, --kv=3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
   -c, --compressor='gzip -9' use 'gzip -9' compressor instead of default, accept 'none'
   -L, --luks                add LUKS support, require a sys-fs/cryptsetup binary
@@ -324,16 +323,13 @@ cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||
 if (( ${+opts[-F]} || ${+opts[-firmware]} )) {
 :   ${opts[-firmware]:=${opts[-F]:-/lib/firmware}}
 	mkdir -p lib/firmware
-	for f (${(pws,:,)opts[-firmware]}) {
-		if [[ -e $f ]] || [[ -d $f ]] {
+	for f (${(pws,:,)opts[-F]} ${(pws,:,)opts[-firmware]}) {
+		if [[ -e ${f} ]] {
 			cp -a $f lib/firmware/ || warn "failed to copy $f firmware"
-		} elif [[ -e /lib/firmware/$f ]] || [[ -d /lib/firmware/$f ]] {
+		} elif [[ -e /lib/firmware/${f} ]] {
 			cp -a {/,}lib/firmware/$f || warn "failed to copy $f firmware"
 		} else {
-			if [[ -d /lib/firmware ]] {
-				cp -a {/,}lib/firmware &&
-				warn "/lib/firmware: fully copied"
-			}
+			warn "failed to copy $f firmware"
 		}
 	}
 }
@@ -396,9 +392,9 @@ function domod {
 	esac
 
 	local mod ret prefix=/lib/modules/${opts[-kv]}/
+	local -a modules
 
 	for mod (${argv}) {
-		local -a modules
 		modules=($(grep -E "${mod}(|[_-]*)" .${prefix}modules.dep))
 
 		if (( ${#modules} > 0 )) {
@@ -509,6 +505,14 @@ for bin (${(pws,:,)opts[-b]} ${(pws,:,)opts[-bin]}) {
 	(( ${+commands[$bin]} )) && dobin ${commands[$bin]} ||
 		warn "no ${bin} binary found"
 }
+
+# Remove module group name from boot group before processing module groups
+for mod (${(pws,:,)opts[-mboot]})
+	if (( ${+opts[-m$mod]} )) {
+		print ${mod} >> etc/${PKG[name]}/boot
+	} else { mboot+=:${mod} }
+opts[-mboot]=${mboot}
+unset mboot
 
 for module (${(pws,:,)opts[-m]}${(pws,:,)opts[-kmod]}) domod ${module}
 for grp (${(pws,:,)opts[-mgrp]})

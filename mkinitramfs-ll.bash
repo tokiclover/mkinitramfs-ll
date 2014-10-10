@@ -20,10 +20,9 @@ function usage {
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
 
-  -a, --all                 short hand or forme of '-l -L -g -M:zfs:zram -t -q'
+  -a, --all                 short hand or forme of '-l -L -g -H:zfs:zram -t -q'
   -f, --font=[:ter-v14n]    include a colon separated list of fonts to the initramfs
-  -F, --firmware=[:file]    append firmware file or directory (relative to /lib/firmware),
-                            or else full path, or the whole /lib/firmware dir if empty
+  -F, --firmware=[:file]    add firmware file/dir full path or relative to firmware dir
   -k, --kv=3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
   -c, --compressor='gzip -9' use 'gzip -9' compressor instead of default, accept 'none'
   -L, --luks                add LUKS support, require a sys-fs/cryptsetup binary
@@ -324,10 +323,10 @@ cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 
 if [[ "${opts[-F]}" ]] || [[ "${opts[-firmware]}" ]]; then
 	mkdir -p lib/firmware
-	for f in ${opts[-firmware]//:/ }; do
-		if [[ -e $f ]] || [[ -d $f ]]; then
+	for f in ${opts[-F]//:/ } ${opts[-firmware]//:/ }; do
+		if [[ -e ${f} ]]; then
 			cp -a $f lib/firmware/ || warn "failed to copy $f firmware"
-		elif [[ -e /lib/firmware/$f ]] || [[ -d /lib/firmware/$f ]]; then
+		elif [[ -e /lib/firmware/${f} ]]; then
 			cp -a {/,}lib/firmware/$f || warn "failed to copy $f firmware"
 		else 
 			warn "failed to copy $f firmware"
@@ -426,9 +425,9 @@ function domod {
 	esac
 
 	local mod ret name prefix=/lib/modules/${opts[-kv]}/
+	local -a modules
 
 	for mod in "$@"; do
-		local -a modules
 		modules=($(grep -E "${mod}(|[_-]*)" .${prefix}modules.dep))
 
 		if (( "${#modules[@]}" > 0 )); then
@@ -549,6 +548,17 @@ done
 unset binary
 
 domod ${opts[-m]//:/ } ${opts[-kmod]//:/ }
+
+# Remove module group name from boot group before processing module groups
+for mod in ${opts[-mboot]//:/ }; do
+	if [[ "${opts[-m$mod]}" ]]; then
+		echo "${mod}" >> etc/${PKG[name]}/boot
+	else
+		mboot+=":${mod}"
+	fi
+done
+opts[-mboot]="${mboot}"
+unset mboot
 
 for grp in ${opts[-mgrp]//:/ }; do
 	domod -v etc/${PKG[name]}/${grp} ${opts[-m${grp}]//:/ }
