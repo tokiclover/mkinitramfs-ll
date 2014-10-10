@@ -1,5 +1,10 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+* a bunch of usefull fixes and update, read the configure file and commits;
+* added case insensitive rescue|rsh support in kernel command line;
+* added kernel module group support in boot (imod already support that),
+so one can make default module groups and add theme to boot group
+(and then no need to append imod=something if not needed!);
 * inproved shread(), now support case insensitive [r]sh|shell|rescue;
 * fix issue when ro|rw and imopt=<something> are appended on cmdline;
 * ability to copy kernel module dependencies for building scripts;
