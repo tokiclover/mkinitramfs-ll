@@ -1,5 +1,8 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.14.1:
+
+* fixed broken -F switch and removed redundant firmware bits;
 * a bunch of usefull fixes and update, read the configure file and commits;
 * added case insensitive rescue|rsh support in kernel command line;
 * added kernel module group support in boot (imod already support that),
