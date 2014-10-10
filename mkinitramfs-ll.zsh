@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.1 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	name mkinitramfs-ll
 	shell zsh
-	version 0.14.1
+	version 0.14.2
 )
 
 # @FUNCTION: usage
@@ -517,6 +517,10 @@ unset mboot
 for module (${(pws,:,)opts[-m]}${(pws,:,)opts[-kmod]}) domod ${module}
 for grp (${(pws,:,)opts[-mgrp]})
 	domod -v etc/${PKG[name]}/${grp} ${(pws,:,)opts[-m${grp}]}
+
+# Set up user environment if present
+for (( i=1; i <= ${#env[@]}; i++ ))
+	print ${env[i]} >> etc/${PKG[name]}/env
 
 for lib (/usr/lib/gcc/**/lib*.so*) {
 	ln -fs $lib     lib/$lib:t

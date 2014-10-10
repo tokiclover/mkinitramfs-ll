@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.1 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
-	[version]=0.14.1
+	[version]=0.14.2
 )
 
 # @FUNCTION: usage
@@ -562,6 +562,11 @@ unset mboot
 
 for grp in ${opts[-mgrp]//:/ }; do
 	domod -v etc/${PKG[name]}/${grp} ${opts[-m${grp}]//:/ }
+done
+
+# Set up user environment if present
+for (( i=0; i < ${#env[@]}; i++ )); do
+	echo "${env[i]}" >> etc/${PKG[name]}/env
 done
 
 for lib in $(find usr/lib/gcc -iname 'lib*'); do
