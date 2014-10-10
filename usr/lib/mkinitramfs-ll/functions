@@ -318,6 +318,8 @@ stk() {
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
 
+		[ -f $CONFDIR/remdev ] && debug _modprobe remdev
+
 		if [ -z "$(grep $MNTDIR /proc/mounts)" ]; then
 			[ -b "$_kd" ] || blk "$_kd" "_kd"
 			debug -d mount -n -r "$_kd" $MNTDIR
@@ -327,6 +329,7 @@ stk() {
 
 	case $_km in
 		(gpg) $ECK && debug -d bck gpg
+		      [ -f $CONFDIR/gpg ] && debug _modprobe gpg
 		      export KEYFILE="$MNTDIR/$_fp" KEYMODE=gpg    ;;
 		(reg) export KEYFILE="$MNTDIR/$_fp" KEYMODE=reg    ;;
 		(ldk) ldk "$MNTDIR/$_fp"
@@ -544,7 +547,7 @@ squashd() {
 		_base=$(echo $_base | sed -e 's,//,/,g')
 		_dir=$( echo /$_dir | sed -e 's,//,/,g')
 
-		debug -d test -f $_base.squashfs
+		debug -d test -f .$_base.squashfs || continue
 		debug mkdir -p -m 0755 .$_base/rw .$_base/rr .$_dir
 
 		if ! grep -q aufs:$_dir /proc/mounts; then
