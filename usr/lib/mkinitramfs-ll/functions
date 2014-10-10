@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.1 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
 #
 
 # @FUNCTION: arg
@@ -478,22 +478,32 @@ lvopen() {
 # @USAGE: <mdn-opt>
 # @DESCRIPTION: open md-raid block device
 mdopen() {
-	local _conf _dev="${1%+*}" _opt="${2#*+}" _set _uuid
+	local _devices _dev="${1%+*}" _opt="${2#*+}" _set _uuid
 	[ "${_opt/UUID}" != "$_opt" ] && _uuid=$_opt
+	case "$_opt" in
+		([Uu][Uu][Ii][Dd])        _uuid="$_opt"           ;;
+		(/dev/sd\[[a-z]*\][1-9])  _devices="$_opt"        ;;
+		(sd\[[a-z]*\][1-9])       _devices="/dev/$_opt"   ;;
+		(\[[a-z]*\][1-9])         _devices="/dev/sd$_opt" ;;
+		(asr*|ddf*|hpt*|isw*|jmicron*|lsi*|nvidia*|pdc*|sil*|via*|dos*)
+		                          _set="$_opt"            ;;
+		(*) die "Unsupported $_opt raid option"           ;;
+	esac
 
-	if [ -n "$_uuid" ] || [ -n "$(echo "$_opt" | grep -E '^(\[|[0-9])')" ]; then
+	if [ -n "$_uuid" ] || [ -n "$_devices" ]; then
 		[ "${_dev/dev}" != "$_dev" ] || _dev=/dev/$_dev
 		[ -b "$_dev" ] && return
+
 		$ECK && debug -d bck mdadm
 		debug _modprobe raid
 	
 		if [ -n "$_uuid" ]; then
 			echo ARRAY $_dev $_uuid >>/etc/mdadm.conf
 		else
-			echo ARRAY $_dev devices=/dev/sd*${_opt:-*} >>/etc/mdadm.conf
+			echo ARRAY $_dev devices="$_devices" >>/etc/mdadm.conf
 		fi
 		
-		_conf=-c/etc/mdadm.conf
+		local _conf=-c/etc/mdadm.conf
 		debug -d mdadm --assemble ${_uuid:+-u${_uuid#*=}} $_conf $_dev
 	else
 		$ECK && debug -d bck dmraid
@@ -525,10 +535,10 @@ squashd() {
 
 	while [ $# -ge 1 ]; do
 		case "$1" in
-			(+[Ss]*)
+			(+[Ss]|+[Ss][Yy][Ss]|+[Ss][Yy][Ss][Tt][Ee][Mm])
 				_squashd="usr bin sbin $_squashd"
 				shift;;
-			(+[Ll]*)
+			(+[Ll]|+[Ll][Oo][Cc][Aa][Ll])
 				_squashd="var/cache/edb var/db var/lib/layman $_squashd"
 				shift;;
 			(*)
