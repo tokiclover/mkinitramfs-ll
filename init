@@ -230,7 +230,7 @@ debug -d mdev -s
 echo /sbin/mdev >/proc/sys/kernel/hotplug
 	
 for _m in $(echo "$imod" | sed 's/:/ /g'); do
-	debug _modprobe -q $_m
+	debug _modprobe $_m
 done
 
 [ -h /dev/fd     ] || debug ln -fs /proc/self/fd   /dev/fd
@@ -245,7 +245,7 @@ export CONSOLE
 
 [ -f $CONFDIR/boot ] &&
 for _m in $(cat $CONFDIR/boot); do
-	debug _modprobe -q $_m
+	debug _modprobe $_m
 done
 
 [ -n "$splash" ] && debug spld
