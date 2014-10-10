@@ -188,12 +188,11 @@ debug -d mount -t proc proc /proc
 
 for arg in $(cat /proc/cmdline); do
 	case "$arg" in
-		(rescue*|RSH*) export RSH=1                 ;;
-		(ro|rw)   imopt="${imopt:+$imopt,}$arg"     ;;
-		(imopt=*) imopt="${imopt:+$imopt,}${arg#*=}";;
+		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) export RSH=1;;
+		(ro|rw)  export mopt="$arg"                 ;;
 		(single) export RIL=2                       ;;
 		(splash*|console*|CONSOLE*) export "$arg"   ;;
-		(ihook=*) HOOKS="$HOOKS ${arg#*=}"          ;;
+		(ihook=*) export HOOKS="${arg#*=}"          ;;
 		(i[bdklmnrsz]*) export "$arg"               ;;
 	 esac
 done
@@ -217,8 +216,6 @@ debug umask 0077
 debug mv -f $LOGFILE /run/log && export LOGFILE=/run/log/$LOGFILE
 $ECK && debug ack
 
-debug _modprobe boot
-
 if grep -q devtmpfs /proc/filesystems; then
 	debug -d mount -t devtmpfs devtmpfs /dev
 else
@@ -235,45 +232,48 @@ echo /sbin/mdev >/proc/sys/kernel/hotplug
 for _m in $(echo "$imod" | sed 's/:/ /g'); do
 	debug _modprobe -q $_m
 done
-	
+
 [ -h /dev/fd     ] || debug ln -fs /proc/self/fd   /dev/fd
-[ -n /dev/stderr ] || debug ln -fs /proc/self/fd/2 /dev/stderr
-[ -n /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
-[ -n /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
+[ -h /dev/stderr ] || debug ln -fs /proc/self/fd/2 /dev/stderr
+[ -h /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
+[ -h /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
 
 :	${CONSOLE:=${console:-/dev/console}}
 [ "${CONSOLE/dev}" != "$CONSOLE" ] || CONSOLE="/dev/$CONSOLE"
 exec 0<$CONSOLE 1>$CONSOLE 2>&1
 export CONSOLE
 
-[ -n "$splash" ] && debug spld
+[ -f $CONFDIR/boot ] &&
+for _m in $(cat $CONFDIR/boot); do
+	debug _modprobe -q $_m
+done
 
-debug _modprobe gpg
-debug _modprobe remdev
+[ -n "$splash" ] && debug spld
 
 lvl 1
 
 # -*- Font and keymap -*-
 
-dokmap() {
-	local font="${ikmap#*:}" kmap="${ikmap%:*}"
+if [ -n "$ikmap" ]; then
+	font="${ikmap#*:}"
+	kmap="${ikmap%:*}"
 	[ "$font" = "$kmap" ] && font=
+fi
+[ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
+[ -z "$kmap" ] && [ -f "$CONFDIR/kmap" ] && kmap=$(cat $CONFDIR/kmap)
 
-	[ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
-	[ -z "$kmap" ] && [ -f "$CONFDIR/kmap" ] && kmap=$(cat $CONFDIR/kmap)
+FONTDIR=/usr/share/consolefonts
+KMAPDIR=/usr/share/keymaps
 
-	FONTDIR=/usr/share/consolefonts
-	KMAPDIR=/usr/share/keymaps
+for file in $FONTDIR/$font*; do
+	[ -f "$file" ] && debug loadfont < $file && break
+done
 
-	for file in $FONTDIR/$font*; do
-		[ -e "$file" ] && debug -d loadfont < $file && break
-	done
+for file in $KMAPDIR/$kmap*; do
+	[ -f "$file" ] && debug loadkmap < $file && break
+done
 
-	for file in $KMAPDIR/$kmap*; do
-		[ -e "$file" ] && debug -d loadkmap < $file && break
-	done
-}
-dokmap
+unset FONTDIR KMAPDIR file font kmap
 
 # -*- Logo and or boot message -*-
 
@@ -346,6 +346,10 @@ dorootfs() {
 	fi
 
 	lvl 2m
+	if [ -n "$mopt" ]; then
+		imopt="${imopt:+$imopt,}$mopt"
+		unset mopt
+	fi
 	if ! debug mount ${imopt:+-o$imopt} ${FS:+-t$FS} $ROOT $NEWROOT; then
 		[ "$KEYMODE" != "none" ] && debug -d dmclose "${ROOT##*/}"
 		die "failed to mount rootfs"
@@ -369,6 +373,7 @@ for _d in $(echo $LBD | sed 's/:/ /g'); do
 done
 
 [ "$KEYMODE" = "gpg" ] && debug _rmmod gpg
+
 if grep -q $MNTDIR /proc/mounts; then
 	debug -d umount -l $MNTDIR
 	debug _rmmod remdev
