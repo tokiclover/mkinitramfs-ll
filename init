@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.1 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -189,6 +189,7 @@ debug -d mount -t proc proc /proc
 for arg in $(cat /proc/cmdline); do
 	case "$arg" in
 		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) export RSH=1;;
+		([Ee][Nn][Vv]) export env=false             ;;
 		(ro|rw)  export mopt="$arg"                 ;;
 		(single) export RIL=2                       ;;
 		(splash*|console*|CONSOLE*) export "$arg"   ;;
@@ -204,6 +205,15 @@ RIL="${irsh#*:}"
 DEBUG="${idebug%:*}"
 DMESG="${idebug#*:}"
 [ "$DMESG" = "$DEBUG" ] && DMESG=
+
+[ -z "$env" ] && [ -f $CONFDIR/env ] &&
+while read _line; do
+	case "${_line%%=*}" in
+		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RIL|PATH|RSH|SPLD|sh)
+			:;;
+		([a-zA-Z]*) export "$_line";;
+	esac
+done < $CONFDIR/env
 
 [ -n "$DEBUG" ]  && set -${DEBUG/e/}
 [ -n "$DMESG" ]  && debug dmesg -n $DMESG
@@ -240,6 +250,7 @@ done
 
 :	${CONSOLE:=${console:-/dev/console}}
 [ "${CONSOLE/dev}" != "$CONSOLE" ] || CONSOLE="/dev/$CONSOLE"
+[ -c $CONSOLE ] || CONFDIR=/dev/console
 exec 0<$CONSOLE 1>$CONSOLE 2>&1
 export CONSOLE
 
