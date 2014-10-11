@@ -105,7 +105,7 @@ stop_pre()
 
 squash_mount()
 {
-	local base="${1}/${dir#/}" ret
+	local base="${1}/${dir}" ret
 
 	if grep -q "aufs:${dir}" /proc/mounts; then 
 		einfo "squash-ed aufs:${dir} already mounted"
@@ -127,12 +127,12 @@ squash_mount()
 
 squash_umount()
 {
-	local base="${1}/${dir#/}" no_netdev
+	local base="${1}/${dir}" no_netdev
 	[ "${RC_UNAME}" == "Linux" ] && no_netdev="-O no_netdev"
 
 	auplink "${dir}" flush
 	ebegin "umounting squashed ${dir}"
-	umount -lt aufs "${dir}" "${no_netdev}" >/dev/null 2>&1
+	umount -lt aufs "aufs:${dir}" "${no_netdev}" > /dev/null 2>&1
 	eend "${?}" "failed to umount squash-ed aufs:${dir}" || return
 	
 	umount -lt squashfs "${base}/rr" "${no_netdev}" >/dev/null 2>&1
