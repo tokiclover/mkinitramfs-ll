@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/svc/sdr.bash                   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
 #
 
 shopt -qs extglob
@@ -12,7 +12,7 @@ typeset -A PKG
 PKG=(
 	[name]=sdr
 	[shell]=bash
-	[version]=0.13.6
+	[version]=0.14.2
 )
 
 # @FUNCTION: usage
@@ -123,6 +123,7 @@ opts[-arc]=$(getconf LONG_BIT)
 # @VARIABLE: opts[-root]
 # @DESCRIPTION: root of squashed dir
 [[ "${opts[-root]}" ]] || opts[-root]=/aufs
+[[ "${opts[-root]#/}" == "${opts[-root]}" ]] && opts[-root]="/${opts[-root]}"
 # @VARIABLE: opts[-bsize]
 # @DESCRIPTION: Block SIZE of squashfs underlying filesystem block
 [[ "${opts[-bsize]}" ]] || opts[-bsize]=131072
@@ -143,7 +144,7 @@ opts[-arc]=$(getconf LONG_BIT)
 # @FUNCTION: squash-mount
 # @DESCRIPTION: mount squashed dir
 function squash-mount {
-	if [[ "${dir}" == /*(s)bin || "${dir}" == /lib*(32|64) ]]; then
+	if [[ "${dir}" == *(s)bin || "${dir}" == *lib*(32|64) ]]; then
 		ldd ${opts[-busybox]} >/dev/null && die "no static busybox binary found"
 		local busybox=/tmp/busybox
 		cp ${opts[-busybox]} ${busybox} || die
@@ -159,7 +160,7 @@ function squash-mount {
 
 	if ${grep} -q aufs:${dir} /proc/mounts; then
 		auplink ${dir} flush
-		${umount} -l ${dir} || die "failed to umount aufs:${dir}"
+		${umount} -l aufs:${dir} || die "failed to umount aufs:${dir}"
 	fi
 
 	if ${grep} -q ${base}/rr /proc/mounts; then
@@ -215,9 +216,6 @@ grep -q squashfs /proc/filesystems ||
 
 for dir in ${opts[-dir]//:/ }; do
 	base="${opts[-root]}/${dir}"
-	base=${base//\/\//\/}
-	dir=/${dir}
-	dir=${dir//\/\//\/}
 
 	if [[ -e ${base}.squashfs ]]; then
 		if (( ${opts[-offset]} != 0 )); then

@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/svc/sdr.bash                   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/26 12:33:03                   Exp $
+# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	name sdr
 	shell zsh
-	version 0.13.6
+	version 0.14.2
 )
 
 # @FUNCTION: usage
@@ -101,6 +101,7 @@ opts[-arc]=$(getconf LONG_BIT)
 # @VARIABLE: opts[-root]
 # @DESCRIPTION: root of squashed dir
 :	${opts[-root]:=${opts[-r]:-/aufs}}
+[[ ${opts[-root]#/} == ${opts[-root]} ]] && opts[-root]=/${opts[-root]}
 # @VARIABLE: opts[-offset]
 # @DESCRIPTION: offset or rw/rr or ro branch ratio
 :	${opts[-offset]:=10}
@@ -153,7 +154,7 @@ function squash-mount {
 
 	if ${=grep} -q aufs:${dir} /proc/mounts; then
 		auplink ${dir} flush
-		${=umount} -l ${dir} || die "$failed to umount aufs:${dir}"
+		${=umount} -l aufs:${dir} || die "$failed to umount aufs:${dir}"
 	fi
 	if ${=grep} -q ${base}/rr /proc/mounts; then
 		${=umount} -l ${base}/rr || die "failed to umount ${base}.squashfs" 
@@ -209,9 +210,6 @@ grep -q squashfs /proc/filesystems ||
 
 for dir (${(pws,:,)opts[-dir]}) {
 	base=${opts[-root]}/${dir}
-	base=${base//\/\//\/}
-	dir=/${dir}
-	dir=${dir//\/\//\/}
 
 	if [[ -e ${base}.squashfs ]]; then
 		if (( ${opts[-offset]} != 0 )); then
