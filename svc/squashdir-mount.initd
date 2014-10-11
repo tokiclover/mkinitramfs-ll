@@ -1,10 +1,11 @@
 #!/sbin/runscript
 # Copyright 1999-2014 Gentoo Foundation
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.6 2014/10/01 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.6 2014/10/10 -tclover Exp $
 
 conf_file="/etc/conf.d/${RC_SVCNAME}"
 description="manage (AUFS+squashfs) squashed directories"
+:	${squash_rootdir:=/aufs}
 
 depend()
 {
@@ -61,7 +62,7 @@ stop()
 		einfo "umounting local wide squashed dirs"
 	fi
 	for dir in ${squash_localdir}; do
-		squash_umount "${dir}"
+		squash_umount "${squash_rootdir}" "${dir}"
 	done
 
 	if [ -n "${squash_sysdir}" ]; then
@@ -104,7 +105,7 @@ stop_pre()
 
 squash_mount()
 {
-	local base="${1}/${dir}" ret
+	local base="${1}/${dir#/}" ret
 
 	if grep -q "aufs:${dir}" /proc/mounts; then 
 		einfo "squash-ed aufs:${dir} already mounted"
@@ -126,7 +127,7 @@ squash_mount()
 
 squash_umount()
 {
-	local base="${1}/${dir}" no_netdev
+	local base="${1}/${dir#/}" no_netdev
 	[ "${RC_UNAME}" == "Linux" ] && no_netdev="-O no_netdev"
 
 	auplink "${dir}" flush
