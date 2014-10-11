@@ -189,7 +189,7 @@ debug -d mount -t proc proc /proc
 for arg in $(cat /proc/cmdline); do
 	case "$arg" in
 		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) export RSH=1;;
-		([Ee][Nn][Vv]) export env=false             ;;
+		([Ee][Nn][Vv]=*) export "arg"               ;;
 		(ro|rw)  export mopt="$arg"                 ;;
 		(single) export RIL=2                       ;;
 		(splash*|console*|CONSOLE*) export "$arg"   ;;
@@ -206,12 +206,17 @@ DEBUG="${idebug%:*}"
 DMESG="${idebug#*:}"
 [ "$DMESG" = "$DEBUG" ] && DMESG=
 
-[ -z "$env" ] && [ -f $CONFDIR/env ] &&
+case "$env" in
+	(0|[Dd][Ii][Ss][Aa][Bb][Ll][Ee]|[Oo][Ff][Ff][Ff][Aa][Ll][Ss][Ee]|[Nn][Oo])
+		ENV=false;;
+esac
+
+${ENV:-true} && [ -f $CONFDIR/env ] &&
 while read _line; do
 	case "${_line%%=*}" in
 		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RIL|PATH|RSH|SPLD|sh)
 			:;;
-		([a-zA-Z]*) export "$_line";;
+		([a-zA-Z]*) [ "${env/:${_line%%=*}}" = "$env" ] && export "$_line"     ;;
 	esac
 done < $CONFDIR/env
 
