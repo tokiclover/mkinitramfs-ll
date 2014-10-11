@@ -530,7 +530,8 @@ mdopen() {
 # @DESCRIPTION: mount squashed, AUFS+squashfs, directories
 squashd() {
 	local _squashdir="${isquashd%%:*}" _squashd
-:	${_squashdir:=/aufs}
+:	${_squashdir:=aufs}
+	[ "${_squashdir#/}" = "$_squashdir" ] || _dir="${_squashdir#/}"
 	eval set -- $(echo "${isquashd#*:}" | sed -e 's/:/ /g')
 
 	while [ $# -ge 1 ]; do
@@ -553,19 +554,18 @@ squashd() {
 
 	local _base _dir
 	for _dir in $_squashd; do
-		_base=/"$_squashdir"/$_dir
-		_base=$(echo $_base | sed -e 's,//,/,g')
-		_dir=$( echo /$_dir | sed -e 's,//,/,g')
+		[ "${_dir#/}" = "$_dir" ] || _dir="${_dir#/}"
+		_base="$_squashdir/$_dir"
 
-		debug -d test -f .$_base.squashfs || continue
-		debug mkdir -p -m 0755 .$_base/rw .$_base/rr .$_dir
+		debug -d test -f $_base.squashfs || continue
+		debug mkdir -p -m 0755 $_base/rw $_base/rr $_dir
 
 		if ! grep -q aufs:$_dir /proc/mounts; then
 			if ! grep -q $_base/rr /proc/mounts; then
-				debug -d mount -t squashfs -o nodev,loop,ro .$_base.squashfs .$_base/rr ||
+				debug -d mount -t squashfs -o nodev,loop,ro $_base.squashfs $_base/rr ||
 				continue
 			fi
-			mount -t aufs -o nodev,udba=reval,br:.$_base/rw:.$_base/rr aufs:$_dir .$_dir
+			mount -t aufs -o nodev,udba=reval,br:$_base/rw:$_base/rr aufs:$_dir $_dir
 		fi
 	done
 }
