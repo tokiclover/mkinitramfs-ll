@@ -481,13 +481,13 @@ mdopen() {
 	local _devices _dev="${1%+*}" _opt="${2#*+}" _set _uuid
 	[ "${_opt/UUID}" != "$_opt" ] && _uuid=$_opt
 	case "$_opt" in
-		([Uu][Uu][Ii][Dd])        _uuid="$_opt"           ;;
-		(/dev/sd\[[a-z]*\][1-9])  _devices="$_opt"        ;;
-		(sd\[[a-z]*\][1-9])       _devices="/dev/$_opt"   ;;
-		(\[[a-z]*\][1-9])         _devices="/dev/sd$_opt" ;;
+		([Uu][Uu][Ii][Dd])  _uuid="$_opt"        ;;
+		(/dev/sd*[1-9])  _devices="$_opt"        ;;
+		(sd*[1-9])       _devices="/dev/$_opt"   ;;
+		(*-*[1-9])       _devices="/dev/sd$_opt" ;;
 		(asr*|ddf*|hpt*|isw*|jmicron*|lsi*|nvidia*|pdc*|sil*|via*|dos*)
-		                          _set="$_opt"            ;;
-		(*) die "Unsupported $_opt raid option"           ;;
+		                     _set="$_opt"        ;;
+		(*) die "Unsupported $_opt raid option"  ;;
 	esac
 
 	if [ -n "$_uuid" ] || [ -n "$_devices" ]; then
