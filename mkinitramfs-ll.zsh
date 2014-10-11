@@ -521,6 +521,7 @@ for grp (${(pws,:,)opts[-mgrp]})
 # Set up user environment if present
 for (( i=1; i <= ${#env[@]}; i++ ))
 	print ${env[i]} >> etc/${PKG[name]}/env
+unset env
 
 for lib (/usr/lib/gcc/**/lib*.so*) {
 	ln -fs $lib     lib/$lib:t

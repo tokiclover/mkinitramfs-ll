@@ -452,7 +452,8 @@ function domod {
 
 declare -a KEYMAP
 for keymap in ${opts[-y]//:/ } ${opts[-keymap]//:/ }; do
-	if [[ -f usr/share/keymaps/"${keymap}" ]]; then :;
+	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]]; then
+		continue
 	elif [[ -f "${keymap}" ]]; then
 		cp -a "${keymap}" usr/share/keymaps/
 	else 
@@ -568,6 +569,7 @@ done
 for (( i=0; i < ${#env[@]}; i++ )); do
 	echo "${env[i]}" >> etc/${PKG[name]}/env
 done
+unset env
 
 for lib in $(find usr/lib/gcc -iname 'lib*'); do
 	ln -fs /$lib     lib/${lib##*/}
