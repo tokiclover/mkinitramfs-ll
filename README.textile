@@ -327,7 +327,7 @@ h3. 4.5. ZFS support
 KERNEL-COMMAND-LINE-ARG: @izfs=zva-sda:zvb-sdb@
 DESCRIPTION: Required argument for crypted zfs vdev (devices), or else, @izfs=1@
 (1 can be replaced by case insensitive enable|on|true|yes) for un-encryoted vdev
-EXEMPLE: @iroot=POOL/ROOT izfs=zva-sda:zvb-sdb@
+EXEMPLE: @iroot=POOL/ROOT izfs=zva-sda:zvb-sdb ikroot=pwd@
 
 To get support for zfs append -Hzfs or -a|--all to building script.
 
