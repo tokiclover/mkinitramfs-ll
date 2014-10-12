@@ -189,7 +189,7 @@ debug -d mount -t proc proc /proc
 for arg in $(cat /proc/cmdline); do
 	case "$arg" in
 		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) export RSH=1;;
-		([Ee][Nn][Vv]=*) export "arg"               ;;
+		(ienv=*) export "$arg"                      ;;
 		(ro|rw)  export mopt="$arg"                 ;;
 		(single) export RIL=2                       ;;
 		(splash*|console*|CONSOLE*) export "$arg"   ;;
@@ -206,7 +206,7 @@ DEBUG="${idebug%:*}"
 DMESG="${idebug#*:}"
 [ "$DMESG" = "$DEBUG" ] && DMESG=
 
-case "$env" in
+case "$ienv" in
 	(0|[Dd][Ii][Ss][Aa][Bb][Ll][Ee]|[Oo][Ff][Ff][Ff][Aa][Ll][Ss][Ee]|[Nn][Oo])
 		ENV=false;;
 esac
@@ -303,8 +303,10 @@ done </etc/msg
 
 lvl 2
 
+[ -n "$izfs" ]  && HOOKS="zfs  $HOOKS"
 [ -n "$izram" ] && HOOKS="zram $HOOKS"
-export HOOKS
+export HOOKS="$(echo $HOOKS | sed -e 's/:/ /g')"
+
 for hook in $HOOKS; do
 	if [ -e "$LIBDIR/$hook" ]; then
 		debug dohook "$LIBDIR/$hook" ||
