@@ -247,7 +247,7 @@ fi
 # @FUNCTION: docpio
 # @DESCRIPTION: generate an initramfs image
 function docpio {
-	local ext=.cpio initramfs=${1:-${opts[-initramfs]}}
+	local ext=.cpio initramfs=${1:-/boot/${opts[-initramfs]}}
 	local cmd="find . -print0 | cpio -0 -ov -Hnewc"
 
 	case ${opts[-compressor]%% *} in
@@ -261,15 +261,15 @@ function docpio {
 		(*) opts[-compressor]=; warn "initramfs will not be compressed";;
 	esac
 
-	if [[ -f /boot/${initramfs}${ext} ]]; then
-	    mv /boot/${initramfs}${ext}{,.old}
+	if [[ -f ${initramfs}${ext} ]]; then
+	    mv ${initramfs}${ext}{,.old}
 	fi
 	if [[ -n "${ext#.cpio}" ]]; then
 		cmd+=" | ${opts[-compressor]} -c"
 	fi
 
-	eval ${cmd} >/boot/${initramfs}${ext} ||
-		die "failed to generate /tmp/${initramfs}${ext}"
+	eval ${cmd} > /${initramfs}${ext} ||
+	die "Failed to build ${initramfs}${ext} initramfs"
 }
 
 echo ">>> building ${opts[-initramfs]}..."
