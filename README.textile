@@ -54,7 +54,7 @@ KERNEL-COMMAND-LINE-ARG: @iroot=<PV|VG-LV>[:<fs>:chk]@
 DESCRIPTION: root block device, required,
 	recommanded optional file system check @:[<filesystem>]:[c|chk|yes|1|...]@
 EXAMPLE: @iroot=vg-root:ext4:1@ for an ext4 rootfs in LVM (Volume Group is named vg),
-	or @iroot=POOL/ROOT:zfs@ for a zfs rootfs (ROOT) in a pool called POOL.
+	or @iroot=POOL/ROOT izfs=yes@ for a zfs rootfs (ROOT) in a pool called POOL.
 
 *Note*: @:[no|NO:No:false:FALSE:0]@ instead of @:[c|chk|true|TRUE|yes|YES:1]@
 will disable a die after fsck failure.
@@ -325,35 +325,26 @@ then e.g. @ihook=zram@ append zram to script execution.
 h3. 4.5. ZFS support
 
 KERNEL-COMMAND-LINE-ARG: @izfs=zva-sda:zvb-sdb@
-DESCRIPTION: Required argument for crypted zfs vdev (devices)
-EXEMPLE: read the following
+DESCRIPTION: Required argument for crypted zfs vdev (devices), or else, @izfs=1@
+(1 can be replaced by case insensitive enable|on|true|yes) for un-encryoted vdev
+EXEMPLE: @iroot=POOL/ROOT izfs=zva-sda:zvb-sdb@
 
-One can use something like @iroot=POOL/ROOT[:zfs][ izfs=zva-sda:zvb-sdb]@.
-Notice that @izfs@ argument is required for crypted vdev(s). Do not forget to
-include zfs hook or build an initramfs with something like:
-@mkinitramfs-ll.$shell -a -fter-g12v -y -H:zfs@
-(kernel modules and binaries would be rightly added).
+To get support for zfs append -Hzfs or -a|--all to building script.
 
-*IMPORTANT*: So either way, one should append @:zfs@ to @iroot@ and/or
-to @iswap@ or @iresume@ argument for unencrypted vdev(s); or else, @izfs@ is
-required and is enough for encrypted vdev(s) (or both for this later case).
+Several pools (one containing root, another for swap and another one for resume)
+are supported along with a single pool. Just append a coma and an argument (2nd
+for swap and 3rd for resume like the other options).
 
-*IMPORTANT*: The @zfs@ suffix should be the *3rd* field for @iswap@ and @iresume@,
-so append @:zfs@ to @swap:POOL/VOL:zfs@ which means that no signature is present in
-this case; or else @file:POOL/VOL:zfs:sign@ when a signature is present and required.
+So @iroot=POOL/ROOT iswap=swap:POOL/SWAP ikswap=pwd iresume=swap izfs=1,zva-sda:zvba-sdb@
+kernel cmdline use a single pool for root, swap and resume. The integer to enable
+root on zfs is required for this case because swap and resume group does not mount
+any file system. To specify another pool for root, replace the integer by a valid
+colon list map-dev.
 
-This is change the default *signature* postion which should be *3rd*. This change
-is necessary because a signature is *optional* and *zfs* could be a requirement
-(un-encrypted vdev(s)!).
+And lastly specifying only @iroot=POOL/ROOT ikroot=pwd izfs=zva-sda:zvb-sdb@ will
+import the whole pool (so no need to append swap related arguments).
 
 h3. 4.6. ZRAM support
-
-To get a simple zram support in order to get zram device as early as possible,
-one need only to append @zram@ kernel module to @imod@ argument and optionaly
-zram.num_devices=<int> kernel command line argument.
-Extra actions can be taken care with a *user script* if needed.
-
-Enter zram hook. 
 
 KERNEL-COMMAND-LIE-ARG: @izram=4-2-lzo:512M:4G-ext4@
 DESCRIPTION: zram basic initialisation kernel command line argument
