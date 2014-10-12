@@ -335,11 +335,9 @@ Several pools (one containing root, another for swap and another one for resume)
 are supported along with a single pool. Just append a coma and an argument (2nd
 for swap and 3rd for resume like the other options).
 
-So @iroot=POOL/ROOT iresume=swap:POOL/SWAP ikresume=pwd izfs=1,,zva-sda:zvba-sdb@
-kernel cmdline use a single pool for root, swap and resume. The integer to enable
-root on zfs is required for this case because swap and resume group does not mount
-any file system. To specify another pool for root, replace the integer by a valid
-colon list map-dev.
+So @iroot=POOL/ROOT ikroot=pwd iresume=swap:POOL/SWAP ikresume=pwd izfs=,,zva-sda:zvb-sdb@;
+Optional (useless) swap arguments can be appended when resuming after a suspend;
+Root arguments is not required (handy to continue booting if resuming fails).
 
 And lastly specifying only @iroot=POOL/ROOT ikroot=pwd izfs=zva-sda:zvb-sdb@ will
 import the whole pool (so no need to append swap related arguments).
