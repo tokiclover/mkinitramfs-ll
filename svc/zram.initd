@@ -37,7 +37,7 @@ start()
 			ret=$?
 			eend "$ret" "failed to formate zram$num to $fsys"
 
-			if test $ret -eq 0 -a -n "$mtpt"; then
+			if test "$ret" = 0 -a -n "$mtpt"; then
 				[ -d "$mtpt" ] || mkdir -p $mtpt
 				mount -t $fsys ${mopt:+-o $mopt} /dev/zram$num $mtpt
 				eend "$?" "failed to mount /dev/zram$num to $mtpt"
