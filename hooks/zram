@@ -5,7 +5,7 @@
 # $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
 #
 
-set -e +x
+set +e +x
 source $LIBDIR/functions || return
 source $LIBDIR/helpers   || return
 
