@@ -1,38 +1,67 @@
 #
-# $Header: mkinitramfs-ll/modules/zfs                    Exp $
+# $Header: mkinitramfs-ll/hooks/zfs                      Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
 #
 
 set -e +x
 source $LIBDIR/functions || return
 source $LIBDIR/helpers   || return
 
+[ -n "$izfs" ] || return
+
 # @FUNCTION: dozfs
 # @DESCRIPTION: import a zfs pool
-# @USAGE: pool/volume [zpv1-map1:zpv2-map2] [extra zpool options]
+# @USAGE: <env> <group> <device> <key> <zpool-options>
 dozfs() {
 	echo $$ >/run/${0##*/}.pid
+
 	$ECK && for bin in zfs zpool; do 
 		debug -d bck $bin
 	done
 
-	debug -d test -n "$1"
-	debug -d _modprobe zfs
-	local _opt="$3" _pool="${1%/*}" _vdev="$(echo "$2" | sed 's/:/ /g')"
+	debug -d test -n "$1" -a -n "$2" -a -n "$3"
+	local _env="$1" _grp="$2" _vol="$3" _key="$4" _opt="$5"
 
-	if ! zpool list -H | grep "$_pool" 1>/dev/null 2>&1; then
-		if [ -n "$_vdev" ]; then
-			for _dev in $_vdev; do
-				debug -d dmopen "$_dev"
-			done
-		fi
-		debug -d zpool import -f $_opt -R /newroot "$_pool"
+	local _sign _type _vdev
+	[ -n "$izfs" ] && arg "_vdev" "$izfs" "," "$_grp" "${_opt:+-s}"
+	[ -n "$_vdev" ] || return
+
+	if [ "$_grp" -ge 2 ]; then
+		eval set -- $(echo "$_vol" | sed -e 's/:/ /g')
+		_vol="$2" _sign="$3" _type="$1"
+	fi
+
+	debug -d _modprobe zfs
+	local _pool="${_vol%/*}"
+
+	if ! zpool list -H | grep -q "$_pool"; then
+		case "$_vdev" in
+			(1|[Ee][Nn][Aa][Bb][Le]|[Oo][Nn][Tt][Rr][Uu][Ee]|[Yy][Ee][Ss])
+				die "zfs: No $_pool pool found";;
+		esac
+
+		debug stk "$_key"
+		for _dev in $(echo "$_vdev" | sed 's/:/ /g'); do
+			debug -d dmopen "$_dev"
+		done
+		debug -d zpool import -f $_opt -R $NEWROOT "$_pool"
 	fi
 	
-	zfs list 2>/dev/null | grep "$1" && rm /run/${0##*/}.pid
+	if [ "$_grp" = 1 ]; then
+		zfs mount | grep -q "$_vol" || debug -d zfs mount -vO -a
+	else
+		zfs list  | grep -q "$_vol" || die "zfs: $_vol volume not found"
+	fi
+
+	rm /run/${0##*/}.pid
+	echo "$_env=${_type:+$_type:}/dev/$_vol${_sign:+$_sign}" >> /run/env
 }
+
+[ -n "$iswap" ]   && debug dozfs "SWAP" "2" "$iswap"   "$ikswap"   "-N"
+[ -n "$iresume" ] && debug dozfs "RESU" "3" "$iresume" "$ikresume" "-N"
+[ -n "$iroot" ]   && debug dozfs "ROOT" "1" "$iroot"   "$ikroot"
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
