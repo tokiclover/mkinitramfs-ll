@@ -1,5 +1,10 @@
-Header: mkinitramfs-ll/BUGS, 2014/10/02
+Header: mkinitramfs-ll/BUGS, 2014/10/10
 
+---
+rescue shell (rsh):
+    Sometimes exit-ing in a rescue shell does not work, init will be stuck in
+	place. In this case *do not* exit a second or a kernel panic await. It's
+	better to unmount everything, close dm-crypt cyphertext and reboot.
 ---
 /etc/mdev.conf:
     group name should replaced by group id (gid) because there is no `/etc/group'
