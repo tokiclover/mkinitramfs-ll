@@ -198,9 +198,10 @@ for arg in $(cat /proc/cmdline); do
 	 esac
 done
 
-RSH="${irsh%:*}"
-RIL="${irsh#*:}"
-[ "$RIL" = "$RSH" ] && RIL=
+if [ -n "$irsh" ]; then
+	RSH="${irsh%:*}"
+	arg "RIL" "$irsh" "2" ":" "-s"
+fi
 
 DEBUG="${idebug%:*}"
 DMESG="${idebug#*:}"
