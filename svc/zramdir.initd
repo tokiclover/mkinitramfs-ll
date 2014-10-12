@@ -16,7 +16,8 @@ description_restore="archive directory contents using dir$extension"
 
 depend()
 {
-	need zram
+	use zram
+	before logger
 }
 
 start()
