@@ -109,7 +109,7 @@ Asingle character or word is sufficient in that case.
 
 KERNEL-COMMAND-LINE-ARG: @iraid=<array>+UUID=<uuid>[|<p>|<f>]@
 DESCRIPTION: comma separated list of arrays for root, swap and resume
-EXAMPLE:
+EXAMPLE: @iroot=md1 iraid=sd[ab]+UUID=<uuid>@
 
 KERNEL-COMMAND-LINE-ARG: @iswap=<type>:<VG-LV>[:signature]@
 DESCRIPTION: the equivalent of @iroot@ for swap
@@ -241,8 +241,8 @@ Either way @iraid@ is sufficient to enable arrays:
 
 @echo ARRAY <array> <uuid> >> /etc/mdadm.conf@,
 or else, @iraid=md<n>+<part>@ to enable arrays like:
-@echo ARRAY <array> devices=/dev/sd*<part> >> /etc/mdadm.conf@,
-@<part>@ could be something like @[a-d]2@.
+@echo ARRAY <array> devices=[/dev/sd*]<part> >> /etc/mdadm.conf@,
+@<part>@ could be something like @/dev/sd[a-d]2|sd[a-d]2|[a-d]2@.
 
 Or else, an optional @<format>@ can be used to enable mdraid software (ata)raid
 e.g. @asr|..|isw|jmicron|..|dos@ see @mdraid -l@. dmraid software raid can be
