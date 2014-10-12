@@ -207,7 +207,7 @@ DMESG="${idebug#*:}"
 [ "$DMESG" = "$DEBUG" ] && DMESG=
 
 case "$ienv" in
-	(0|[Dd][Ii][Ss][Aa][Bb][Ll][Ee]|[Oo][Ff][Ff][Ff][Aa][Ll][Ss][Ee]|[Nn][Oo])
+	(0|[Dd][Ii][Ss][Aa][Bb][Ll][Ee]|[Oo][Ff][Ff]|[Ff][Aa][Ll][Ss][Ee]|[Nn][Oo])
 		ENV=false;;
 esac
 
@@ -216,7 +216,7 @@ while read _line; do
 	case "${_line%%=*}" in
 		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RIL|PATH|RSH|SPLD|sh)
 			:;;
-		([a-zA-Z]*) [ "${env/:${_line%%=*}}" = "$env" ] && export "$_line"     ;;
+		([a-zA-Z]*) [ "${ienv/:${_line%%=*}}" = "$ienv" ] && export "$_line"   ;;
 	esac
 done < $CONFDIR/env
 
