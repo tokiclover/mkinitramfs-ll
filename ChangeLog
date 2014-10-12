@@ -2,6 +2,8 @@ Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
 0.14.2:
 
+* zfs version bump that require only *izfs* cmdline argument,
+this hook as result will be executed if only if izfs is defined;
 * allow only case insensitive +s|+sys|+system and +l|+local (short/long
 options) to squashd();
 * improved dmopen() to be sure to boot with variations of iraid;
