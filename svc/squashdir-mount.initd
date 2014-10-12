@@ -132,7 +132,7 @@ squash_umount()
 
 	auplink "${dir}" flush
 	ebegin "umounting squashed ${dir}"
-	umount -lt aufs "${dir}" "${no_netdev}" >/dev/null 2>&1
+	umount -lt aufs "aufs:${dir}" "${no_netdev}" > /dev/null 2>&1
 	eend "${?}" "failed to umount squash-ed aufs:${dir}" || return
 	
 	umount -lt squashfs "${base}/rr" "${no_netdev}" >/dev/null 2>&1
