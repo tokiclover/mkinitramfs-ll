@@ -41,7 +41,7 @@ start()
 				[ -d "$mtpt" ] || mkdir -p $mtpt
 				mount -t $fsys ${mopt:+-o $mopt} /dev/zram$num $mtpt
 				eend "$?" "failed to mount /dev/zram$num to $mtpt"
-				[ -n "$mode" ] || chmod $mode $mtpt
+				[ -n "$mode" ] && chmod $mode $mtpt
 			fi
 		fi
 		num=$(expr $num + 1)
