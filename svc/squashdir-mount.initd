@@ -106,6 +106,7 @@ stop_pre()
 squash_mount()
 {
 	local base="${1}/${dir#/}" ret
+	local dir="/${dir#/}"
 
 	if grep -q "aufs:${dir}" /proc/mounts; then 
 		einfo "squash-ed aufs:${dir} already mounted"
