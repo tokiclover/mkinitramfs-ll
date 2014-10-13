@@ -1,5 +1,11 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.14.3:
+
+* Fix the annoying prefix slash '/' in squash dir related script
+(the previous measure in 0.14.2 was not enough);
+* Fix setting mode (if present in zram init script).
+
 0.14.2:
 
 * zfs version bump that require only *izfs* cmdline argument,
