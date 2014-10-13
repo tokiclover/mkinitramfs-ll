@@ -215,7 +215,8 @@ grep -q squashfs /proc/filesystems ||
 	die "failed to initialize squashfs kernel module, exiting"
 
 for dir in ${opts[-dir]//:/ }; do
-	base="${opts[-root]}/${dir}"
+	[[ "${dir#/}" == "${dir}" ]] && dir="/${dir}"
+	base="${opts[-root]}${dir}"
 
 	if [[ -e ${base}.squashfs ]]; then
 		if (( ${opts[-offset]} != 0 )); then
