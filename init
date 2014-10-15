@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
+# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -369,10 +369,8 @@ dorootfs() {
 		imopt="${imopt:+$imopt,}$mopt"
 		unset mopt
 	fi
-	if ! debug mount ${imopt:+-o$imopt} ${FS:+-t$FS} $ROOT $NEWROOT; then
-		[ "$KEYMODE" != "none" ] && debug -d dmclose "${ROOT##*/}"
-		die "failed to mount rootfs"
-	fi
+	debug mount ${imopt:+-o$imopt} ${FS:+-t$FS} $ROOT $NEWROOT ||
+		die "Failed to mount rootfs"
 }
 [ -z "$ROOT" ] && dorootfs
 
