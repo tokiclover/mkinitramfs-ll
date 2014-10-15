@@ -1,5 +1,12 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.14.4:
+
+* fix lvm dependency to udev in early sysinit;
+* removing closing after lvm/rootfs mount failure;
+* fix -k|--kv switch (was still broken after fixing them);
+* fix setiing installation configuration file.
+
 0.14.3:
 
 * Fix the annoying prefix slash '/' in squash dir related script
