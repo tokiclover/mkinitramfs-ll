@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
+# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
 #
 
 # @FUNCTION: arg
@@ -449,26 +449,34 @@ dmopen() {
 lvopen() {
 	$ECK && debug -d bck lvm
 	debug _modprobe device-mapper
-	local _lv=${1/-//}
+	local _lv="${1/-//}"
 
-	if ! debug lvchange -ay $_lv; then
+	if ! debug lvm lvchange -ay --noudevsync --sysinit "$_lv"; then
 		if [ -n "$2" ] && [ "$KEYMODE" != "none" ]; then
 			local _pv="$2" IFS="${IFS}:"
 			[ -f "$MNTDIR/$_pv" ] && _pv="$(cat $MNTDIR/$_pv)"
 			for _p in $_pv; do
 				debug dmopen "$_p"
 			done
-			debug vgchange -ay ${1%-*} || debug -d dmclose "$_pv"
+			debug lvm vgchange -ay --noudevsync  --sysinit "${1%-*}" ||
+				die "Failed to open ${1}"
 		else
 			die "no logical volume found"
 		fi
 	fi
 
 	if [ -b "/dev/mapper/$1" ]; then
-		eval ${3-LV}=/dev/mapper/$1
+		eval ${3:-LV}=/dev/mapper/$1
 	elif [ -b "/dev/$_lv" ]; then
-		eval ${3-LV}=/dev/$_lv
+		eval ${3:-LV}=/dev/$_lv
 	else
+		local _dm
+		for _dm in /sys/block/dm-[0-9]*; do
+			if [ "$(cat $_dm/dm/name)" = "$1" ]; then
+				eval ${3:-LV}=/dev/${_dm##*/}
+				return
+			fi
+		done
 		die "$_lv VG/LV not found"
 	fi
 }
