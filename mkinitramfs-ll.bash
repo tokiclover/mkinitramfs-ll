@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
+# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
-	[version]=0.14.2
+	[version]=0.14.4
 )
 
 # @FUNCTION: usage
@@ -129,7 +129,7 @@ for (( ; $# > 0; )); do
 			opts[${1/--/-}]=true
 			shift;;
 		(-[dkp]|--[pu]*|--kv)
-			opts[${2/--/-}]="$2"
+			opts[${1/--/-}]="$2"
 			shift 2;;
 		(-[FHbcfmsy]|--[bcfks]*|--ho*)
 			opts[${1/--/-}]+=":$2"
@@ -407,12 +407,6 @@ fi
 
 if [[ "${opts[-l]}" ]] || [[ "${opts[-lvm]}" ]]; then
 	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
-	pushd sbin
-	for lpv in {vg,pv,lv}{change,create,re{move,name},s{,can}} \
-		{lv,vg}reduce lvresize vgmerge
-		do ln -s lvm ${lpv} || die
-	done
-	popd
 fi
 
 # @FUNCTION: domod
