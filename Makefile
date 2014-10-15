@@ -50,7 +50,7 @@ install_bash:
 	install -pd $(bindir)
 	install -pd $(datadir)/scripts
 	sed -e 's:"$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
-	    -e 's:"$${PKG[name]}".conf:/etc/"$${PKG[name]}".conf:g' \
+	    -e 's:"$${PKG\[name\]}".conf:/etc/"$${PKG[name]}".conf:g' \
 	    -i scripts/busybox.bash scripts/gnupg.bash $(PACKAGE).bash
 	install -pm 755 scripts/busybox.bash $(datadir)/scripts
 	install -pm 755 scripts/gnupg.bash   $(datadir)/scripts
@@ -63,7 +63,7 @@ install_zsh:
 	install -pd $(bindir)
 	install -pd $(datadir)/scripts
 	sed -e 's:$${PWD}/usr:${prefix}/share/$${PKG[name]}/usr:g' \
-	    -e 's:"$${PKG[name]}".conf:/etc/$${PKG[name]}.conf:g' \
+	    -e 's:"$${PKG\[name\]}".conf:/etc/$${PKG[name]}.conf:g' \
 	    -i scripts/busybox.zsh scripts/gnupg.zsh $(PACKAGE).zsh
 	install -pm 755 scripts/busybox.zsh $(datadir)/scripts
 	install -pm 755 scripts/gnupg.zsh   $(datadir)/scripts
