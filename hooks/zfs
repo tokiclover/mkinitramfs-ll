@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/hooks/zfs                      Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
+# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
 #
 
 set +e +x
@@ -53,10 +53,11 @@ dozfs() {
 		zfs mount | grep -q "$_vol" || debug -d zfs mount -vO -a
 	else
 		zfs list  | grep -q "$_vol" || die "zfs: $_vol volume not found"
+		_zvol="/dev/zvol/$_zvol"
 	fi
 
 	rm /run/${0##*/}.pid
-	echo "$_env=${_type:+$_type:}/dev/$_vol${_sign:+$_sign}" >> /run/env
+	echo "$_env=${_type:+$_type:}$_vol${_sign:+$_sign}" >> /run/env
 }
 
 [ -n "$iswap" ]   && debug dozfs "SWAP" "2" "$iswap"   "$ikswap"   "-N"
