@@ -362,8 +362,8 @@ bkd() {
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
 	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "_bkd"
 
-	[ "$KEYMODE" != "none" ] && debug -d dmopen "$_dev" "_bkd" ||
-		debug -d blk "$_dev" "_bkd"
+	test -n "$KEYMODE" -a "$KEYMODE" != "none" && debug -d dmopen "$_dev" "_bkd"
+	[ "$KEYMODE" =  "none" ] && debug -d blk "$_dev" "_bkd"
 
 	eval ${_name:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
 }
@@ -460,6 +460,7 @@ lvopen() {
 			done
 			debug lvm vgchange -ay --noudevsync  --sysinit "${1%-*}" ||
 				die "Failed to open ${1}"
+			KEYMODE=
 		else
 			die "no logical volume found"
 		fi
