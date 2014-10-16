@@ -8,6 +8,7 @@ new block stack position (before or after luks);
 * fix lvm dependency to udev in early sysinit;
 * removing closing after lvm/rootfs mount failure;
 * fix -k|--kv switch (was still broken after fixing them);
+and -c|--compressor, -u|--usr switches;
 * fix setiing installation configuration file.
 
 0.14.3:
