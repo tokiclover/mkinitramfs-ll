@@ -2,6 +2,8 @@ Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
 0.14.4:
 
+* fix lvm breakage since 0.14.0 (commit be0f3a3d) with the
+new block stack position (before or after luks);
 * fix lvm dependency to udev in early sysinit;
 * removing closing after lvm/rootfs mount failure;
 * fix -k|--kv switch (was still broken after fixing them);
