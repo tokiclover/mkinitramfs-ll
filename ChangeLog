@@ -2,6 +2,7 @@ Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
 0.14.4:
 
+* added a 4th zram device for /dev/shm + /etc/modprobe.d/zfs.conf;
 * fix lvm breakage since 0.14.0 (commit be0f3a3d) with the
 new block stack position (before or after luks);
 * fix lvm dependency to udev in early sysinit;
