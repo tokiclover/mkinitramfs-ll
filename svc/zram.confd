@@ -18,6 +18,7 @@ initialize=yes
 device=512M:swap
 device=4G:ext4:/var/tmp:user_xattr:1777
 device=512M:ext4:/tmp:user_xattr:1777
+device=2G:ext4:/dev/shm:noexec,nosuid,relatime:1777
 
 #
 # vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:
