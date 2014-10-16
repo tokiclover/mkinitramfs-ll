@@ -128,10 +128,10 @@ for (( ; $# > 0; ))
 		(-[KLaglqrt]|--[aglrt]*|--sq*|--keep*)
 			opts[${1/--/-}]=
 			shift;;
-		(-[dkp]|--[pu]*|--kv)
+		(-[cdkp]|--[cpu]*|--kv)
 			opts[${1/--/-}]=$2
 			shift 2;;
-		(-[FHbcfmsy]|--[bcfks]*|--ho*)
+		(-[FHbfmsy]|--[bfks]*|--ho*)
 			opts[${1/--/-}]+=:$2
 			shift 2;;
 		(--)
