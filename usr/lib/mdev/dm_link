@@ -1,0 +1,28 @@
+#/bin/sh
+#
+# $Header: mkinitramfs-ll: /lib/mdev/dm_link             Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
+#
+
+if [ "$ACTION" = "add" ]; then
+	cd /dev/mapper || mkdir -m 755 -p /dev/mapper
+
+	name="$(cat /sys/block/${MDEV}/dm/name)"
+	[ -n "$name" ] && ln ../${MDEV} $name
+
+	cd "$OLDPWD"
+fi
+
+if [ "$ACTION" = "remove" ]; then
+	name="$(cat /sys/block/${MDEV}/dm/name)"
+	[ -n "$name" ] && rm -f /dev/mapper/$name
+	rm -f $MDEV
+fi
+
+unset name
+
+#
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
+#
