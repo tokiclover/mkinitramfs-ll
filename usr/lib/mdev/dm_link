@@ -21,7 +21,6 @@ fi
 if [ "$ACTION" = "remove" ]; then
 	name="$(cat /sys/block/${MDEV}/dm/name)"
 	[ -n "$name" ] && rm -f /dev/mapper/$name
-	rm -f $MDEV
 fi
 
 unset name
