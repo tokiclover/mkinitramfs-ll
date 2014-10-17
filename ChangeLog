@@ -1,5 +1,7 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.14.5:
+
 * bcache trivial fix; and added ibcache support to init;
 * added a minimal /etc/group so groups can be refered by names;
 * removed mdev buggy scripts ({dvbdev,usb*}); cleaned ide_links;
