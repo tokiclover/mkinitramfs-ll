@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/hooks/bacache                  Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
+# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
 #
 
 set +e +x
@@ -15,9 +15,10 @@ dobcache() {
 	echo $$ >/run/${0##*/}.pid
 	debug _modprobe bcache
 
-	for dev in $(echo "$ibcache" | sed -e 's/:/ /g'); do
-		[ "${dev/dev}" = "dev" ] && dev=/dev/$dev
-		echo $dev >/sys/fs/bcache/register_quiet
+	local IFS=":$IFS" _dev
+	for _dev in $ibcache; do
+		[ "${_dev/dev}" = "$_dev" ] && _dev=/dev/$_dev
+		echo $_dev >/sys/fs/bcache/register_quiet
 	done
 
 	rm -f /run/${0##*/}.pid
