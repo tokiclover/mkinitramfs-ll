@@ -70,7 +70,7 @@ die() {
 	msg -i "Dropping into a rescueshell..."
 
 	$SPLD && spld_stop
-	debug rsh || debug exec $sh -aim
+	debug rsh || debug $sh -aim
 }
 
 # @FUNCTION: lvl
