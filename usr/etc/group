@@ -18,6 +18,7 @@ cron:x:16:
 console:x:17:
 audio:x:18:
 cdrom:x:19:
+dialout:x:20:
 sshd:x:22:
 tape:x:26:root
 video:x:27:root
