@@ -10,7 +10,10 @@ if [ "$ACTION" = "add" ]; then
 	cd /dev/mapper || mkdir -m 755 -p /dev/mapper
 
 	name="$(cat /sys/block/${MDEV}/dm/name)"
-	[ -n "$name" ] && ln ../${MDEV} $name
+	if [ -n "$name" ]; then
+		[ -e /dev/mapper/$name ] && exit
+		ln ../${MDEV} $name
+	fi
 
 	cd "$OLDPWD"
 fi
