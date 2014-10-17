@@ -304,6 +304,7 @@ done </etc/msg
 
 lvl 2
 
+[ -n "$ibcache" ] && HOOKS="bcache $HOOKS"
 [ -n "$izfs" ]  && HOOKS="zfs  $HOOKS"
 [ -n "$izram" ] && HOOKS="zram $HOOKS"
 export HOOKS="$(echo $HOOKS | sed -e 's/:/ /g')"
