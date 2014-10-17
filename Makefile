@@ -13,11 +13,11 @@ DOCS        = AUTHORS BUGS COPYING README.textile ChangeLog
 
 HOOKS       = bcache zfs zram
 FILES       = usr/etc/mdev.conf usr/etc/$(PACKAGE)/minimal.applets \
-			  usr/lib/$(PACKAGE)/functions scripts/busybox-minimal.config \
-			  usr/root/.gnupg/gpg.conf usr/share/gnupg/options.skel \
-              usr/lib/$(PACKAGE)/helpers
-EXEC_FILES  = init scripts/xcpio \
-			  usr/lib/mdev/ide_links usr/lib/mdev/usbdev usr/lib/mdev/usbdisk_link
+	usr/etc/group usr/etc/modprobe.d/zfs.conf scripts/busybox-minimal.config \
+	usr/lib/$(PACKAGE)/functions usr/lib/$(PACKAGE)/helpers \
+	usr/root/.gnupg/gpg.conf usr/share/gnupg/options.skel
+
+EXEC_FILES  = init scripts/xcpio usr/lib/mdev/ide_links usr/lib/mdev/dm_link
 
 
 all:
