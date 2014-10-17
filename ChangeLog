@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+* added a minimal /etc/group so groups can be refered by names;
+* removed mdev buggy scripts ({dvbdev,usb*}); cleaned ide_links;
+and added dm_link to take care of device-mapper symlink.
+
 0.14.4:
 
 * added a 4th zram device for /dev/shm + /etc/modprobe.d/zfs.conf;
