@@ -7,7 +7,8 @@
 #
 
 if [ "$ACTION" = "add" ]; then
-	cd /dev/mapper || mkdir -m 755 -p /dev/mapper
+	mkdir -m 755 -p /dev/mapper
+	cd /dev/mapper
 
 	name="$(cat /sys/block/${MDEV}/dm/name)"
 	if [ -n "$name" ]; then
