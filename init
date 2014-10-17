@@ -354,7 +354,7 @@ dorootfs() {
 
 	debug -d bkd "$iroot" "ROOT" "1" "$ikroot"
 
-	lvl 2f
+	lvl 3f
 	if [ -n "$CHK" ]; then
 		case $CHK in
 			([NnFfOo]*|0) CHK=-e;;
@@ -364,7 +364,7 @@ dorootfs() {
 		debug $CHK fsck ${FS:+-t$FS} $ROOT
 	fi
 
-	lvl 2m
+	lvl 3m
 	if [ -n "$mopt" ]; then
 		imopt="${imopt:+$imopt,}$mopt"
 		unset mopt
