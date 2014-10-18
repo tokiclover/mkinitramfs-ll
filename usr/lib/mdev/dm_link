@@ -9,20 +9,15 @@
 if [ "$ACTION" = "add" ]; then
 	mkdir -m 755 -p /dev/mapper
 	cd /dev/mapper
-
 	name="$(cat /sys/block/${MDEV}/dm/name)"
-	if [ -n "$name" ]; then
-		[ -e /dev/mapper/$name ] && exit
-		ln ../${MDEV} $name
-	fi
-
+	[ -n "$name" ] && ln -f -s ../${MDEV} $name
 	cd "$OLDPWD"
 fi
 
-if [ "$ACTION" = "remove" ]; then
-	name="$(cat /sys/block/${MDEV}/dm/name)"
-	[ -n "$name" ] && rm -f /dev/mapper/$name
-fi
+[ "$ACTION" = "remove" ] &&
+for dm in /dev/mapper/*; do
+	test -h $dm -a "$(readlink $dm)" = "../$MDEV" && rm -f $dm && break
+done
 
 unset name
 
