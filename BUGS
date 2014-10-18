@@ -7,8 +7,7 @@ rescue shell (rsh):
 	better to unmount everything, close dm-crypt cyphertext and reboot.
 ---
 /etc/mdev.conf:
-    group name should replaced by group id (gid) because there is no `/etc/group'
-	file bundled in the initramfs.
+    uid:gid should be use instead of user:group, or else, expect failure.
 ---
 /etc/mtab:
     this file should be readable, or else a `/mtab' whould be created.
