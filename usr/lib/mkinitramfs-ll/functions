@@ -460,6 +460,7 @@ lvopen() {
 			done
 			debug lvm vgchange -ay --noudevsync  --sysinit "${1%-*}" ||
 				die "Failed to open ${1}"
+			debug lvm vgscan --mknodes
 			KEYMODE=
 		else
 			die "no logical volume found"
@@ -471,13 +472,6 @@ lvopen() {
 	elif [ -b "/dev/$_lv" ]; then
 		eval ${3:-LV}=/dev/$_lv
 	else
-		local _dm
-		for _dm in /sys/block/dm-[0-9]*; do
-			if [ "$(cat $_dm/dm/name)" = "$1" ]; then
-				eval ${3:-LV}=/dev/${_dm##*/}
-				return
-			fi
-		done
 		die "$_lv VG/LV not found"
 	fi
 }
