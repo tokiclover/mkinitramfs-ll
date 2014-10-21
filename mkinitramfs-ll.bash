@@ -565,6 +565,7 @@ for (( i=0; i < ${#env[@]}; i++ )); do
 done
 unset env
 
+[[ -d usr/lib/gcc ]] &&
 for lib in $(find usr/lib/gcc -iname 'lib*'); do
 	ln -fs /$lib     lib/${lib##*/}
 	ln -fs /$lib usr/lib/${lib##*/}

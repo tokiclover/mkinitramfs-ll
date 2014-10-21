@@ -519,7 +519,7 @@ for (( i=1; i <= ${#env[@]}; i++ ))
 	print ${env[i]} >> etc/${PKG[name]}/env
 unset env
 
-for lib (usr/lib/gcc/**/lib*.so*) {
+for lib (usr/lib/gcc/**/lib*.so*(.N)) {
 	ln -fs $lib     lib/$lib:t
 	ln -fs $lib usr/lib/$lib:t
 }
