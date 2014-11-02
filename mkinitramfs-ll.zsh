@@ -497,10 +497,11 @@ function dobin {
 for bin (${(pws,:,)opts[-b]} ${(pws,:,)opts[-bin]}) {
 	for b ({usr/,}{,s}bin/${bin}) { [[ -x ${b} ]] && continue 2 }
 
-	[[ -x ${bin} ]] && dobin ${bin}
-	(( ${+commands[$bin]} )) && dobin ${commands[$bin]} ||
-		warn "no ${bin} binary found"
+	[[ -x ${bin} ]] && binary=${bin} || binary=${commands[$bin]}
+	[[ -n ${binary} ]] && dobin ${binary} || warn "no ${bin} binary found"
+	binary=
 }
+unset -v binary
 
 # Remove module group name from boot group before processing module groups
 for mod (${(pws,:,)opts[-mboot]})

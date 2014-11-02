@@ -535,8 +535,7 @@ for bin in ${opts[-b]//:/ } ${opts[-bin]//:/ }; do
 		[[ -x ${b} ]] && continue 2
 	done
 
-	[[ -x ${bin} ]] && dobin ${bin}
-	binary=$(type -p ${bin})
+	[[ -x ${bin} ]] && binary=${bin} || binary=$(type -p ${bin})
 	[[ "${binary}" ]] && dobin ${binary} || warn "no ${bin} binary found"
 	binary=
 done
