@@ -48,6 +48,7 @@ mount
 mv
 openvt
 patch
+readlink
 rm
 rmdir
 rmmod
