@@ -152,7 +152,7 @@ resume() {
 		echo $_dev >/sys/power/tuxonice/resume
 
 		read _img </sys/power/tuxonice/image_exists
-		if [ "$_img_sz" == "1" ]; then 
+		if [ "$_img_sz" = "1" ]; then
 			msg -e "toi: no recognizable signature at the pointed location"
 		fi
 		
@@ -164,10 +164,18 @@ resume() {
 		debug _modprobe swsusp
 		echo platform >/sys/power/disk # or 'shutdown'  if ACPI does not work
 		echo disk >/sys/power/state
-		echo ${_dev#*:} >/sys/power/resume
+
+		local IFS=":$IFS"
+		eval set -- $_dev
+		local _node=$2
+		[ "${_node/mapper}" = "$_node" ] || _node=$(readlink $_node)
+		local _maj=$(ls -l $_node | awk '{print $5}')
+		local _min=$(ls -l $_node | awk '{print $6}')
+
+		echo "${_maj%,}:$_min" >/sys/power/resume
 
 		read _img_sz </sys/power/image_exists
-		if [ "$_img_sz" == "1" ]; then 
+		if [ "$_img_sz" = "1" ]; then
 			msg -e "swsusp: no recognizable signature at the pointed location"
 		fi
 
