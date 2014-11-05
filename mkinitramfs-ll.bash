@@ -322,6 +322,10 @@ cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
 if [[ "${opts[-F]}" ]] || [[ "${opts[-firmware]}" ]]; then
+	if [[ "${opts[-F]}" == : ]] || [[ "${opts[-firmware]}" == : ]]; then
+		warn "Adding the whole firmware directory"
+		cp -a {/,}lib/firmware
+	fi
 	mkdir -p lib/firmware
 	for f in ${opts[-F]//:/ } ${opts[-firmware]//:/ }; do
 		if [[ -e ${f} ]]; then

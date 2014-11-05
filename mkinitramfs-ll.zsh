@@ -321,7 +321,9 @@ cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||
 [[ -f /etc/issue.logo ]] && cp {/,}etc/issue.logo
 
 if (( ${+opts[-F]} || ${+opts[-firmware]} )) {
-:   ${opts[-firmware]:=${opts[-F]:-/lib/firmware}}
+	if [[ ${opts[-F]} == : ]] || [[ ${opts[-firmware]} == : ]]; then
+		cp -a {/,}lib/firmware
+	fi
 	mkdir -p lib/firmware
 	for f (${(pws,:,)opts[-F]} ${(pws,:,)opts[-firmware]}) {
 		if [[ -e ${f} ]] {
