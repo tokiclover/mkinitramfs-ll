@@ -426,6 +426,7 @@ Supported groups:
 * @devide-mapper@: automaticaly generated included script (device-mapper module group)
 * @dm-raid@: automaticaly generated with included script (dmraid module group)
 * @raid@: automaticaly generated with mkinitramfs-ll.$shell (mdadm/raid module group)
+* @swsusp@: default suspend/resume implementation
 * @tuxonice@: tuxonice module, wich aren't removed
 * @remdev@: modules required to access removable device
 * @gpg@: modules required to access gpg crypted key-file
