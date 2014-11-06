@@ -11,5 +11,5 @@ xcpio:
     A shell script front end to list/extract initramfs (with .cpio.$compression
 	extension.)
 
-swsuspend:
+suspend:
     A shell script to easy hibernate (serves as reminder as well.)
