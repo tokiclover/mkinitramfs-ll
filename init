@@ -134,7 +134,7 @@ spld() {
 # @DESCRIPTON: resume after a hibernation, TuxOnIce may work,
 # the intrnal kernal implementation should be fixed/finished before use
 resume() {
-	local _asw _dev=$1 _img_sz=0 _hpr
+	local _asw _dev=$1 _img_sz _hpr
 	msg -i "Resuming from hibernation..."
 
 	if [ -d /sys/power/tuxonice ]; then
@@ -153,13 +153,10 @@ resume() {
 
 		read _img </sys/power/tuxonice/image_exists
 		if [ "$_img_sz" = "1" ]; then
-			msg -e "toi: no recognizable signature at the pointed location"
+			echo >/sys/power/tuxonice/image_exists
+		else
+			echo >/sys/power/tuxonice/do_resume
 		fi
-		
-		echo >/sys/power/tuxonice/do_resume
-		$SPLD && spld_stop
-		echo >/sys/power/tuxonice/image_exists
-		debug _rmmod tuxonice
 	elif [ -f /sys/power/resume ]; then
 		debug _modprobe swsusp
 		echo platform >/sys/power/disk # or 'shutdown'  if ACPI does not work
@@ -171,22 +168,16 @@ resume() {
 		[ "${_node/mapper}" = "$_node" ] || _node=$(readlink $_node)
 		local _maj=$(ls -l $_node | awk '{print $5}')
 		local _min=$(ls -l $_node | awk '{print $6}')
-
-		echo "${_maj%,}:$_min" >/sys/power/resume
+		_node="${_maj%,}:$_min"
+		echo $_node >/sys/power/resume
 
 		read _img_sz </sys/power/image_exists
-		if [ "$_img_sz" = "1" ]; then
-			msg -e "swsusp: no recognizable signature at the pointed location"
+		if [ "$_img_sz" != "0" ]; then
+			echo $_node >/sys/power/resume
+		else
+			echo 0 >/sys/power/image_size
 		fi
-
-		$SPLD && spld_stop
-		echo 0 >/sys/power/image_size
-		debug _rmmod swsusp
-	else
-		msg -e "no hibernation support found"
 	fi
-	
-	die "failed to resume from hibernation"
 }
 
 # -*- Initialisation -*-
