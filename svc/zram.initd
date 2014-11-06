@@ -44,7 +44,7 @@ start()
 				[ -n "$mode" ] && chmod $mode $mtpt
 			fi
 		fi
-		num=$(expr $num + 1)
+		num=$(($num + 1))
 	done
 
 	return 0
@@ -90,7 +90,7 @@ start_pre()
 		echo $max_comp_streams > /sys/block/zram$num/max_comp_streams
 		echo $size > /sys/block/zram$num/disksize
 
-		num=$(expr $num + 1)
+		num=$(($num + 1))
 	done
 }
 
@@ -105,7 +105,7 @@ reset()
 				umount -l /dev/${dev##*/}
 			else
 				einfo "$dev zram device is in use, skipping device"
-				ret=$(expr $ret + 1)
+				ret=$(($ret + 1))
 				continue
 			fi
 		fi
