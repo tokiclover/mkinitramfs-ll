@@ -322,6 +322,7 @@ cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||
 
 if (( ${+opts[-F]} || ${+opts[-firmware]} )) {
 	if [[ ${opts[-F]} == : ]] || [[ ${opts[-firmware]} == : ]]; then
+		warn "Adding the whole firmware directory"
 		cp -a {/,}lib/firmware
 	fi
 	mkdir -p lib/firmware
