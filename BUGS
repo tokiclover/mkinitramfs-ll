@@ -25,4 +25,12 @@ echo:
     echo-ing return values is problematic, this should be minimized or replaced
     by global variables.
 ___
+swsusp:
+    Well, actually @resume=device resume_offset=value@ may be required if resuming
+    from a file with swsusp (default suspend implementation if not using TuxOnIce
+    patched kernel). In this case, beware that a plain partition is necessary, else,
+    resuming will fails. In other cases with RAID/LVM/LUKS/ZFS, the init script will
+    take care of resuming. (The issue is there is no delay nor a sysfs file to echo
+    the offset value.) So, using iresume kernel cmdline is required.
+---
 
