@@ -1,0 +1,15 @@
+Header: mkinitramfs-ll/sripts/README.textile, 2014/11/01
+
+busybox:
+    A shell script to build a statix busybox binary with fully featured applets
+	or minimal on Gentoo GNU/Linux.
+
+gnupg:
+    A shell script to build gnupg-1.4.x static binary on Gentoo GNU/Linux.
+
+xcpio:
+    A shell script front end to list/extract initramfs (with .cpio.$compression
+	extension.)
+
+swsuspend:
+    A shell script to easy hibernate (serves as reminder as well.)
