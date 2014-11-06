@@ -1,0 +1,18 @@
+#
+# $Header: mkinitramfs-ll/hooks/mkswap.zfs               Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
+#
+
+mkswap-zfs() {
+	test -n "$1" -a -n "$2"
+	local _bs="${3:-4k}" _size="$2" _vol="${1:-pool/swap}" _opt="$4"
+
+	zfs create -o sync=always -o primarycache=metadata \
+		-o secondarycache=none $_opt -b $_bs -V $_size $_vol
+}
+
+#
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
+#
