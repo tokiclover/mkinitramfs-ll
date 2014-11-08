@@ -8,7 +8,7 @@ sbindir     = $(prefix)/sbin
 sysconfdir  = /etc
 svcconfdir  = $(sysconfdir)/conf.d
 svcinitdir  = $(sysconfdir)/init.d
-datadir	    = $(prefix)/share/$(PACKAGE)
+datadir     = $(prefix)/share/$(PACKAGE)
 docdir      = $(prefix)/share/doc/$(PACKAGE)-${VERSION}
 
 INSTALL     = install
@@ -93,6 +93,7 @@ install-scripts-%sh:
 	$(install_SCRIPT) scripts/gnupg.$*sh   $(DESTDIR)$(datadir)/scripts
 	$(install_SCRIPT) $(PACKAGE).$*sh      $(DESTDIR)$(sbindir)
 	$(install_SCRIPT) svc/sdr.$*sh         $(DESTDIR)$(sbindir)
+	$(install_DATA)   $(PACKAGE).conf      $(DESTDIR)$(sysconfdir)
 install-squashd: install-squashdir-mount-svc
 install-zram: install-zram-svc install-zramdir-svc
 install-%-svc:
