@@ -1,5 +1,16 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.14.7:
+
+* complete re-write of the Makefile (cleaner/shorter/effient);
+* added hooks/mkswap-zfs and scripts/suspend (hibernation script);
+* documented swsusp (module group); and fixed resume (swsusp);
+resume clean up (continue booting instead dying for nothing).
+
+0.14.6:
+
+* minor fix/clean up (dm_link/building script).
+
 0.14.5:
 
 * bcache trivial fix; and added ibcache support to init;
