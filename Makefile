@@ -116,7 +116,11 @@ uninstall:
 	for file in $(dist_HOOKS); do \
 		rm -f $(DESTDIR)$(datadir)/hooks/*$${file}*; \
 	done
-	for dir in $(DISTDIRS); do \
+	for dir in $(keep_DIRS); do \
+		rm -f $(DESTDIR)/$(datadir)$${dir}/.keep-*-dir; \
+		rmdir $(DESTDIR)/$(datadir)$${dir}; \
+	done
+	for dir in $(base_DIRS); do \
 		rmdir $(DESTDIR)/$${dir}; \
 	done
 uninstall-bash: uninstall-scripts-bash
