@@ -1,5 +1,3 @@
--include force.mk
-
 PACKAGE     = mkinitramfs-ll
 VERSION     = $(shell sed -nre '3s/(.*):/\1/p' ChangeLog)
 
@@ -56,6 +54,8 @@ keep_DIRS   = \
 	usr/share/consolefonts \
 	usr/share/keymaps
 DISTDIRS    = $(base_DIRS) $(keep_DIRS)
+
+.FORCE:
 
 .PHONY: all base keep install install-doc install-dist install-bash install-zsh \
 	install-zram install-squashd install-all
@@ -118,8 +118,11 @@ uninstall:
 		rm -f $(DESTDIR)$(datadir)/hooks/*$${file}*; \
 	done
 	for dir in $(keep_DIRS); do \
-		rm -f $(DESTDIR)/$(datadir)$${dir}/.keep-*-dir; \
-		rmdir $(DESTDIR)/$(datadir)$${dir}; \
+		rm -f $(DESTDIR)$(datadir)/$${dir}/.keep-*-dir; \
+		rmdir $(DESTDIR)$(datadir)/$${dir}; \
+	done
+	for dir in usr/etc usr/lib usr/root usr/share usr; do \
+		rmdir $(DESTDIR)$(datadir)/$${dir}; \
 	done
 	for dir in $(base_DIRS); do \
 		rmdir $(DESTDIR)/$${dir}; \

@@ -1,2 +1,0 @@
-.FORCE:
-$(FORCE_DEPS): .FORCE
