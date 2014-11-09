@@ -136,6 +136,7 @@ spld() {
 resume() {
 	local _asw _dev=$1 _img_sz _hpr
 	msg -i "Resuming from hibernation..."
+	grep -q $MNTDIR /proc/mounts && debug -d umount -l $MNTDIR
 
 	if [ -d /sys/power/tuxonice ]; then
 		if $SPLD; then
