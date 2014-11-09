@@ -6,7 +6,7 @@
 #
 
 mkswap-zfs() {
-	test -n "$1" -a -n "$2"
+	test -n "$1" -a -n "$2" || return
 	local _bs="${3:-4k}" _size="$2" _vol="${1:-pool/swap}" _opt="$4"
 
 	zfs create -o sync=always -o primarycache=metadata \
