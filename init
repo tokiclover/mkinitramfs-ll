@@ -163,13 +163,9 @@ resume() {
 		echo platform >/sys/power/disk # or 'shutdown'  if ACPI does not work
 		echo disk >/sys/power/state
 
-		local IFS=":$IFS"
-		eval set -- $_dev
-		local _node=$2
+		local _node=${_dev#*:}
 		[ "${_node/mapper}" = "$_node" ] || _node=$(readlink $_node)
-		local _maj=$(ls -l $_node | awk '{print $5}')
-		local _min=$(ls -l $_node | awk '{print $6}')
-		_node="${_maj%,}:$_min"
+		read _node  </sys/class/block/${_node#*/}/dev
 		echo $_node >/sys/power/resume
 
 		read _img_sz </sys/power/image_exists
