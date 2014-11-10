@@ -135,7 +135,7 @@ uninstall-scripts-%sh:
 	rm -f $(DESTDIR)$(datadir)/scripts/gnupg.$*sh
 	rm -f $(DESTDIR)$(sbindir)/svc/sdr.$*sh
 uninstall-squashd: uninstall-squashdir-mount-svc
-uninstall-squashd: uninstall-zram-svc uninstall-zramdir-svc
+uninstall-zram: uninstall-zram-svc uninstall-zramdir-svc
 uninstall-%-svc:
 	rm -f $(DESTDIR)$(svcconfdir)/$*
 	rm -f $(DESTDIR)$(svcinitdir)/$*
