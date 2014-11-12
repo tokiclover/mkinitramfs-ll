@@ -1,4 +1,4 @@
-@$Header: mkinitramfs-ll/README.textile,v 0.14.2 2014/10/10 10:59:54 -tclover Exp $@
+@Header: mkinitramfs-ll/README.textile,v 0.14.7 2014/11/11 Exp@
 
 bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
 TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
