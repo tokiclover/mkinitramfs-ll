@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/scripts/suspend                Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 2014/09/14 12:33:03                          Exp $
+# $Version: 0.14.7 2014/11/11 12:33:03                   Exp $
 #
 
 pkg=${0##*/}
@@ -12,8 +12,10 @@ usage() {
 	cat <<-EOH
  usage: $pkg [OPTIONS] [(toi) file/swap | (swsusp) major:minor]
    -o, --option platform|shutdown    Set swsusp suspend mode (ACPI/shutdown)
-   -O, --type mem|disk               Set swsusp suspend type (ACPI S2/4)
-   -s, --size N                      Set swsusp image size to N bytes
+   -m, --method [mem|disk]|[3|4|5]   Set suspend method (ACPI S2/4/5)
+                First set for swsusp; Second set for TuxOnIce
+   -c, --compression <comp>          Set TuxOnIce compression algorithm
+   -s, --size N                      Set image size limit to N bytes
    -t, --tuxonice                    use ToI hibernation implementation
    -H, --hibernate                   Foricibly hibernate at the end
    -h, --help                        Print this help message
@@ -22,8 +24,11 @@ EOH
 
 while [ $# > 1 ]; do
 	case "$1" in
-		(-O|--type)
-			type=$2
+		(-c|--compression)
+			comp=$2;
+			shift 2;;
+		(-m|--method)
+			method=$2
 			shift 2;
 		(-o|--option)
 			option=$2
@@ -53,19 +58,22 @@ if [ -n "$tuxonice" ]; then
 		echo "$pkg: Error: TuxOnIce hibernation is not supported" >&2
 		exit 2
 	fi
-	echo $1 /sys/power/tuxonice/swap/swapfile
+	[ -n "$comp" ] && echo $size > /sys/power/tuxonice/compression/algorithm
+	[ -n "$size" ] && echo $size > /sys/power/tuxonice/image_size_limit
+	echo ${method:-4} > /sys/power/tuxonice/powerdown_method
+	echo $1 > /sys/power/tuxonice/swap/swapfile
 	echo "Resume device: (ToI) $(cat /sys/power/tuxonice/swap/headerlocations)"
 	cmd='echo > /sys/power/tuxonice/do_hibernate'
 else
 	[ -n "$size" ] && echo $size > /sys/power/image_size
 	echo $1 > /sys/power/resume
-	echo ${option:-shutdown} > /sys/power/disk
-	cmd='echo ${type:-disk}  > /sys/power/state'
+	echo ${option:-platform}  > /sys/power/disk
+	cmd='echo ${method:-disk} > /sys/power/state'
 fi
 
 [ -n "$hibernate" ] && eval $cmd
 
-unset cmd hibernate option size tuxonice
+unset cmd comp hibernate method size tuxonice
 
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
