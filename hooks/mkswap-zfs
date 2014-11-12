@@ -2,15 +2,43 @@
 # $Header: mkinitramfs-ll/hooks/mkswap.zfs               Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
+# $Version: 0.14.7 2014/11/11 12:33:03                   Exp $
 #
 
-mkswap-zfs() {
-	test -n "$1" -a -n "$2" || return
-	local _bs="${3:-4k}" _size="$2" _vol="${1:-pool/swap}" _opt="$4"
+mkswap_zfs() {
+	usage() {
+	cat <<-EOH
+ usage: mkswap_zfs: [options] -s|--size <size> pool/volume
+   -o|--option <opt>   zpool-option
+   -b|--bs 8k          block-size, default 4k
+EOH
+	}
+	if ! test $# -ge 2; then
+		usage
+		return 1
+	fi
+	local _bs _opt _size
+	while test $# > 1; do
+		case "$1" in
+			(-b|--bs)
+				_bs=$2
+				shift 2;;
+			(-o|--option)
+				_opt="$_opt -o $2"
+				shift 2;;
+			(-s|--size)
+				_size=$2
+				shift;;
+			(-h|--help) usage;;
+		esac
+	done
+	if ! test $# -eq 1 -a -n "$1" -a -n "$_size"; then
+		usage
+		return 2
+	fi
 
 	zfs create -o sync=always -o primarycache=metadata \
-		-o secondarycache=none $_opt -b $_bs -V $_size $_vol
+		-o secondarycache=none $_opt -b ${_bs:-4k} -V $_size $1
 }
 
 #
