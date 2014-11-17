@@ -1,23 +1,18 @@
-To install this package and actually make any use of it, you will just need
-a static busybox. To make use of any building or utility script,
-an additional shell, bash or zsh, is required. Zsh scripts are
-shorter/cleaner and do not have the heaviness of the Bourne-Again SHell.
+A `make DESTDIR=/usr install' will install the essential initramfs files.
+Installation is not required to make any use of this package. Quite the contrary,
+one can pretty mush use almost everything minus the init service scripts.
 
-Ad then a `make DESTDIR=/usr install' will install the essential initramfs
-files into `/usr' prefix. Installation is not required to make any use of
-this package. Quite the contrary, one can pretty mush use almost everything
-minus the init service script which has to be installed of course.
+To install the building scripts, a simple `make DESTDIR=/usr install-bash' or
+`make DESTDIR=/usr install-zsh' is necessary.
 
-To install the building scripts, a simple `make DESTDIR=/usr install_bash' or
-`make DESTDIR=/usr install_zsh' is necessary. autogen, busybox, gnupg scripts
-will not be in any use if not using Gentoo because I am not planing to adapt
-them to any distribution out there. One just need static busybox and a static
-gpg-1.4.x (for GnuPG support) binaries which have an easy access from binary
-distributions. So no need to make any extra script for the latter case.
+busybox, gnupg {ba,z}sh scripts will not be useful if not using Gentoo.
+One just need a busybox and a static gpg-1.4 binary (for GnuPG support).
+(Static binaries are prefered, at least for busybox and gpg.)
 
-To make use of squashdir-mount for squashed (AUFS+squashfs) diretor-y-ies a 
-`make sys_confdir=/etc install_svc' will be necessary. AUFS+Squashfs
-kernel modules are required here.
+To make use of any init service script, just run the following with a service
+name (zram/squashd) `make sysconfdir=/etc install-<name>'.
+  * squashdir-mount init script require aufs+squashfs; and
+  * zram{,dir} require zram kernel module.
 
 Any filesystem utility for mount+umount+fsck is virtually supported.
 Just make sure to include the binaries and symlinks, if necessary,
