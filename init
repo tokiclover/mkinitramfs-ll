@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
+# $Version: 0.14.4 2014/12/01 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -263,8 +263,6 @@ done
 
 [ -n "$splash" ] && debug spld
 
-lvl 1
-
 # -*- Font and keymap -*-
 
 if [ -n "$ikmap" ]; then
@@ -287,6 +285,8 @@ for file in $KMAPDIR/$kmap*; do
 done
 
 unset FONTDIR KMAPDIR file font kmap
+
+lvl 1
 
 # -*- Logo and or boot message -*-
 
