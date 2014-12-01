@@ -86,8 +86,8 @@ $(keep_DIRS): .FORCE
 install-bash: install-scripts-bash
 install-zsh : install-scripts-zsh
 install-scripts-%sh:
-	sed -e 's:"$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
-	    -e 's:"$${PKG\[name\]}".conf:/etc/"$${PKG[name]}".conf:g' \
+	sed -e 's:"\$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
+	    -e 's:"\$${PKG\[name\]}".conf:/etc/"$${PKG[name]}".conf:g' \
 	    -i scripts/busybox.$*sh scripts/gnupg.$*sh $(PACKAGE).$*sh
 	$(install_SCRIPT) scripts/busybox.$*sh $(DESTDIR)$(datadir)/scripts
 	$(install_SCRIPT) scripts/gnupg.$*sh   $(DESTDIR)$(datadir)/scripts
