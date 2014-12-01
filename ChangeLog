@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.14.8:
+
+* minor installtion fix (sed);
+
 0.14.7:
 
 * complete re-write of the Makefile (cleaner/shorter/effient);
