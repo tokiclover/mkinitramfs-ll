@@ -181,7 +181,7 @@ if [[ -f "${PKG[name]}".conf ]] {
 :	${opts[-prefix]:=${opts[-p]:-initramfs-}}
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path, to get extra files
-:	${opts[-usrdir]:=${opts[-u]:-${PWD}/usr}}
+:	${opts[-usrdir]:=${opts[-u]:-"${PWD}"/usr}}
 # @VARIABLE: opts[-compressor]
 # @DESCRIPTION: compression command
 :	${opts[-compressor]:=${opts[-c]:-xz -9 --check=crc32}}
