@@ -1,9 +1,9 @@
-A `make DESTDIR=/usr install' will install the essential initramfs files.
+A `make prefix=/usr install' will install the essential initramfs files.
 Installation is not required to make any use of this package. Quite the contrary,
 one can pretty mush use almost everything minus the init service scripts.
 
-To install the building scripts, a simple `make DESTDIR=/usr install-bash' or
-`make DESTDIR=/usr install-zsh' is necessary.
+To install the building scripts, a simple `make prefix=/usr install-bash' or
+`make prefix=/usr install-zsh' is necessary.
 
 busybox, gnupg {ba,z}sh scripts will not be useful if not using Gentoo.
 One just need a busybox and a static gpg-1.4 binary (for GnuPG support).
