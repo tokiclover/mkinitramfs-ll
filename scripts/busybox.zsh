@@ -82,7 +82,7 @@ if [[ -f /etc/portage/make.conf ]] {
 
 # @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path where to get extra files
-:	${opts[-usrdir]:=${opts[-d]:-${PWD}/usr}}
+:	${opts[-usrdir]:=${opts[-d]:-"${PWD}"/usr}}
 # @VARIABLE: opts[-version] | opts[-v]
 # @DESCRIPTION: GnuPG version to build
 #
