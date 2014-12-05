@@ -1,8 +1,8 @@
-@Header: mkinitramfs-ll/README.textile,v 0.14.7 2014/11/11 Exp@
+@Header: mkinitramfs-ll/README.textile,v 0.14.8 2014/12/01 Exp@
 
-bq. "an initramfs with *optional RAID (dmraid/mdadm), DM-Crypt LUKS, LVM,
-TuxOnIce, AUFS+squashfs, ZFS, zram support; and maybe much more; and
-with a handfull zsh and bash set of scripts to get going easily and quickly."
+bq. "a lightweight, modular and yet powerfull initramfs generating tool
+with RAID (fake ATA software raid or md-raid), dm-crypt LUKS, LVM[2],
+TuxOnIce/swsusp hibernation, AUFS+squashfs, ZFS, zram and bcache support"
 
 BIG FAT NOTE: SUPPORTED BLOCK DEVICE STACK IS:
     [RAID]+[LUKS]+[LVM] or [LUKS]+[ZFS]
@@ -13,26 +13,28 @@ not implemented although it could be done easily.
 
 The order of LUKS/LVM can be changed, that is LUKS+LVM or LVM+LUKS is possible.
 
-*WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN "AS IS", SEE COPYRIGHT FILE*
+*WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN "AS IS", SEE COPYING FILE*
 
 h3. 1. Getting an intramfs quickly and ready
 
-If you have a static busybox binary you can make an initramfs in matter
-of secondes with locales settings: keymap and consolefont, in addition 
-to media-fonts/terminus-font if you use the associated "ebuild":https://github.com/tokiclover/bar-overlay 
-or if you have that package installed.
+An initramfs can be made in matter of secondes with locales settings
+(keymap and consolefont) if a busybox binary is available.
+media-fonts/terminus-font is recomanded to get a nice and neat interface
+in early boot up.
 
-*WARNING: no static busybox support require a very minimal effort, however,
-this is discrouraged as it could lead easily to kernel panics without care.
+An ebuild is available "there":https://github.com/tokiclover/bar-overlay
+for Gentoo users.
 
-If you want GnuPG support, yo should have an app-crypt/gnupg-1.4*[static]
-binary along with its options.skel file.
-Or if you run Gentoo you can run either gnupg.{ba,z}sh to generate one. 
+app-crypt/gnupg-1.4.x is mandatory for GnuPG support (a binary along with
+its options.skel file is required.)
 
-@gnupg.zsh@ will build a binary in the current directory
-(with a usr/bin/gpg and usr/share/gnupg/options.skel) if not installed
-or else in /usr/local/mkiniramfs-ll/ directory if installed.
-Or else, run the bash script counterpart to get build a binary.
+Gentoo users can use provided scripts to build static busybox/gnupg.
+(See in /scripts directory for extra scripts.)
+
+@gnupg.{ba,z}sh@ will build a binary in the current directory
+(with a usr/bin/gpg and usr/share/gnupg/options.skel)
+or else in /usr/local/mkiniramfs-ll directory if installed variant.
+The same goes for busybox.{ba,z}sh which build a static binary.
 
 And then run @mkinitramfs-ll.$shell -a -fter-g14n -yfr@ to build an initramfs.
 The appended font and keymap will be the default if there is no *ikmap* kernel
