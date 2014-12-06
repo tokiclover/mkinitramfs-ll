@@ -382,7 +382,7 @@ EXAMPLE: @iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin:ter-g12n.psf
 when using LVM on unencrypted PVs.
 
 DESCRIPTION: Root--regular passphrase--and fbsplash
-EXAMPLE: @iroot=root-sda3 video=1280x800-24 imod=drm:drm_kms_helper:ttm:i915 
+EXAMPLE: @iroot=root-sda3 video=1280x800-24 imod=hid-multitouch 
 	ikroot=pwd splash=verbose,theme:livecd-20007.0,tty:1@
 
 DESCRIPTION: Root--regular key-file--on usb device
