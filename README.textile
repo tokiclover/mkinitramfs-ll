@@ -334,7 +334,7 @@ DESCRIPTION: Required argument for crypted zfs vdev (devices), or else, @izfs=1@
 (1 can be replaced by case insensitive enable|on|true|yes) for un-encryoted vdev
 EXEMPLE: @iroot=POOL/ROOT izfs=zva-sda:zvb-sdb ikroot=pwd@
 
-To get support for zfs append -Hzfs or -a|--all to building script.
+To get support for zfs append @-Hzfs@ or @-a|--all@ to building script.
 
 Several pools (one containing root, another for swap and another one for resume)
 are supported along with a single pool. Just append a coma and an argument (2nd
