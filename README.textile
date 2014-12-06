@@ -55,15 +55,15 @@ nor @resume=<arg>@ kernel command line options.
 KERNEL-COMMAND-LINE-ARG: @iroot=<PV|VG-LV>[:<fs>:chk]@
 DESCRIPTION: root block device, required,
 	recommanded optional file system check @:[<filesystem>]:[c|chk|yes|1|...]@
-EXAMPLE: @iroot=vg-root:ext4:1@ for an ext4 rootfs in LVM (Volume Group is named vg),
-	or @iroot=POOL/ROOT izfs=yes@ for a zfs rootfs (ROOT) in a pool called POOL.
+EXAMPLE: @iroot=vg-root:ext4:1 ilvm=yes@ for an ext4 rootfs in LVM (Volume Group
+	is named vg), or @iroot=POOL/ROOT izfs=yes@ for a zfs rootfs volume.
 
-*Note*: @:[no|NO:No:false:FALSE:0]@ instead of @:[c|chk|true|TRUE|yes|YES:1]@
+*Note*: @:[no|NO|No|false|FALSE|0]@ instead of @:[c|chk|true|TRUE|yes|YES|1]@
 will disable a die after fsck failure.
 
 KERNEL-COMMAND-LINE-ARG: @imopt=<ro,inode64,...>@
 DESCRIPTION: optional rootfs mount options
-EXAMPLE: @imopt=inode64,noatime,ro@ for xfs file system@
+EXAMPLE: @imopt=inode64,noatime,ro@ for xfs file system
 
 KERNEL-COMMAND-LINE-ARG: @imount=</usr:/var:...>@
 DESCRIPTION: mount /usr:/var using the included @/etc/fstab@
@@ -102,16 +102,16 @@ KERNEL-COMMAND-LINE-ARG: @ilvm=<map-PV>,...,<map-PV>@
 DESCRIPTION: LVM argument @<mapping-PV>@ is collon ':' separated list of PVs of
 a Volume Group; and comma ',' separated list of VG: 1st for root, 2nd for swap
 and the 3rd for resume. Hence one can append commas to asign a particular group.
-EXAMPLE: @lvm=pva-sda1:pvb-sdb1,pvc-sda1@ assigne a single PV to swap group,
+EXAMPLE: @lvm=pva-sda1:pvb-sdb1,pvc-sdc1@ assigne a single PV to swap group,
 	and two PVs to root group with its mappings.
 
 *Note*: This argument is used only in case of dm-crypt LUKS crypted PVs.
 Unencrypted PVs do _not_ require this!
-Asingle character or word is sufficient in that case.
+Asingle character or word is sufficient in that case e.g. @ilvm=1@.
 
 KERNEL-COMMAND-LINE-ARG: @iraid=<array>+UUID=<uuid>[|<p>|<f>]@
 DESCRIPTION: comma separated list of arrays for root, swap and resume
-EXAMPLE: @iroot=md1 iraid=sd[ab]+UUID=<uuid>@
+EXAMPLE: @iroot=md1 iraid=md1+UUID=<uuid>@
 
 KERNEL-COMMAND-LINE-ARG: @iswap=<type>:<VG-LV>[:signature]@
 DESCRIPTION: the equivalent of @iroot@ for swap
@@ -156,7 +156,7 @@ init script accept also @single@, @ro@, @rw@ and @init=/path/to/real/init@
 kernel cmdline argument and will append single runlevel to real init. 
 
 It also support @splash=silent,fadein,theme:emergence console=[/dev/]tty1@
-or @splash=silent,fadein,theme:emergenc,tty:1@ esplash kernel cmdline arguments.
+or @splash=silent,fadein,theme:emergenc,tty:1@ splash kernel cmdline arguments.
 
 h3. 2.2 About mount options: @imopt=<rootfs mount options>@
 
@@ -306,7 +306,7 @@ proper support in squashfs-tools and in kernel (squashfs module).
 h3. 4.4. Optional user scripts support
 
 Now, one can add hooks/scripts to @hooks/@ directory, or else directly in
-@$gitdir/usr/lib/mkinitramfs-ll@ if using mkinitramfs-ll.$shell generating script.
+@usr/lib/mkinitramfs-ll@ if using mkinitramfs-ll.$shell generating script.
 Basically, each script is considered to be a hook! So one can append -H$script
 to mkinitramfs-ll.$shell; and if there is a opts[-m$script] kernel module group
 line in mkinitramfs-ll.conf, the modules and module group will be added!
@@ -321,6 +321,9 @@ execution is bound to a specific init shell run level.
 
 Else, @ihook@ kernel command line could be used to execute a hook/script now and
 then e.g. @ihook=zram@ append zram to script execution.
+
+*Note*: Appending _zram_, or _bcache_ or _zfs_ for that matter, is not required
+because @izram@, @izfs@ and @ibcache@ will trigger hook execution respectively.
 
 *Info*: See zfs/zram hook for more info and a praticable examples.
 
@@ -351,11 +354,11 @@ DESCRIPTION: zram basic initialisation kernel command line argument
 EXEMPLE: :512M:4G:512M
 
 This hook/script take care of basic zram initialisation:
-* First integer: passed as num_devices=<int> to modprobe;
+* First integer: passed as @num_devices=<int>@ to modprobe;
 * Second integer is passed to max_comp_streams;
 * Third string is passed comp_algorithm (compressor);
 * Following arguments are pair of size-filesystem: just make sure to include
-the related mkfs.$fs binaries if the fie system string is appended!
+the related mkfs.$fs binaries if the file system string is appended!
 * Lastly, the first *string* @4-2-lzo@ can be omited so the default will be
   picked up @4-2-lz4@ as in the last kernel cmdline example.
 
