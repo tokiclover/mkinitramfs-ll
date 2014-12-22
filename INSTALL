@@ -2,15 +2,15 @@ A `make prefix=/usr install' will install the essential initramfs files.
 Installation is not required to make any use of this package. Quite the contrary,
 one can pretty mush use almost everything minus the init service scripts.
 
-To install the building scripts, a simple `make prefix=/usr install-bash' or
-`make prefix=/usr install-zsh' is necessary.
+To install the building scripts, a simple `make prefix=/usr install-scripts-bash'
+or `make prefix=/usr install-scripts-zsh' is necessary.
 
 busybox, gnupg {ba,z}sh scripts will not be useful if not using Gentoo.
 One just need a busybox and a static gpg-1.4 binary (for GnuPG support).
 (Static binaries are prefered, at least for busybox and gpg.)
 
 To make use of any init service script, just run the following with a service
-name (zram/squashd) `make sysconfdir=/etc install-<name>'.
+name (zram/squashd) `make sysconfdir=/etc install-<name>-svc'.
   * squashdir-mount init script require aufs+squashfs; and
   * zram{,dir} require zram kernel module.
 

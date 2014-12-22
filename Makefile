@@ -94,8 +94,6 @@ install-scripts-%sh:
 	$(install_DATA)   $(PACKAGE).conf      $(DESTDIR)$(sysconfdir)
 	ln -f -s $(PACKAGE).$*sh    $(DESTDIR)$(sbindir)/$(PACKAGE)
 	ln -f -s sdr.$*sh           $(DESTDIR)$(sbindir)/sdr
-install-squashd: install-squashdir-mount-svc
-install-zram: install-zram-svc install-zramdir-svc
 install-%-svc:
 	$(MKDIR_P) $(DESTDIR)$(svcconfdir)
 	$(MKDIR_P) $(DESTDIR)$(svcinitdir)
@@ -127,13 +125,11 @@ uninstall:
 	for dir in $(base_DIRS); do \
 		rmdir $(DESTDIR)/$${dir}; \
 	done
-uninstall-%sh:
+uninstall-scripts-%sh:
 	rm -f $(DESTDIR)$(sbindir)/$(PACKAGE).$*sh
 	rm -f $(DESTDIR)$(datadir)/scripts/busybox.$*sh
 	rm -f $(DESTDIR)$(datadir)/scripts/gnupg.$*sh
 	rm -f $(DESTDIR)$(sbindir)/svc/sdr.$*sh
-uninstall-squashd: uninstall-squashdir-mount-svc
-uninstall-zram: uninstall-zram-svc uninstall-zramdir-svc
 uninstall-%-svc:
 	rm -f $(DESTDIR)$(svcconfdir)/$*
 	rm -f $(DESTDIR)$(svcinitdir)/$*
