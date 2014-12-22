@@ -83,8 +83,6 @@ $(keep_DIRS): .FORCE
 	$(MKDIR_P) $(DESTDIR)$(datadir)/$@
 	echo     > $(DESTDIR)$(datadir)/$@/.keep-$(@F)-dir
 
-install-bash: install-scripts-bash
-install-zsh : install-scripts-zsh
 install-scripts-%sh:
 	sed -e 's:"\$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
 	    -e 's:"\$${PKG\[name\]}".conf:/etc/"$${PKG[name]}".conf:g' \
@@ -94,6 +92,8 @@ install-scripts-%sh:
 	$(install_SCRIPT) $(PACKAGE).$*sh      $(DESTDIR)$(sbindir)
 	$(install_SCRIPT) svc/sdr.$*sh         $(DESTDIR)$(sbindir)
 	$(install_DATA)   $(PACKAGE).conf      $(DESTDIR)$(sysconfdir)
+	ln -f -s $(PACKAGE).$*sh    $(DESTDIR)$(sbindir)/$(PACKAGE)
+	ln -f -s sdr.$*sh           $(DESTDIR)$(sbindir)/sdr
 install-squashd: install-squashdir-mount-svc
 install-zram: install-zram-svc install-zramdir-svc
 install-%-svc:
@@ -127,9 +127,7 @@ uninstall:
 	for dir in $(base_DIRS); do \
 		rmdir $(DESTDIR)/$${dir}; \
 	done
-uninstall-bash: uninstall-scripts-bash
-uninstall-zsh : uninstall-scripts-zsh
-uninstall-scripts-%sh:
+uninstall-%sh:
 	rm -f $(DESTDIR)$(sbindir)/$(PACKAGE).$*sh
 	rm -f $(DESTDIR)$(datadir)/scripts/busybox.$*sh
 	rm -f $(DESTDIR)$(datadir)/scripts/gnupg.$*sh
