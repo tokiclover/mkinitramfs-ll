@@ -30,8 +30,6 @@ gunzip
 gzip
 halt
 head
-head
-init
 init
 ln
 loadfont
