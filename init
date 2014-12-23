@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.4 2014/12/01 12:33:03                   Exp $
+# $Version: 0.15.0 2014/12/22 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 # NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
@@ -402,12 +402,14 @@ msg -i "Switching / ..."
 $SPLD && debug spld_stop
 sleep 1
 
-debug -d umount -l /sys
-debug -d umount -l /dev/pts
-debug -d umount -l /dev
 export LOGFILE=/$0.log
 debug -d umount -l /run
-debug -d umount -l /proc
+debug -d umount -l /dev/pts
+if -z "$sysfs_umount"; then
+	debug -d umount -l /sys
+	debug -d umount -l /dev
+	debug -d umount -l /proc
+fi
 
 lvl 4s
 
