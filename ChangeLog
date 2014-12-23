@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.15.0:
+
+* added ability to keep {proc,sys,dev} mounted; minor clean up;
+
 0.14.9:
 
 * minor bug fix (installed zsh scripts); README clean up;
