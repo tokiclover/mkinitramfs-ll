@@ -1,7 +1,7 @@
 #!/sbin/runscript
-# Copyright 1999-2014 Gentoo Foundation
-# Distributed under the terms of the 2-clause BSD or GPL-2 license
-# $Header: zramdir.initd,v 3.3 2014/10/01 -tclover Exp $
+# CopyLeft 2011-2014 tclover <tokiclover@mkinitramfs-ll.project>
+# Distributed under the terms of the simplified 2-clause BSD license
+# $Header: mkinitramfs-ll/svc/zramdir.initd,v 3.3 2014/12/22 -tclover Exp $
 
 conf_file="/etc/conf.d/${RC_SVCNAME}"
 description="use zram and optional tarball archive for directories /var/{log,...}"

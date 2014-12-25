@@ -1,7 +1,7 @@
 #!/sbin/runscript
-# Copyright 1999-2014 Gentoo Foundation
+# CopyLeft 2011-2014 tclover <tokiclover@mkinitramfs-ll.project>
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.6 2014/10/10 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.6 2014/12/22 -tclover Exp $
 
 conf_file="/etc/conf.d/${RC_SVCNAME}"
 description="manage (AUFS+squashfs) squashed directories"
