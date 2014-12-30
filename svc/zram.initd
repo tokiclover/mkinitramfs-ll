@@ -1,15 +1,13 @@
 #!/sbin/runscript
 # CopyLeft 2011-2014 tclover <tokiclover@mkinitramfs-ll.project>
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/zram.initd,v 1.4 2014/12/22 13:05:23 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/zram.initd,v 1.4 2014/12/30 Exp $
 
 conf_file=/etc/conf.d/${RC_SVCNAME}
 description="set up zram devices and initialize zram if necessary"
-
-:	${num_devices:=4}
-
 extra_started_commands="reset"
 description_reset="Reset zram devices (WARNING: THIS WILL RESET EVERY DEVICE!)"
+:	${num_devices:=4}
 
 depend()
 {

@@ -1,18 +1,15 @@
 #!/sbin/runscript
 # CopyLeft 2011-2014 tclover <tokiclover@mkinitramfs-ll.project>
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/zramdir.initd,v 3.3 2014/12/22 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/zramdir.initd,v 3.3 2014/12/30 Exp $
 
 conf_file="/etc/conf.d/${RC_SVCNAME}"
 description="use zram and optional tarball archive for directories /var/{log,...}"
-
-:	${compressor:=lz4 -1 -}
-extension=".tar.${compressor%% *}"
-
 extra_commands="restore save"
-
 description_restore="restore directory contents using dir$extension"
-description_restore="archive directory contents using dir$extension"
+description_save="archive directory contents using dir$extension"
+:	${compressor:=lz4 -1 -}
+:	${extension:=.tar.${compressor%% *}}
 
 depend()
 {
@@ -34,17 +31,13 @@ start()
 		mount --bind "${zramdir_root}${dir}" "${dir}"
 	done
 
-	# Restor saved/archived directory-ies if any
 	restore
-
 	return 0
 }
 
 stop()
 {
-	# Save saved/archived directory-ies if any
 	save
-
 	return 0
 }
 
