@@ -320,7 +320,7 @@ stk() {
 
 		[ -f $CONFDIR/remdev ] && debug _modprobe remdev
 
-		if [ -z "$(grep $MNTDIR /proc/mounts)" ]; then
+		if ! grep -q $MNTDIR /proc/mounts; then
 			[ -b "$_kd" ] || blk "$_kd" "_kd"
 			debug -d mount -n -r "$_kd" $MNTDIR
 		fi
