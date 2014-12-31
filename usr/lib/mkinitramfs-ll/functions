@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
+# $Version: 0.15.1 2014/12/30 12:33:03                   Exp $
 #
 
 # @FUNCTION: arg
@@ -71,7 +71,7 @@ debug() {
 		esac
 	done
 
-	$_cmd
+	eval $_cmd
 	_ret=$?
 
 	echo "[$_ret]: $_cmd" >>$LOGFILE
@@ -429,10 +429,7 @@ dmopen() {
 
 	if [ "$KEYMODE" = "gpg" ]; then 
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
-		for _i in 1 2 3; do
-			gpg -qd "$KEYFILE" | cryptsetup $_arg && break
-			echo "[$?]: gpg -qd "$KEYFILE" | cryptsetup $_arg" >>$LOGFILE
-		done
+		debug "gpg -qd \"$KEYFILE\" | cryptsetup $_arg"
 		rm /dev/tty && mv -f /dev/bak /dev/tty
 	elif [ "$KEYMODE" = "ldk" ] || [ "$KEYMODE" = "reg" ]; then
 		debug cryptsetup $_arg -d "$KEYFILE"
@@ -559,13 +556,12 @@ squashd() {
 		debug -d test -f $_base.squashfs || continue
 		debug mkdir -p -m 0755 $_base/rw $_base/rr $_dir
 
-		if ! grep -q aufs:$_dir /proc/mounts; then
-			if ! grep -q $_base/rr /proc/mounts; then
-				debug -d mount -t squashfs -o nodev,loop,ro $_base.squashfs $_base/rr ||
-				continue
-			fi
-			mount -t aufs -o nodev,udba=reval,br:$_base/rw:$_base/rr aufs:/$_dir $_dir
+		grep -q aufs:$_dir /proc/mounts && continue
+		if ! grep -q $_base/rr /proc/mounts; then
+			debug -d mount -t squashfs -o nodev,loop,ro $_base.squashfs \
+				$_base/rr || continue
 		fi
+		mount -t aufs -o nodev,udba=reval,br:$_base/rw:$_base/rr aufs:/$_dir $_dir
 	done
 }
 
