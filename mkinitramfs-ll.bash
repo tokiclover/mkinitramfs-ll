@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
+# $Version: 0.15.0 2014/12/30 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
-	[version]=0.14.4
+	[version]=0.15.0
 )
 
 # @FUNCTION: usage
@@ -208,6 +208,9 @@ fi
 # @DESCRIPTION: tmp dir where to generate initramfs
 # an initramfs compressed image
 opts[-tmpdir]="$(mktmp ${opts[-initramfs]})"
+# @VARIABLE: opts[-confdir]
+# @DESCRIPTION: configuration directory
+opts[-confdir]="etc/${PKG[name]}"
 
 declare -a compressor
 compressor=(bzip2 gzip lzip lzop lz4 xz)
@@ -278,7 +281,7 @@ pushd "${opts[-tmpdir]}" || die "${opts[-tmpdir]} not found"
 if [[ "${opts[-r]}" ]] || [[ "${opts[-regen]}" ]]; then
 	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
-	docpio "${opts[-initramfs]}" || die
+	docpio || die
 	echo ">>> regenerated ${opts[-initramfs]}..." && exit
 else
 	rm -fr *
@@ -304,7 +307,7 @@ ln -sf lib{${opts[-arc]},} &&
 		echo "${key}=${PKG[$key]}"
 	done
 	echo "build=$(date +%Y-%m-%d-%H-%M-%S)"
-} >etc/${PKG[name]}/id
+} >${opts[-confdir]}/id
 touch etc/{fs,m}tab
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
@@ -361,7 +364,7 @@ if [[ -x usr/bin/busybox ]]; then
 elif type -p busybox >/dev/null; then
 	bb=$(type -p busybox)
 	if ldd ${bb} >/dev/null; then
-		busybox --list-full >etc/${PKG[name]}/busybox.applets
+		busybox --list-full >${opts[-confdir]}/busybox.applets
 		opts[-bin]+=:${bb}
 		warn "busybox is not a static binary"
 	fi
@@ -371,22 +374,22 @@ else
 	die "no busybox binary found"
 fi
 
-if [[ ! -f etc/${PKG[name]}/busybox.applets ]]; then
-	bin/busybox --list-full >etc/${PKG[name]}/busybox.applets || die
+if [[ ! -f ${opts[-confdir]}/busybox.applets ]]; then
+	bin/busybox --list-full >${opts[-confdir]}/busybox.applets || die
 fi
 
 while read line; do
-	grep -q ${line} etc/${PKG[name]}/busybox.applets ||
+	grep -q ${line} ${opts[-confdir]}/busybox.applets ||
 	die "${line} applet not found, no suitable busybox found"
-done <etc/${PKG[name]}/minimal.applets
+done <${opts[-confdir]}/minimal.applets
 
 pushd bin || die
-for applet in $(grep '^bin' ../etc/${PKG[name]}/busybox.applets); do
+for applet in $(grep '^bin' ../${opts[-confdir]}/busybox.applets); do
 	ln -s busybox ${applet#bin/}
 done
 popd
 pushd sbin || die
-for applet in $(grep '^sbin' ../etc/${PKG[name]}/busybox.applets); do
+for applet in $(grep '^sbin' ../${opts[-confdir]}/busybox.applets); do
 	ln -s ../bin/busybox ${applet#sbin/}
 done
 popd
@@ -460,8 +463,8 @@ for keymap in ${opts[-y]//:/ } ${opts[-keymap]//:/ }; do
 	fi
 	(( $? == 0 )) && KEYMAP+=(${keymap}-${opts[-arch]}.bin)
 done
-echo "${KEYMAP[0]}" > etc/${PKG[name]}/kmap
-unset KEYMAP
+echo "${KEYMAP[0]}" >${opts[-confdir]}/kmap
+unset KEYMAP keymap
 
 declare -a FONT
 for font in ${opts[-f]//:/ } ${opts[-font]//:/ }; do
@@ -469,7 +472,7 @@ for font in ${opts[-f]//:/ } ${opts[-font]//:/ }; do
 	elif [[ -f ${font} ]]; then
 		cp -a ${font} usr/share/consolefonts/ 
 	else 
-		for file in $(ls /usr/share/consolefonts/${font}*.gz); do
+		for file in /usr/share/consolefonts/${font}*.gz; do
 			if [[ -f ${file} ]]; then
 				cp ${file} . 
 				gzip -d ${file##*/}
@@ -479,9 +482,8 @@ for font in ${opts[-f]//:/ } ${opts[-font]//:/ }; do
 	fi
 	(( $? == 0 )) && FONT+=(${font})
 done
-echo "${FONT[0]}" > etc/${PKG[name]}/font
-unset FONT
-
+echo "${FONT[0]}" >${opts[-confdir]}/font
+unset FONT font
 
 if [[ "${opts[-s]}" ]] || [[ "${opts[-splash]}" ]]; then
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
@@ -543,28 +545,28 @@ for bin in ${opts[-b]//:/ } ${opts[-bin]//:/ }; do
 	[[ "${binary}" ]] && dobin ${binary} || warn "no ${bin} binary found"
 	binary=
 done
-unset binary
+unset binary bin b
 
 domod ${opts[-m]//:/ } ${opts[-kmod]//:/ }
 
 # Remove module group name from boot group before processing module groups
 for mod in ${opts[-mboot]//:/ }; do
 	if [[ "${opts[-m$mod]}" ]]; then
-		echo "${mod}" >> etc/${PKG[name]}/boot
+		echo "${mod}" >> ${opts[-confdir]}/boot
 	else
 		mboot+=":${mod}"
 	fi
 done
 opts[-mboot]="${mboot}"
-unset mboot
+unset mboot mod
 
 for grp in ${opts[-mgrp]//:/ }; do
-	domod -v etc/${PKG[name]}/${grp} ${opts[-m${grp}]//:/ }
+	domod -v ${opts[-confdir]}/${grp} ${opts[-m${grp}]//:/ }
 done
 
 # Set up user environment if present
 for (( i=0; i < ${#env[@]}; i++ )); do
-	echo "${env[i]}" >> etc/${PKG[name]}/env
+	echo "${env[i]}" >> ${opts[-confdir]}/env
 done
 unset env
 

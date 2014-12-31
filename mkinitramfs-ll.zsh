@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
+# $Version: 0.15.0 2014/12/30 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	name mkinitramfs-ll
 	shell zsh
-	version 0.14.4
+	version 0.15.0
 )
 
 # @FUNCTION: usage
@@ -198,6 +198,9 @@ if [[ -f "${PKG[name]}".conf ]] {
 # @DESCRIPTION: tmp dir where to generate initramfs
 # an initramfs compressed image
 :	${opts[-tmpdir]:=$(mktmp ${opts[-initramfs]:t})}
+# @VARIABLE: opts[-confdir]
+# @DESCRIPTION: configuration directory
+:	${opts[-confdir]=etc/${PKG[name]}}
 
 typeset -a compressor
 compressor=(bzip2 gzip lzip lzop lz4 xz)
@@ -263,7 +266,7 @@ pushd ${opts[-tmpdir]} || die "no ${opts[-tmpdir]} tmpdir found"
 if (( ${+opts[-r]} )) || (( ${+opts[-rebuild]} )) {
 	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
-	docpio ${opts[-initramfs]} || die
+	docpio || die
 	print -P "%F{green}>>> regenerated ${opts[-initramfs]}...%f" && exit
 } else {
 	rm -fr *
@@ -287,7 +290,7 @@ ln -sf lib{${opts[-arc]},} &&
 {
 	for key (${(k)PKG[@]}) print "${key}=${PKG[$key]}"
 	print "build=$(date +%Y-%m-%d-%H-%M-%S)"
-} >etc/${PKG[name]}/id
+} >${opts[-confdir]}/id
 touch etc/{fs,m}tab
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
@@ -341,23 +344,23 @@ if [[ -x usr/bin/busybox ]] {
 	mv -f {usr/,}bin/busybox
 } elif (( ${+commands[busybox]} )) {
 	if (ldd ${commands[busybox]} >/dev/null) {
-		busybox --list-full >etc/${PKG[name]}/busybox.applets
+		busybox --list-full >${opts[-confdir]}/busybox.applets
 		opts[-bin]+=:${commands[busybox]}
 		warn "busybox is not a static binary"
 	}
 	cp -a ${commands[busybox]} bin/
 } else { die "no busybox binary found" }
 
-if [[ ! -f etc/${PKG[name]}/busybox.applets ]] {
-	bin/busybox --list-full >etc/${PKG[name]}/busybox.applets || die
+if [[ ! -f ${opts[-confdir]}/busybox.applets ]] {
+	bin/busybox --list-full >${opts[-confdir]}/busybox.applets || die
 }
 
 pushd bin || die
-for applet ($(grep '^bin' ../etc/${PKG[name]}/busybox.applets))
+for applet ($(grep '^bin' ../${opts[-confdir]}/busybox.applets))
 	ln -s busybox ${applet:t}
 popd
 pushd sbin || die
-for applet ($(grep '^sbin' ../etc/${PKG[name]}/busybox.applets))
+for applet ($(grep '^sbin' ../${opts[-confdir]}/busybox.applets))
 	ln -s ../bin/busybox ${applet:t}
 popd
 
@@ -427,8 +430,8 @@ for keymap (${(pws,:,)opts[-y]} ${(pws,:,)opts[-keymap]}) {
 	}
 	(( $? == 0 )) && KEYMAP+=(${keymap}-${opts[-arch]}.bin)
 }
-print ${KEYMAP[1]} > etc/${PKG[name]}/kmap
-unset KEYMAP
+print ${KEYMAP[1]} >${opts[-confdir]}/kmap
+unset KEYMAP keymap
 
 typeset -a FONT
 for font (${(pws,:,)opts[-f]} ${(pws,:,)opts[-font]}) {
@@ -445,8 +448,8 @@ for font (${(pws,:,)opts[-f]} ${(pws,:,)opts[-font]}) {
 	}
 	(( $? == 0 )) && FONT+=(${font})
 }
-print ${FONT[1]} > etc/${PKG[name]}/font
-unset FONT
+print ${FONT[1]} >${opts[-confdir]}/font
+unset FONT font
 
 if (( ${+$opts[-s]} )) || (( ${+opts[-splash]} )) {
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
@@ -504,23 +507,23 @@ for bin (${(pws,:,)opts[-b]} ${(pws,:,)opts[-bin]}) {
 	[[ -n ${binary} ]] && dobin ${binary} || warn "no ${bin} binary found"
 	binary=
 }
-unset -v binary
+unset -v binary bin b
 
 # Remove module group name from boot group before processing module groups
 for mod (${(pws,:,)opts[-mboot]})
 	if (( ${+opts[-m$mod]} )) {
-		print ${mod} >> etc/${PKG[name]}/boot
+		print ${mod} >>${opts[-confdir]}/boot
 	} else { mboot+=:${mod} }
 opts[-mboot]=${mboot}
-unset mboot
+unset mboot mod
 
 for module (${(pws,:,)opts[-m]}${(pws,:,)opts[-kmod]}) domod ${module}
 for grp (${(pws,:,)opts[-mgrp]})
-	domod -v etc/${PKG[name]}/${grp} ${(pws,:,)opts[-m${grp}]}
+	domod -v ${opts[-confdir]}/${grp} ${(pws,:,)opts[-m${grp}]}
 
 # Set up user environment if present
 for (( i=1; i <= ${#env[@]}; i++ ))
-	print ${env[i]} >> etc/${PKG[name]}/env
+	print ${env[i]} >>${opts[-confdir]}/env
 unset env
 
 for lib (usr/lib/gcc/**/lib*.so*(.N)) {
