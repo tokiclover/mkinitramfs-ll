@@ -506,10 +506,9 @@ mdopen() {
 		fi
 		debug -d mdadm --assemble ${_uuid:+-u${_uuid#*=}} -c/etc/mdadm.conf $_dev
 	else
+		[ -b "$_dev" ] && eval ${2:-MD}=$_dev && return
 		$ECK && debug -d bck dmraid
 		debug _modprobe dm-raid
-		_devices=$(dmraid -r | grep "$_dev" | cut -d: -f1)
-		[ -b "$_devices" ] && eval ${2:-MD}=$_dev && return
 
 		local _f _s
 		for _f in $(echo "$_opt" | sed 's/:/ /g'); do
