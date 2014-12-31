@@ -198,7 +198,7 @@ spld_cmd() {
 # @DESCRIPTION: set splash deamon to verbose message
 spld_verbose() {
 	debug chvt ${CONSOLE:8:1}
-	debug spld_cmd "set mode spld_verbose"
+	debug spld_cmd "set mode verbose"
 }
 
 # @FUNCTION: spld_silent
@@ -252,9 +252,9 @@ blk() {
 	local _asw _blk=$(blkid | grep "$1" | cut -d: -f1)
 	
 	if [ ! -b "$_blk" ]; then
-		msg -i "Insert $1 block device and press Enter"
-		_blk=$(blkid | grep "$1" | cut -d: -f1)
+		msg -i "Insert $1 block device"
 		sleep 1
+		_blk=$(blkid | grep "$1" | cut -d: -f1)
 
 		while [ ! -b "$_blk" ]; do
 			msg -i "Type in a valid block device e.g. \
@@ -482,7 +482,8 @@ lvopen() {
 # @DESCRIPTION: open md-raid block device
 mdopen() {
 	local _devices _dev="${1%+*}" _opt="${2#*+}" _set _uuid
-	[ "${_opt/UUID}" != "$_opt" ] && _uuid=$_opt
+	[ "${_dev/dev}" != "$_dev" ] || _dev=/dev/$_dev
+
 	case "$_opt" in
 		([Uu][Uu][Ii][Dd])  _uuid="$_opt"        ;;
 		(/dev/sd*[1-9])  _devices="$_opt"        ;;
@@ -494,9 +495,7 @@ mdopen() {
 	esac
 
 	if [ -n "$_uuid" ] || [ -n "$_devices" ]; then
-		[ "${_dev/dev}" != "$_dev" ] || _dev=/dev/$_dev
-		[ -b "$_dev" ] && return
-
+		[ -b "$_dev" ] && eval ${2:-MD}=$_dev && return
 		$ECK && debug -d bck mdadm
 		debug _modprobe raid
 	
@@ -505,19 +504,17 @@ mdopen() {
 		else
 			echo ARRAY $_dev devices="$_devices" >>/etc/mdadm.conf
 		fi
-		
-		local _conf=-c/etc/mdadm.conf
-		debug -d mdadm --assemble ${_uuid:+-u${_uuid#*=}} $_conf $_dev
+		debug -d mdadm --assemble ${_uuid:+-u${_uuid#*=}} -c/etc/mdadm.conf $_dev
 	else
 		$ECK && debug -d bck dmraid
 		debug _modprobe dm-raid
-		_dev=$(dmraid -r | grep "$_dev" | cut -d: -f1)
-		[ -b "$_dev" ] && return
+		_devices=$(dmraid -r | grep "$_dev" | cut -d: -f1)
+		[ -b "$_devices" ] && eval ${2:-MD}=$_dev && return
 
+		local _f _s
 		for _f in $(echo "$_opt" | sed 's/:/ /g'); do
 			_set="$_set $(dmraid -s -c $_f)"
 		done
-		
 		for _s in ${_dev##*/} $_set; do
 			debug -d dmraid -ay -i -I $_s
 		done
