@@ -99,7 +99,7 @@ stop()
 	for arg in $(sed -nre 's/^device=(.*$)/\1/p' $configfile); do
 		dev=/dev/zram$num
 		[ -b $dev ] || break
-		eval set -- "$arg"
+		eval set -- $(echo "$arg" | sed -e 's/:/ /g')
 		fsys="$2" mtpt="$3"
 		[ -n "$fsys" ] || continue
 
