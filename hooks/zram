@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/hooks/zram                     Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.8 2014/10/01 12:33:03                   Exp $
+# $Version: 0.15.0 2014/12/31 12:33:03                   Exp $
 #
 
 set +e +x
@@ -41,7 +41,7 @@ dozram() {
 		echo $streams > /sys/block/zram$num/max_comp_streams
 		echo $size >/sys/block/zram$num/disksize
 
-		num=$(expr $num + 1)
+		num=$(($num + 1))
 
 		[ -n "$fs" ] || continue
 		if [ -x /sbin/mkfs.$fs ]; then
