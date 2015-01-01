@@ -292,6 +292,7 @@ if [[ -d "${opts[-usrdir]}" ]]; then
 	mv -f {usr/,}root &&
 	mv -f {usr/,}etc &&
 	mv -f usr/lib lib${opts[-arc]} || die
+	rm -f usr/README*
 else 
 	die "${opts[-usrdir]} dir not found"
 fi
@@ -299,8 +300,9 @@ fi
 mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
 mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} || die
 mkdir -p run lib${opts[-arc]}/{modules/${opts[-kv]},${PKG[name]}} || die
-ln -sf lib{${opts[-arc]},} &&
-	pushd usr && ln -sf lib{${opts[-arc]},} && popd || die
+for dir in {,usr/}lib; do
+	ln -s lib${opts[-arc]} ${dir}
+done
 
 {
 	for key in "${!PKG[@]}"; do
@@ -383,16 +385,12 @@ while read line; do
 	die "${line} applet not found, no suitable busybox found"
 done <${opts[-confdir]}/minimal.applets
 
-pushd bin || die
-for applet in $(grep '^bin' ../${opts[-confdir]}/busybox.applets); do
-	ln -s busybox ${applet#bin/}
+for bin in $(grep  '^bin' ${opts[-confdir]}/busybox.applets); do
+	ln -s busybox ${bin}
 done
-popd
-pushd sbin || die
-for applet in $(grep '^sbin' ../${opts[-confdir]}/busybox.applets); do
-	ln -s ../bin/busybox ${applet#sbin/}
+for bin in $(grep '^sbin' ${opts[-confdir]}/busybox.applets); do
+	ln -s ../bin/busybox ${bin}
 done
-popd
 
 if [[ "${opts[-L]}" ]] || [[ "${opts[-luks]}" ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
@@ -540,10 +538,8 @@ for bin in ${opts[-b]//:/ } ${opts[-bin]//:/ }; do
 	for b in {usr/,}{,s}bin/${bin}; do
 		[[ -x ${b} ]] && continue 2
 	done
-
 	[[ -x ${bin} ]] && binary=${bin} || binary=$(type -p ${bin})
 	[[ "${binary}" ]] && dobin ${binary} || warn "no ${bin} binary found"
-	binary=
 done
 unset binary bin b
 
