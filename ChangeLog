@@ -3,7 +3,7 @@ Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 0.15.1:
 
 * added ability to chose what file system to keep around;
-* minor clean up (build/init scripts, functions);
+* minor clean up & fixes (build/init scripts, functions);
 
 0.15.0:
 
