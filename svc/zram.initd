@@ -1,13 +1,13 @@
 #!/sbin/runscript
 # CopyLeft 2011-2014 tclover <tokiclover@mkinitramfs-ll.project>
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/zram.initd,v 1.4 2014/12/30 Exp $
+# $Header: mkinitramfs-ll/svc/zram.initd,v 1.5 2014/12/30 Exp $
 
-conf_file=/etc/conf.d/${RC_SVCNAME}
+configfile=/etc/conf.d/${RC_SVCNAME}
 description="set up zram devices and initialize zram if necessary"
 extra_started_commands="reset"
 description_reset="Reset zram devices (WARNING: THIS WILL RESET EVERY DEVICE!)"
-:	${num_devices:=4}
+:	${devices:=4}
 
 depend()
 {
@@ -16,29 +16,30 @@ depend()
 
 start()
 {
-	local dev fsys mtpt num=0 opt ret
+	local arg dev fsys mtpt num=0 opt ret
 
-	for dev in $(sed -nre 's/^device=(.*$)/\1/p' $conf_file); do
-		if [ ! -b /dev/zram$num ]; then
+	for arg in $(sed -nre 's/^device=(.*$)/\1/p' $configfile); do
+		dev=/dev/zram$num
+		if [ ! -b $dev ]; then
 			ewarn "No device available, skipping the rest of device definitions"
 			break
 		fi
-		eval set -- $(echo "$dev" | sed -e 's/:/ /g')
+		eval set -- $(echo "$arg" | sed -e 's/:/ /g')
 		fsys="$2" mtpt="$3" mopt="$4" mode="$5"
 		[ -n "$fsys" ] || continue
 		
 		if [ "$fsys" = "swap" ]; then
-			mkswap /dev/zram$num > /dev/null 2>&1 &&
+			mkswap $dev > /dev/null 2>&1 &&
 			swapon > /dev/null 2>&1
 		else
-			mkfs -t $fsys /dev/zram$num >/dev/null 2>&1
+			mkfs -t $fsys $dev >/dev/null 2>&1
 			ret=$?
-			eend "$ret" "failed to formate zram$num to $fsys"
+			eend "$ret" "Failed to make $fsys file system to $dev device"
 
 			if test "$ret" = 0 -a -n "$mtpt"; then
 				[ -d "$mtpt" ] || mkdir -p $mtpt
-				mount -t $fsys ${mopt:+-o $mopt} /dev/zram$num $mtpt
-				eend "$?" "failed to mount /dev/zram$num to $mtpt"
+				mount -t $fsys ${mopt:+-o $mopt} $dev $mtpt
+				eend "$?" "Failed to mount $dev to $mtpt"
 				[ -n "$mode" ] && chmod $mode $mtpt
 			fi
 		fi
@@ -61,35 +62,60 @@ start_pre()
 			ewarn "Failed to remove zram kernel module"
 		fi
 	fi
-	if ! modprobe zram num_devices=$num_devices >/dev/null 2>&1; then
+	if ! modprobe zram num_devices=$devices >/dev/null 2>&1; then
 		ewarn "Failed to load zram kernel module, falling back to resetting zram devices"
 		reset "$started"
 	fi
 
-	case "$comp_algorithm" in
-		(lz4|lzo)         :;;
-		(*) comp_algorithm=;;
+	case "$compressor" in
+		(lz4|lzo)     :;;
+		(*) compressor=;;
 	esac
-	[ -w /sys/block/zram0/comp_algorithm ] || comp_algorithm=
-	[ -w /sys/block/zram0/max_comp_streams ] || max_comp_streams=
+	[ -w /sys/block/zram0/comp_algorithm ]   || compressor=
+	[ -w /sys/block/zram0/max_comp_streams ] || streams=
 
-	local dev num=0 size
-	for dev in $(sed -nre 's/^device=(.*$)/\1/p' $conf_file); do
+	local arg dev num=0 size
+	for arg in $(sed -nre 's/^device=(.*$)/\1/p' $configfile); do
 		if [ ! -b /dev/zram$num ]; then
 			ewarn "No zram free device left"
 			break
 		fi
-		size=${dev%%:*}
+		dev=/sys/block/zram$num
+		size=${arg%%:*}
 		[ -n "$size" ] || continue
 
-		[ -n "$comp_algorithm" ] &&
-		echo $comp_algorithm > /sys/block/zram$num/comp_algorithm
-		[ -n "$max_comp_streams" ] &&
-		echo $max_comp_streams > /sys/block/zram$num/max_comp_streams
-		echo $size > /sys/block/zram$num/disksize
+		[ -n "$compressor" ] && echo $compressor >$dev/comp_algorithm
+		[ -n "$streams" ]    && echo $streams    >$dev/max_comp_streams
+		echo $size >$dev/disksize
 
 		num=$(($num + 1))
 	done
+}
+
+stop()
+{
+	local arg dev fsys mtpt num=0
+
+	for arg in $(sed -nre 's/^device=(.*$)/\1/p' $configfile); do
+		dev=/dev/zram$num
+		[ -b $dev ] || break
+		eval set -- "$arg"
+		fsys="$2" mtpt="$3"
+		[ -n "$fsys" ] || continue
+
+		if [ "$fsys" = "swap" ]; then
+			swapoff "$dev" > /dev/null 2>&1
+		else
+			case "$mtpt" in
+				(*/run|/tmp) continue;;
+				(*) umount -l "$mtpt" > /dev/null 2>&1
+					eend "$?" "Failed to umount $mtpt";;
+			esac
+		fi
+		num=$(($num + 1))
+	done
+
+	return 0
 }
 
 reset()
@@ -111,6 +137,11 @@ reset()
 	done
 
 	return $ret
+}
+
+restart()
+{
+	start
 }
 
 #

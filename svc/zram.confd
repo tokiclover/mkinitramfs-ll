@@ -1,15 +1,14 @@
 #
-# $Header: zram.confd, 2014/10/02 13:05:19 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/zram.confd, 2014/12/30 Exp $
 #
 
-# number of zram devices (standard name passed to modprobe)
-num_devices=4
-# compressor algorithm
-comp_algorithm=lz4
-# max compression streams
-max_comp_streams=2
-
-# whether to initialize zram devices if not previously initialized
+# Set the number of zram devices to use
+devices=4
+# Set compressor algorithm to use
+compressor=lz4
+# Set the maximum number of streams (for compression)
+streams=2
+# Whether to initialize zram devices or not
 initialize=yes
 
 # zram device definition which is defined by:
@@ -18,7 +17,6 @@ initialize=yes
 device=512M:swap
 device=4G:ext4:/var/tmp:user_xattr:1777
 device=512M:ext4:/tmp:user_xattr:1777
-#device=2G:ext4:/dev/shm:noexec,nosuid,relatime:1777
 
 #
 # vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:

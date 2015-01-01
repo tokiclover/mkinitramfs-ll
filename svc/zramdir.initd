@@ -1,9 +1,8 @@
 #!/sbin/runscript
 # CopyLeft 2011-2014 tclover <tokiclover@mkinitramfs-ll.project>
 # Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/zramdir.initd,v 3.3 2014/12/30 Exp $
+# $Header: mkinitramfs-ll/svc/zramdir.initd,v 3.4 2014/12/30 Exp $
 
-conf_file="/etc/conf.d/${RC_SVCNAME}"
 description="use zram and optional tarball archive for directories /var/{log,...}"
 extra_commands="restore save"
 description_restore="restore directory contents using dir$extension"
@@ -19,25 +18,39 @@ depend()
 
 start()
 {
-	local IFS=":${IFS}"
+	local IFS=":${IFS}" dir _dir
 	
-	if ! grep -q "${zramdir_root}" /proc/mounts; then
+	if ! grep -q "${zrootdir}" /proc/mounts; then
 		eend "${?}" "no suitable zram backed root dir found"
 		return 0
 	fi
 	
 	for dir in ${compressed_dir} ${uncompressed_dir}; do
-		mkdir -p "${zramdir_root}${dir}"
-		mount --bind "${zramdir_root}${dir}" "${dir}"
+		_dir="${zrootdir}${dir}"
+		grep -q "${_dir}" /proc/mounts && continue
+		mkdir -p "${_dir}"
+		mount --bind "${_dir}" "${dir}" > /dev/null 2>&1
+		eend "$?" "Failed to mount ${_dir}"
 	done
-
 	restore
 	return 0
 }
 
 stop()
 {
+	local IFS=":${IFS}" dir _dir
+
 	save
+	for dir in ${compressed_dir} ${uncompressed_dir}; do
+		case "${dir}" in
+			(/var/log|/var/run)
+				continue;;
+		esac
+		_dir="${zrootdir}${dir}"
+		grep -q "${_dir}" /proc/mounts || continue
+		umount -l "${_dir}" > /dev/null 2>&1
+		eend "$?" "Failed to umount ${_dir}"
+	done
 	return 0
 }
 
@@ -49,6 +62,11 @@ start_pre()
 		[ -e "${dir}${extension}" ] && continue
 		[ -d "${dir}" ] && save "${dir}" || mkdir -p "${dir}"
 	done
+}
+
+restart()
+{
+	start
 }
 
 restore()

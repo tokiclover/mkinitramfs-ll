@@ -1,12 +1,12 @@
 #
-# $Header: zramdir.confd, 2014/09/30 13:05:19 -tclover Exp $
+# $Header: mkinitramfs-ll/svc/zramdir.confd, 2014/12/30 Exp $
 #
 # zramdir can put several directories to a zram backed block device;
 # this init service require lz4 compressor, or else edit compressor
 #
 
 # root directory or mount point
-zramdir_root=/var/tmp
+zrootdir=/var/tmp
 
 # compressed and restored directories when starting/stoping service
 # to keep fs consistencies (colon separated list)

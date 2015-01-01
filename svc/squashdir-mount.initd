@@ -3,7 +3,6 @@
 # Distributed under the terms of the simplified 2-clause BSD license
 # $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.6 2014/12/22 -tclover Exp $
 
-conf_file="/etc/conf.d/${RC_SVCNAME}"
 description="manage (AUFS+squashfs) squashed directories"
 :	${squash_rootdir:=/aufs}
 
