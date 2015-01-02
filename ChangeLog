@@ -4,6 +4,13 @@ Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
 * added ability to chose what file system to keep around;
 * minor clean up & fixes (build/init scripts, functions);
+* major license clean up: BSD-2 (2-clause/new/simplified);
+
+License Note: (Update: removed GPL and CC by SA choices)
+
+options.skel (GnuPG) and ide_links (BusyBox) are licensed as GPL-2;
+and are solely provided for _convenience_ for the end user;
+so feel free to remove them to have BSD-2 only code.
 
 0.15.0:
 
