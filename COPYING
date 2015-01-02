@@ -1,26 +1,9 @@
-mkinitramfs-ll:
-
-- initramfs generation tool 
-with optional dm-crypt LUKS, LVM, (MD)RAID, AUFS+squashfs, crypted key-files
-(LUKS/GnuPG), ZFS, zram support; with a set of handy bash/zsh scripts
-- © 2011-2014 tokiclover -tclover <tokiclover{at}gmail{dot}com>
-
-@COPYLEFT
+COPYLEFT
 ALL WRONGS RESERVED
-
-Licenses choice:
-
-* GNU General Public Licence, version 2 or later at your choice, as published 
-  by the Free Software Foundation <http://www.gnu.org/licenses/>.
-
-* Creative Commons by ShareAlike, version 2.5 or later at your choice, 
- <https://creativecommons.org/licenses/by-sa/>.
-
-* 2-clause (simplified) BSD.
 
 ---
 
-Copyright 2011-2014 tokiclover/-tclover <tokiclover{at}gmail{dot}com>
+CopyLeft 2011-2014 tokiclover/-tclover <tokiclover@gmail.com>
 
 Redistribution and use in source and binary forms, with or without modification, are
 permitted provided that the following conditions are met:
