@@ -1,7 +1,10 @@
 #!/sbin/runscript
-# CopyLeft 2011-2014 tclover <tokiclover@mkinitramfs-ll.project>
-# Distributed under the terms of the simplified 2-clause BSD license
-# $Header: mkinitramfs-ll/svc/squashdir-mount.initd,v 1.6 2014/12/22 -tclover Exp $
+#
+# $Header: mkinitramfs-ll/svc/squashdir-mount.initd      Exp $
+# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $License: 2-clause/new/simplified BSD                  Exp $
+# $Version: 0.15.0 2014/10/10 12:33:03                   Exp $
+#
 
 description="manage (AUFS+squashfs) squashed directories"
 :	${squash_rootdir:=/aufs}
