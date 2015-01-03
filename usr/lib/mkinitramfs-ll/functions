@@ -259,7 +259,6 @@ blk() {
 			msg -i "Type in a valid block device e.g. \
 				[ sda5 | UUID=<uuid> | LABEL=<label> ]"
 			shread _asw
-			sleep 1
 			_blk=$(blkid | grep "${_asw:-$1}" | cut -d: -f1)
 			[ -n "$_blk" ] && [ -b "$_blk" ] && break
 		done
@@ -480,8 +479,9 @@ lvopen() {
 # @USAGE: <mdn-opt>
 # @DESCRIPTION: open md-raid block device
 mdopen() {
-	local _devices _dev="${1%+*}" _opt="${2#*+}" _set _uuid
+	local _devices _dev="${1%+*}" _opt="${1#*+}" _set _uuid
 	[ "${_dev/dev}" != "$_dev" ] || _dev=/dev/$_dev
+	[ -b "$_dev" ] && eval ${2:-MD}=$_dev && return
 
 	case "$_opt" in
 		([Uu][Uu][Ii][Dd])  _uuid="$_opt"        ;;
@@ -494,7 +494,6 @@ mdopen() {
 	esac
 
 	if [ -n "$_uuid" ] || [ -n "$_devices" ]; then
-		[ -b "$_dev" ] && eval ${2:-MD}=$_dev && return
 		$ECK && debug -d bck mdadm
 		debug _modprobe raid
 	
@@ -503,9 +502,8 @@ mdopen() {
 		else
 			echo ARRAY $_dev devices="$_devices" >>/etc/mdadm.conf
 		fi
-		debug -d mdadm --assemble ${_uuid:+-u${_uuid#*=}} -c/etc/mdadm.conf $_dev
+		debug mdadm --assemble ${_uuid:+-u${_uuid#*=}} -c/etc/mdadm.conf $_dev
 	else
-		[ -b "$_dev" ] && eval ${2:-MD}=$_dev && return
 		$ECK && debug -d bck dmraid
 		debug _modprobe dm-raid
 
@@ -514,7 +512,7 @@ mdopen() {
 			_set="$_set $(dmraid -s -c $_f)"
 		done
 		for _s in ${_dev##*/} $_set; do
-			debug -d dmraid -ay -i -I $_s
+			debug dmraid -ay -i -I $_s
 		done
 	fi
 
