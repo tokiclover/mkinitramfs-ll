@@ -34,7 +34,7 @@ start()
 		if [ "$fsys" = "swap" ]; then
 			ebegin "Activating $dev swap device"
 			mkswap $dev > /dev/null 2>&1 &&
-			swapon > /dev/null 2>&1
+			swapon $dev > /dev/null 2>&1
 			eend "$?"
 		else
 			ebegin "Formating $dev for $fsys file system"
