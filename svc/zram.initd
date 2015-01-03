@@ -32,17 +32,21 @@ start()
 		[ -n "$fsys" ] || continue
 		
 		if [ "$fsys" = "swap" ]; then
+			ebegin "Activating $dev swap device"
 			mkswap $dev > /dev/null 2>&1 &&
 			swapon > /dev/null 2>&1
+			eend "$?"
 		else
+			ebegin "Formating $dev for $fsys file system"
 			mkfs -t $fsys $dev >/dev/null 2>&1
 			ret=$?
-			eend "$ret" "Failed to make $fsys file system to $dev device"
+			eend "$ret"
 
 			if test "$ret" = 0 -a -n "$mtpt"; then
+				ebegin "Mounting $dev on $mtpt"
 				[ -d "$mtpt" ] || mkdir -p $mtpt
 				mount -t $fsys ${mopt:+-o $mopt} $dev $mtpt
-				eend "$?" "Failed to mount $dev to $mtpt"
+				eend "$?"
 				[ -n "$mode" ] && chmod $mode $mtpt
 			fi
 		fi
@@ -107,12 +111,16 @@ stop()
 		[ -n "$fsys" ] || continue
 
 		if [ "$fsys" = "swap" ]; then
+			ebegin "De-Activating $dev swap device"
 			swapoff "$dev" > /dev/null 2>&1
+			eend "$?"
 		else
 			case "$mtpt" in
 				(*/run|/tmp) continue;;
-				(*) umount -l "$mtpt" > /dev/null 2>&1
-					eend "$?" "Failed to umount $mtpt";;
+				(*)
+					ebegin "Unmounting $mtpt"
+					umount -l "$mtpt" > /dev/null 2>&1
+					eend "$?";;
 			esac
 		fi
 		num=$(($num + 1))

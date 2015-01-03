@@ -32,8 +32,9 @@ start()
 		_dir="${zrootdir}${dir}"
 		grep -q "${_dir}" /proc/mounts && continue
 		mkdir -p "${_dir}"
+		ebegin  "Mounting ${_dir}"
 		mount --bind "${_dir}" "${dir}" > /dev/null 2>&1
-		eend "$?" "Failed to mount ${_dir}"
+		eend "$?"
 	done
 	restore
 	return 0
@@ -51,8 +52,9 @@ stop()
 		esac
 		_dir="${zrootdir}${dir}"
 		grep -q "${_dir}" /proc/mounts || continue
+		ebegin  "Unmounting ${_dir}"
 		umount -l "${_dir}" > /dev/null 2>&1
-		eend "$?" "Failed to umount ${_dir}"
+		eend "$?"
 	done
 	return 0
 }
@@ -90,8 +92,9 @@ restore()
 			eend "${?}" "no tarball found for ${dir}"
 			continue
 		fi
+		ebegin  "Restoring ${dir}"
 		${decompress} -cd "${tarball}" | tar -xp
-		eend "${?}" "failed to deflate ${dir}"
+		eend "${?}"
 	done
 
 	cd "${swd}" > /dev/null 2>&1
@@ -108,8 +111,9 @@ save()
 		if [ -f "${dir}${extension}" ]; then
 			mv -f "${dir}${extension}" "${dir}.old${extension}"
 		fi
+		ebegin  "Saving ${dir}"
 		tar -Ocp ${dir##*/} | ${compressor} "${dir}${extension}"
-		eend "${?}" "failed to inflate ${dir}"
+		eend "${?}"
 	done
 
 	cd "${swd}" > /dev/null 2>&1
