@@ -93,7 +93,7 @@ debug() {
 rsh() {
 	if $SPLD; then
 		debug openvt -c${CONSOLE:8:1} $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
-	elif ack setsid; then
+	elif bck setsid; then
 		debug setsid $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
 	else
 		debug $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
@@ -105,7 +105,7 @@ rsh() {
 # @USAGE: <bin>
 # @DESCRIPTION: Binary ChecK
 bck() {
-	debug -d which $1 1>/dev/null 2>&1
+	debug -d type -p $1 1>/dev/null 2>&1
 }
 
 # @FUNCTION: ack
