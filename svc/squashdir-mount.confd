@@ -1,7 +1,5 @@
 #
-# $Header: mkinitramfs-ll/svc/squashdir-mount.confd, 2014/10/01 -tclover Exp $
-#
-# WARNING: NO TRAILING '/' SLASHES ALLOWED! OR ELSE, EXXPECT SERVICE FAILURE!
+# $Header: mkinitramfs-ll/svc/squashdir-mount.confd, 2014/12/31 Exp $
 #
 
 # Squash directory root, where to put aufs hierchichal tree
@@ -14,6 +12,7 @@ squash_rootdir=/aufs
 squash_localdir=/var/db:/var/cache/edb:/var/lib/layman:/var/portage
 
 # Squashed directory-ies to rebuild before shutting down the service
+# WARN: This list shuld be in either squash_sysdir|localdir group
 squash_rebuild_dir=
 
 # Full path to sdr.$shell script, else default to $(which sdr)
