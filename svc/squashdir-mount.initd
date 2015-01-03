@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/svc/squashdir-mount.initd      Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.15.0 2014/10/10 12:33:03                   Exp $
+# $Version: 0.15.0 2014/12/31 12:33:03                   Exp $
 #
 
 description="manage (AUFS+squashfs) squashed directories"
