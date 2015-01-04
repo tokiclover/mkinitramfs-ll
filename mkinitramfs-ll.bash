@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.15.0 2014/12/30 12:33:03                   Exp $
+# $Version: 0.15.1 2014/01/01 12:33:03                   Exp $
 #
 
 typeset -A PKG
@@ -334,13 +334,14 @@ if [[ "${opts[-F]}" ]] || [[ "${opts[-firmware]}" ]]; then
 	mkdir -p lib/firmware
 	for f in ${opts[-F]//:/ } ${opts[-firmware]//:/ }; do
 		if [[ -e ${f} ]]; then
-			cp -a $f lib/firmware/ || warn "failed to copy $f firmware"
-		elif [[ -e /lib/firmware/${f} ]]; then
-			cp -a {/,}lib/firmware/$f || warn "failed to copy $f firmware"
-		else 
-			warn "failed to copy $f firmware"
+			firmware+=(${f})
+		else
+			firmware+=(/lib/firmware/*${f}*)
+			mkdir -p .${firmware[$((${#firmware[@]}-1))]%/*}
 		fi
 	done
+	cp -a "${firmware[@]}" lib/firmware/
+	unset firmware
 fi
 
 for bin in dmraid mdadm zfs; do

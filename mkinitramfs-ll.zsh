@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.15.0 2014/12/30 12:33:03                   Exp $
+# $Version: 0.15.1 2015/01/01 12:33:03                   Exp $
 #
 
 typeset -A PKG
@@ -331,13 +331,14 @@ if (( ${+opts[-F]} || ${+opts[-firmware]} )) {
 	mkdir -p lib/firmware
 	for f (${(pws,:,)opts[-F]} ${(pws,:,)opts[-firmware]}) {
 		if [[ -e ${f} ]] {
-			cp -a $f lib/firmware/ || warn "failed to copy $f firmware"
-		} elif [[ -e /lib/firmware/${f} ]] {
-			cp -a {/,}lib/firmware/$f || warn "failed to copy $f firmware"
+			firmware+=(${f})
 		} else {
-			warn "failed to copy $f firmware"
+			firmware+=(/lib/firmware/*${f}*(N))
+			mkdir -p .${firmware[${#firmware}]:h}
 		}
 	}
+	cp -a ${firmware} lib/firmware/
+	unset firmware
 }
 
 if [[ -x usr/bin/busybox ]] {
