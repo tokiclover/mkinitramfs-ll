@@ -8,7 +8,7 @@
 
 configfile=/etc/conf.d/${RC_SVCNAME}
 description="set up zram devices and initialize zram if necessary"
-extra_started_commands="reset"
+extra_commands="reset"
 description_reset="Reset zram devices (WARNING: THIS WILL RESET EVERY DEVICE!)"
 :	${devices:=4}
 
@@ -65,13 +65,15 @@ start_pre()
 
 	if grep -q zram /proc/modules; then
 		if ! rmmod zram >/dev/null 2>&1; then
-			reset "$started" && rmmod zram >/dev/null 2>&1 ||
-			ewarn "Failed to remove zram kernel module"
+			ebegin "Initializing zram devices"
+			reset "$started" && rmmod zram >/dev/null 2>&1
+			eend "$?"
 		fi
 	fi
 	if ! modprobe zram num_devices=$devices >/dev/null 2>&1; then
-		ewarn "Failed to load zram kernel module, falling back to resetting zram devices"
+		ebegin "Initializing zram devices"
 		reset "$started"
+		eend "$?"
 	fi
 
 	case "$compressor" in
@@ -83,18 +85,15 @@ start_pre()
 
 	local arg dev num=0 size
 	for arg in $(sed -nre 's/^device=(.*$)/\1/p' $configfile); do
-		if [ ! -b /dev/zram$num ]; then
-			ewarn "No zram free device left"
+		dev=/sys/block/zram$num
+		size=${arg%%:*}; [ -n "$size" ] || continue
+		if [ ! -d $dev ]; then
+			ewarn "No free zram device available"
 			break
 		fi
-		dev=/sys/block/zram$num
-		size=${arg%%:*}
-		[ -n "$size" ] || continue
-
 		[ -n "$compressor" ] && echo $compressor >$dev/comp_algorithm
 		[ -n "$streams" ]    && echo $streams    >$dev/max_comp_streams
 		echo $size >$dev/disksize
-
 		num=$(($num + 1))
 	done
 }
@@ -131,22 +130,22 @@ stop()
 
 reset()
 {
-	local dev force=$1 ret=0
+	local dev force=false ret=0
+	yesno "$1" && force=true
 
-	ewarn "Reseting existant zram devices!"
-	for dev in /sys/block/zram[0-9]*; do
-		if grep -q /dev/${dev##*/} /proc/mounts; then
-			if yesno "$force"; then
-				umount -l /dev/${dev##*/}
-			else
-				einfo "$dev zram device is in use, skipping device"
-				ret=$(($ret + 1))
-				continue
-			fi
+	for dev in /dev/zram[0-9]*; do
+		grep -q $dev /proc/mounts || continue
+		if $force; then
+			ebegin "Umounting $dev"
+			umount -l $dev
+			eend "$?"
+		else
+			ewarn "$dev zram device is mounted, skipping device"
+			ret=$(($ret + 1))
+			continue
 		fi
-		echo 1 > $dev/reset
+		echo 1 > /sys/block/${dev#/dev}/reset
 	done
-
 	return $ret
 }
 
