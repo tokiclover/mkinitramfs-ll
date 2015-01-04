@@ -131,17 +131,18 @@ reset()
 	service_started || force=true
 
 	for dev in /dev/zram[0-9]*; do
-		grep -q $dev /proc/mounts || continue
-		if $force; then
-			ebegin "Umounting $dev"
-			umount -l $dev
-			eend "$?"
-		else
-			ewarn "$dev zram device is mounted, skipping device"
-			ret=$(($ret + 1))
-			continue
+		if grep -q $dev /proc/mounts; then
+			if $force; then
+				ebegin "Umounting $dev"
+				umount -l $dev
+				eend "$?"
+			else
+				ewarn "$dev zram device is mounted, skipping device"
+				ret=$(($ret + 1))
+				continue
+			fi
 		fi
-		echo 1 > /sys/block/${dev#/dev}/reset
+		echo 1 > /sys/block/${dev#/dev}reset
 	done
 	return $ret
 }
