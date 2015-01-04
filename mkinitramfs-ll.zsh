@@ -330,12 +330,9 @@ if (( ${+opts[-F]} || ${+opts[-firmware]} )) {
 	fi
 	mkdir -p lib/firmware
 	for f (${(pws,:,)opts[-F]} ${(pws,:,)opts[-firmware]}) {
-		if [[ -e ${f} ]] {
-			firmware+=(${f})
-		} else {
+		[[ -e ${f} ]] && firmware+=(${f}) ||
 			firmware+=(/lib/firmware/*${f}*(N))
-			mkdir -p .${firmware[${#firmware}]:h}
-		}
+		mkdir -p .${firmware[${#firmware}]:h}
 	}
 	cp -a ${firmware} lib/firmware/
 	unset firmware
