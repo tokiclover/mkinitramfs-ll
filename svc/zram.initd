@@ -60,19 +60,16 @@ start_pre()
 {
 	yesno "$initialize" || return 0
 
-	local started=0
-	service_started || started=1
-
 	if grep -q zram /proc/modules; then
 		if ! rmmod zram >/dev/null 2>&1; then
 			ebegin "Initializing zram devices"
-			reset "$started" && rmmod zram >/dev/null 2>&1
+			reset && rmmod zram >/dev/null 2>&1
 			eend "$?"
 		fi
 	fi
 	if ! modprobe zram num_devices=$devices >/dev/null 2>&1; then
 		ebegin "Initializing zram devices"
-		reset "$started"
+		reset
 		eend "$?"
 	fi
 
@@ -131,7 +128,7 @@ stop()
 reset()
 {
 	local dev force=false ret=0
-	yesno "$1" && force=true
+	service_started || force=true
 
 	for dev in /dev/zram[0-9]*; do
 		grep -q $dev /proc/mounts || continue
