@@ -490,7 +490,6 @@ mdopen() {
 		(*-*[1-9])       _devices="/dev/sd$_opt" ;;
 		(asr*|ddf*|hpt*|isw*|jmicron*|lsi*|nvidia*|pdc*|sil*|via*|dos*)
 		                     _set="$_opt"        ;;
-		(*) die "Unsupported $_opt raid option"  ;;
 	esac
 
 	if [ -n "$_uuid" ] || [ -n "$_devices" ]; then
