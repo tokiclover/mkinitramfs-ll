@@ -89,7 +89,6 @@ are also available. See the configuration file for more info.
 The following conventions apply to
 .B SYNOPSIS
 section and can be applied to the command line arguments.
-
 .TS
 tab (@);
 l lx.
@@ -112,19 +111,19 @@ T}
 .B \-a|\-\-all
 short variant or form of `\-\-font=: \-\-keymap=: \-\-luks \-\-lvm \-\-gpg \-\-hook=:zfs:zram \-\-toi \-\-squashd'
 .TP
-.B \-f|\-\-font=:regex
+.B \-f|\-\-font=:\fIregex\fR
 include a colon separated list of font either a full path or a name
 relative to `/usr/share/consolefonts' (or nothing would be included)
 .TP
-.B \-F|\-\-firmware=:regex
+.B \-F|\-\-firmware=:\fIregex\fR
 include a colon separated list of firmware either a full path or a name
 relative to `/lib/firmware' (or nothing would be included)
 (`:' would add the whole firmware directoy)
 .TP
-.B \-k|\-\-kv=version
+.B \-k|\-\-kv=\fIversion\fR
 linux kernel version to use for building an initramfs
 .TP
-.B \-c|\-\-compressor=comp
+.B \-c|\-\-compressor=\fIcomp\fR
 compressor to use for compression or `none' for uncompressed initramfs
 .TP
 .B \-L|\-\-luks
@@ -133,10 +132,10 @@ enable dm-crypt LUKS support (require cryptsetup)
 .B \-l|\-\-lvm
 enable device-mapper support (require lvm2)
 .TP
-.B \-b|\-\-bin=:binary
+.B \-b|\-\-bin=:\fIbinary\fR
 include a colon separated list of binary to the initramfs
 .TP
-.B \-d|\-\-usrdir=directory
+.B \-d|\-\-usrdir=\fIdirectory\fR
 use the appended directory as `usr' directory
 .TP
 .B \-g|\-\-gpg
@@ -145,28 +144,28 @@ enable GnuPG support (require gnupg-1.4.x)
 .B \-p|\-\-prefix=initrd-
 use `initrd-' prefix to name initramfs
 .TP
-.B \-H|\-\-hook=:regex
+.B \-H|\-\-hook=:\fIregex\fR
 include a colon separated list of hooks or scripts to the initramfs
 .TP
-.B \-m|\-\-kmod=:regex
+.B \-m|\-\-kmod=:\fIregex\fR
 include a colon separated list of kernel module to the initramfs
 .TP
-.B \-\-mtuxonice=:regex
+.B \-\-mtuxonice=:\fIregex\fR
 append a colon separated list of kernel module to tuxonice group
 .TP
-.B \-\-mremdev=:regex
+.B \-\-mremdev=:\fIregex\fR
 append a colon separated list of kernel module to remdev group
 .TP
-.B \-\-msquashd=:regex
+.B \-\-msquashd=:\fIregex\fR
 append a colon separated list of kernel module to remdev group
 .TP
-.B \-\-mgpg=:regex
+.B \-\-mgpg=:\fIregex\fR
 append a colon separated list of kernel module to gpg group
 .TP
-.B \-\-boot=:regex
+.B \-\-boot=:\fIregex\fR
 append a colon separated list of kernel module to boot group
 .TP
-.B \-s|\-\-splash=:theme
+.B \-s|\-\-splash=:\fItheme\fR
 include a colon separated list of splash theme to the initramfs
 .TP
 .B \-t|\-\-toi
@@ -175,7 +174,8 @@ enable TuxOnIce support (require tuxonice-userui for splash)
 .B \-r|\-\-rebuild
 rebuild an initramfs from an existant directory
 .TP
-.B \-y|\-\-keymap=:regex
+.B \-y|\-\-keymap=:\fIregex\fR
+.br
 include a colon separated list of console keymap either a full path or name
 relative to `/usr/share/keymaps' (or nothing would be included)
 .TP
@@ -215,6 +215,9 @@ mkinitramfs-ll
 directory that contains extra files, e.g.
 .IR functions
 (library like) file, for initramfs.
+.TP
+.I USRDIR/etc/mkinitramfs-ll/minimal.applets
+busybox minimal applet list (compatibility)
 .SH "SEE ALSO"
 .br
 .BR mkinitramfs-ll (1) :
