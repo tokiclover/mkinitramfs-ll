@@ -1,0 +1,237 @@
+.\"
+.\" CopyLeft (c) 2015 -tclover <tokiclover@gmail.com>
+.\"
+.\" Distributed under the terms of the 2-clause BSD License as
+.\" stated in the COPYING file that comes with the source files
+.\"
+.pc
+.TH MKINITRAMFS-LL 8 "2015-01-01" "0.15.1" "Build Script Page"
+.SH NAME
+mkinitramfs-ll \- tool for building initramfs
+.SH DESCRIPTION
+.B mkinitramfs-ll
+is an initramfs building script. It requires
+.IR mkinitramfs-ll.conf
+configuration file and the associated
+.IR usr
+directory to complete the task. Those two requirements are not
+.IR scrictly
+necessary, but are
+.IR necessary
+to build a
+.IR functionnal
+initramfs. Without arguments, it will build a initramfs for the current kernel
+with the default options defined in the
+.IR configuration
+file.
+.SH CONFIGURATION
+.B mkinitramfs-ll.conf
+is the general purpose configuration file of this tools. Every command line
+.IR switch
+can be used, minus a hyphen for the long variant, as a key in the associative array
+.IR opts
+like
+.IR opts[-option]=VALUE
+to modify the behaviour of the tool. Extra configuration variables
+are also available. See the configuration file for more info.
+.SH SYNOPSIS
+.br
+.B mkinitramfs-ll
+.RB [\| OPTIONS \| ]
+
+.br
+.B mkinitramfs-ll
+.RB [\| \-a|\-\-all \|]
+.RB [\| \-f|\-\-font=: \|\c
+.RI [\| regex \|]\|]
+.RB [\| \-F|\-\-firmware=: \|\c
+.RI [\| regex \|]\|]
+.RB [\| \-k|\-\-kv= \|\c
+.RI \| version \|]
+.RB [\| \-c|\-\-compressor= \|\c
+.RI \| comp \|]
+.RB [\| \-L|\-\-luks \]
+.RB [\| \-l|\-\-lvm \]
+.RB [\| \-b|\-\-bin=: \|\c
+.RI [\| binary \|]\|]
+.RB [\| \-d|\-\-usrdir= \|\c
+.RI \| directory \|]
+.RB [\| \-g|\-\-gpg \|]
+.RB [\| \-p|\-\-prefix= \|\c
+.RI \| initrd- \|]
+.RB [\| \-H|\-\-hook=: \|\c
+.RI \| regex \|]
+.RB [\| \-m|\-\-kmod=: \|\c
+.RI \| regex \|]
+.RB [\| \-\-mtuxonice=: \|\c
+.RI \| regex \|]
+.RB [\| \-\-mremdev=: \|\c
+.RI \| regex \|]
+.RB [\| \-\-msquashd=: \|\c
+.RI \| regex \|]
+.RB [\| \-\-mgpg=: \|\c
+.RI \| regex \|]
+.RB [\| \-\-mboot=: \|\c
+.RI \| regex \|]
+.RB [\| \-s|\-\-splash=: \|\c
+.RI \| theme \|]
+.RB [\| \-t|\-\-toi \|]
+.RB [\| \-q|\-\-squashd \|]
+.RB [\| \-r|\-\-rebuild \|]
+.RB [\| \-y|\-\-keymap=: \|\c
+.RI \| regex \|]
+.RB [\| \-K|\-\-keep-tmpdir \|]
+
+.br
+.B mkinitramfs-ll
+.RB [\| \-?|\-h|\-\-help \|]
+
+The following conventions apply to
+.B SYNOPSIS
+section and can be applied to the command line arguments.
+
+.TS
+tab (@);
+l lx.
+\fIitalic text\fR@T{
+replace with appropriate argument.
+T}
+[\|\fB\-short\fR|\fB\-\-long\fR\|]@T{
+any or all argument within [ ] are optional; and short or long option can be used.
+T}
+\fB\-short\fR|\fB\-\-long=:argument\fR@T{
+option starting with a colon accepts a colon separated list of argument
+T}
+\fIregex\fR@T{
+replace regex with a regular expression, matching regex will be performed.
+T}
+.TE
+
+.SH OPTIONS
+.TP
+.B \-a|\-\-all
+short variant or form of `\-\-font=: \-\-keymap=: \-\-luks \-\-lvm \-\-gpg \-\-hook=:zfs:zram \-\-toi \-\-squashd'
+.TP
+.B \-f|\-\-font=:regex
+include a colon separated list of font either a full path or a name
+relative to `/usr/share/consolefonts' (or nothing would be included)
+.TP
+.B \-F|\-\-firmware=:regex
+include a colon separated list of firmware either a full path or a name
+relative to `/lib/firmware' (or nothing would be included)
+(`:' would add the whole firmware directoy)
+.TP
+.B \-k|\-\-kv=version
+linux kernel version to use for building an initramfs
+.TP
+.B \-c|\-\-compressor=comp
+compressor to use for compression or `none' for uncompressed initramfs
+.TP
+.B \-L|\-\-luks
+enable dm-crypt LUKS support (require cryptsetup)
+.TP
+.B \-l|\-\-lvm
+enable device-mapper support (require lvm2)
+.TP
+.B \-b|\-\-bin=:binary
+include a colon separated list of binary to the initramfs
+.TP
+.B \-d|\-\-usrdir=directory
+use the appended directory as `usr' directory
+.TP
+.B \-g|\-\-gpg
+enable GnuPG support (require gnupg-1.4.x)
+.TP
+.B \-p|\-\-prefix=initrd-
+use `initrd-' prefix to name initramfs
+.TP
+.B \-H|\-\-hook=:regex
+include a colon separated list of hooks or scripts to the initramfs
+.TP
+.B \-m|\-\-kmod=:regex
+include a colon separated list of kernel module to the initramfs
+.TP
+.B \-\-mtuxonice=:regex
+append a colon separated list of kernel module to tuxonice group
+.TP
+.B \-\-mremdev=:regex
+append a colon separated list of kernel module to remdev group
+.TP
+.B \-\-msquashd=:regex
+append a colon separated list of kernel module to remdev group
+.TP
+.B \-\-mgpg=:regex
+append a colon separated list of kernel module to gpg group
+.TP
+.B \-\-boot=:regex
+append a colon separated list of kernel module to boot group
+.TP
+.B \-s|\-\-splash=:theme
+include a colon separated list of splash theme to the initramfs
+.TP
+.B \-t|\-\-toi
+enable TuxOnIce support (require tuxonice-userui for splash)
+.TP
+.B \-r|\-\-rebuild
+rebuild an initramfs from an existant directory
+.TP
+.B \-y|\-\-keymap=:regex
+include a colon separated list of console keymap either a full path or name
+relative to `/usr/share/keymaps' (or nothing would be included)
+.TP
+.B \-K|\-\-keep-tmpdir
+keep the temporary build directory
+.TP
+.B \-?|\-h|\-\-help
+print the help message and exit
+.TP
+.B RAID support (note)
+just append the appropriate binary, that is
+.IR dmraid
+or
+.IR mdadm
+with `-b|--bin' switch,
+to enable either dm-raid (fake ATA raid) or mdadm software raid
+.SH EXAMPLES
+.TP
+.BI mkinitramfs-ll\ \-\-all\ \-\-font=ter-g12n\ \-\-keymap=fr\ \-\-firmware=nouveau:iwlwifi-5000\ \-\-kv=3.14.26-git
+Build an initramfs with GnuPG, LUKS, LVM2, ZFS, zram, AUFS+squashfs support for
+linux kernel 3.14.26-git; nVidia and iwlWIFI-5000 firmwares are included as well.
+.SH ENVIRONMENT
+.TP
+.B MIR_EXTRA_ENV
+This environment variable would be used, if set, to generate the environment
+variables of
+.IR init
+script.
+.SH FILES
+.TP
+.I [/etc/]mkinitramfs-ll.conf
+mkinitramfs-ll configuration file.
+.TP
+.I [/usr/share/mkinitramfs-ll/]usr
+mkinitramfs-ll
+.IR usr
+directory that contains extra files, e.g.
+.IR functions
+(library like) file, for initramfs.
+.SH "SEE ALSO"
+.br
+.BR mkinitramfs-ll (1) :
+for more info on
+.IR init
+and supported kernel
+.IR command line
+arguments;
+.br
+.BR mkinitramfs-ll (5) :
+for more info on
+.IR hook
+and
+.IR user
+scripts;
+.SH AUTHORS
+mkinitramfs-ll (8) was written by -tclover <tokiclover@mkinitramfs-ll.project>
+.\"
+.\" vim:fenc=utf-8:ft=groff:ci:pi:sts=2:sw=2:ts=2:expandtab:
+.\"
