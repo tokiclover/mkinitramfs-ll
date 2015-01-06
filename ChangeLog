@@ -1,5 +1,11 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.16.0:
+
+* added firmware regex support to ease firmware copy;
+* zram{,dir} init script further clean up;
+documention major clean up (added man pages & removed *.textile);
+
 0.15.1:
 
 * added ability to chose what file system to keep around;
