@@ -1,0 +1,527 @@
+.\"
+.\" CopyLeft (c) 2015 -tclover <tokiclover@gmail.com>
+.\"
+.\" Distributed under the terms of the 2-clause BSD License as
+.\" stated in the COPYING file that comes with the source files
+.\"
+.pc
+.TH MKINITRAMFS-LL 1 "2015-01-01" "0.15.1" "Init Script Page"
+.SH NAME
+init \- an initramfs init script
+.SH DESCRIPTION
+.B init
+require
+.IR /lib/mkinitramfs-ll/functions
+shell function library
+.IR /lib/mdev/dm_link
+for device-mapper (symlink) and optional files see
+.B FILES
+sections to be fully
+.IR functionnal
+depending on the requirements and set up. The
+.IR configuration
+files are kept in
+.IR /etc/mkinitramfs-ll
+directory and will be used if present or nothing if not.
+.SH SYNOPSIS
+Append the appropriate
+.I OPTIONS
+accordingly to the boot set up following
+.B OVERVIEW
+and 
+.B OPTIONS
+to the kernel command line.
+And do not forget to append the initramfs to the boot loader.
+.br
+
+GRUB[2] has, for example, `linux \fIpath/\fR' prepended to the kernel image and
+`initrd \fIpath/\fR' prepended to the initramfs image.
+
+.B vmlinuz[\fI-$VERSION\fR] [\fIOPTIONS\fR]
+.br
+.B initramfs[\fI-$VERSION\fR].cpio.xz
+
+When using this initramfs, only
+.IB iroot
+kernel command line argument is required, instead of the legacy
+.IB root
+counterpart. Other than that, everything else is optional.
+
+The following conventions apply to
+.B SYNOPSIS
+,
+.B OVERVIEW
+and
+.B OPTIONS
+section and can be applied to the command line arguments.
+.TS
+tab (@);
+l lx.
+\fBbold text\fR@T{
+type exactly as shown
+T}
+\fIitalic text\fR@T{
+replace with appropriate argument
+T}
+[\|text\|]@T{
+any or all argument within [ ] are optional
+T}
+dev|device@T{
+replace with the appropriate device file
+T}
+map|mapping@T{
+replace with the appropriate mapping
+T}
+LV@T{
+replace with the appropriate Logical Volume
+T}
+PV@T{
+replace with the appropriate Physical Volume
+T}
+VG@T{
+replace with the appropriate Volume Group
+T}
+POOL/VOL@T{
+replace with the appropriate ZFS Pool/Volume
+T}
+.TE
+.SH OVERVIEW
+.TP
+.RB iroot=[\fIdev|map-dev|VG-LV|POOL/VOL\fR]:[\fIFileSystem\fR][\fB:chk\fR]
+.br
+Root required kernel command line argument.
+It is recommanded to append `:FileSystem:C[HK]' (case insensitive `C[HK]'
+is supported) for file system check e.g. `:ext4:chk'.
+.TP
+.RB imopt=[\fIoption\fR]
+.br
+Rootfs mount option e.g. `imopt=user_xattr' for an ext4 FS
+.TP
+.RB imount=[/usr:/var][:\fIdirectory\fR]
+.br
+Mount file system according to (required in this case)
+.RI `/etc/fstab'
+file. Every file system shoud be available before shell run level
+.RI 4m
+(see
+.B SHELL RUN LEVELS
+)
+.TP
+.RB imod=:\fImodule\fR
+.br
+Colon separated list of kernel module to load at boot time
+e.g. `imod=uvesafb:hid-multitouch'
+.TP
+.RB ikroot=\fImode\fR[:\fIdevice\fR:\fIpath\fR]
+.br
+Set key mode for root. See
+.B KEYMODES
+for more info on key modes.
+.br
+When a key-file is used, a
+.RI device
+is required along with the full
+.RI path
+to the key file e.g. `ikroot=ldk:sdb1:/key.ldk'.
+.TP
+.RB ikswap=\fImode\fR[:\fIdevice\fR:\fIpath\fR]
+Set key mode for swap (refer to above \fBikroot\fR)
+.TP
+.RB ikresume=\fImode\fR[:\fIdevice\fR:\fIpath\fR]
+Set key mode for resume (refer to above \fBikroot\fR)
+.TP
+.RB ikmap=[\fIkmap\fR][:\fIfont\fR]
+.br
+Optional keymap and font to load, if not set,
+default will be picked if present e.g.
+.RB ikmap=fr-latin1-x86_64:ter-g12n
+.TP
+.RB ilvm=[\fImap-dev\fR][,\fImap-dev\fR][,\fImap-dev\fR]
+.br
+LVM[2] optional argument: first group for root, second group for swap and third
+group for resume. Hyphen can be used to append a particular group. And a group
+is composed by a colon separated list of `mapping-device'.
+.TP
+.RB iraid=[md\fIi\fR+UUID=\fIuuid\fR][,md\fIj\fR+isw[:\fIformat\fR][,md\fIk\fR+sd[\fIX\fR-\fIY\fR]\fIn\fR]
+.br
+RAID optinal argument (comma separated list): first group for root, second for
+swap and third for resume. Hence using comma to asign an array to a particular
+group can be used. Three different layouts are used above, so just replace \fIi\fR,
+\fIj\fR, \fIk\R and \fIn\fR by actual integer; \fIX\fR and \fIY\fR by actual letter
+in the range of `[a-z]';
+and \fIuuid\fR by an actual UUID value to get a functional argument.
+.TP
+.RB irsh=[\fIlevel\fR][:\fIrunlevel\fR]
+.br
+This argument can be used to halt init in a particular shell run
+.I level,
+or else, to pass real init
+.I runlevel
+.TP
+.RB isquashd=[\fIdir\fR]:[\fIoption\fR]:[\fIdir\fR]
+.br
+Set up squash-dir (AUFS+SquashFS) argument. See
+.B SQUASHED DIRECTORY
+for more info.
+.TP
+.RB izfs=[\fImap-dev\fR][,\fImap-dev\fR][,\fImap-dev\fR]
+.br
+Enable
+.B ZFS
+by setting a comma separated list of
+.I mapping-device
+to three groups (1st for root, 2nd for swap and 3rd for resume
+like RAID and LVM[2] argument.)
+Like LVM[2], the list is required for crypted physical volume only,
+a single character is enough otherwise for plain device.
+.br
+Of course, an appropriate
+.BR iroot
+and or
+.BR iswap
+and or
+.BR iresume
+is required. See
+.B ZFS
+for more info.
+.TP
+.RB izram=[4-2-lzo]:[\fIsize\fR[-\fIFileSystem\fR]]
+.br
+The first part set up zram internal options (see
+.B ZRAM
+).
+The second part set up each device by a pair of
+e.g. `4G-ext4' for a 4GB ext4 file system;
+just make sure to have the appropriate binary and symlink in the initramfs.
+.TP
+.RB idebug=[\fIoption\fR]:[\fIn\fR]
+.br
+First part can be used to set shell options; the second part, an integer, to set
+dmesg console log level e.g. `idebug=ax:3' (to enable shell tracing & export
+every variable; and set log level to error.)
+.TP
+.RB ihook=[\fIname\fR]
+.br
+Append hook or script to the hook stack for execution e.g. `ihook=zfs:zram'
+(unecessary because zram & zfs are executed if `izfs' or `izram' are set.)
+.TP
+.RB Rescue[Shell]|RSH[ell]\ (case insensitive)
+.br
+Halt init and drop to a rescue shell at shell run level 1.
+Exit the rescue shell to resume booting.
+(`/run/env' would be sourced, if present, for environment variables.)
+.TP
+.RB splash=[silent|verbose],fade[in|out],theme:\fITHEME\fR[,tty:\fITTY\fR]
+.br
+Legacy
+.RB splash
+command line argument, along with
+.RB console|CONSOLE
+e.g. `CONSOLE=tty1', are supported for fbsplash.
+.SH OPTIONS
+.TP
+.SS KEYMODES
+.br
+.B init
+support the following optional key[-file] mode.
+.br
+.TS
+tab (@);
+l lx.
+\fBgpg\fR@T{
+GnuPG crypted key-file (require gnupg-1.4.x)
+T}
+\fBldk\fR@T{
+dm-crypt LUKS crypted key-file (using a loop back device)
+T}
+\fBreg\fR@T{
+key-file is a regular file
+T}
+\fBnone\fR@T{
+no usage of crypted device (this is the default)
+T}
+.TE
+.TP
+.SS DEVICES
+.br
+Block Device can be provided using a canonical name, that is, with or without
+`/dev/[mapper/]' prefix in any command line argument. This is the main reason
+.B iroot
+is used instead of the legacy
+.B root
+command line argument.
+.TP
+.SS DM-CRYPT (LUKS)
+.br
+Any group (
+.B root
+and or
+.B swap
+and or
+.B resume
+) can support
+.B DM-CRYPT LUKS
+device. Morever,
+.B DM-CRYPT LUKS
+can be used on top of
+.B LVM[2]
+or vice versa, or on top of
+.B RAID
+array for that matter.
+.br
+
+.B DM-CRYPT LUKS
+is enabled if, and only if, a key[-file] mode is specifed in the appropriate
+group, that is, in
+.RB ikroot
+for root, and or
+.RB ikswap
+for swap, and or
+.RB ikresume
+for resume. Just use appropriate argument in
+.RB iroot
+and or
+.RB iswap
+and or
+.RB iresume
+which should have
+.RI mapping-device[+HEADER]
+instead of plain
+.RI device
+with an optional header for detached header support.
+.br
+
+So, detached header is simpled enabled by appending an appropriate \fI+HEADER\fR
+to any crypted device.
+.IR HEADER
+should be a valid dm-crypt LUKS header by being either a block device or a
+regular file in the removable device used for key file (key \fIfile\fR mode is
+required for this.) Using something like `sda+/dev/sdb' or `sda+/boot/luks.header'
+is correct but using an UUID insted of plain path to file is prefered for detached
+header to block device because of the risk of header mismatch (fatal errors.)
+.TP
+.SS DEVICE-MAPPER (LVM[2])
+.br
+Each
+.IR mapping-device
+list in
+.BR ilvm
+kernel command line argument can be a colon seprated list, or a
+.IR /path/file
+inside a removable device (key \fIfile\fR mode is required.)
+However,
+.IR map-PV
+list is \fIonly\fR required for crypted Phycal Volume. LVM[2] on plain device
+can be enabled with any character in the appropriate field e.g. `ilvm=pva-sda2,1'
+would be enough to open a crypted VG/LV for root and another VG/LV on a plain
+device for swap. Just append the appropriate `iroot' and `iswap' accordingly e.g.
+`iroot=vgr-root:ext4:chk iswap=swap:vgs-swap'.
+.TP
+.SS RAID (FAKE ATA RAID & SOFTWARE RAID)
+.br
+To complete the
+.B OVERVIEW RAID
+sub-section,
+.B FAKE ATA RAID
+can be enable using the \fIarray\fR+\fI[format]\fR syntax
+(format is optional and can be a colon separated list of format, see `dmraid -l');
+while
+.B SOFTWARE RAID
+can be enabled using the \fIarray\fR+[UUID=\fIuuid\fR|\fIdevices\fR] syntax
+(\fIuuid\fR being a valid UUID value and \fIdevices\fR being a supported
+device set described in the
+.B OVERVIEW
+sub-section (`[/dev/]sd[\fIX\fR-\fIY\fR]\fIn\fR').)
+.TP
+.SS SQUASHED DIRECTORY (AUFS+SQUAHFS)
+Squashed directory require
+.B AUFS+SquahsFS
+kernel module and
+.RB isquashd
+kernel command line argument.
+.br
+The first optional
+.IR direcory
+is the root directory where to mount AUFS tree (default is `/aufs'.)
+The second
+.IR option
+is case insensitive
+.RB +S[system]|+L[ocal]
+to use system default (`usr:bin:sbin') and local default
+(`var/cache/edb:var/db:var/lib/layman') directory sets.
+Third optional
+.IR direcory
+can be used to append extra squashed directories e.g `isquashd=:+l:var/portage'.
+.br
+.TP
+.SS ZFS
+.br
+.B ZFS
+requires
+.RB izfs
+kernel command line argument and
+.IR POOL/VOL
+logical volume provided by either \fBiroot=\fR\fIPOOL/VOL\fR and or
+\fBiswap=\fR\fItype\fR:\fIPOOL/VOL\fR[:\fIsignature\fR] and or
+\fBiresume=\fR\fItype\fR:\fIPOOL/VOL\fR[:\fIsignature\fR].
+.br
+.RB izfs
+is a comma `,' sepratated list of dataset (1st for root, 2nd for swap and 3rd for
+resume); and each group is colon `:' separated list of
+.IR mapping-device
+.IR if, and only if,
+the physical volumes or devices are
+.B DM-CRYPT
+LUKS crypted. Or else, any
+.IR character
+would be sufficient for plain devices.
+.TP
+.SS ZRAM
+.B ZRAM
+internal options (
+.IR devices-streams-compressor
+) can be tweaked
+e.g. `8-4-lz4' would set up 8 devices, 4 streams per device and use lz4 compressor;
+the default options are `4-2-lz4'.
+.TP
+.SS SHELL RUN LEVELS
+.TS
+tab (@);
+l lx.
+\fB1\fR@T{
+initialization, splash... keymap and font (if any)
+T}
+\fB2\fR@T{
+resume `2r' and swap `2s' if `iresume' and `iswap' are set
+T}
+\fB3\fR@T{
+rootfs fsck `3f', mount `3m' and squashed directories `3s' if `isquashd' is set
+T}
+\fB4\fR@T{
+extra mount `4m' if `imount' is set, sysfs umount `4u' and root switch `4s'
+T}
+.TE
+.TP
+.SS HOOKS
+User scripts (hooks) can be included in the initramfs (\fBLIBDIR\fR),
+and can be thus executed if appended to `ihook' command line argument.
+Or else, a script can be bound to a particular shell run level for automatic execution,
+just prepend \fIlevel\fR- to the script name.
+See
+.B SHELL RUN LEVELS
+for more info on level values.
+.SH EXAMPLES
+Unencrypted Root LV
+  iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin:ter-g12n
+
+Root--regular passphrase--& fbsplash
+  iroot=root-sda3 ikroot=pwd splash=verbose,theme:emergence,tty:1 video=1280x800-24
+
+Root--regular key-file--on usb device
+  iroot=root-sda3 ikroot=reg:sdb1:/key.reg
+
+Root--gpg encrypted key-file on usb drive
+  iroot=sda3 ikroot=gpg:sdb1:/key.gpg
+
+Swap and root--ldk crypted--key-files
+  iroot=root-sda3 iswap=swap[|file]:data-sda2[:signature]
+  ikroot=ldk:sdb1:/path/to/rootkey ikswap=ldk:sdb1:/key.ldk
+
+Regular swap & TuxOnIce resume on a different volume
+  iswap=swap-sda2 iresume=toi-sda3:0x4400 ikswap=pwd ikresume=pwd
+
+Swap file--resuming from hibernation--ldk crypted key-file
+  iswap=file:swap-sda3:0x4400 iresume=toi ikswap=ldk:sdb1:/key.ldk
+
+Crypted root,swap LV--ldk crypted keyfile--& rootfs mount options
+  iroot=vgr-lvr:xfs:chk iswap=file:vgs-lvs:0x4400
+  imopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier
+  ilvm=pva1-UUID=uuida:pvb1-UUID=<uuidb>,pvc1-UID=<uuidc>
+  ikroot=ldk:LABEL=PENDRIVE:/root.ldk
+  ikswap=ldk:LABEL=PENDRIVE:/swap.ldk
+.SH ENVIRONMENTS
+.TP
+.B SYSFS
+system file system to keep mounted e.g. `SYSFS=/dev:/sys:/proc'
+.TP
+.B INTERNAL
+Other Environment Variables are defined internaly in
+.B init.
+.SH FILES
+.TP
+.I /etc/mkinitramfs-ll/
+.nf
+busybox.applets
+env
+font
+id
+kmap
+KERNEL-MODULE-GROUPS
+.fi
+
+.B KERNEL-MODULE-GROUPS:\ \c
+.RB [\| bcache \|]\ \c
+.RB [\| boot \|]\ \c
+.RB [\| device-mapper \|]\ \c
+.RB [\| dm-crypt \|]\ \c
+.RB [\| dm-raid \|]\ \c
+.RB [\| gpg \|]\ \c
+.RB [\| kms \|]\ \c
+.RB [\| raid \|]\ \c
+.RB [\| remdev \|]\ \c
+.RB [\| squashd \|]\ \c
+.RB [\| swsusp \|]\ \c
+.RB [\| tuxonice \]\ \c
+.RB [\| zfs \|]\ \c
+.RB [\| zram \|]
+.br
+(supported kernel module groups used if present in the initramfs)
+.TP
+.I /etc/mdev.conf
+mdev 
+.IR configuration
+file which should use
+.IR uid:gid
+instead of
+.IR user:group
+to avoid buggy parsings.
+.TP
+.I /etc/group
+Group list in order to get meaningfull user:group instead of uid:gid
+.TP
+.I /etc/modprobe.d/zfs.conf
+ZFS configuration file to set arc to a reasonable value
+.TP
+.I /lib/mkinitramfs-ll/
+.nf
+functions
+helpers
+HOOKS
+.fi
+
+.B HOOKS:\ \c
+.RB [\| bcache \|]\ \c
+.RB [\| mkswap-zfs \|]\ \c
+.RB [\| undo-bcache \|]\ \c
+.RB [\| zfs \|]\ \c
+.RB [\| zram \|]
+.br
+(supported hooks used when the appropriate kernel cmdline is present)
+.TP
+.I /lib/mdev/
+.nf
+dm_link
+.fi
+.TP 
+.I /usr/share/consolefonts
+console fonts directory used to search and load font
+.TP
+.I /usr/share/keymaps
+key map directory used to search and load keymap
+.SH "SEE ALSO"
+.BR mkinitramfs-ll (8)
+.SH AUTHORS
+-tclover <tokiclover@mkinitramfs-ll.project>
+.\"
+.\" vim:fenc=utf-8:ft=groff:ci:pi:sts=2:sw=2:ts=2:expandtab:
+.\"
