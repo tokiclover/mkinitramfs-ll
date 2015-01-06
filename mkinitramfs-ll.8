@@ -197,7 +197,7 @@ to enable either dm-raid (fake ATA raid) or mdadm software raid
 .BI mkinitramfs-ll\ \-\-all\ \-\-font=ter-g12n\ \-\-keymap=fr\ \-\-firmware=nouveau:iwlwifi-5000\ \-\-kv=3.14.26-git
 Build an initramfs with GnuPG, LUKS, LVM2, ZFS, zram, AUFS+squashfs support for
 linux kernel 3.14.26-git; nVidia and iwlWIFI-5000 firmwares are included as well.
-.SH ENVIRONMENT
+.SH ENVIRONMENTS
 .TP
 .B MIR_EXTRA_ENV
 This environment variable would be used, if set, to generate the environment
@@ -219,22 +219,9 @@ directory that contains extra files, e.g.
 .I USRDIR/etc/mkinitramfs-ll/minimal.applets
 busybox minimal applet list (compatibility)
 .SH "SEE ALSO"
-.br
-.BR mkinitramfs-ll (1) :
-for more info on
-.IR init
-and supported kernel
-.IR command line
-arguments;
-.br
-.BR mkinitramfs-ll (5) :
-for more info on
-.IR hook
-and
-.IR user
-scripts;
+.BR mkinitramfs-ll (1)
 .SH AUTHORS
-mkinitramfs-ll (8) was written by -tclover <tokiclover@mkinitramfs-ll.project>
+-tclover <tokiclover@mkinitramfs-ll.project>
 .\"
 .\" vim:fenc=utf-8:ft=groff:ci:pi:sts=2:sw=2:ts=2:expandtab:
 .\"
