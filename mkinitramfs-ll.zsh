@@ -45,10 +45,6 @@ function usage {
   -y, --keymap=:fr-latin1   include a colon separated list of keymaps to the initramfs
   -K, --keep-tmpdir         keep temporary the directory instead of removing it
   -h, --help, -?            print this help or usage message and exit
-
-  usage: build an initramfs for kernel \$(uname -r) if run without an argument
-  usgae: generate an initramfs with LUKS, GnuPG, LVM2 and AUFS+squashfs support
-  ${PKG[name]}.${PKG[shell]} -a -k$(uname -r)
 EOF
 exit $?
 }
@@ -277,7 +273,6 @@ if [[ -d ${opts[-usrdir]} ]] {
 	mv -f {usr/,}root &&
 	mv -f {usr/,}etc &&
 	mv -f usr/lib lib${opts[-arc]} || die
-	rm -f usr/README*
 } else {
 	die "${opts[-usrdir]} dir not found"
 }
