@@ -195,7 +195,12 @@ The first part set up zram internal options (see
 ).
 The second part set up each device by a pair of
 e.g. `4G-ext4' for a 4GB ext4 file system;
-just make sure to have the appropriate binary and symlink in the initramfs.
+just make sure to have the appropriate binary & symlink in the initramfs.
+.br
+.B ZRAM
+internal options (\fIdevices\fR-\fIstreams\fR-\fIcompressor\fR) can be tweaked
+e.g. `8-4-lz4' would set up 8 devices, 4 streams per device and use lz4 compressor;
+the default options are `4-2-lz4'.
 .TP
 .RB idebug=[\fIoption\fR]:[\fIn\fR]
 .br
@@ -378,14 +383,6 @@ the physical volumes or devices are
 LUKS crypted. Or else, any
 .IR character
 would be sufficient for plain devices.
-.TP
-.SS ZRAM
-.B ZRAM
-internal options (
-.IR devices-streams-compressor
-) can be tweaked
-e.g. `8-4-lz4' would set up 8 devices, 4 streams per device and use lz4 compressor;
-the default options are `4-2-lz4'.
 .TP
 .SS SHELL RUN LEVELS
 .TS
