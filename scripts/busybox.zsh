@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/busybox.zsh                    Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/09 12:33:03                   Exp $
+# $Version: 0.16.0 2015/01/01 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	name busybox
 	shell zsh
-	version 0.13.6
+	version 0.16.0
 )
 
 # @FUNCTION: usage
@@ -20,11 +20,11 @@ function usage {
   $PKG[name].$PKG[shell]-$PKG[version]
   usage: ${PKG[name]}.${PKG[shell]} [options]
 
-  -u, --usrdir=usr       copy busybox binary file to usr/bin
-  -n, --minimal          build busybox with minimal applets, default is all applets
-  -a, --abi=i386         ABI string needed to build busybox against uClibc	
-  -v, --version=1.20.0   use 1.20.0 instead of latest version of busybox
-  -h, --help, -?         print the usage/help and exit
+  -u, --usrdir=usr       USRDIR to use (to copy BusyBox binary)
+  -n, --minimal          Build only with minimal applets support
+  -a, --abi=i386         Set ABI to use when building against uClibc
+  -v, --version=1.20.0   Set version to build instead of latest
+  -h, --help, -?         Print the help message and exit
 EOH
 exit $?
 }
