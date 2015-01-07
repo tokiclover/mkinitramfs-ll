@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/svc/sdr.bash                   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.2 2014/10/10 12:33:03                   Exp $
+# $Version: 0.16.0 2015/01/01 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	name sdr
 	shell zsh
-	version 0.14.2
+	version 0.16.0
 )
 
 # @FUNCTION: usage
@@ -18,24 +18,19 @@ PKG=(
 function usage {
   cat <<-EOH
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
-  usage: ${PKG[name]}.${PKG[sehll]} [options] [-r|-squashroot<dir>] -d|-squashdir:<dir>:<dir>
+  usage: ${PKG[name]}.${PKG[shell]} [options] -d|--squashdir=:<dir>
 
-  -q, --squash-root=<dir>   overide default value of squashed rootdir squash-root=/aufs
-  -d, --squash-dir=<dir>    squashed directory-ies, colon seperated list of dir
-  -b, --block-size=131072   use [128k] 131072 bytes block size, which is the default
-  -x, --busybox=busybox     path to a static busybox binary, default is \$commands[busybox]
-  -c, --compressor=gzip     use gzip compressor with compression option, default to lzo
-  -X, --exclude=:<dir>      collon separated list of directories to exlude from image
-  -o, --offset=0            overide default [10%] offset used to rebuild squashed dir
-  -u, --update              update the underlying source directory e.g. bin:sbin:lib32
-  -r, --remove              remove the underlying source directory e.g. usr:\$PORTDIR
-  -n, --no-remount          do not remount squashed dir nor aufs after rebuilding
-  -h, --help, -?            print this help/usage and exit
-
- usage: AUFS+squahfs or *squash* and remove underlying src directories:
- $PKG[name].$PKG[shell] -r -d/var/db:/var/cache/edb:\$PORTDIR:/var/lib/layman
- usage: squash system related directories and update the underlaying src dir:
- $PKG[name].$PKG[shell] -u -d/bin:/sbin:/lib32:/lib64:/usr
+  -q, --squash-root=<dir>   Set root directory (default '/aufs')
+  -d, --squash-dir=:<dir>   Director-ies-y (list) to squash or update
+  -b, --block-size=131072   Set block size in bytes (default 128KB)
+  -x, --busybox=busybox     Static BusyBox to use (System Wide case)
+  -c, --compressor=gzip     Set compressor to use (default to lzo)
+  -X, --exclude=:<dir>      Director-ies-y (list) to exlude from image
+  -o, --offset=0            Offset to use when rebuilding (default 10%)
+  -u, --update              Update the underlying source directory
+  -r, --remove              Remove the underlying source directory
+  -n, --no-remount          Disable mount after rebuild or update
+  -h, --help, -?            Print this help message and exit
 EOH
 exit $?
 }
