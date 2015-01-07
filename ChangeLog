@@ -5,6 +5,7 @@ Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 * added firmware regex support to ease firmware copy;
 * zram{,dir} init script further clean up;
 documention major clean up (added man pages & removed *.textile);
+build scripts help (major) clean up;
 
 0.15.1:
 
