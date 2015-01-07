@@ -8,6 +8,7 @@ svcconfdir  = $(sysconfdir)/conf.d
 svcinitdir  = $(sysconfdir)/init.d
 datadir     = $(prefix)/share/$(PACKAGE)
 docdir      = $(prefix)/share/doc/$(PACKAGE)-${VERSION}
+mandir      = $(prefix)/share/man
 
 INSTALL     = install
 install_SCRIPT = $(INSTALL) -m 755
@@ -18,7 +19,7 @@ dist_EXTRA  = \
 	AUTHORS \
 	BUGS \
 	COPYING \
-	README.textile \
+	README.md \
 	ChangeLog
 dist_HOOKS  = \
 	bcache \
@@ -64,6 +65,8 @@ all:
 
 instal-all: install install-squashd install-bash install-zsh install-zram
 install: install-dir install-dist
+	$(install_DATA) -D $(PACKAGE).1 $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
+	$(install_DATA) -D $(PACKAGE).8 $(DESTDIR)$(mandir)/man1/$(PACKAGE).8
 
 install-dist: $(DISTFILES)
 install-dir : $(DISTDIRS)
@@ -106,6 +109,8 @@ uninstall-all: uninstall-bash uninstall-zsh uninstall-squashd uninstall-zram uni
 
 uninstall:
 	rm -f $(DESTDIR)$(sysconfdir)/$(PACKAGE).conf
+	rm -f $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
+	rm -f $(DESTDIR)$(mandir)/man8/$(PACKAGE).8
 	for file in $(dist_EXTRA); do \
 		rm -f $(DESTDIR)$(docdir)/$${file}; \
 	done
