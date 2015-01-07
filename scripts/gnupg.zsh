@@ -17,11 +17,11 @@ PKG=(
 # @DESCRIPTION: print usages message
 function usage {
   cat <<-EOH
-  $${PKG[name]}.${PKG[shell]}-${PKG[version]}
+  ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [options]
 
-  -u, --usrdir=usr       USRDIR to use for binary/options.skel copy
-  -U, --useflag=flags    Set extra USE flags to use
+  -d, --usrdir=usr       USRDIR to use for binary/options.skel copy
+  -u, --useflag=flags    Set extra USE flags to use
   -v, --version=<str>    Set version to use instead of latest 1.4.x
   -h, --help, -?         Print this help message and and exit
 EOH
@@ -45,7 +45,7 @@ declare -A opts
 declare -a opt
 
 opt=(
-	"-o" "?hu::U::v::"
+	"-o" "?hd::u::v::"
 	"-l" "help,useflag::,usrdir::,version::"
 	"-n" ${PKG[name]}.${PKG[shell]}
 	"-s" ${PKG[shell]}
@@ -55,10 +55,10 @@ eval set -- ${opt}
 
 for (( ; $# > 0; ))
 	case $1 {
-		(-u|--usrdir)
+		(-d|--usrdir)
 			opts[-usrdir]="$2"
 			shift 2;;
-		(-U|--useflag)
+		(-u|--useflag)
 			opts[-useflag]="$2"
 			shift 2;;
 		(-v|--version)

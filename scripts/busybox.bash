@@ -19,7 +19,7 @@ function usage {
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [options]
 
-  -u, --usrdir=usr       USRDIR to use (to copy BusyBox binary)
+  -d, --usrdir=usr       USRDIR to use (where to copy BusyBox binary)
   -n, --minimal          Build only with minimal applets support
   -a, --abi=i386         Set ABI to use when building against uClibc
   -v, --version=1.20.0   Set version to build instead of latest
@@ -45,7 +45,7 @@ declare -A opts
 declare -a opt
 
 opt=(
-	"-o" "?a:hnu::v:"
+	"-o" "?a:hnd::v:"
 	"-l" "abi:,help,minimal,usrdir::,version:"
 	"-n" "${PKG[name]}.${PKG[shell]}"
 	"-s" "${PKG[shell]}"
@@ -61,7 +61,7 @@ for (( ; $# > 0; )); do
 		(-a|--abi)
 			opts[-abi]="$2"
 			shift 2;;
-		(-u|--usrdir)
+		(-d|--usrdir)
 			opts[-usrdir]="$2"
 			shift 2;;
 		(-v|--version)
