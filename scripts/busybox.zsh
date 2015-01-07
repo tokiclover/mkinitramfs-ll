@@ -1,7 +1,7 @@
 #!/bin/zsh
 #
 # $Header: mkinitramfs-ll/busybox.zsh                    Exp $
-# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
 # $Version: 0.16.0 2015/01/01 12:33:03                   Exp $
 #
