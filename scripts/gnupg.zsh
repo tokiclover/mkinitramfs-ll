@@ -1,16 +1,16 @@
 #!/bin/zsh
 #
 # $Header: mkinitramfs-ll/gnupg.zsh                      Exp $
-# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2014/09/26 12:33:03                   Exp $
+# $Version: 0.13.6 2015/01/01 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	name gnupg
 	shell zsh
-	version 0.13.6
+	version 0.16.0
 )
 
 # @FUNCTION: usage
@@ -20,10 +20,10 @@ function usage {
   $${PKG[name]}.${PKG[shell]}-${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [options]
 
-  -u, --usrdir=[usr]     copy binary and options.skel files to usr/
-  -U, --useflag=flags    extra USE flags to append to USE="nls static"
-  -v, --version=<str>    build gpg-<str> version instead of gpg-1.4.x
-  -h, --help, -?         print this help/uage and exit
+  -u, --usrdir=usr       USRDIR to use for binary/options.skel copy
+  -U, --useflag=flags    Set extra USE flags to use
+  -v, --version=<str>    Set version to use instead of latest 1.4.x
+  -h, --help, -?         Print this help message and and exit
 EOH
 exit $?
 }
