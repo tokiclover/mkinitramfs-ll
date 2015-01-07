@@ -69,7 +69,8 @@ install: install-dir install-dist
 	$(install_DATA) -D $(PACKAGE).8 $(DESTDIR)$(mandir)/man1/$(PACKAGE).8
 
 install-dist: $(DISTFILES)
-install-dir : $(DISTDIRS)
+install-dir : $(keep_DIRS)
+	$(MKDIR_P) $(DISTDIRS:%=$(DESTDIR)%)
 install-doc : $(dist_EXTRA)
 
 $(dist_COMMON): .FORCE
@@ -80,8 +81,6 @@ $(dist_HOOKS): .FORCE
 	$(install_DATA) hooks/$@ $(DESTDIR)$(datadir)/hooks/$@
 $(dist_SCRIPTS): .FORCE
 	$(install_SCRIPT) $@ $(DESTDIR)$(datadir)/$@
-$(base_DIRS): .FORCE
-	$(MKDIR_P) $(DESTDIR)$@
 $(keep_DIRS): .FORCE
 	$(MKDIR_P) $(DESTDIR)$(datadir)/$@
 	echo     > $(DESTDIR)$(datadir)/$@/.keep-$(@F)-dir
@@ -111,25 +110,18 @@ uninstall:
 	rm -f $(DESTDIR)$(sysconfdir)/$(PACKAGE).conf
 	rm -f $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
 	rm -f $(DESTDIR)$(mandir)/man8/$(PACKAGE).8
-	for file in $(dist_EXTRA); do \
-		rm -f $(DESTDIR)$(docdir)/$${file}; \
-	done
-	for file in $(dist_COMMON) $(dist_SCRIPTS); do \
-		rm -f $(DESTDIR)$(datadir)/$${file}; \
-	done
-	for file in $(dist_HOOKS); do \
-		rm -f $(DESTDIR)$(datadir)/hooks/*$${file}*; \
-	done
+	rm -f $(dist_EXTRA:%=$(DESTDIR)$(docdir)/%)
+	rm -f $(dist_COMMON:%=$(DESTDIR)$(datadir)/%)
+	rm -f $(dist_SCRIPTS:%=$(DESTDIR)$(datadir)/%)
+	rm -f $(dist_HOOKS:%=$(DESTDIR)$(datadir)/hooks/%)
 	for dir in $(keep_DIRS); do \
 		rm -f $(DESTDIR)$(datadir)/$${dir}/.keep-*-dir; \
 		rmdir $(DESTDIR)$(datadir)/$${dir}; \
 	done
 	for dir in usr/etc usr/lib usr/root usr/share usr; do \
-		rmdir $(DESTDIR)$(datadir)/$${dir}; \
+		rmdir $(DSTDIR)$(datadir)/$${dir}; \
 	done
-	for dir in $(base_DIRS); do \
-		rmdir $(DESTDIR)/$${dir}; \
-	done
+	-rmdir $(base_DIRS:%=$(DESTDIR)%)
 uninstall-scripts-%sh:
 	rm -f $(DESTDIR)$(sbindir)/$(PACKAGE).$*sh
 	rm -f $(DESTDIR)$(datadir)/scripts/busybox.$*sh
