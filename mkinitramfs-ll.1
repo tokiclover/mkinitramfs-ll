@@ -23,6 +23,9 @@ depending on the requirements and set up. The
 files are kept in
 .IR /etc/mkinitramfs-ll
 directory and will be used if present or nothing if not.
+
+It also require kernel module [un]loading support. Kernel modules should be
+available in `/lib/modules/$KV' with a `modules.dep' file.
 .SH SYNOPSIS
 Append the appropriate
 .I OPTIONS

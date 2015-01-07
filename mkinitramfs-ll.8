@@ -20,13 +20,23 @@ necessary, but are
 .IR necessary
 to build a
 .IR functionnal
-initramfs. Without arguments, it will build a initramfs for the current kernel
-with the default options defined in the
-.IR configuration
-file.
+initramfs.
+
+It also require `/lib/modules/$KV' kernel object directory along with its
+`modules.dep' file, or else, no kernel module would be added. Fonts should
+be available in `/usr/share/consolefonts'; Keymaps in `/usr/share/keymaps';
+splash Themes in `/etc/splash'; Firmwares in `/lib/firmware'; Binaries in `$PATH';
+Or else, use full path to file instead.
+
+Aything can be bundled directly in USRDIR for convenience for the end user.
+However, it's useless to waste disk space if the files are available in a live system.
+Editing the configuration file should suffice in most cases.
+
+If executed without arguments, an initramfs would be build for the current kernel
+with the default options defined in the configuration file.
 .SH CONFIGURATION
 .B mkinitramfs-ll.conf
-is the general purpose configuration file of this tools. Every command line
+is the general purpose configuration file of this tool. Every command line
 .IR switch
 can be used, minus a hyphen for the long variant, as a key in the associative array
 .IR opts
@@ -104,6 +114,9 @@ T}
 \fIregex\fR@T{
 replace regex with a regular expression, matching regex will be performed.
 T}
+\fBUSRDIR\fR@T{
+refer to `usr' directory (in `/' of the source files or DATADIR/mkinitramfs-ll/usr)
+T}
 .TE
 
 .SH OPTIONS
@@ -111,19 +124,19 @@ T}
 .B \-a|\-\-all
 short variant or form of `\-\-font=: \-\-keymap=: \-\-luks \-\-lvm \-\-gpg \-\-hook=:zfs:zram \-\-toi \-\-squashd'
 .TP
-.B \-f|\-\-font=:\fIregex\fR
+.B \-f|\-\-font=:[\fIregex\fR]
 include a colon separated list of font either a full path or a name
 relative to `/usr/share/consolefonts' (or nothing would be included)
 .TP
-.B \-F|\-\-firmware=:\fIregex\fR
+.B \-F|\-\-firmware=:[\fIregex\fR]
 include a colon separated list of firmware either a full path or a name
 relative to `/lib/firmware' (or nothing would be included)
 (`:' would add the whole firmware directoy)
 .TP
-.B \-k|\-\-kv=\fIversion\fR
+.B \-k|\-\-kv=[\fIversion\fR]
 linux kernel version to use for building an initramfs
 .TP
-.B \-c|\-\-compressor=\fIcomp\fR
+.B \-c|\-\-compressor=[\fIcomp\fR]
 compressor to use for compression or `none' for uncompressed initramfs
 .TP
 .B \-L|\-\-luks
@@ -132,7 +145,7 @@ enable dm-crypt LUKS support (require cryptsetup)
 .B \-l|\-\-lvm
 enable device-mapper support (require lvm2)
 .TP
-.B \-b|\-\-bin=:\fIbinary\fR
+.B \-b|\-\-bin=:[\fIbinary\fR]
 include a colon separated list of binary to the initramfs
 .TP
 .B \-d|\-\-usrdir=\fIdirectory\fR
@@ -144,28 +157,28 @@ enable GnuPG support (require gnupg-1.4.x)
 .B \-p|\-\-prefix=initrd-
 use `initrd-' prefix to name initramfs
 .TP
-.B \-H|\-\-hook=:\fIregex\fR
+.B \-H|\-\-hook=:[\fIregex\fR]
 include a colon separated list of hooks or scripts to the initramfs
 .TP
-.B \-m|\-\-kmod=:\fIregex\fR
+.B \-m|\-\-kmod=:[\fIregex\fR]
 include a colon separated list of kernel module to the initramfs
 .TP
-.B \-\-mtuxonice=:\fIregex\fR
+.B \-\-mtuxonice=:[\fIregex\fR]
 append a colon separated list of kernel module to tuxonice group
 .TP
-.B \-\-mremdev=:\fIregex\fR
+.B \-\-mremdev=:[\fIregex\fR]
 append a colon separated list of kernel module to remdev group
 .TP
-.B \-\-msquashd=:\fIregex\fR
+.B \-\-msquashd=:[\fIregex\fR]
 append a colon separated list of kernel module to remdev group
 .TP
-.B \-\-mgpg=:\fIregex\fR
+.B \-\-mgpg=:[\fIregex\fR]
 append a colon separated list of kernel module to gpg group
 .TP
-.B \-\-boot=:\fIregex\fR
+.B \-\-boot=:[\fIregex\fR]
 append a colon separated list of kernel module to boot group
 .TP
-.B \-s|\-\-splash=:\fItheme\fR
+.B \-s|\-\-splash=:[\fItheme\fR]
 include a colon separated list of splash theme to the initramfs
 .TP
 .B \-t|\-\-toi
@@ -174,7 +187,7 @@ enable TuxOnIce support (require tuxonice-userui for splash)
 .B \-r|\-\-rebuild
 rebuild an initramfs from an existant directory
 .TP
-.B \-y|\-\-keymap=:\fIregex\fR
+.B \-y|\-\-keymap=:[\fIregex\fR]
 .br
 include a colon separated list of console keymap either a full path or name
 relative to `/usr/share/keymaps' (or nothing would be included)
@@ -185,17 +198,23 @@ keep the temporary build directory
 .B \-?|\-h|\-\-help
 print the help message and exit
 .TP
-.B RAID support (note)
+.B RAID (FAKE ATA & SOFWARE)
 just append the appropriate binary, that is
 .IR dmraid
 or
 .IR mdadm
 with `-b|--bin' switch,
-to enable either dm-raid (fake ATA raid) or mdadm software raid
+to enable either dm-raid (fake ATA RAID) or mdadm software RAID
+.TP
+.B HOOKS & USER SCRIPTS
+Any hook or script should be in `USRDIR/../hooks', so `-H|--hook' switch would
+rightly add any appended hook (if any.) If `opts[-b$SCRIPT]' & `opts[-m$SCRIPT]'
+are defined in the configuration file, the binaries, kernel module & group would
+be added.
 .SH EXAMPLES
 .TP
 .BI mkinitramfs-ll\ \-\-all\ \-\-font=ter-g12n\ \-\-keymap=fr\ \-\-firmware=nouveau:iwlwifi-5000\ \-\-kv=3.14.26-git
-Build an initramfs with GnuPG, LUKS, LVM2, ZFS, zram, AUFS+squashfs support for
+Build an initramfs with GnuPG, LUKS, LVM2, ZFS, zram, AUFS+SquashFS support for
 linux kernel 3.14.26-git; nVidia and iwlWIFI-5000 firmwares are included as well.
 .SH ENVIRONMENTS
 .TP
@@ -206,15 +225,17 @@ variables of
 script.
 .SH FILES
 .TP
-.I [/etc/]mkinitramfs-ll.conf
+.I [SYSCONFDIR/]mkinitramfs-ll.conf
 mkinitramfs-ll configuration file.
+(SYSCONFDIR should be `/etc' in a standard installtion)
 .TP
-.I [/usr/share/mkinitramfs-ll/]usr
+.I [DATADIR/mkinitramfs-ll/]usr
 mkinitramfs-ll
 .IR usr
 directory that contains extra files, e.g.
 .IR functions
 (library like) file, for initramfs.
+(DATADIR should be `/usr/share' in a standard installtion)
 .TP
 .I USRDIR/etc/mkinitramfs-ll/minimal.applets
 busybox minimal applet list (compatibility)
