@@ -1,8 +1,8 @@
 Header: mkinitramfs-ll/README.md,v 0.16.0 2015/01/01 Exp
 
 A lightweight, modular and yet powerfull initramfs generating tool
-with RAID (fake ATA software RAID or md-raid), dm-crypt LUKS, LVM[2],
-TuxOnIce/swsusp hibernation, AUFS+SquashFS, ZFS, zram and bcache support
+with RAID (ATA RAID & SOFTWARE RAID), dm-crypt LUKS, LVM(2), ZFS,
+TuxOnIce/SwSusp hibernation, AUFS+SquashFS, ZRAM and bCache support
 
 INTRODUCTION
 -----------
@@ -41,9 +41,9 @@ One can get more info on the scripts by running `$SCRIPT -?|-h|--help`
 DOCUMENTATION
 -------------
 
-See mkinitramfs-ll(1) for more on kernel command line options
+See mkinitramfs-ll(1) for more info on kernel command line options
 
-See mkinitramfs-ll(8) for more on the build script options
+See mkinitramfs-ll(8) for more info on the build script options
 
 COPYING
 -------
@@ -74,7 +74,7 @@ and list) are available.
 
 An init service script along with a build script for squashed directory are
 available. Managing system wide directories is problematic, so put `usr'
-first (is squashded.) And this require a static busybox to function at all.
+first (if squashded.) And this require a static busybox to function at all.
 
 ## ZRAM
 
