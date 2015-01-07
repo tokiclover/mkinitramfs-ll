@@ -19,7 +19,7 @@ PKG=(
 # @DESCRIPTION: print usages message
 function usage {
   cat <<-EOH
-  ${PKG[name]}.${PKG[shell]}-${PKG[version]}
+  ${PKG[name]}.${PKG[shell]} version ${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [options] -d|--squashdir=:<dir>
 
   -q, --squash-root=<dir>   Set root directory (default '/aufs')

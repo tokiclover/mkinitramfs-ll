@@ -17,7 +17,7 @@ PKG=(
 # @DESCRIPTION: print usages message
 function usage {
   cat <<-EOH
-  ${PKG[name]}.${PKG[shell]}-${PKG[version]}
+  ${PKG[name]}.${PKG[shell]} version ${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [options]
 
   -a, --all                   Short variant of '-l -L -g -H:zfs:zram -t -q'
