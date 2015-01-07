@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.15.1 2014/01/01 12:33:03                   Exp $
+# $Version: 0.16.0 2014/01/01 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
-	[version]=0.15.0
+	[version]=0.16.0
 )
 
 # @FUNCTION: usage
@@ -18,33 +18,35 @@ PKG=(
 function usage {
   cat <<-EOH
   ${PKG[name]}.${PKG[shell]}-${PKG[version]}
-  usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [-f|--font=[font]] [-y|--keymap=[keymap]] [options]
+  usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [options]
 
-  -a, --all                 short hand or forme of '-l -L -g -H:zfs:zram -t -q'
-  -f, --font=[:ter-v14n]    include a colon separated list of fonts to the initramfs
-  -F, --firmware=[:file]    add firmware file/dir full path or relative to firmware dir
-  -k, --kv=3.4.4-git        build an initramfs for kernel 3.4.4-git or else \$(uname -r)
-  -c, --compressor='gzip -9' use 'gzip -9' compressor instead of default, accept 'none'
-  -L, --luks                add LUKS support, require a sys-fs/cryptsetup binary
-  -l, --lvm                 add LVM support, require a static sys-fs/lvm2 binary
-  -b, --bin=:<bin>          include a colon separated list of binar-y-ies to the initramfs
-  -d, --usrdir=[usr]        use usr dir for user extra files, binaries, scripts, fonts...
-  -g, --gpg                 add GnuPG support, require a static gnupg-1.4.x and 'options.skel'
-  -p, --prefix=initrd-      use 'initrd-' initramfs prefix instead of default ['initramfs-']
-  -H, --hook=:<name>        include <name> hook or script from the hooks directory
-  -m, --kmod=[:<mod>]       include a colon separated list of kernel modules to the initramfs
-      --mtuxonice=[:<mod>]  include a colon separated list of kernel modules to tuxonice group
-      --mremdev=[:<mod>]    include a colon separated list of kernel modules to remdev  group
-      --msquashd=[:<mod>]   include a colon separated list of kernel modules to squashd group
-      --mgpg=[:<mod>]       include a colon separated list of kernel modules to gpg     group
-      --mboot=[:<mod>]      include a colon separated list of kernel modules to boot   group
-  -s, --splash=[:<theme>]   include a colon separated list of splash themes to the initramfs
-  -t, --toi                 add tuxonice support, require tuxoniceui_text binary for splash
-  -q, --squashd             add AUFS+squashfs, {,u}mount.aufs, or squashed dir support
-  -r, --rebuild             regenerate a new initramfs from an old dir with newer init
-  -y, --keymap=:fr-latin1   include a colon separated list of keymaps to the initramfs
-  -K, --keep-tmpdir         keep temporary the directory instead of removing it
-  -h, --help, -?            print this help or usage message and exit
+  -a, --all                   Short variant of '-l -L -g -H:zfs:zram -t -q'
+  -f, --font=[:ter-v14n]      Fonts to include in the initramfs
+  -F, --firmware=[:file]      Firmware file/directory to include
+  -k, --kv=VERSION            Build an initramfs for kernel version VERSION
+  -c, --compressor='gzip -9'  Use 'gzip -9' compressor instead of default
+  -L, --luks                  Enable LUKS support (require cryptsetup binary)
+  -l, --lvm                   Enable LVM2 support (require lvm2 binary)
+  -b, --bin=:<bin>            Binar-y-ies to include if available
+  -d, --usrdir=[DIRECTORY]    Use DIRECTORY as USRDIR instead of the default
+  -g, --gpg                   Enable GnuPG support (require gnupg-1.4.x)
+  -p, --prefix=initrd-        Use 'initrd-' prefix instead of default ['initramfs-']
+  -H, --hook=:<name>          Include hook or script if available
+  -m, --kmod=[:<mod>]         Include kernel modules if available
+      --mtuxonice=[:<mod>]    Append kernel modules to tuxonice group
+      --mremdev=[:<mod>]      Append kernel modules to remdev   group
+      --msquashd=[:<mod>]     Append kernel modules to squashd  group
+      --mgpg=[:<mod>]         Append kernel modules to gpg      group
+      --mboot=[:<mod>]        Append kernel modules to boot     group
+  -s, --splash=[:<theme>]     Include splash themes  if available
+  -t, --toi                   Enable TuxOnIce support (require tuxoniceui-userui)
+  -q, --squashd               Enable AUFS+SquashFS support (require aufs-util)
+  -r, --rebuild               Re-Build an initramfs from an old directory
+  -y, --keymap=:fr-latin1     Keymaps to include the initramfs
+  -K, --keep-tmpdir           Keep the temporary build directory
+  -h, --help, -?              Print this help or usage message
+
+  :argument|:option           Support a colon separated list of Argument|Option 
 EOH
 exit $?
 }
