@@ -79,11 +79,13 @@ first (if squashded.) And this require a static busybox to function at all.
 ## ZRAM
 
 Two init service scripts are available, one that can be used to set up zram
-devices directly; and another one, a client, can be used on top of the first
-to bind/mount directory on a backed zram device.
+devices directly for space usage efficiency (compared to a regular tmpfs.)
 
-The later can be used on a tmpfs based device (a little edit on depend()
-would suffice for that.)
+Another one, an optional client of zram, handles temporary directory with an
+optional saved state (tarball backup.)
+
+The later can be used on a tmpfs based device instead of zram, configuration
+edit is required (use zram by default.)
 
 GENTOO USERS NOTE
 -----------------
