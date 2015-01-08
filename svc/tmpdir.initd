@@ -1,12 +1,12 @@
 #!/sbin/runscript
 #
-# $Header: mkinitramfs-ll/svc/zramdir.initd              Exp $
-# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $Header: mkinitramfs-ll/svc/tmpdir.initd               Exp $
+# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.15.1 2014/12/31 12:33:03                   Exp $
+# $Version: 0.16.0 2015/01/01 12:33:03                   Exp $
 #
 
-description="use zram and optional tarball archive for directories /var/{log,...}"
+description="Maitain temporary directory /var/{log,...} with optional backup"
 extra_commands="restore save"
 description_restore="Restore directory contents using dir$extension"
 description_save="Archive directory contents using dir$extension"
@@ -15,7 +15,7 @@ description_save="Archive directory contents using dir$extension"
 
 depend()
 {
-	use zram
+	yesno ${use_zram} && use zram
 	before logger
 }
 
@@ -23,13 +23,13 @@ start()
 {
 	local IFS=":${IFS}" dir _dir
 	
-	if ! grep -q "${zrootdir}" /proc/mounts; then
+	if ! grep -q "${tmpdir_root}" /proc/mounts; then
 		eend "${?}" "no suitable zram backed root dir found"
 		return 0
 	fi
 	
-	for dir in ${compressed_dir} ${uncompressed_dir}; do
-		_dir="${zrootdir}${dir}"
+	for dir in ${tmpdir_saved} ${tmpdir_unsaved}; do
+		_dir="${tmpdir_root}${dir}"
 		grep -q "${_dir}" /proc/mounts && continue
 		mkdir -p "${_dir}"
 		ebegin  "Mounting ${_dir}"
@@ -45,12 +45,12 @@ stop()
 	local IFS=":${IFS}" dir _dir
 
 	save
-	for dir in ${compressed_dir} ${uncompressed_dir}; do
+	for dir in ${tmpdir_saved} ${tmpdir_unsaved}; do
 		case "${dir}" in
 			(/var/log|/var/run)
 				continue;;
 		esac
-		_dir="${zrootdir}${dir}"
+		_dir="${tmpdir_root}${dir}"
 		grep -q "${_dir}" /proc/mounts || continue
 		ebegin  "Unmounting ${_dir}"
 		umount -l "${_dir}" > /dev/null 2>&1
@@ -63,7 +63,7 @@ start_pre()
 {
 	local IFS=":${IFS}"
 
-	for dir in ${compressed_dir}; do
+	for dir in ${tmpdir_saved}; do
 		[ -e "${dir}${extension}" ] && continue
 		[ -d "${dir}" ] && save "${dir}" || mkdir -p "${dir}"
 	done
@@ -81,7 +81,7 @@ restore()
 	local decompress="${compressor%% *}"
 	local tarball
 
-	for dir in ${1:-${compressed_dir}}; do
+	for dir in ${1:-${tmpdir_saved}}; do
 		cd "${dir%/*}" > /dev/null 2>&1
 
 		if [ -f "${dir}${extension}" ]; then
@@ -105,7 +105,7 @@ save()
 	local IFS=":${IFS}"
 	local swd="$(pwd)"
 
-	for dir in ${1:-${compressed_dir}}; do
+	for dir in ${1:-${tmpdir_saved}}; do
 		cd "${dir%/*}" > /dev/null 2>&1
 
 		if [ -f "${dir}${extension}" ]; then
