@@ -59,19 +59,20 @@ DISTDIRS    = $(base_DIRS) $(keep_DIRS)
 .FORCE:
 
 .PHONY: all base keep install install-doc install-dist install-bash install-zsh \
-	install-zram install-squashd install-all
+	install-services install-all
 
 all:
 
-instal-all: install install-squashd install-bash install-zsh install-zram
+instal-all: install install-services install-bash install-zsh
 install: install-dir install-dist
-	$(install_DATA) -D $(PACKAGE).1 $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
-	$(install_DATA) -D $(PACKAGE).8 $(DESTDIR)$(mandir)/man1/$(PACKAGE).8
-
 install-dist: $(DISTFILES)
 install-dir : $(keep_DIRS)
 	$(MKDIR_P) $(DISTDIRS:%=$(DESTDIR)%)
 install-doc : $(dist_EXTRA)
+	$(install_DATA) -D $(PACKAGE).1 $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
+	$(install_DATA) -D $(PACKAGE).8 $(DESTDIR)$(mandir)/man1/$(PACKAGE).8
+install-services: install-squashdir-mount-svc \
+	install-zram-svc install-tmpdir-svc
 
 $(dist_COMMON): .FORCE
 	$(install_DATA) $@ $(DESTDIR)$(datadir)/$@
@@ -104,13 +105,9 @@ install-%-svc:
 
 .PHONY: unintsall uninstall-bash uninstall-zsh uninstall-squashd uninstall-zram
 
-uninstall-all: uninstall-bash uninstall-zsh uninstall-squashd uninstall-zram unintsall
-
+uninstall-all: uninstall-bash unintsall-doc uninstall-zsh uninstall-services unintsall
 uninstall:
 	rm -f $(DESTDIR)$(sysconfdir)/$(PACKAGE).conf
-	rm -f $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
-	rm -f $(DESTDIR)$(mandir)/man8/$(PACKAGE).8
-	rm -f $(dist_EXTRA:%=$(DESTDIR)$(docdir)/%)
 	rm -f $(dist_COMMON:%=$(DESTDIR)$(datadir)/%)
 	rm -f $(dist_SCRIPTS:%=$(DESTDIR)$(datadir)/%)
 	rm -f $(dist_HOOKS:%=$(DESTDIR)$(datadir)/hooks/%)
@@ -122,6 +119,12 @@ uninstall:
 		rmdir $(DSTDIR)$(datadir)/$${dir}; \
 	done
 	-rmdir $(base_DIRS:%=$(DESTDIR)%)
+uninstall-doc:
+	rm -f $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
+	rm -f $(DESTDIR)$(mandir)/man8/$(PACKAGE).8
+	rm -f $(dist_EXTRA:%=$(DESTDIR)$(docdir)/%)
+uninstall-services: uninstall-squashdir-mount-svc \
+	uninstall-zram-svc uninstall-tmpdir-svc
 uninstall-scripts-%sh:
 	rm -f $(DESTDIR)$(sbindir)/$(PACKAGE).$*sh
 	rm -f $(DESTDIR)$(datadir)/scripts/busybox.$*sh
