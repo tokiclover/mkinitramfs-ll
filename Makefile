@@ -70,7 +70,7 @@ install-dir : $(keep_DIRS)
 	$(MKDIR_P) $(DISTDIRS:%=$(DESTDIR)%)
 install-doc : $(dist_EXTRA)
 	$(install_DATA) -D $(PACKAGE).1 $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
-	$(install_DATA) -D $(PACKAGE).8 $(DESTDIR)$(mandir)/man1/$(PACKAGE).8
+	$(install_DATA) -D $(PACKAGE).8 $(DESTDIR)$(mandir)/man8/$(PACKAGE).8
 install-services: install-squashdir-mount-svc \
 	install-zram-svc install-tmpdir-svc
 
