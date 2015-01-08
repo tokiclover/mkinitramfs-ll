@@ -63,11 +63,11 @@ DISTDIRS    = $(base_DIRS) $(keep_DIRS)
 
 all:
 
-instal-all: install install-services install-bash install-zsh
+install-all: install install-services install-bash install-zsh
 install: install-dir install-dist
 install-dist: $(DISTFILES)
 install-dir : $(keep_DIRS)
-	$(MKDIR_P) $(DISTDIRS:%=$(DESTDIR)%)
+	$(MKDIR_P) $(base_DIRS:%=$(DESTDIR)%)
 install-doc : $(dist_EXTRA)
 	$(install_DATA) -D $(PACKAGE).1 $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
 	$(install_DATA) -D $(PACKAGE).8 $(DESTDIR)$(mandir)/man8/$(PACKAGE).8
