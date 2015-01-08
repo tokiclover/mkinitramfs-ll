@@ -516,15 +516,15 @@ for (( i=1; i <= ${#env[@]}; i++ ))
 unset env
 
 for lib (usr/lib/gcc/**/lib*.so*(.N)) {
-	ln -fs $lib     lib/$lib:t
-	ln -fs $lib usr/lib/$lib:t
+	ln -fs /$lib     lib/$lib:t
+	ln -fs /$lib usr/lib/$lib:t
 }
 
 docpio || die
 
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
 
-(( ${+opts[-K]} )) || (( ${+opts[-keeptmp]} )) || rm -rf ${opts[-tmpdir]}
+(( ${+opts[-K]} )) || (( ${+opts[-keep-tmpdir]} )) || rm -rf ${opts[-tmpdir]}
 
 unset comp opts PKG
 
