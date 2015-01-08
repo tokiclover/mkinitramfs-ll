@@ -6,6 +6,7 @@ Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 * zram{,dir} init script further clean up;
 documention major clean up (added man pages & removed *.textile);
 build scripts help (major) clean up;
+* renamed zramdir to tmpdir with optional zram backed device;
 
 0.15.1:
 
