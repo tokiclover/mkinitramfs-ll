@@ -6,7 +6,7 @@
 # $Version: 0.16.0 2015/01/01 12:33:03                   Exp $
 #
 
-description="Maitain temporary directory /var/{log,...} with optional backup"
+description="Maintain temporary directory with optional backup"
 extra_commands="restore save"
 description_restore="Restore directory contents using dir$extension"
 description_save="Archive directory contents using dir$extension"
@@ -103,14 +103,13 @@ restore()
 		elif [ -f "${dir}.old${extension}" ]; then
 		:	tarball="${dir}.old${extension}"
 		else
-			eend "${?}" "no tarball found for ${dir}"
+			ewarn "No tarball found for ${dir}"
 			continue
 		fi
 		ebegin  "Restoring ${dir}"
 		${decompress} -cd "${tarball}" | tar -xp
 		eend "${?}"
 	done
-
 	cd "${swd}" > /dev/null 2>&1
 }
 
@@ -129,7 +128,6 @@ save()
 		tar -Ocp ${dir##*/} | ${compressor} "${dir}${extension}"
 		eend "${?}"
 	done
-
 	cd "${swd}" > /dev/null 2>&1
 }
 

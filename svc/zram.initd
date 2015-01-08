@@ -42,12 +42,12 @@ start()
 			ret=$?
 			eend "$ret"
 
-			if test "$ret" = 0 -a -n "$mtpt"; then
+			if [ "$ret" = 0 -a -n "$mtpt" ]; then
 				ebegin "Mounting $dev on $mtpt"
-				[ -d "$mtpt" ] || mkdir -p $mtpt
-				mount -t $fsys ${mopt:+-o $mopt} $dev $mtpt
+				[ -d "$mtpt" ] || mkdir -p "$mtpt"
+				mount -t $fsys ${mopt:+-o} $mopt $dev "$mtpt"
 				eend "$?"
-				[ -n "$mode" ] && chmod $mode $mtpt
+				[ -n "$mode" ] && chmod $mode "$mtpt"
 			fi
 		fi
 		num=$(($num + 1))
@@ -121,7 +121,6 @@ stop()
 		fi
 		num=$(($num + 1))
 	done
-
 	return 0
 }
 
