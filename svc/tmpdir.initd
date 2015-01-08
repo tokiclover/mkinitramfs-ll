@@ -27,8 +27,19 @@ start()
 	local IFS=":${IFS}" dir _dir
 	
 	if ! grep -q "${tmpdir_root}" /proc/mounts; then
-		eend "${?}" "no suitable zram backed root dir found"
-		return 0
+		if yesno ${use_zram}; then
+			ewarn "No suitable zram backed root dir found"
+			return 0
+		else
+			local ret
+			mkdir -p "${tmpdir_root}"
+			ebegin "Mounting ${tmpdir_root}"
+			mount -o rw,nodev,relatime,mode=0755,size=${tmpdir_size:-10%} \
+				-t tmpfs "${RC_SVCNAME:-tmpdir}" "${tmpdir_root}"
+			ret=$?
+			eend "${ret}"
+			[ "${ret}" = 0 ] || return 0
+		fi
 	fi
 	
 	for dir in ${tmpdir_saved} ${tmpdir_unsaved}; do
