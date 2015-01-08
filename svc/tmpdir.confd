@@ -10,6 +10,8 @@
 use_zram=yes
 # Root directory of the file system hierachy
 tmpdir_root=/var/tmp
+# Set the size to use (tmpfs case)
+tmpdir_size=10%
 # Colon separated list of directory to archive
 tmpdir_saved=/var/log
 # Colon separated list of direcory (without saved state, backup)
