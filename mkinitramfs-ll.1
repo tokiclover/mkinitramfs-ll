@@ -14,22 +14,20 @@ require
 .IR /lib/mkinitramfs-ll/functions
 shell function library
 .IR /lib/mdev/dm_link
-for device-mapper (symlink) and optional files see
+for device-mapper (symlink) and optional files (see
 .B FILES
-sections to be fully
+) sections to be fully
 .IR functionnal
 depending on the requirements and set up. The
 .IR configuration
 files are kept in
 .IR /etc/mkinitramfs-ll
 directory and will be used if present or nothing if not.
-
-It also require kernel module [un]loading support. Kernel modules should be
-available in `/lib/modules/$KV' with a `modules.dep' file.
+Kernel module [un]loading support is required as well.
 .SH SYNOPSIS
 Append the appropriate
 .I OPTIONS
-accordingly to the boot set up following
+according to the boot set up following
 .B OVERVIEW
 and 
 .B OPTIONS
@@ -293,13 +291,13 @@ and or
 and or
 .RB iresume
 which should have
-.RI mapping-device[+HEADER]
+.RB \fImapping\fR-\fIdevice\fR[+\fIHEADER\fR]
 instead of plain
 .RI device
 with an optional header for detached header support.
 .br
 
-So, detached header is simpled enabled by appending an appropriate \fI+HEADER\fR
+So, detached header is simply enabled by appending an appropriate +\fIHEADER\fR
 to any crypted device.
 .IR HEADER
 should be a valid dm-crypt LUKS header by being either a block device or a
@@ -311,14 +309,14 @@ header to block device because of the risk of header mismatch (fatal errors.)
 .SS DEVICE-MAPPER (LVM[2])
 .br
 Each
-.IR mapping-device
+.RB \fImapping\fR-\fIdevice\fR
 list in
 .BR ilvm
 kernel command line argument can be a colon seprated list, or a
 .IR /path/file
 inside a removable device (key \fIfile\fR mode is required.)
 However,
-.IR map-PV
+.RB \fImap\fR-\fIPV\fR
 list is \fIonly\fR required for crypted Phycal Volume. LVM[2] on plain device
 can be enabled with any character in the appropriate field e.g. `ilvm=pva-sda2,1'
 would be enough to open a crypted VG/LV for root and another VG/LV on a plain
@@ -331,7 +329,7 @@ To complete the
 .B OVERVIEW RAID
 sub-section,
 .B FAKE ATA RAID
-can be enable using the \fIarray\fR+\fI[format]\fR syntax
+can be enable using the \fIarray\fR[+\fIformat\fR] syntax
 (format is optional and can be a colon separated list of format, see `dmraid -l');
 while
 .B SOFTWARE RAID
@@ -368,16 +366,16 @@ can be used to append extra squashed directories e.g `isquashd=:+l:var/portage'.
 requires
 .RB izfs
 kernel command line argument and
-.IR POOL/VOL
-logical volume provided by either \fBiroot=\fR\fIPOOL/VOL\fR and or
-\fBiswap=\fR\fItype\fR:\fIPOOL/VOL\fR[:\fIsignature\fR] and or
-\fBiresume=\fR\fItype\fR:\fIPOOL/VOL\fR[:\fIsignature\fR].
+.BR \fIPOOL\fR/\fIVOL\fR
+logical volume provided by either \fBiroot=\fR\fIPOOL\fR/\fIVOL\fR and or
+\fBiswap=\fR\fItype\fR:\fIPOOL\fR/\fIVOL\fR[:\fIsignature\fR] and or
+\fBiresume=\fR\fItype\fR:\fIPOOL\fR/\fIVOL\fR[:\fIsignature\fR].
 .br
 .RB izfs
 is a comma `,' sepratated list of dataset (1st for root, 2nd for swap and 3rd for
 resume); and each group is colon `:' separated list of
-.IR mapping-device
-.IR if, and only if,
+.BR \fImapping\fR-\fIdevice\fR
+.BR if,\ and\ only\ if,
 the physical volumes or devices are
 .B DM-CRYPT
 LUKS crypted. Or else, any
