@@ -71,7 +71,7 @@ install-dir : $(keep_DIRS)
 install-doc : $(dist_EXTRA)
 	$(install_DATA) -D $(PACKAGE).1 $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
 	$(install_DATA) -D $(PACKAGE).8 $(DESTDIR)$(mandir)/man8/$(PACKAGE).8
-install-services: install-squashdir-mount-svc \
+install-services: install-squashdir-svc \
 	install-zram-svc install-tmpdir-svc
 
 $(dist_COMMON): .FORCE
@@ -123,7 +123,7 @@ uninstall-doc:
 	rm -f $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
 	rm -f $(DESTDIR)$(mandir)/man8/$(PACKAGE).8
 	rm -f $(dist_EXTRA:%=$(DESTDIR)$(docdir)/%)
-uninstall-services: uninstall-squashdir-mount-svc \
+uninstall-services: uninstall-squashdir-svc \
 	uninstall-zram-svc uninstall-tmpdir-svc
 uninstall-scripts-%sh:
 	rm -f $(DESTDIR)$(sbindir)/$(PACKAGE).$*sh

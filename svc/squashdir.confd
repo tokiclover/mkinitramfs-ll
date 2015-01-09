@@ -1,5 +1,5 @@
 #
-# $Header: mkinitramfs-ll/svc/squashdir-mount.confd, 2014/12/31 Exp $
+# $Header: mkinitramfs-ll/svc/squashdir.confd, 2015/01/01 Exp $
 #
 
 # Squash directory root, where to put aufs hierchichal tree
