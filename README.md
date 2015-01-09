@@ -1,14 +1,15 @@
 Header: mkinitramfs-ll/README.md,v 0.16.0 2015/01/01 Exp
 
-A lightweight, modular and yet powerfull initramfs generating tool
+> A lightweight, modular and yet powerfull initramfs generating tool
 with RAID (ATA RAID & SOFTWARE RAID), dm-crypt LUKS, LVM(2), ZFS,
 TuxOnIce/SwSusp hibernation, AUFS+SquashFS, ZRAM and bCache support
 
 INTRODUCTION
 -----------
 
-BIG FAT NOTE: SUPPORTED BLOCK DEVICE STACK IS:
-    [RAID]+[LUKS]+[LVM] or [LUKS]+[ZFS]
+**BIG FAT NOTE:**
+
+    **SUPPORTED BLOCK DEVICE STACK: [RAID]+[LUKS]+[LVM] or [LUKS]+[ZFS]**
 
 It is possible to add ZFS on the first stack variant, but it does not make any
 sense and expect horrible performance with such a mix bag. And this variant is
@@ -28,7 +29,7 @@ in early boot up.
 app-crypt/gnupg-1.4.x is mandatory for GnuPG support (a binary along with
 its options.skel file is required.)
 
-And then run `mkinitramfs-ll.$SHELL -a -fter-g14n -y$LINGUAS` to build an initramfs.
+And then run `mkinitramfs-ll.$SHELL -a -f$FONT -y$LINGUAS` to build an initramfs.
 The appended font and keymap will be the default if there is no *ikmap* kernel
 cmdline argument.
 
@@ -48,9 +49,10 @@ See mkinitramfs-ll(8) for more info on the build script options
 COPYING
 -------
 
-BIG FAT WARN: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN "AS IS", SEE COPYING FILE
+**BIG FAT WARN:**
 
-Distributed under the 2-clause/new/simplified BSD License
+    **USE AT YOUR OWN RISK! EVERYTHING IS GIVEN "AS IS" (SEE COPYING FILE)**
+    **Distributed under the 2-clause/new/simplified BSD License**
 
 FILES
 -----
