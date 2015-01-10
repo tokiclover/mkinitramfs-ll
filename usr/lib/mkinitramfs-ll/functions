@@ -2,35 +2,27 @@
 # $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
 # $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.15.1 2014/12/30 12:33:03                   Exp $
+# $Version: 0.16.2 2015/01/01 12:33:03                   Exp $
 #
 
-# @FUNCTION: arg
-# EXTERNAL
 # @USAGE: <var> <var> <char> <int> <opt>
 # @DESCRIPTION: retrieve a value from a kernel cmdline
 arg() {
 	eval ${1}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
 }
 
-# @FUNCTION: info
-# @EXTTERNAL
 # @USAGE: <srting>
 # @DESCRIPTION: print message on stdout
 info() {
 	echo -ne "\033[1;32m * \033[0m$@\n"
 }
 
-# @FUNCTION: error
-# @EXTERNAL
 # @USAGE: <string>
 # @DESCRIPTION: print error message on stdout
 error() {
 	echo -ne "\033[1;31m * \033[0m$@\n" >&2
 }
 
-# @FUNCTION: msg
-# @EXTERNAL
 # @USAGE: [ -e | -i ] <string>
 # @DESCRIPTION: manage message sent to stdout and to splash deamon
 msg() {
@@ -54,8 +46,6 @@ msg() {
 	$SPLD && debug spld_cmd "set message $_msg" && debug spld_cmd "repaint"
 }
 
-# @FUNCTION: debug
-# @EXTERNAL
 # @USAGE: [ -d | -e | -i ] <string>
 # @DESCRIPTION: execute a command and log the command into $LOGFILE
 debug() {
@@ -87,9 +77,7 @@ debug() {
 	return "$_ret"
 }
 
-# @FUNCTION: rsh
-# @EXTERNAL
-# @DESCRIPTON: Rescue SHell
+# @DESCRIPTON: Rescue SHell helper
 rsh() {
 	if $SPLD; then
 		debug openvt -c${CONSOLE:8:1} $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
@@ -100,17 +88,12 @@ rsh() {
 	fi
 }
 
-# @FUNCTION: bck
-# #EXTERNAL
 # @USAGE: <bin>
 # @DESCRIPTION: Binary ChecK
 bck() {
 	debug -d type -p $1 1>/dev/null 2>&1
 }
 
-# @FUNCTION: ack
-# @EXTERNAL
-# @USAGE: [<applets>]
 # @DESCRIPTION: busybox Applets ChecK
 ack() {
 	local _line
@@ -126,9 +109,8 @@ ack() {
 	fi
 }
 
-# @FUNCTION: dohook
-# @EXTERNAL
-# @DESCRIPTION: execute a module or user script passed as arg 1
+# @USAGE: <hook>
+# @DESCRIPTION: Hook/Script execution helper
 dohook() {
 	msg -i "exec: $sh -aex $1..."
 	debug $sh -aex $1
@@ -144,8 +126,6 @@ dohook() {
 	exec 0<$CONSOLE 1>$CONSOLE 2>&1	
 }
 
-# @FUNCTION: _rmmod
-# @EXTERNAL
 # @USAGE: <kernel module(s) | module group>
 # @DESCRIPTION: ReMove kernel MODules from a file liste or...
 _rmmod() {
@@ -158,8 +138,6 @@ _rmmod() {
 	fi
 }
 
-# @FUNCTION: _modprobe
-# @EXTERNAL
 # @USAGE: <kernel module(s) | module group>
 # @DESCRIPTION: insert kernel MODules from a file liste or...
 _modprobe() {
@@ -172,8 +150,6 @@ _modprobe() {
 	fi
 }
 
-# @FUNCTION: _getopt
-# @EXTERNAL
 # @USAGE: <kernel cmdline>
 # @DESCRIPTION: get kernel command line argument
 _getopt() {
@@ -185,33 +161,25 @@ _getopt() {
 	done
 }
 
-# @FUNCTION: spld_cmd
-# @EXTERNAL
 # @USAGE: <splash spld_cmd>
 # @DESCRIPTION: send command or message to splash deamon
 spld_cmd() {
 	echo "$@" >$SPLASH_FIFO
 }
 
-# @FUNCTION: spld_verbose
-# @EXTERNAL
-# @DESCRIPTION: set splash deamon to verbose message
+# @DESCRIPTION: Set splash deamon to verbose message
 spld_verbose() {
 	debug chvt ${CONSOLE:8:1}
 	debug spld_cmd "set mode verbose"
 }
 
-# @FUNCTION: spld_silent
-# @EXTERNAL
-# @DESCRIPTION: set splash deamon to silent, suppresse message
+# @DESCRIPTION: Set splash deamon to silent (helper)
 spld_silent() {
 	debug chvt ${CONSOLE:8:1}
 	debug spld_cmd "set mode silent"
 }
 
-# @FUNCTION: spld_stop
-# @EXTERNAL
-# @DESCRIPTION: stop splash deamon
+# @DESCRIPTION: Stop splash deamon (helper)
 spld_stop() {
 	$SPLD && SPLD=false || return
 	debug spld_cmd "exit"
@@ -219,22 +187,8 @@ spld_stop() {
 	exec 0<$CONSOLE 1>$CONSOLE 2>&1
 }
 
-# @VARIABLE: BOOT_MSG
-# @EXTERNAL
-# @DESCRIPTION: splash boot message
-
-# @VARIABLE: SPLASH_FIFO
-# @EXTERAL
-# @DESCRIPTION: splash fifo file
-
-# @VARIABLE: cachedir
-# @EXTERNAL
-# @DESCRIPTION: splash cache dir
-
-# @FUNCTION: shread
-# @EXTERNAL
 # @USAGE: <var>
-# @DESCRIPTION: read line from stdin and drop to rescue shell if a word match
+# @DESCRIPTION: read (superset) helper (with Rescue Shell support)
 shread() {
 	local _buffer; read _buffer
 	case $_buffer in
@@ -243,8 +197,6 @@ shread() {
 	eval "$1"="$_buffer"
 }
 
-# @FUNCTION: blk
-# @EXTERNAL
 # @USAGE: <block device node | (part of) uuid | (part of) label>
 # @DESCRIPTION: get BLocK device
 blk() {
@@ -267,15 +219,6 @@ blk() {
 	eval ${2:-BLK}=$_blk
 }
 
-# @VARIABLE: LBD
-# @DESCRIPTION: Loop Back Device holder for ldk key mode, to be cleaned
-
-# @VARIABLE: LBK
-# @DESCRIPTION: Loop Back device Key holder for ldk key mode, like above,
-# to be cleaned
-
-# @FUNCTION: ldk
-# @EXTERNAL
 # @USAGE: </path/to/file> plus a mapping indirectly given by <_fn>
 # @DESCRIPTION: decrypt dm-crypt LUKS Device Key file
 ldk() {
@@ -292,12 +235,6 @@ ldk() {
 	debug cryptsetup luksOpen "$_ld" "$_fn" && LBK="$_fn:$LBK"
 }
 
-# @VARIABLE: CLD
-# @DESCRIPTION: an auto seted variable if >=cryptsetup-1.3 manage automaticaly
-# Loop Back Device
-
-# @FUNCTION: stk
-# @EXTERNAL
 # @USAGE: <mode:dev:/path/to/file>
 # @DESCRIPTION: SeT Key [file] mode for decryptiong
 stk() {
@@ -337,8 +274,6 @@ stk() {
 	esac
 }
 
-# @FUNCTION: bkd
-# @EXTERNAL
 # @USAGE: <dev> <key> [<BKD>] [<group>]
 # @DESCRIPTION: get BlocK Device (dm|md-raid, dm-crypt, lvm)
 bkd() {
@@ -366,8 +301,6 @@ bkd() {
 	eval ${_name:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
 }
 
-# @FUNCTION: dmclose
-# @EXTERNAL
 # @USAGE: <mapping>
 # @DESCRIPTION: close dm-crypt mapping (colon separated list)
 dmclose() {
@@ -377,8 +310,6 @@ dmclose() {
 	done
 }
 
-# @FUNCTION: dmcrypt
-# @EXTERNAL
 # @USAGE: <dev> <var>
 # @DESCRIPTION: get DM-Crypt LUKS block device or detached header
 dmcrypt() {
@@ -393,8 +324,6 @@ dmcrypt() {
 	eval ${2:-DMC}=$_ldh
 }
 
-# @FUNCTIOON: dmopen
-# @EXTERNAL
 # @USAGE: <map-dev+header>
 # @DESCRIPTION: open dm-crypt LUKS block device
 dmopen() {
@@ -440,8 +369,6 @@ dmopen() {
 	debug -d test -b $_ctx && eval ${_name:-CTX}=$_ctx
 }
 
-# @FUNCTION: lvopen
-# @EXTERNAL
 # @USAGE: <vg-lv> [<map-crypted_pv>]
 # @DESCRIPTION: open LVM Logical Volume
 lvopen() {
@@ -474,8 +401,6 @@ lvopen() {
 	fi
 }
 
-# @FUNCTION: mdopen
-# @EXTERNAL
 # @USAGE: <mdn-opt>
 # @DESCRIPTION: open md-raid block device
 mdopen() {
@@ -519,10 +444,7 @@ mdopen() {
 	eval ${2:-MD}=$_dev
 }
 
-# @FUNCTION: squashd
-# @EXTERNAL
-# @USAGE: indirectly given by isquashd cmdline arg and/or SQUASHD, SQUASHDIR variables
-# @DESCRIPTION: mount squashed, AUFS+squashfs, directories
+# @DESCRIPTION: (AUFS+SquashFS) squashdir helper
 squashd() {
 	local _squashdir="${isquashd%%:*}" _squashd
 :	${_squashdir:=aufs}
@@ -564,10 +486,7 @@ squashd() {
 	done
 }
 
-# @FUNCTION: fmount
-# @EXTERNAL
-# @UAGE: </usr:/var:...>
-# @DESCRIPTION: mount /usr:... using embeded /etc/fstab before switching root
+# @DESCRIPTION: Mount helper (require an embeded /etc/fstab)
 fmount() {
 	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
 	[ -f $NEWROOT/etc/fstab ] || die "fmount: no /etc/fstab file found"

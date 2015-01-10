@@ -1,69 +1,38 @@
 #!/bin/sh
 #
 # $Header: mkinitramfs-ll/init                           Exp $
-# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.15.1 2014/12/30 12:33:03                   Exp $
+# $Version: 0.16.2 2015/01/01 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
-# NEED SOME HELP? WHERE'S THE README FILE? YOU ASK? WHO KNOWS.
 #
 
-# @VARIABLE: ECK
-# @DESCRIPTION: Environment ChecK, check binaries/busybox applets
+# Enable ChecKing binaries & busybox applets
 :   ${ECK=true}
-
-# @VAIABLE: init
-# @DESCRIPTION: real init
+# Set real (path to) init
 :   ${init=/sbin/init}
-
-# @VARIABLE: CONFDIR
-# @DESCRIPTION: path to default mkinitramfs-ll configuration dir
+# Set configuration directory path
 :   ${CONFDIR=/etc/mkinitramfs-ll}
-
-# @VARIABLE: LIBDIR
-# @DESCRIPTION: path to default mkinitramfs-ll library dir
+# Set library directory path
 :   ${LIBDIR=/lib/mkinitramfs-ll}
-
-# @VARIABLE: sh
-# @DESCRIPTION: shell for scripts and user scripts execution and rescue shell
+# Set SHell to use
 :   ${sh=/bin/sh}
-
-# @VARIABLE: LOGFILE
-# @DESCRIPTION: log file to log execution commands for debugging
+# Set log file to use (for debugging)
 :   ${LOGFILE=$0.log}
-
-# @VARIABLE: RSH
-# @DESCRIPTION: Rescue SHell level to be dropped into, see LVL
-
-# @VARIABLE: LVL
-# @DESCRIPTION: auto setted variable, lvl(), to hold the running shell LeVeL
-
-# @VARIABLE: RIL
-# @DESCRIPTION: Real Init run-Level to be passed to real init
-
-# @VARIABLE: MNTDIR
-# @DESCRIPTION: mount point for removable token or device
+# Set mount point to use for removable token or device
 :   ${MNTDIR=/mnt/tok}
-
-# @VARIABLE: NEWROOT
-# @DESCRIPTION: new root directory to switch root
+# Set New root directory to switch root
 :   ${NEWROOT=/newroot}
-
-# @VARIABLE: SPLD
-# @DESCRIPTION: hold SPLash Daemon running state
+# Set SPLash Daemon running state
 :   ${SPLD=false}
 
 export CONFDIR LIBDIR LOGFILE MNTDIR NEWROOT SPLD init sh
 export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin
 export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
 
-source $LIBDIR/functions || $sh -a
-
-# @FUNCTION: die
-# @INTERNAL
+# @DESCRIPTION: Helper to handle fatal errors
 # @USAGE: <msg>
-# @DESCRIPTION: drop into a rescue shell after a command failure
 die() {
 	local _ret=$?
 	[ -n "$@" ] && msg -e "[$_ret]: $@"
@@ -72,10 +41,10 @@ die() {
 	$SPLD && spld_stop
 	debug rsh || debug $sh -aim
 }
+source $LIBDIR/functions || die
 
-# @FUNCTION: lvl
-# @INTERNAL
-# @DESCRIPTION: make LeVeL and drop to rescue shell if $LVL = $RSH
+# @DESCRIPTION: Shell Run Level helper
+# @USAGE: <LEVEL>
 lvl() {
 	msg -i ">>> Switching to init shell run level: $1"
 	export LVL=$1
@@ -88,13 +57,7 @@ lvl() {
 	return 0
 }
 
-# @VARIABLE: SPLD
-# @DEFAULT_SET
-# @DESCRIPTION: splash deamon running variable
-
-# @FUNCTION: spld
-# @INTERNAL
-# @DESCRIPTION: run splash deamon
+# @DESCRIPTION: Splash daemon helper
 spld() {
 	$ECK && for bin in fbcondecor_helper splash_util; do 
 		debug -d bck $bin
@@ -128,11 +91,8 @@ spld() {
 	debug spld_cmd "set autoverbose 0"
 }
 
-# @FUNCTION: resume
-# @INTERNAL
+# @DESCRIPTION: Resume helper (support SwSusp/TuxOnIce)
 # @USAGE: <[type:]dev[:signature]>
-# @DESCRIPTON: resume after a hibernation, TuxOnIce may work,
-# the intrnal kernal implementation should be fixed/finished before use
 resume() {
 	local _asw _dev=$1 _img_sz _hpr
 	msg -i "Resuming from hibernation..."
@@ -219,6 +179,7 @@ done < $CONFDIR/env
 
 [ -n "$DEBUG" ]  && set -${DEBUG/e/}
 [ -n "$DMESG" ]  && debug dmesg -n $DMESG
+unset DEBUG DMESG
 
 debug -d mount -t sysfs sysfs /sys
 debug -d mount -t tmpfs -o mode=755 tmpfs /run
@@ -272,18 +233,14 @@ if [ -n "$ikmap" ]; then
 fi
 [ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
 [ -z "$kmap" ] && [ -f "$CONFDIR/kmap" ] && kmap=$(cat $CONFDIR/kmap)
-
 FONTDIR=/usr/share/consolefonts
 KMAPDIR=/usr/share/keymaps
-
 for file in $FONTDIR/$font*; do
 	[ -f "$file" ] && debug loadfont < $file && break
 done
-
 for file in $KMAPDIR/$kmap*; do
 	[ -f "$file" ] && debug loadkmap < $file && break
 done
-
 unset FONTDIR KMAPDIR file font kmap
 
 lvl 1
@@ -297,38 +254,27 @@ while read _line; do
 done </etc/msg
 
 # -*- Hooks -*-
-
 lvl 2
 
 [ -n "$ibcache" ] && HOOKS="bcache $HOOKS"
 [ -n "$izfs" ]  && HOOKS="zfs  $HOOKS"
 [ -n "$izram" ] && HOOKS="zram $HOOKS"
 export HOOKS="$(echo $HOOKS | sed -e 's/:/ /g')"
-
 for hook in $HOOKS; do
 	if [ -e "$LIBDIR/$hook" ]; then
-		debug dohook "$LIBDIR/$hook" ||
-		error "hook: $hook failed to excecute hook"
+		debug dohook "$LIBDIR/$hook"
 	else
 		error "hook: $hook not found"
 	fi
 done
 
-# -*- Swap -*-
-
-# @VARIABLE: SWAP
-# @DESCRIPTION: this variable should be set if swap is available
-
+# -*- Swap/Resume -*-
+# SWAP should be set if available
 if [ -n "$iswap" ]; then
 	lvl 2s
 	[ -z "$SWAP" ] && debug -d bkd "$iswap" "SWAP" "2" "$ikswap"
 fi
-
-# -*- Resume -*-
-
-# @VARIABLE: RESU
-# @DESCRIPTION: if resume swap is avalable, this variable should be set
-
+# RESU should be set if available
 if [ -n "$iresume" ]; then
 	if [ -z "$RESU" ] && [ "$iresume" != "swap" ]; then
 		debug -d bkd "$iresume" "RESU" "3" "$ikresume"
@@ -338,12 +284,8 @@ if [ -n "$iresume" ]; then
 fi
 
 # -*- Root -*-
-
 lvl 3
-
-# @VARIABLE: ROOT
-# @DESCRIPTION: if rootfs is mounted, this variable should be set
-
+# ROOT should be set if available
 dorootfs() {
 	local FS CHK ROOT
 	eval set -- $(echo "$iroot" | sed -e 's/:/ /g')
@@ -370,11 +312,9 @@ dorootfs() {
 		die "Failed to mount rootfs"
 }
 [ -z "$ROOT" ] && dorootfs
-
 [ -n "$isquashd" ] && lvl 3s && debug -d squashd
 
 # -*- Clean up and switch -*-
-
 lvl 4
 
 [ -n "$LBK" ] &&
@@ -387,7 +327,6 @@ for _d in $(echo $LBD | sed 's/:/ /g'); do
 done
 
 [ "$KEYMODE" = "gpg" ] && debug _rmmod gpg
-
 if grep -q $MNTDIR /proc/mounts; then
 	debug -d umount -l $MNTDIR
 	debug _rmmod remdev
@@ -396,11 +335,9 @@ fi
 [ -n "$imount" ] && lvl 4m && debug fmount
 
 lvl 4u
-
 echo >/proc/sys/kernel/hotplug
 msg -i "Switching / ..."
 $SPLD && debug spld_stop
-sleep 1
 
 export LOGFILE=/$0.log
 for _dir in /run /dev/pts /sys /dev /proc; do
@@ -408,7 +345,6 @@ for _dir in /run /dev/pts /sys /dev /proc; do
 done
 
 lvl 4s
-
 debug -d exec switch_root $NEWROOT ${init:-/sbin/init} $RIL
 
 #
