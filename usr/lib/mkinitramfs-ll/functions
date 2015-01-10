@@ -1,6 +1,6 @@
 #
 # $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
-# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
 # $Version: 0.16.2 2015/01/01 12:33:03                   Exp $
 #
@@ -37,12 +37,10 @@ msg() {
 			     break;;
 		esac
 	done
-
 	case $_opt in
 		(-e) error "${_msg}";;
 		(-i) info  "${_msg}";;
 	esac
-
 	$SPLD && debug spld_cmd "set message $_msg" && debug spld_cmd "repaint"
 }
 
@@ -60,12 +58,10 @@ debug() {
 			     break;;
 		esac
 	done
-
 	eval $_cmd
 	_ret=$?
-
 	echo "[$_ret]: $_cmd" >>$LOGFILE
-	
+
 	if [ ! "$_ret" ]; then
 		case $_opt in
 			(-d) die    "${_msg:-cmd: $_cmd}";;
@@ -73,7 +69,6 @@ debug() {
 			(-i) msg -i "${_msg:-cmd: $_cmd}";;
 		esac
 	fi
-
 	return "$_ret"
 }
 
@@ -121,7 +116,6 @@ dohook() {
 		done </run/env
 		rm -f /run/env
 	fi
-
 	[ -f /run/${1##*/}.pid ] && rm -f /run/${1##*/}.pid && debug die
 	exec 0<$CONSOLE 1>$CONSOLE 2>&1	
 }
@@ -191,6 +185,7 @@ spld_stop() {
 # @DESCRIPTION: read (superset) helper (with Rescue Shell support)
 shread() {
 	local _buffer; read _buffer
+
 	case $_buffer in
 		([Rr][Ss][Hh]|[Ss][Hh]|[Ss][Hh][Ee][Ll][Ll]|[Rr][Ee][Ss][Cc][Uu][Ee]) die;;
 	esac
@@ -215,7 +210,6 @@ blk() {
 			[ -n "$_blk" ] && [ -b "$_blk" ] && break
 		done
 	fi
-
 	eval ${2:-BLK}=$_blk
 }
 
@@ -231,7 +225,6 @@ ldk() {
 	else
 		local _ld="$1"
 	fi
-
 	debug cryptsetup luksOpen "$_ld" "$_fn" && LBK="$_fn:$LBK"
 }
 
@@ -252,7 +245,6 @@ stk() {
 	if [ "$_km" != "pwd" ]; then
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
-
 		[ -f $CONFDIR/remdev ] && debug _modprobe remdev
 
 		if ! grep -q $MNTDIR /proc/mounts; then
@@ -291,7 +283,6 @@ bkd() {
 
 	[ -n "$iraid" ] && debug arg "_raid" "$iraid" "," "$_grp" "$_cut"
 	[ -n "$ilvm"  ] && debug arg "_lvm" "$ilvm" "," "$_grp" "$_cut"
-	
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
 	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "_bkd"
 
@@ -305,6 +296,7 @@ bkd() {
 # @DESCRIPTION: close dm-crypt mapping (colon separated list)
 dmclose() {
 	local IFS="${IFS}:" 
+
 	for _p in $@; do 
 		debug cryptsetup close ${_p%-*}
 	done
@@ -314,13 +306,13 @@ dmclose() {
 # @DESCRIPTION: get DM-Crypt LUKS block device or detached header
 dmcrypt() {
 	local _asw _ldh=$1
+
 	while ! debug cryptsetup isLuks "$_ldh"; do
 		msg -i "Type in a valid cyphertext device e.g. \
 			[ sda5 | UUID=<uuid> | LABEL=<label> ], or avalid detached header"
 		shread _asw
 		debug blk "${_asw:-$1}" "_ldh"
 	done
-
 	eval ${2:-DMC}=$_ldh
 }
 
@@ -351,7 +343,6 @@ dmopen() {
 	else
 		debug dmcrypt "$_dev" "_dev"
 	fi
-
 	local _arg="open $_dev $_map $_header"
 
 	if [ "$KEYMODE" = "gpg" ]; then 
@@ -364,7 +355,6 @@ dmopen() {
 	elif [ "$KEYMODE" = "ldk" ] || [ "$KEYMODE" = "reg" ]; then
 		debug cryptsetup $_arg -d "$KEYFILE"
 	fi
-
 	[ -b "$_ctx" ] || debug -d cryptsetup $_arg
 	debug -d test -b $_ctx && eval ${_name:-CTX}=$_ctx
 }
@@ -391,7 +381,6 @@ lvopen() {
 			die "no logical volume found"
 		fi
 	fi
-
 	if [ -b "/dev/mapper/$1" ]; then
 		eval ${3:-LV}=/dev/mapper/$1
 	elif [ -b "/dev/$_lv" ]; then
@@ -416,7 +405,6 @@ mdopen() {
 		(asr*|ddf*|hpt*|isw*|jmicron*|lsi*|nvidia*|pdc*|sil*|via*|dos*)
 		                     _set="$_opt"        ;;
 	esac
-
 	if [ -n "$_uuid" ] || [ -n "$_devices" ]; then
 		$ECK && debug -d bck mdadm
 		debug _modprobe raid
@@ -439,7 +427,6 @@ mdopen() {
 			debug dmraid -ay -i -I $_s
 		done
 	fi
-
 	debug -d test -b $_dev
 	eval ${2:-MD}=$_dev
 }
@@ -501,7 +488,6 @@ fmount() {
 			msg -e "fmount: $_x not found in /etc/fstab"
 			continue
 		fi
-
 		blk "$_dev" "_dev"
 		debug -d test -b $_dev
 		[ -d $NEWROOT/$_mpt ] || mkdir -p $NEWROOT/$_mpt
