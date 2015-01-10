@@ -1,5 +1,12 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.16.2:
+
+
+0.16.1:
+
+* renamed squashdir-mount to squashdir for clarity; & README.md update;
+
 0.16.0:
 
 * added firmware regex support to ease firmware copy;
