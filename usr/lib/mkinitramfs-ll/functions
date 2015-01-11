@@ -323,7 +323,7 @@ dmcrypt() {
 		msg -i "Type in a valid cyphertext device e.g. \
 			[ sda5 | UUID=<uuid> | LABEL=<label> ], or avalid detached header"
 		shread _asw
-		debug blk "${_asw:-$1}" "_ldh"
+		[ -e "${_asw:-$1}" ] || debug blk "${_asw:-$1}" "_ldh"
 	done
 	eval ${2:-DMC}=$_ldh
 }
@@ -410,7 +410,7 @@ mdopen() {
 	[ -b "$_dev" ] && eval ${2:-MD}=$_dev && return
 
 	case "$_opt" in
-		([Uu][Uu][Ii][Dd])  _uuid="$_opt"        ;;
+		([Uu][Uu][Ii][Dd]*) _uuid="$_opt"        ;;
 		(/dev/sd*[1-9])  _devices="$_opt"        ;;
 		(sd*[1-9])       _devices="/dev/$_opt"   ;;
 		(*-*[1-9])       _devices="/dev/sd$_opt" ;;
