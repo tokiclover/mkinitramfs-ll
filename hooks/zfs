@@ -35,9 +35,11 @@ dozfs() {
 	local _pool="${_vol%/*}"
 
 	if ! zpool list -H | grep -q "$_pool"; then
-		yesno "$_vdev" && die "zfs: No $_pool pool found"
+		if yesno "$_vdev"; then
+			error "zfs: No $_pool pool found"
+			return
+		fi
 		debug stk "$_key"
-
 		[ "$KEYMODE" != "none" ] &&
 		for _dev in $(echo "$_vdev" | sed 's/:/ /g'); do
 			debug -d dmopen "$_dev"
