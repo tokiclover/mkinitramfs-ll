@@ -1,8 +1,8 @@
 #
 # $Header: mkinitramfs-ll/hooks/zfs                      Exp $
-# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.14.4 2014/10/10 12:33:03                   Exp $
+# $Version: 0.16.2 2015/01/10 12:33:03                   Exp $
 #
 
 set +e +x
@@ -16,11 +16,10 @@ source $LIBDIR/helpers   || return
 # @USAGE: <env> <group> <device> <key> <zpool-options>
 dozfs() {
 	echo $$ >/run/${0##*/}.pid
-
+	local bin
 	$ECK && for bin in zfs zpool; do 
 		debug -d bck $bin
 	done
-
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"
 	local _env="$1" _grp="$2" _vol="$3" _key="$4" _opt="$5"
 
@@ -32,23 +31,19 @@ dozfs() {
 		eval set -- $(echo "$_vol" | sed -e 's/:/ /g')
 		_vol="$2" _sign="$3" _type="$1"
 	fi
-
 	debug -d _modprobe zfs
 	local _pool="${_vol%/*}"
 
 	if ! zpool list -H | grep -q "$_pool"; then
-		case "$_vdev" in
-			(1|[Ee][Nn][Aa][Bb][Le]|[Oo][Nn][Tt][Rr][Uu][Ee]|[Yy][Ee][Ss])
-				die "zfs: No $_pool pool found";;
-		esac
-
+		yesno "$_vdev" && die "zfs: No $_pool pool found"
 		debug stk "$_key"
+
+		[ "$KEYMODE" != "none" ] &&
 		for _dev in $(echo "$_vdev" | sed 's/:/ /g'); do
 			debug -d dmopen "$_dev"
 		done
 		debug -d zpool import -f $_opt -R $NEWROOT "$_pool"
 	fi
-	
 	if [ "$_grp" = 1 ]; then
 		zfs mount | grep -q "$_vol" || debug -d zfs mount -vO -a
 	else
