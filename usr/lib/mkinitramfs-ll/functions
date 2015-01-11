@@ -379,8 +379,6 @@ lvopen() {
 	local _lv="${1/-//}"
 
 	if ! debug lvm lvchange -ay --noudevsync --sysinit "$_lv"; then
-		yesno "$2" && die "lvopen: No $_lv VG/LV found"
-
 		if [ -n "$2" ] && [ "$KEYMODE" != "none" ]; then
 			local _pv="$2" IFS="${IFS}:"
 			[ -f "$MNTDIR/$_pv" ] && _pv="$(cat $MNTDIR/$_pv)"
