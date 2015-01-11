@@ -5,7 +5,7 @@
 .\" stated in the COPYING file that comes with the source files
 .\"
 .pc
-.TH MKINITRAMFS-LL 8 "2015-01-01" "0.15.1" "Build Script Page"
+.TH MKINITRAMFS-LL 8 "2015-01-10" "0.16.2" "Build Script Page"
 .SH NAME
 mkinitramfs-ll \- tool for building initramfs
 .SH DESCRIPTION
@@ -211,6 +211,10 @@ Any hook or script should be in `USRDIR/../hooks', so `-H|--hook' switch would
 rightly add any appended hook (if any.) If `opts[-b$SCRIPT]' & `opts[-m$SCRIPT]'
 are defined in the configuration file, the binaries, kernel module & group would
 be added.
+.TP
+.B BTRFS, BCACHE, ZFS & ZRAM SUPPORT
+To enable support for any of either bcache, btrfs, zfs & zram,
+append `-H|--hook' with a colon separated list of hooks (`-H:$HOOKS'.)
 .SH EXAMPLES
 .TP
 .BI mkinitramfs-ll\ \-\-all\ \-\-font=ter-g12n\ \-\-keymap=fr\ \-\-firmware=nouveau:iwlwifi-5000\ \-\-kv=3.14.26-git
