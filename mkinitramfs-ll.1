@@ -173,6 +173,17 @@ Set up squash-dir (AUFS+SquashFS) argument. See
 .B SQUASHED DIRECTORY
 for more info.
 .TP
+.RB ibtrfs=[\fImap-dev\fR][,\fImap-dev\fR][,\fImap-dev\fR]
+.br
+Enable
+.B BTRFS
+by setting a comma separated list of
+.I mapping-device
+to three groups (1st for root, ...
+like RAID and LVM[2] argument.)
+Like LVM[2], the list is required for crypted physical volume only,
+`\fIYes\fR' will suffice otherwise for plain device.
+.TP
 .RB izfs=[\fImap-dev\fR][,\fImap-dev\fR][,\fImap-dev\fR]
 .br
 Enable
@@ -182,7 +193,7 @@ by setting a comma separated list of
 to three groups (1st for root, 2nd for swap and 3rd for resume
 like RAID and LVM[2] argument.)
 Like LVM[2], the list is required for crypted physical volume only,
-a single character is enough otherwise for plain device.
+`\fIYes\fR' will suffice otherwise for plain device.
 .br
 Of course, an appropriate
 .BR iroot
@@ -367,6 +378,25 @@ Third optional
 .IR direcory
 can be used to append extra squashed directories e.g `isquashd=:+l:var/portage'.
 .br
+.TP
+.SS BTRFS
+.br
+.B BTRFS
+requires
+.RB ibtrfs
+kernel command line argument and
+.BR \fBLABEL=\fR\fIlabel\fR|\fBUUID=\fR\fIuuid\fR
+BTRFS filesystem provided (in another argument) like
+\fBiroot=LABEL=btrootfs\fR[::\fIYes\fR] for root.
+.br
+.RB ibtrfs
+is a comma `,' sepratated list of volume (1st for root, ...);
+And each group is colon `:' separated list of
+.BR \fImapping\fR-\fIdevice\fR
+.BR if,\ and\ only\ if,
+the physical devices are
+.B DM-CRYPT
+LUKS crypted. Or else, `\fIYes\fR' would be sufficient for plain devices.
 .TP
 .SS ZFS
 .br
