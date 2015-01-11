@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.2 2015/01/01 12:33:03                   Exp $
+# $Version: 0.16.2 2015/01/10 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 #
@@ -52,7 +52,6 @@ lvl() {
 	for _f in $(ls $LIBDIR/${1}-* 2>/dev/null); do
 		dohook "$_f"
 	done
-
 	[ "$LVL" = "$RSH" ] && debug die
 	return 0
 }
@@ -62,12 +61,10 @@ spld() {
 	$ECK && for bin in fbcondecor_helper splash_util; do 
 		debug -d bck $bin
 	done
-	
 	local IFS="${IFS}," _opt _opts cachedir event mode theme util
 	
 	event="$(grep -Hsi keyboard /sys/class/input/input*/name | \
 		sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"
-	
 :	${cachedir:=/run/splash/cache}
 :	${util=$(which splash_util)}
 :	${BOOT_MSG:="Booting the system (\$progress%)... Press F2 for verbose mode."}
@@ -163,11 +160,10 @@ DEBUG="${idebug%:*}"
 DMESG="${idebug#*:}"
 [ "$DMESG" = "$DEBUG" ] && DMESG=
 
-case "$ienv" in
-	(0|[Dd][Ii][Ss][Aa][Bb][Ll][Ee]|[Oo][Ff][Ff]|[Ff][Aa][Ll][Ss][Ee]|[Nn][Oo])
-		ENV=false;;
+yesno "${ienv:-YES}"
+case $? in
+	(1) ENV=false;;
 esac
-
 ${ENV:-true} && [ -f $CONFDIR/env ] &&
 while read _line; do
 	case "${_line%%=*}" in
@@ -246,7 +242,6 @@ unset FONTDIR KMAPDIR file font kmap
 lvl 1
 
 # -*- Logo and or boot message -*-
-
 [ -f /etc/issue.logo ] && cat /etc/issue.logo
 debug test -f /etc/msg && clear &&
 while read _line; do
@@ -256,9 +251,11 @@ done </etc/msg
 # -*- Hooks -*-
 lvl 2
 
-[ -n "$ibcache" ] && HOOKS="bcache $HOOKS"
-[ -n "$izfs" ]  && HOOKS="zfs  $HOOKS"
-[ -n "$izram" ] && HOOKS="zram $HOOKS"
+for hook in bcache \
+	zfs zram; do
+	eval test -n \"\$i$hook\"
+	[ $? = 0 ] && HOOKS="$hook $HOOKS"
+done
 export HOOKS="$(echo $HOOKS | sed -e 's/:/ /g')"
 for hook in $HOOKS; do
 	if [ -e "$LIBDIR/$hook" ]; then
@@ -290,19 +287,13 @@ dorootfs() {
 	local FS CHK ROOT
 	eval set -- $(echo "$iroot" | sed -e 's/:/ /g')
 	FS="$2" CHK="$3" ROOT="$1"
-
 	debug -d bkd "$iroot" "ROOT" "1" "$ikroot"
 
 	lvl 3f
 	if [ -n "$CHK" ]; then
-		case $CHK in
-			([NnFfOo]*|0) CHK=-e;;
-			([CcYyTt]*|1) CHK=-d;;
-			(*)           CHK=  ;;
-		esac
+		yesno $CHK && CHK=-d || CHK=-e
 		debug $CHK fsck ${FS:+-t$FS} $ROOT
 	fi
-
 	lvl 3m
 	if [ -n "$mopt" ]; then
 		imopt="${imopt:+$imopt,}$mopt"
