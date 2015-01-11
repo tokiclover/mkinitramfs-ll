@@ -14,7 +14,7 @@ INTRODUCTION
 It is possible to add ZFS on the first stack variant, but it does not make any
 sense and expect horrible performance with such a mix bag. And this variant is
 not implemented although it could be done easily.
-(The same goes for BTRFS support.)
+(The same goes for BTRFS support (require >=btrfs-progs-3.12))
 
 The order of LUKS/LVM can be changed, that is LUKS+LVM or LVM+LUKS is possible.
 
