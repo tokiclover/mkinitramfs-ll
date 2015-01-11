@@ -22,39 +22,38 @@ dobtrfs() {
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"
 	local _env="$1" _grp="$2" _key="$4" _opt _vol="${3%%:*}"
 	arg "_CHK" "$3" "3" ":" "-s"
-	[ $_grp -ge 2 ] && _opt=-s
-
+	stk "$_key"
+	[ $_grp -ge 2  ] && _opt=-s
 	[ -n "$ibtrfs" ] && arg "_DEV" "$ibtrfs" "," "$_grp" "$_opt"
-	[ -n "$_DEV" ] || return
+	[ -n "$_DEV"   ] || return
 
 	if ! btrfs filesystem show 2>/dev/null | grep ${_vol#*=}; then
 		if yesno "$_dev"; then
 			error "btrfs: No $_vol filesystem found"
 			[ -n "$_CHK" ] || return
 		fi
-		stk "$_key"
 		[ "$KEYMODE" != "none" ] &&
 		for _dev in $(echo "$_DEV" | sed 's/:/ /g'); do
 			debug -d dmopen "$_dev" "_DEV"
 			DEV="$_DEV $DEV"
 		done
-		[ "$KEYMODE" = "none" ] &&
-		for _dev in $(echo "$_DEV" | sed 's/:/ /g'); do
-			[ "${_dev/dev}" = "$_dev" ] && DEV="/dev/$_dev $DEV" ||
-				DEV="$_dev $DEV"
-		done
-		debug -d btrfs device scan $DEV
-
-		if [ -n "$_CHK" ]; then
-			yesno "$_CHK" && _CHK=-d || _CHK=-e
-			for _dev in $DEV; do
-				debug $_CHK btrfs check --repair $_dev
-			done
-		fi
-		debug -d mount -t btrfs ${imopt:+-o} $imopt $_vol $NEWROOT
 	fi
-	rm -f /run/${0##*/}.pid
+	[ "$KEYMODE" = "none" ] &&
+	for _dev in $(echo "$_DEV" | sed 's/:/ /g'); do
+		[ "${_dev/dev}" = "$_dev" ] && DEV="/dev/$_dev $DEV" ||
+			DEV="$_dev $DEV"
+	done
+	debug -d btrfs device scan $DEV
+
+	if [ -n "$_CHK" ]; then
+		yesno "$_CHK" && _CHK=-d || _CHK=-e
+		for _dev in $DEV; do
+			debug $_CHK btrfs check --repair $_dev
+		done
+	fi
+	debug -d mount -t btrfs ${imopt:+-o} $imopt $_vol $NEWROOT
 	echo "$_env=$_vol" >>/run/env
+	rm -f /run/${0##*/}.pid
 }
 
 [ -n "$iroot" ]   && debug dobtrfs "ROOT" "1" "$iroot"   "$ikroot"
