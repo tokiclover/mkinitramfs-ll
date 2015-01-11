@@ -24,6 +24,7 @@ dist_EXTRA  = \
 dist_HOOKS  = \
 	bcache \
 	undo-bcache \
+	btrfs \
 	zfs \
 	mkswap-zfs\
 	zram
