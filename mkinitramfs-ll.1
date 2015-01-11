@@ -145,7 +145,7 @@ Optional keymap and font to load, if not set,
 default will be picked if present e.g.
 .RB ikmap=fr-latin1-x86_64:ter-g12n
 .TP
-.RB ilvm=[\fImap-dev\fR][,\fImap-dev\fR][,\fImap-dev\fR]
+.RB ilvm=[\fImap-dev\fR][,\fImap-dev\fR][,\fIYes\fR]
 .br
 LVM[2] optional argument: first group for root, second group for swap and third
 group for resume. Hyphen can be used to append a particular group. And a group
@@ -173,19 +173,20 @@ Set up squash-dir (AUFS+SquashFS) argument. See
 .B SQUASHED DIRECTORY
 for more info.
 .TP
-.RB ibtrfs=[\fImap-dev\fR][,\fImap-dev\fR][,\fImap-dev\fR]
+.RB ibtrfs=[\fImap-dev\fR][,\fIdev\fR[:\fIdev\fR]]
 .br
 Enable
 .B BTRFS
 by setting a comma separated list of
 .I mapping-device
 to three groups (1st for root, ...
-like RAID and LVM[2] argument.)
-A device list is also required plain devices (without `\fImapping\fR-' prefix.) See
+like RAID and LVM[2] argument.) Like LVM[2], the `\fImapping-device\fR' is required
+only for crypted devices; Or else, a device list (without `\fImapping\fR-' prefix)
+will suffice otherwise. See
 .B BTRFS
 for more info.
 .TP
-.RB izfs=[\fImap-dev\fR][,\fImap-dev\fR][,\fImap-dev\fR]
+.RB izfs=[\fImap-dev\fR][,\fImap-dev\fR][,\fIYes\fR]
 .br
 Enable
 .B ZFS
@@ -407,7 +408,7 @@ requires
 .RB izfs
 kernel command line argument and
 .BR \fIPOOL\fR/\fIVOL\fR
-logical volume provided by either \fBiroot=\fR\fIPOOL\fR/\fIVOL\fR and or
+volume provided by either \fBiroot=\fR\fIPOOL\fR/\fIVOL\fR and or
 \fBiswap=\fR\fItype\fR:\fIPOOL\fR/\fIVOL\fR[:\fIsignature\fR] and or
 \fBiresume=\fR\fItype\fR:\fIPOOL\fR/\fIVOL\fR[:\fIsignature\fR].
 .br
