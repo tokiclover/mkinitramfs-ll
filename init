@@ -252,6 +252,7 @@ done </etc/msg
 lvl 2
 
 for hook in bcache \
+	btrfs \
 	zfs zram; do
 	eval test -n \"\$i$hook\"
 	[ $? = 0 ] && HOOKS="$hook $HOOKS"
