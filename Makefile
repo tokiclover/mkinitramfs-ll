@@ -23,6 +23,7 @@ dist_EXTRA  = \
 	ChangeLog
 dist_HOOKS  = \
 	bcache \
+	undo-bcache \
 	zfs \
 	mkswap-zfs\
 	zram
