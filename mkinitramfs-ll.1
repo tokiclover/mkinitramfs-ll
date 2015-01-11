@@ -181,9 +181,7 @@ by setting a comma separated list of
 .I mapping-device
 to three groups (1st for root, ...
 like RAID and LVM[2] argument.)
-Like LVM[2], the list is required for crypted physical volume only,
-`\fIYes\fR' will suffice otherwise for plain device.
-A device list is also required if FileSystem check is enabled. See
+A device list is also required plain devices (without `\fImapping\fR-' prefix.) See
 .B BTRFS
 for more info.
 .TP
@@ -399,7 +397,8 @@ And each group is colon `:' separated list of
 .BR if,\ and\ only\ if,
 the physical devices are
 .B DM-CRYPT
-LUKS crypted. Or else, `\fIYes\fR' would be sufficient for plain devices.
+LUKS crypted (like LVM[2] & ZFS.) Or else, a device list (without
+`\fImapping\fR-' prefix ) will suffice for plain devices.
 .TP
 .SS ZFS
 .br
