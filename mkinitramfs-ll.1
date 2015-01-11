@@ -447,17 +447,17 @@ See
 .B SHELL RUN LEVELS
 for more info on level values.
 .SH EXAMPLES
-Unencrypted Root LV
-  iroot=vgr-lvr ilvm=y ikroot=none ikmap=fr-latin1-i686.bin:ter-g12n
+Unencrypted Root LVM[2] (keymap & font)
+  iroot=vgr-lvr ilvm=Yes ikmap=fr-latin1-i686:ter-g12n
 
 Root--regular passphrase--& fbsplash
   iroot=root-sda3 ikroot=pwd splash=verbose,theme:emergence,tty:1 video=1280x800-24
 
-Root--regular key-file--on usb device
-  iroot=root-sda3 ikroot=reg:sdb1:/key.reg
+Root(ZFS/LUKS)--regular key-file--on usb device
+  iroot=POOL/ROOT izfs=vda-sda ikroot=reg:sdb1:/key.reg
 
-Root--gpg encrypted key-file on usb drive
-  iroot=sda3 ikroot=gpg:sdb1:/key.gpg
+Root(BTRFS/LUKS)--gpg encrypted key-file on usb drive
+  iroot=LABEL=btrootfs::Yes ibtrfs=pva-sda ikroot=gpg:sdb1:/key.gpg
 
 Swap and root--ldk crypted--key-files
   iroot=root-sda3 iswap=swap[|file]:data-sda2[:signature]
@@ -466,11 +466,11 @@ Swap and root--ldk crypted--key-files
 Regular swap & TuxOnIce resume on a different volume
   iswap=swap-sda2 iresume=toi-sda3:0x4400 ikswap=pwd ikresume=pwd
 
-Swap file--resuming from hibernation--ldk crypted key-file
-  iswap=file:swap-sda3:0x4400 iresume=toi ikswap=ldk:sdb1:/key.ldk
+Root(LUKS/SOFTWARE RAID)--ldk crypted--key-file
+  iroot=root-md2 iraid=md2+UUID=uuid ikroot=ldk:sdb1:/key.ldk
 
 Crypted root,swap LV--ldk crypted keyfile--& rootfs mount options
-  iroot=vgr-lvr:xfs:chk iswap=file:vgs-lvs:0x4400
+  iroot=vgr-lvr:xfs:1 iswap=file:vgs-lvs:0x4400
   imopt=logdev=/dev/mapper/vgs-lvl,inode64,barrier
   ilvm=pva1-UUID=uuida:pvb1-UUID=<uuidb>,pvc1-UID=<uuidc>
   ikroot=ldk:LABEL=PENDRIVE:/root.ldk
