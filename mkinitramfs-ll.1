@@ -5,7 +5,7 @@
 .\" stated in the COPYING file that comes with the source files
 .\"
 .pc
-.TH MKINITRAMFS-LL 1 "2015-01-01" "0.15.1" "Init Script Page"
+.TH MKINITRAMFS-LL 1 "2015-01-10" "0.16.2" "Init Script Page"
 .SH NAME
 init \- an initramfs init script
 .SH DESCRIPTION
@@ -67,6 +67,12 @@ T}
 [\|text\|]@T{
 any or all argument within [ ] are optional
 T}
+\fIYes\fR@T{
+can be replaced with (case insensitive) Yes|Enable|On|True|1
+T}
+\fINo\fR@T{
+can be replaced with (case insensitive) No|Disable|Off|False|0
+T}
 dev|device@T{
 replace with the appropriate device file
 T}
@@ -88,11 +94,13 @@ T}
 .TE
 .SH OVERVIEW
 .TP
-.RB iroot=[\fIdev|map-dev|VG-LV|POOL/VOL\fR]:[\fIFileSystem\fR][\fB:chk\fR]
+.RB iroot=[\fIdev|map-dev|VG-LV|POOL/VOL\fR]:[\fIFileSystem\fR][:\fIYes\fR|\fINo\fR]
 .br
 Root required kernel command line argument.
-It is recommanded to append `:FileSystem:C[HK]' (case insensitive `C[HK]'
-is supported) for file system check e.g. `:ext4:chk'.
+It is recommanded to append `:FileSystem:\fIYes\fR' for file system check
+e.g. `:ext4:\fIYes\fR'. However, this enable a `die' after fsck failure;
+Use `:FileSystem:\fINo\fR' to  disable it; Or even only `:FileSystem'
+to remove filesytem check (unecessary for zfs for example.)
 .TP
 .RB imopt=[\fIoption\fR]
 .br
@@ -318,10 +326,10 @@ inside a removable device (key \fIfile\fR mode is required.)
 However,
 .RB \fImap\fR-\fIPV\fR
 list is \fIonly\fR required for crypted Phycal Volume. LVM[2] on plain device
-can be enabled with any character in the appropriate field e.g. `ilvm=pva-sda2,1'
+can be enabled with `\fIYes\fR' in the appropriate field e.g. `ilvm=pva-sda2,\fIYes\fR'
 would be enough to open a crypted VG/LV for root and another VG/LV on a plain
 device for swap. Just append the appropriate `iroot' and `iswap' accordingly e.g.
-`iroot=vgr-root:ext4:chk iswap=swap:vgs-swap'.
+`iroot=vgr-root:ext4:\fIYes\fR iswap=swap:vgs-swap'.
 .TP
 .SS RAID (FAKE ATA RAID & SOFTWARE RAID)
 .br
@@ -378,9 +386,7 @@ resume); and each group is colon `:' separated list of
 .BR if,\ and\ only\ if,
 the physical volumes or devices are
 .B DM-CRYPT
-LUKS crypted. Or else, any
-.IR character
-would be sufficient for plain devices.
+LUKS crypted. Or else, `\fIYes\fR' would be sufficient for plain devices.
 .TP
 .SS SHELL RUN LEVELS
 .TS
