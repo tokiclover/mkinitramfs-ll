@@ -2,6 +2,7 @@ Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
 0.16.2:
 
+* added yesno helper (init/functions clean up); & btrfs support;
 
 0.16.1:
 
