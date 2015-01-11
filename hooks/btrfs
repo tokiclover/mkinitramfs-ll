@@ -30,6 +30,7 @@ dobtrfs() {
 	if ! btrfs filesystem show 2>/dev/null | grep ${_vol#*=}; then
 		if yesno "$_dev"; then
 			error "btrfs: No $_vol filesystem found"
+			[ -n "$_CHK" ] || return
 		fi
 		stk "$_key"
 		[ "$KEYMODE" != "none" ] &&
