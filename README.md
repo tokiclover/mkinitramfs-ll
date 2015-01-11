@@ -1,7 +1,7 @@
-Header: mkinitramfs-ll/README.md,v 0.16.0 2015/01/01 Exp
+Header: mkinitramfs-ll/README.md,v 0.16.2 2015/01/10 Exp
 
 > A lightweight, modular and yet powerfull initramfs generating tool
-with RAID (ATA RAID & SOFTWARE RAID), dm-crypt LUKS, LVM(2), ZFS,
+with RAID (ATA RAID & SOFTWARE RAID), dm-crypt LUKS, LVM(2), BTRFS, ZFS,
 TuxOnIce/SwSusp hibernation, AUFS+SquashFS, ZRAM and bCache support
 
 INTRODUCTION
@@ -9,11 +9,12 @@ INTRODUCTION
 
 **BIG FAT NOTE:**
 
-    **SUPPORTED BLOCK DEVICE STACK: [RAID]+[LUKS]+[LVM] or [LUKS]+[ZFS]**
+    **SUPPORTED BLOCK DEVICE STACK: [RAID]+[LUKS]+[LVM] or [LUKS]+[BTRFS|ZFS]**
 
 It is possible to add ZFS on the first stack variant, but it does not make any
 sense and expect horrible performance with such a mix bag. And this variant is
 not implemented although it could be done easily.
+(The same goes for BTRFS support.)
 
 The order of LUKS/LVM can be changed, that is LUKS+LVM or LVM+LUKS is possible.
 
