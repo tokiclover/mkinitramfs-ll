@@ -495,8 +495,8 @@ id
 kmap
 KERNEL-MODULE-GROUPS
 .fi
-
-.B KERNEL-MODULE-GROUPS:\ \c
+.TP
+  \fBKERNEL-MODULE-GROUPS\fR
 .RB [\| bcache \|]\ \c
 .RB [\| boot \|]\ \c
 .RB [\| btrfs \|]\ \c
@@ -536,16 +536,23 @@ functions
 helpers
 HOOKS
 .fi
-
-.B HOOKS:\ \c
+.TP
+  \fBHOOKS\fR
+.br
 .RB [\| bcache \|]\ \c
 .RB [\| btrfs \|]\ \c
-.RB [\| mkswap-zfs \|]\ \c
-.RB [\| undo-bcache \|]\ \c
 .RB [\| zfs \|]\ \c
 .RB [\| zram \|]
 .br
 (supported hooks used when the appropriate kernel cmdline is present)
+.TP
+  \fBSCRIPTS\fR
+.RB [\| mkswap-zfs \|]\ \c
+.RB [\| undo-bcache \|]\ \c
+.br
+Some usefull scripts which can be executed in the rescue shell with something
+like `$sh $LIBDIR/\fIscript\fR \fIARGS\fR'.
+(sh/LIBDIR are defined, just append the appropriate arguments.)
 .TP
 .I /lib/mdev/
 .nf
