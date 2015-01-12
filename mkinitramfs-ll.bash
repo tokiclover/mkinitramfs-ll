@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.0 2014/01/01 12:33:03                   Exp $
+# $Version: 0.16.2 2015/01/10 12:33:03                   Exp $
 #
 
 typeset -A PKG
@@ -20,7 +20,7 @@ function usage {
   ${PKG[name]}.${PKG[shell]} version ${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [options]
 
-  -a, --all                   Short variant of '-l -L -g -H:zfs:zram -t -q'
+  -a, --all                   Short variant of '-l -L -g -H:btrfs:zfs:zram -t -q'
   -f, --font=[:ter-v14n]      Fonts to include in the initramfs
   -F, --firmware=[:file]      Firmware file/directory to include
   -k, --kv=VERSION            Build an initramfs for kernel version VERSION
@@ -143,7 +143,7 @@ done
 if [[ "${opts[-a]}" ]] || [[ "${opts[-all]}" ]]; then
 	opts[-font]+=: opts[-gpg]=true opts[-lvm]=true opts[-squashd]=true
 	opts[-toi]=true opts[-luks]=true opts[-keymap]+=:
-	opts[-hook]+=:zfs:zram
+	opts[-hook]+=:btrfs:zfs:zram
 fi
 
 for key in f{,ont}; do
