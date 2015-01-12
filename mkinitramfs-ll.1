@@ -67,6 +67,9 @@ T}
 [\|text\|]@T{
 any or all argument within [ ] are optional
 T}
+(\|text|text\|)@T{
+replace with any argument within ( ) and remove the parenthesis
+T}
 \fIYes\fR@T{
 can be replaced with (case insensitive) Yes|Enable|On|True|1
 T}
@@ -79,11 +82,8 @@ T}
 map|mapping@T{
 replace with the appropriate mapping
 T}
-LV@T{
-replace with the appropriate Logical Volume
-T}
-PV@T{
-replace with the appropriate Physical Volume
+LV/PV@T{
+replace with the appropriate Logical/Physical Volume
 T}
 VG@T{
 replace with the appropriate Volume Group
@@ -94,7 +94,7 @@ T}
 .TE
 .SH OVERVIEW
 .TP
-.RB iroot=[\fIdev|map-dev|VG-LV|POOL/VOL\fR]:[\fIFileSystem\fR][:\fIYes\fR|\fINo\fR]
+.RB iroot=[\fIdev|map-dev|VG-LV|POOL/VOL\fR]:[\fIFileSystem\fR][:(Yes|No)]
 .br
 Root required kernel command line argument.
 It is recommanded to append `:FileSystem:\fIYes\fR' for file system check
@@ -106,7 +106,7 @@ to remove filesytem check (unecessary for zfs for example.)
 .br
 Rootfs mount option e.g. `imopt=user_xattr' for an ext4 FS
 .TP
-.RB imount=[/usr:/var][:\fIdirectory\fR]
+.RB imount=[/usr:/var:\fIdirectory\fR]
 .br
 Mount file system according to (required in this case)
 .RI `/etc/fstab'
@@ -148,17 +148,19 @@ default will be picked if present e.g.
 .RB ilvm=[\fImap-dev\fR][,\fImap-dev\fR][,\fIYes\fR]
 .br
 LVM[2] optional argument: first group for root, second group for swap and third
-group for resume. Hyphen can be used to append a particular group. And a group
-is composed by a colon separated list of `mapping-device'.
+group for resume. Comma can be used to append a particular group. And a group
+is composed by a colon separated list of `\fImapping\fR-\fIdevice\fR'.
+See \fBDEVICE-MAPPER (LVM[2])\fR for more info.
 .TP
 .RB iraid=[md\fIi\fR+UUID=\fIuuid\fR][,md\fIj\fR+isw[:\fIformat\fR][,md\fIk\fR+sd[\fIX\fR-\fIY\fR]\fIn\fR]
 .br
 RAID optinal argument (comma separated list): first group for root, second for
 swap and third for resume. Hence using comma to asign an array to a particular
 group can be used. Three different layouts are used above, so just replace \fIi\fR,
-\fIj\fR, \fIk\R and \fIn\fR by actual integer; \fIX\fR and \fIY\fR by actual letter
+\fIj\fR, \fIk\fR and \fIn\fR by actual integer; \fIX\fR and \fIY\fR by actual letter
 in the range of `[a-z]';
 and \fIuuid\fR by an actual UUID value to get a functional argument.
+See \fBRAID\fR for more info.
 .TP
 .RB irsh=[\fIlevel\fR][:\fIrunlevel\fR]
 .br
@@ -173,7 +175,7 @@ Set up squash-dir (AUFS+SquashFS) argument. See
 .B SQUASHED DIRECTORY
 for more info.
 .TP
-.RB ibtrfs=[\fImap-dev\fR][,\fIdev\fR[:\fIdev\fR]]
+.RB ibtrfs=[\fImap-dev\fR][,\fIdev\fR]
 .br
 Enable
 .B BTRFS
@@ -212,14 +214,13 @@ for more info.
 The first part set up zram internal options (see
 .B ZRAM
 ).
-The second part set up each device by a pair of
-e.g. `4G-ext4' for a 4GB ext4 file system;
+The second part set up each device e.g. `4G-ext4' for a 4GB ext4 file system;
 just make sure to have the appropriate binary & symlink in the initramfs.
 .br
 .B ZRAM
 internal options (\fIdevices\fR-\fIstreams\fR-\fIcompressor\fR) can be tweaked
 e.g. `8-4-lz4' would set up 8 devices, 4 streams per device and use lz4 compressor;
-the default options are `4-2-lz4'.
+Default options are `4-2-lz4' (e.g. `izram=:4G:4G' setup 2 devices.)
 .TP
 .RB idebug=[\fIoption\fR]:[\fIn\fR]
 .br
@@ -238,7 +239,7 @@ Halt init and drop to a rescue shell at shell run level 1.
 Exit the rescue shell to resume booting.
 (`/run/env' would be sourced, if present, for environment variables.)
 .TP
-.RB splash=[silent|verbose],fade[in|out],theme:\fITHEME\fR[,tty:\fITTY\fR]
+.RB splash=(silent|verbose),fade(in|out),theme:\fITHEME\fR[,tty:\fITTY\fR]
 .br
 Legacy
 .RB splash
@@ -323,9 +324,9 @@ to any crypted device.
 .IR HEADER
 should be a valid dm-crypt LUKS header by being either a block device or a
 regular file in the removable device used for key file (key \fIfile\fR mode is
-required for this.) Using something like `sda+/dev/sdb' or `sda+/boot/luks.header'
-is correct but using an UUID insted of plain path to file is prefered for detached
-header to block device because of the risk of header mismatch (fatal errors.)
+required for this.) Using something like `dma-sda+(/dev/sdb|/dma.header)'
+is correct but using UUID e.g. `dma-UUID=cyphertext+(UUID=header|/dma.header)'
+instead of plain path is prefered to avoid header mis-match.
 .TP
 .SS DEVICE-MAPPER (LVM[2])
 .br
@@ -350,11 +351,11 @@ To complete the
 .B OVERVIEW RAID
 sub-section,
 .B FAKE ATA RAID
-can be enable using the \fIarray\fR[+\fIformat\fR] syntax
+can be enabled using the \fIarray\fR[+\fIformat\fR] syntax
 (format is optional and can be a colon separated list of format, see `dmraid -l');
 while
 .B SOFTWARE RAID
-can be enabled using the \fIarray\fR+[UUID=\fIuuid\fR|\fIdevices\fR] syntax
+can be enabled using the \fIarray\fR+(UUID=\fIuuid\fR|\fIdevices\fR) syntax
 (\fIuuid\fR being a valid UUID value and \fIdevices\fR being a supported
 device set described in the
 .B OVERVIEW
