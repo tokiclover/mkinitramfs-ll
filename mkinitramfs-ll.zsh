@@ -247,7 +247,6 @@ function docpio {
 		(lz4)   ext+=.lz4;;
 		(*) opts[-compressor]=; warn "initramfs will not be compressed";;
 	}
-
 	if [[ -f ${initramfs}${ext} ]] {
 	    mv ${initramfs}${ext}{,.old}
 	}
@@ -310,7 +309,6 @@ for hook (${(pws,:,)opts[-H]} ${(pws,:,)opts[-hook]}) {
 		cp -a ${file} lib/${PKG[name]}
 	}
 	(( $? != 0 )) && warn "$mod module does not exist"
-
 	opts[-bin]+=:${opts[-b$hook]}
 	opts[-mgrp]+=:$hook
 }
@@ -387,7 +385,6 @@ function domod {
 			local verbose=$2
 			shift 2;;
 	esac
-
 	local mod ret prefix=/lib/modules/${opts[-kv]}/
 	local -a modules
 
@@ -452,7 +449,6 @@ if (( ${+$opts[-s]} )) || (( ${+opts[-splash]} )) {
 	if (( ${+opts[-toi]} || ${+opts[-t]} )) {
 		opts[-bin]+=:tuxoniceui_text
 	}
-	
 	for theme (${(pws,:,)opts[-splash]})
 		if [[ -d etc/splash/${theme} ]] {
 			:;
@@ -478,7 +474,6 @@ function docp {
 		rm -f .${link} && cp -f {,.}${link} || die
 		[[ -h ${link} ]] || break
 	done
-
 	return 0
 }
 
@@ -487,7 +482,6 @@ function docp {
 function dobin {
 	local bin=$1 lib
 	docp ${bin} || return
-
 	ldd ${bin} >/dev/null || return 0
 
 	for lib ($(ldd ${bin} | sed -nre 's,.* (/.*lib.*/.*.so.*) .*,\1,p' \
@@ -496,7 +490,7 @@ function dobin {
 }
 
 for bin (${(pws,:,)opts[-b]} ${(pws,:,)opts[-bin]}) {
-	for b ({usr/,}{,s}bin/${bin}) { [[ -x ${b} ]] && continue 2 }
+	for b ({usr/,}{,s}bin/${bin}) [ -x ${b} -a ! -h ${b} ] && continue 2
 	[[ -x ${bin} ]] && binary=${bin} || binary=${commands[$bin]}
 	[[ -n ${binary} ]] && dobin ${binary} || warn "no ${bin} binary found"
 }

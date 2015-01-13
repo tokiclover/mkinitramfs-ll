@@ -261,14 +261,12 @@ function docpio {
 		(lz4)   ext+=.lz4;;
 		(*) opts[-compressor]=; warn "initramfs will not be compressed";;
 	esac
-
 	if [[ -f ${initramfs}${ext} ]]; then
 	    mv ${initramfs}${ext}{,.old}
 	fi
 	if [[ -n "${ext#.cpio}" ]]; then
 		cmd+=" | ${opts[-compressor]} -c"
 	fi
-
 	eval ${cmd} > /${initramfs}${ext} ||
 	die "Failed to build ${initramfs}${ext} initramfs"
 }
@@ -349,7 +347,6 @@ for hook in ${opts[-H]//:/ } ${opts[-hook]//:/ }; do
 		cp -a "${file}" lib/${PKG[name]}/
 	done
 	(( $? != 0 )) && warn "$mod module does not exist"
-
 	opts[-bin]+=:${opts[-b$hook]}
 	opts[-mgrp]+=:$hook
 done
@@ -416,7 +413,6 @@ function domod {
 			local verbose=$2
 			shift 2;;
 	esac
-
 	local mod ret name prefix=/lib/modules/${opts[-kv]}/
 	local -a modules
 
@@ -510,7 +506,6 @@ function docp {
 		rm -f .${link} && cp -a {,.}${link} || die
 		[[ -h ${link} ]] || break
 	done
-
 	return 0
 }
 
@@ -519,7 +514,6 @@ function docp {
 function dobin {
 	local bin=$1 lib
 	docp ${bin} || return
-
 	ldd ${bin} >/dev/null || return 0
 
 	for lib in $(ldd ${bin} | sed -nre 's,.* (/.*lib.*/.*.so.*) .*,\1,p' \
@@ -530,7 +524,7 @@ function dobin {
 
 for bin in ${opts[-b]//:/ } ${opts[-bin]//:/ }; do
 	for b in {usr/,}{,s}bin/${bin}; do
-		[[ -x ${b} ]] && continue 2
+		[ -x ${b} -a ! -h ${b} ] && continue 2
 	done
 	[[ -x ${bin} ]] && binary=${bin} || binary=$(type -p ${bin})
 	[[ "${binary}" ]] && dobin ${binary} || warn "no ${bin} binary found"
