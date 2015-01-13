@@ -374,11 +374,10 @@ fi
 if [[ ! -f ${opts[-confdir]}/busybox.applets ]]; then
 	bin/busybox --list-full >${opts[-confdir]}/busybox.applets || die
 fi
-
-while read line; do
-	grep -q ${line} ${opts[-confdir]}/busybox.applets ||
-	die "${line} applet not found, no suitable busybox found"
-done <${opts[-confdir]}/minimal.applets
+for bin in $(< ${opts[-usrdir]}/../scripts/minimal.applets); do
+	grep -q ${bin} ${opts[-confdir]}/busybox.applets ||
+	die "${bin} applet not found, no suitable busybox found"
+done
 
 for bin in $(grep  '^bin' ${opts[-confdir]}/busybox.applets); do
 	ln -s busybox ${bin}
