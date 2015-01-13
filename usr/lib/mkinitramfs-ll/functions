@@ -98,7 +98,7 @@ yesno() {
 # @USAGE: <bin>
 # @DESCRIPTION: Binary ChecK
 bck() {
-	debug -d type -p $1 1>/dev/null 2>&1
+	type -p $1 1>/dev/null 2>&1
 }
 
 # @DESCRIPTION: busybox Applets ChecK
