@@ -77,10 +77,10 @@ T}
 can be replaced with (case insensitive) No|Disable|Off|False|0
 T}
 dev|device@T{
-replace with the appropriate device file
+replace with the appropriate device|UUID|LABEL
 T}
 map|mapping@T{
-replace with the appropriate mapping
+replace with the appropriate mapping (name)
 T}
 LV/PV@T{
 replace with the appropriate Logical/Physical Volume
@@ -282,6 +282,9 @@ Block Device can be provided using a canonical name, that is, with or without
 is used instead of the legacy
 .B root
 command line argument.
+
+Device can also be specifed using UUID/LABEL (part of an UUID/LABEL is supported.)
+WARN: Do not prepend UUID/LABEL by `\fBPART\fR' prefix (not supported by busybox/blkid.)
 .TP
 .SS DM-CRYPT (LUKS)
 .br
