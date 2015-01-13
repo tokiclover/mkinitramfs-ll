@@ -197,9 +197,9 @@ spld_stop() {
 # @DESCRIPTION: read (superset) helper (with Rescue Shell support)
 shread() {
 	local _buffer; read _buffer
-
 	case $_buffer in
-		([Rr][Ss][Hh]|[Ss][Hh]|[Ss][Hh][Ee][Ll][Ll]|[Rr][Ee][Ss][Cc][Uu][Ee]) die;;
+		([Rr][Ss][Hh]|[Ss][Hh]|[Ss][Hh][Ee][Ll][Ll]|[Rr][Ee][Ss][Cc][Uu][Ee]|[Ss][Hh])
+			die; return;;
 	esac
 	eval "$1"="$_buffer"
 }
@@ -209,7 +209,7 @@ shread() {
 blk() {
 	local _asw _blk=$(blkid | grep "$1" | cut -d: -f1)
 	
-	if [ ! -b "$_blk" ]; then
+	if ! [ -n "$_blk" -a -b "$_blk" ]; then
 		msg -i "Insert $1 block device"
 		sleep 1
 		_blk=$(blkid | grep "$1" | cut -d: -f1)
