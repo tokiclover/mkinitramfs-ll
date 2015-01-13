@@ -30,10 +30,10 @@ dist_HOOKS  = \
 	zram
 dist_COMMON = \
 	usr/etc/mdev.conf \
-	usr/etc/$(PACKAGE)/minimal.applets \
 	usr/etc/group \
 	usr/etc/modprobe.d/zfs.conf \
-	scripts/busybox-minimal.config \
+	scripts/minimal.applets \
+	scripts/minimal.config \
 	usr/lib/$(PACKAGE)/functions \
 	usr/lib/$(PACKAGE)/helpers \
 	usr/root/.gnupg/gpg.conf \
