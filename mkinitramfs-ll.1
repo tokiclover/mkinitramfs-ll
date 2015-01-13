@@ -490,11 +490,18 @@ Other Environment Variables are defined internaly in
 .I /etc/mkinitramfs-ll/
 .nf
 busybox.applets
+  BusyBox applets list
 env
+  Environment Variables file (kernel command line less is possible)
 font
+  Default console font
 id
+  ID of the build script
 kmap
+  Deafult keymap
 KERNEL-MODULE-GROUPS
+  Optional kernel module group (used if present)
+  The following supported groups are auto generated (build script)
 .fi
 .TP
   \fBKERNEL-MODULE-GROUPS\fR
@@ -514,7 +521,6 @@ KERNEL-MODULE-GROUPS
 .RB [\| zfs \|]\ \c
 .RB [\| zram \|]
 .br
-(supported kernel module groups used if present in the initramfs)
 .TP
 .I /etc/mdev.conf
 mdev 
@@ -535,29 +541,27 @@ ZFS configuration file to set arc to a reasonable value
 .nf
 functions
 helpers
-HOOKS
-.fi
-.TP
-  \fBHOOKS\fR
-.br
+.B HOOKS: \c
 .RB [\| bcache \|]\ \c
 .RB [\| btrfs \|]\ \c
 .RB [\| zfs \|]\ \c
 .RB [\| zram \|]
-.br
-(supported hooks used when the appropriate kernel cmdline is present)
-.TP
-  \fBSCRIPTS\fR
+  Supported hooks used when the appropriate kernel cmdline is present
+.B SCRIPTS: \c
 .RB [\| mkswap-zfs \|]\ \c
 .RB [\| undo-bcache \|]\ \c
 .br
-Some usefull scripts which can be executed in the rescue shell with something
-like `$sh $LIBDIR/\fIscript\fR \fIARGS\fR'.
-(sh/LIBDIR are defined, just append the appropriate arguments.)
+  Optional scripts
+  Some usefull scripts which can be executed in the rescue shell with something
+  like `$sh $LIBDIR/\fIscript\fR \fIARGS\fR'.
+  (sh/LIBDIR are defined, just append the appropriate arguments.)
+.fi
 .TP
 .I /lib/mdev/
 .nf
 dm_link
+SCRIPTS
+  Extra mdev scripts are supported
 .fi
 .TP 
 .I /usr/share/consolefonts
