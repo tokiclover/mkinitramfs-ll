@@ -40,8 +40,8 @@ dobtrfs() {
 	fi
 	[ "$KEYMODE" = "none" ] &&
 	for _dev in $(echo "$_DEV" | sed 's/:/ /g'); do
-		[ "${_dev/dev}" = "$_dev" ] && DEV="/dev/$_dev $DEV" ||
-			DEV="$_dev $DEV"
+		blk "$_dev" "_DEV"
+		DEV="$_DEV $DEV"
 	done
 	debug -d btrfs device scan $DEV
 
