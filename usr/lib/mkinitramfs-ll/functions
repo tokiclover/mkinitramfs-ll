@@ -196,12 +196,15 @@ spld_stop() {
 # @USAGE: <var>
 # @DESCRIPTION: read (superset) helper (with Rescue Shell support)
 shread() {
-	local _buffer; read _buffer
-	case $_buffer in
-		([Rr][Ss][Hh]|[Ss][Hh]|[Ss][Hh][Ee][Ll][Ll]|[Rr][Ee][Ss][Cc][Uu][Ee]|[Ss][Hh])
-			die; return;;
-	esac
-	eval "$1"="$_buffer"
+	local _buffer
+
+	while read _buffer; do
+		case "$_buffer" in
+			([Rr][Ss][Hh]|[Ss][Hh]|[Ss][Hh][Ee][Ll][Ll]|[Rr][Ee][Ss][Cc][Uu][Ee]|[Ss][Hh])
+				die;;
+			(*) eval ${1:-SHR}="$_buffer"; break;;
+		esac
+	done
 }
 
 # @USAGE: <block device node | (part of) uuid | (part of) label>
