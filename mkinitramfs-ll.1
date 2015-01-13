@@ -233,11 +233,15 @@ every variable; and set log level to error.)
 Append hook or script to the hook stack for execution e.g. `ihook=zfs:zram'
 (unecessary because zram & zfs are executed if `izfs' or `izram' are set.)
 .TP
-.RB Rescue[Shell]|RSH[ell]\ (case insensitive)
+.RB Rescue[Shell]|RSH[ell]\ (case\ insensitive)
 .br
 Halt init and drop to a rescue shell at shell run level 1.
 Exit the rescue shell to resume booting.
 (`/run/env' would be sourced, if present, for environment variables.)
+
+A rescue shell is also available in any `read' loop (when a password or a device
+is requested.) Any (case insensitive) `Rsh|Sh|Shell|Rescue' (Enter) may be used
+to get a rescue shell (`exit' to leave it.)
 .TP
 .RB splash=(silent|verbose),fade(in|out),theme:\fITHEME\fR[,tty:\fITTY\fR]
 .br
