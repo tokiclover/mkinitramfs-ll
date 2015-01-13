@@ -214,12 +214,11 @@ blk() {
 		sleep 1
 		_blk=$(blkid | grep "$1" | cut -d: -f1)
 
-		while [ ! -b "$_blk" ]; do
+		while ! [ -n "$_blk" -a -b "$_blk" ]; do
 			msg -i "Type in a valid block device e.g. \
 				[ sda5 | UUID=<uuid> | LABEL=<label> ]"
 			shread _asw
 			_blk=$(blkid | grep "${_asw:-$1}" | cut -d: -f1)
-			[ -n "$_blk" ] && [ -b "$_blk" ] && break
 		done
 	fi
 	eval ${2:-BLK}=$_blk
