@@ -183,7 +183,6 @@ debug -d mkdir -p /run/log
 
 debug umask 0077
 debug mv -f $LOGFILE /run/log && export LOGFILE=/run/log/$LOGFILE
-$ECK && debug ack
 
 if grep -q devtmpfs /proc/filesystems; then
 	debug -d mount -t devtmpfs devtmpfs /dev
