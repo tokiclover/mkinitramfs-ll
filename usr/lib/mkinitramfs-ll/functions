@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.2 2015/01/10 12:33:03                   Exp $
+# $Version: 0.16.3 2015/01/14 12:33:03                   Exp $
 #
 
 # @USAGE: <var> <var> <char> <int> <opt>
@@ -251,7 +251,6 @@ stk() {
 		[ $(cryptsetup --version | awk '{print $2}' | cut -d'.' -f2) -ge 3 ] &&
 		CLD=true
 	fi
-
 	if [ "$_km" != "pwd" ]; then
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
@@ -263,7 +262,6 @@ stk() {
 		fi
 		debug -d test -f "$MNTDIR/$_fp"
 	fi
-
 	case $_km in
 		(gpg) $ECK && debug -d bck gpg
 		      [ -f $CONFDIR/gpg ] && debug _modprobe gpg
@@ -290,7 +288,6 @@ bkd() {
 	else
 		local _dev="${1%%:*}"
 	fi
-
 	[ -n "$iraid" ] && debug arg "_raid" "$iraid" "," "$_grp" "$_cut"
 	[ -n "$ilvm"  ] && debug arg "_lvm" "$ilvm" "," "$_grp" "$_cut"
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
@@ -306,7 +303,6 @@ bkd() {
 # @DESCRIPTION: close dm-crypt mapping (colon separated list)
 dmclose() {
 	local IFS="${IFS}:" 
-
 	for _p in $@; do 
 		debug cryptsetup close ${_p%-*}
 	done
