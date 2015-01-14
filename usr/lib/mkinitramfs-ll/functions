@@ -1,5 +1,5 @@
 #
-# $Header: mkinitramfs-ll/lib/mkinitramfs-ll/functions   Exp $
+# $Header: /lib/mkinitramfs-ll/functions                 Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
 # $Version: 0.16.3 2015/01/14 12:33:03                   Exp $
@@ -103,13 +103,12 @@ bck() {
 
 # @DESCRIPTION: busybox Applets ChecK
 ack() {
-	local _line
+	local _line _list=$CONFDIR/busybox.applets
+	[ -f $_list ] || busybox --list-full >$_list
 
-	if [ -f $CONFDIR/busybox.applets ]; then
-		while read _line; do
-			type -p /$_line >/dev/null 2>&1 || ln -s /bin/busybox /$_line
-		done <$CONFDIR/busybox.applets
-	fi
+	while read _line; do
+		type -p /$_line >/dev/null 2>&1 || ln -s /bin/busybox /$_line
+	done <$_list
 }
 
 # @USAGE: <hook>
@@ -247,16 +246,16 @@ stk() {
 	if [ -z "$_km" ];then
 		export KEYMODE=none
 		return
-	elif [ "$_km" = "ldk" ] && [ -z "$CLD" ];then
+	elif [ "$_km" = "ldk" -a -z "$CLD" ];then
 		[ $(cryptsetup --version | awk '{print $2}' | cut -d'.' -f2) -ge 3 ] &&
 		CLD=true
 	fi
 	if [ "$_km" != "pwd" ]; then
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
-		[ -f $CONFDIR/remdev ] && debug _modprobe remdev
 
 		if ! grep -q $MNTDIR /proc/mounts; then
+			[ -f $CONFDIR/remdev ] && debug _modprobe remdev
 			[ -b "$_kd" ] || blk "$_kd" "_kd"
 			debug -d mount -n -r "$_kd" $MNTDIR
 		fi
@@ -358,7 +357,7 @@ dmopen() {
 			debug "gpg -qd \"$KEYFILE\" | cryptsetup $_arg"
 		done
 		rm /dev/tty && mv -f /dev/bak /dev/tty
-	elif [ "$KEYMODE" = "ldk" ] || [ "$KEYMODE" = "reg" ]; then
+	elif [ "$KEYMODE" = "ldk" -o "$KEYMODE" = "reg" ]; then
 		debug cryptsetup $_arg -d "$KEYFILE"
 	fi
 	[ -b "$_ctx" ] || debug -d cryptsetup $_arg
@@ -373,7 +372,7 @@ lvopen() {
 	local _lv="${1/-//}"
 
 	if ! debug lvm lvchange -ay --noudevsync --sysinit "$_lv"; then
-		if [ -n "$2" ] && [ "$KEYMODE" != "none" ]; then
+		if [ -n "$2" -a "$KEYMODE" != "none" ]; then
 			local _pv="$2" IFS="${IFS}:"
 			[ -f "$MNTDIR/$_pv" ] && _pv="$(cat $MNTDIR/$_pv)"
 			for _p in $_pv; do
@@ -411,7 +410,7 @@ mdopen() {
 		(asr*|ddf*|hpt*|isw*|jmicron*|lsi*|nvidia*|pdc*|sil*|via*|dos*)
 		                     _set="$_opt"        ;;
 	esac
-	if [ -n "$_uuid" ] || [ -n "$_devices" ]; then
+	if [ -n "$_uuid" -o -n "$_devices" ]; then
 		$ECK && debug -d bck mdadm
 		debug _modprobe raid
 	
