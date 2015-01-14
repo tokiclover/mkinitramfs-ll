@@ -8,7 +8,6 @@
 set +e +x
 source $LIBDIR/functions || return
 source $LIBDIR/helpers   || return
-
 [ -n "$ibtrfs" ] || return
 
 dobtrfs() {
@@ -27,7 +26,7 @@ dobtrfs() {
 	[ -n "$ibtrfs" ] && arg "_DEV" "$ibtrfs" "," "$_grp" "$_opt"
 	[ -n "$_DEV"   ] || return
 
-	if ! btrfs filesystem show 2>/dev/null | grep ${_vol#*=}; then
+	if ! btrfs filesystem show ${_vol#*=} >/dev/null 2>&1; then
 		if yesno "$_dev"; then
 			error "btrfs: No $_vol filesystem found"
 			[ -n "$_CHK" ] || return
