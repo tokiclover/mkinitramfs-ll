@@ -104,15 +104,11 @@ bck() {
 # @DESCRIPTION: busybox Applets ChecK
 ack() {
 	local _line
+
 	if [ -f $CONFDIR/busybox.applets ]; then
 		while read _line; do
-			if [ ! -h /$_line ]; then
-				debug -d busybox --install -s
-				return
-			fi
+			type -p /$_line >/dev/null 2>&1 || ln -s /bin/busybox /$_line
 		done <$CONFDIR/busybox.applets
-	else
-		debug -d busybox --install -s
 	fi
 }
 
