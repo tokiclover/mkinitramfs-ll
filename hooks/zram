@@ -1,23 +1,21 @@
 #
 # $Header: mkinitramfs-ll/hooks/zram                     Exp $
-# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.15.0 2014/12/31 12:33:03                   Exp $
+# $Version: 0.16.3 2015/01/14 12:33:03                   Exp $
 #
 
 set +e +x
 source $LIBDIR/functions || return
 source $LIBDIR/helpers   || return
-
 [ -z "$izram" ] && _getopt "izram"
 
 dozram() {
 	echo $$ >/run/${0##*/}.pid
-
 	eval set -- $(echo "${izram%%:*}" | sed -e 's/-/ /g')
 
-	local compressor="$3" num_devices="${1:-4}" streams="${2:-2}"
-	debug -d modprobe zram num_devices=$num_devices
+	local compressor="$3" devices="${1:-4}" streams="${2:-2}"
+	debug -d modprobe zram num_devices=$devices
 
 	case "$compressor" in
 		(lz4|lzo)        :;;
@@ -31,26 +29,21 @@ dozram() {
 		[ "$num" = "$num_devices" ] && break
 
 		eval set -- $(echo "$device" | sed -e 's/-/ /g')
-		size="$1" fs="$2" dev=/dev/zram$num
+		size="$1" fs="$2" dev=/sys/block/zram$num
 		[ -n "$size" ] || continue
-		[ -b "$dev" ] || break
+		[ -b /dev/zram$num ] || break
 
-		[ -n "$compressor" ] &&
-		echo $compressor > /sys/block/zram$num/comp_algorithm
-		[ -n "$streams" ] &&
-		echo $streams > /sys/block/zram$num/max_comp_streams
-		echo $size >/sys/block/zram$num/disksize
-
+		[ -n "$compressor" ] && echo $compressor >$dev/comp_algorithm
+		[ -n "$streams"    ] && echo $streams    >$dev/max_comp_streams
+		                        echo $size       >$dev/disksize
 		num=$(($num + 1))
-
 		[ -n "$fs" ] || continue
 		if [ -x /sbin/mkfs.$fs ]; then
-			debug -d /sbin/mkfs.$fs /dev/zram$num
+			debug -d /sbin/mkfs.$fs /dev/${dev##*/}
 		else
-			die "dozram: mkfs.$fs nout found"
+			error "dozram: mkfs.$fs not found"
 		fi
 	done
-
 	rm -f /run/${0##*/}.pid
 }
 
