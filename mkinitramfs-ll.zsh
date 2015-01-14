@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.2 2015/01/10 12:33:03                   Exp $
+# $Version: 0.16.3 2015/01/14 12:33:03                   Exp $
 #
 
 typeset -A PKG
