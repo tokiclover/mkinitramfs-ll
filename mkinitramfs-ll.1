@@ -38,15 +38,32 @@ And do not forget to append the initramfs to the boot loader.
 GRUB[2] has, for example, `linux \fIpath/\fR' prepended to the kernel image and
 `initrd \fIpath/\fR' prepended to the initramfs image.
 
-.B vmlinuz[\fI-$VERSION\fR] [\fIOPTIONS\fR]
+.B vmlinuz\fI-$VERSION\fR [\fIOPTIONS\fR]
 .br
-.B initramfs[\fI-$VERSION\fR].cpio.xz
+.B initramfs\fI-$VERSION\fR.cpio.xz
 
-When using this initramfs, only
-.IB iroot
-kernel command line argument is required, instead of the legacy
-.IB root
-counterpart. Other than that, everything else is optional.
+When using this initramfs, only `iroot' kernel command line argument is required
+instead of the legacy `root' counterpart.
+A similar kernel command line argument is available for swap `iswap' and resume
+`iresume'. Of course, resume argument can use swap argument by setting
+`iresume=swap' when resuming from the regular swap device from times to times.
+
+Each \fIfeature\fR,--
+.B SQUASHD (AUFS+SquashFS),
+.B BTRFS,
+.B LVM,
+.B RAID,
+.B ZFS,
+.B ZRAM,
+-- require an appropriate kernel command line argument `\fBi\fR\fIfeature\fR'
+if used.
+\fBDM-CRYPT LUKS\fR can be enabled by setting a keymode (see
+.B KEYMODES
+for more info), for the appropriate group: `ikroot' for root, `ikswap' for swap
+and `ikresume'for resume. Any or all those group can be crypted with a single
+keymode/keyfile or multiple keymode/keyfile.
+See the appropriate OVERVIEW and OPTIONS subsection related to each feature
+for more info.
 
 The following conventions apply to
 .B SYNOPSIS
