@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.16.4:
+
+* minor update (man page)/clean up (config file)/fix (zram/functions);
+
 0.16.3:
 
 * UUID/LABEL support fix (btrfs/bcache); minor man(1)/INSTALL update;
