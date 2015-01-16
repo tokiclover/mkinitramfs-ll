@@ -5,7 +5,7 @@
 .\" stated in the COPYING file that comes with the source files
 .\"
 .pc
-.TH MKINITRAMFS-LL 1 "2015-01-14" "0.16.3" "Init Script Page"
+.TH MKINITRAMFS-LL 1 "2015-01-16" "0.16.4" "Init Script Page"
 .SH NAME
 init \- an initramfs init script
 .SH DESCRIPTION
@@ -61,7 +61,7 @@ if used.
 .B KEYMODES
 for more info), for the appropriate group: `ikroot' for root, `ikswap' for swap
 and `ikresume'for resume. Any or all those group can be crypted with a single
-keymode/keyfile or multiple keymode/keyfile.
+key(mode/file) or multiple key(mode/file).
 See the appropriate OVERVIEW and OPTIONS subsection related to each feature
 for more info.
 
@@ -111,13 +111,45 @@ T}
 .TE
 .SH OVERVIEW
 .TP
-.RB iroot=[\fIdev|map-dev|VG-LV|POOL/VOL\fR]:[\fIFileSystem\fR][:(Yes|No)]
+.RB iroot=\fIdevice\fR:[\fIFileSystem\fR][:(Yes|No)]
 .br
-Root required kernel command line argument.
+Set root required cmdline argument: \fIdevice\fR should be
+\fImap\fR-\fIdev\fR for dm-crypt LUKS crypted volume;
+Or \fIVG\fR-\fILV\fR for LVM volume;
+Or \fIPOOL\fR/\fIVOL\fR for a ZFS volume.
+See \fBDEVICES\fR for more info.
+
 It is recommanded to append `:FileSystem:\fIYes\fR' for file system check
 e.g. `:ext4:\fIYes\fR'. However, this enable a `die' after fsck failure;
 Use `:FileSystem:\fINo\fR' to  disable it; Or even only `:FileSystem'
 to remove filesytem check (unecessary for zfs for example.)
+.TP
+.RB ikroot=\fImode\fR[:\fIdevice\fR:\fIpath\fR]
+.br
+Set key mode for root for dm-crypt LUKS crypted volume. See
+.B KEYMODES
+for more info on key modes.
+.br
+When a key-file is used, a
+.RI device
+is required along with the full
+.RI path
+to the key file e.g. `ikroot=ldk:sdb1:/key.ldk'.
+.TP
+.RB iswap=\fItype\fR:\fIdevice\fR[:\fIsignature\fR]
+Set swap cmdline argument: refer to above `iroot' cmdline for more info
+on \fIdevice\fR. \fItype\fR is either `swap' for a device or `file' for a swap file.
+.TP
+.RB iresume\ (same\ as\ above\ `iswap')
+.TP
+.RB ikswap
+.br
+Set key mode for swap (refer to above `ikroot')
+.TP
+.RB ikresume
+.br
+Set key mode for resume (refer to above `ikroot')
+(It is unecessary to set this if `iresume=swap')
 .TP
 .RB imopt=[\fIoption\fR]
 .br
@@ -137,24 +169,6 @@ file. Every file system shoud be available before shell run level
 .br
 Colon separated list of kernel module to load at boot time
 e.g. `imod=uvesafb:hid-multitouch'
-.TP
-.RB ikroot=\fImode\fR[:\fIdevice\fR:\fIpath\fR]
-.br
-Set key mode for root. See
-.B KEYMODES
-for more info on key modes.
-.br
-When a key-file is used, a
-.RI device
-is required along with the full
-.RI path
-to the key file e.g. `ikroot=ldk:sdb1:/key.ldk'.
-.TP
-.RB ikswap=\fImode\fR[:\fIdevice\fR:\fIpath\fR]
-Set key mode for swap (refer to above \fBikroot\fR)
-.TP
-.RB ikresume=\fImode\fR[:\fIdevice\fR:\fIpath\fR]
-Set key mode for resume (refer to above \fBikroot\fR)
 .TP
 .RB ikmap=[\fIkmap\fR][:\fIfont\fR]
 .br
@@ -286,6 +300,9 @@ T}
 \fBreg\fR@T{
 key-file is a regular file
 T}
+\fBpwd\fR@T{
+key is a regular password
+T}
 \fBnone\fR@T{
 no usage of crypted device (this is the default)
 T}
@@ -303,24 +320,6 @@ command line argument.
 Device can also be specifed using UUID/LABEL (part of an UUID/LABEL is supported.)
 .TP
 .SS DM-CRYPT (LUKS)
-.br
-Any group (
-.B root
-and or
-.B swap
-and or
-.B resume
-) can support
-.B DM-CRYPT LUKS
-device. Morever,
-.B DM-CRYPT LUKS
-can be used on top of
-.B LVM[2]
-or vice versa, or on top of
-.B RAID
-array for that matter.
-.br
-
 .B DM-CRYPT LUKS
 is enabled if, and only if, a key[-file] mode is specifed in the appropriate
 group, that is, in
