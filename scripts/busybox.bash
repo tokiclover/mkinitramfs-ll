@@ -105,7 +105,7 @@ if [[ "${opts[-minimal]}" ]]; then
 	make allnoconfig || die
 	while read cfg; do
 		sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
-	done <"${0%/*}"/busybox-minimal.config
+	done <"${opts[-usrdir]}"/../scripts/minimal.config
 else
 	make defconfig || die "defconfig failed"
 	sed -e "s|# CONFIG_STATIC is not set|CONFIG_STATIC=y|" \
