@@ -2,28 +2,27 @@
 # $Header: mkinitramfs-ll/hooks/bacache                  Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.3 2015/01/14 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 set +e +x
 source $LIBDIR/functions || return
 source $LIBDIR/helpers   || return
-
-[ -z "$ibcache" ] && _getopt "ibcache"
+[ -z "$bcache" ] && _getopt "bcache"
 
 dobcache() {
 	echo $$ >/run/${0##*/}.pid
 	debug _modprobe bcache
 
 	local IFS=":$IFS" _dev _DEV
-	for _dev in $ibcache; do
+	for _dev in $bcache; do
 		blk "$_dev" "_DEV"
 		echo $_DEV >/sys/fs/bcache/register_quiet
 	done
 	rm -f /run/${0##*/}.pid
 }
 
-[ -n "$ibcache" ] && dobcache
+[ -n "$bcache" ] && dobcache
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
