@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.2 2015/01/10 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 #
@@ -142,25 +142,19 @@ debug -d mount -t proc proc /proc
 for arg in $(cat /proc/cmdline); do
 	case "$arg" in
 		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) export RSH=1;;
-		(ienv=*) export "$arg"                      ;;
-		(ro|rw)  export mopt="$arg"                 ;;
-		(single) export RIL=2                       ;;
-		(splash*|console*|CONSOLE*) export "$arg"   ;;
-		(ihook=*) export HOOKS="${arg#*=}"          ;;
-		(i[bdklmnrsz]*) export "$arg"               ;;
+		(ro|rw) export rootflags="${rootflags:+$rootflags,}$arg";;
+		(single) export RIL=2              ;;
+		(hook=*) export HOOKS="${arg#*=}"  ;;
+		([CRbcdeklmnrsz]*=*) export "$arg" ;;
 	 esac
 done
 
-if [ -n "$irsh" ]; then
-	RSH="${irsh%:*}"
-	arg "RIL" "$irsh" "2" ":" "-s"
+if [ -n "$RSL" ]; then
+	RSH="${RSL%:*}"
+	arg "RIL" "$RSL" ":" "2" "-s"
 fi
 
-DEBUG="${idebug%:*}"
-DMESG="${idebug#*:}"
-[ "$DMESG" = "$DEBUG" ] && DMESG=
-
-yesno "${ienv:-YES}"
+yesno "${env:-YES}"
 case $? in
 	(1) ENV=false;;
 esac
@@ -169,11 +163,13 @@ while read _line; do
 	case "${_line%%=*}" in
 		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RIL|PATH|RSH|SPLD|sh)
 			:;;
-		([a-zA-Z]*) [ "${ienv/:${_line%%=*}}" = "$ienv" ] && export "$_line"   ;;
+		([a-zA-Z]*) [ "${env/:${_line%%=*}}" = "$env" ] && export "$_line" ;;
 	esac
 done < $CONFDIR/env
 $ECK && debug ack
 
+DEBUG="${debug%:*}"
+arg "DMESG" "$debug" ":" "2" "-s"
 [ -n "$DEBUG" ]  && set -${DEBUG/e/}
 [ -n "$DMESG" ]  && debug dmesg -n $DMESG
 unset DEBUG DMESG
@@ -195,7 +191,7 @@ echo >/dev/mdev.seq
 debug -d mdev -s
 echo /sbin/mdev >/proc/sys/kernel/hotplug
 	
-for _m in $(echo "$imod" | sed 's/:/ /g'); do
+for _m in $(echo "$module" | sed 's/:/ /g'); do
 	debug _modprobe $_m
 done
 
@@ -219,10 +215,9 @@ done
 
 # -*- Font and keymap -*-
 
-if [ -n "$ikmap" ]; then
-	font="${ikmap#*:}"
-	kmap="${ikmap%:*}"
-	[ "$font" = "$kmap" ] && font=
+if [ -n "$keymap" ]; then
+	arg "font" "$keymap" "2" ":" "-s"
+	kmap="${keymap%:*}"
 fi
 [ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
 [ -z "$kmap" ] && [ -f "$CONFDIR/kmap" ] && kmap=$(cat $CONFDIR/kmap)
@@ -248,11 +243,9 @@ done </etc/msg
 # -*- Hooks -*-
 lvl 2
 
-for hook in bcache \
-	btrfs \
+for hook in bcache btrfs \
 	zfs zram; do
-	eval test -n \"\$i$hook\"
-	[ $? = 0 ] && HOOKS="$hook $HOOKS"
+	eval test -n \"\$$hook\" && eval 'HOOKS="$hook $HOOKS"'
 done
 export HOOKS="$(echo $HOOKS | sed -e 's/:/ /g')"
 for hook in $HOOKS; do
@@ -265,14 +258,14 @@ done
 
 # -*- Swap/Resume -*-
 # SWAP should be set if available
-if [ -n "$iswap" ]; then
+if [ -n "$swap" ]; then
 	lvl 2s
-	[ -z "$SWAP" ] && debug -d bkd "$iswap" "SWAP" "2" "$ikswap"
+	[ -z "$SWAP" ] && debug -d bkd "$swap" "SWAP" "2"
 fi
 # RESU should be set if available
-if [ -n "$iresume" ]; then
-	if [ -z "$RESU" ] && [ "$iresume" != "swap" ]; then
-		debug -d bkd "$iresume" "RESU" "3" "$ikresume"
+if [ -n "$resume" ]; then
+	if [ -z "$RESU" ] && [ "$resume" != "swap" ]; then
+		debug -d bkd "$resume" "RESU" "3"
 	fi
 	lvl 2r
 	debug resume "${RESU:-$SWAP}"
@@ -282,10 +275,9 @@ fi
 lvl 3
 # ROOT should be set if available
 dorootfs() {
-	local FS CHK ROOT
-	eval set -- $(echo "$iroot" | sed -e 's/:/ /g')
-	FS="$2" CHK="$3" ROOT="$1"
-	debug -d bkd "$iroot" "ROOT" "1" "$ikroot"
+	local FS="${rootfs%:*}" CHK ROOT
+	arg "CHK" "$rootfs" ":" "2" "-s"
+	debug -d bkd "$root" "ROOT" "1"
 
 	lvl 3f
 	if [ -n "$CHK" ]; then
@@ -293,15 +285,11 @@ dorootfs() {
 		debug $CHK fsck ${FS:+-t$FS} $ROOT
 	fi
 	lvl 3m
-	if [ -n "$mopt" ]; then
-		imopt="${imopt:+$imopt,}$mopt"
-		unset mopt
-	fi
-	debug mount ${imopt:+-o$imopt} ${FS:+-t$FS} $ROOT $NEWROOT ||
+	debug mount ${rootflags:+-o} $rootflags ${FS:+-t} $FS $ROOT $NEWROOT ||
 		die "Failed to mount rootfs"
 }
 [ -z "$ROOT" ] && dorootfs
-[ -n "$isquashd" ] && lvl 3s && debug -d squashd
+[ -n "$squashd" ] && lvl 3s && debug -d squashd "$squashd"
 
 # -*- Clean up and switch -*-
 lvl 4
@@ -321,7 +309,7 @@ if grep -q $MNTDIR /proc/mounts; then
 	debug _rmmod remdev
 fi
 
-[ -n "$imount" ] && lvl 4m && debug fmount
+[ -n "$fsmount" ] && lvl 4m && debug fmount "$fsmount"
 
 lvl 4u
 echo >/proc/sys/kernel/hotplug
