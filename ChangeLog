@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.18.0:
+
+Major clean up/overhaul of cmdline name!!! read the man(1) page;
+
 0.16.4:
 
 * minor update (man page)/clean up (config file)/fix (zram/functions);
