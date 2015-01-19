@@ -395,7 +395,7 @@ requires
 kernel command line argument and
 .BR \fBLABEL=\fR\fIlabel\fR|\fBUUID=\fR\fIuuid\fR
 BTRFS filesystem provided (in another argument) like
-\fBroot=LABEL=btrootfs\fR [rootfs::\fIYes\fR] for root.
+\fBroot=LABEL=btrootfs\fR [rootfs=:\fIYes\fR] for root.
 .br
 .RB btrfs
 is a comma `,' sepratated list of volume (1st for root, ...);
@@ -477,7 +477,7 @@ Root(LUKS/SOFTWARE RAID)--ldk crypted--key-file
   root=root-md2 raid=md2+UUID=uuid luks=ldk:sdb1:/key.ldk
 
 Root & swap(LVM/LUKS)--ldk crypted keyfile--& rootfs mount options
-  root=vgr-lvr:xfs:1 swap=file:vgs-lvs:0x4400
+  root=vgr-lvr rootfs=xfs:1 swap=file:vgs-lvs:0x4400
   rootflags=logdev=/dev/mapper/vgs-lvl,inode64,barrier
   lvm=pva1-UUID=uuida:pvb1-UUID=<uuidb>,pvc1-UID=<uuidc>
   luks=ldk:LABEL=PENDRIVE:/root.ldk,ldk:LABEL=PENDRIVE:/swap.ldk
