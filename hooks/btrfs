@@ -2,13 +2,13 @@
 # $Header: mkinitramfs-ll/hooks/btrfs                    Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.3 2015/01/14 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 set +e +x
 source $LIBDIR/functions || return
 source $LIBDIR/helpers   || return
-[ -n "$ibtrfs" ] || return
+[ -n "$btrfs" ] || return
 
 dobtrfs() {
 	echo $$ >/run/${0##*/}.pid
@@ -19,12 +19,13 @@ dobtrfs() {
 	debug _modprobe btrfs
 
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"
-	local _env="$1" _grp="$2" _key="$4" _opt _vol="${3%%:*}"
-	arg "_CHK" "$3" "3" ":" "-s"
-	stk "$_key"
-	[ $_grp -ge 2  ] && _opt=-s
-	[ -n "$ibtrfs" ] && arg "_DEV" "$ibtrfs" "," "$_grp" "$_opt"
-	[ -n "$_DEV"   ] || return
+	local _cut _env="$1" _grp="$2" _KEY _vol="$3"
+	arg "_CHK" "$rootfs" ":" "2" "-s"
+	[ $_grp -ge 2 ] && _cut=-s
+	[ -n "$btrfs" ] && arg "_DEV" "$btrfs" "," "$_grp" "$_cut"
+	[ -n "$luks"  ] && arg "_KEY" "$luks"  "," "$_grp" "$_cut"
+	[ -n "$_DEV"  ] || return
+	debug -d stk "$_KEY"
 
 	if ! btrfs filesystem show ${_vol#*=} >/dev/null 2>&1; then
 		if yesno "$_dev"; then
@@ -50,12 +51,12 @@ dobtrfs() {
 			debug $_CHK btrfs check --repair $_dev
 		done
 	fi
-	debug -d mount -t btrfs ${imopt:+-o} $imopt $_vol $NEWROOT
+	debug -d mount -t btrfs ${rootflags:+-o} $rootflags $_vol $NEWROOT
 	echo "$_env=$_vol" >>/run/env
 	rm -f /run/${0##*/}.pid
 }
 
-[ -n "$iroot" ]   && debug dobtrfs "ROOT" "1" "$iroot"   "$ikroot"
+[ -n "$root"   ] && debug dobtrfs "ROOT" "1" "$root"
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
