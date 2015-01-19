@@ -90,6 +90,16 @@ optional saved state (tarball backup.)
 The later can be used on a tmpfs based device instead of zram, configuration
 edit is required (use zram by default.)
 
+CONTRIBUTORS
+------------
+
+Thanks to:
+
+Federico Zagarzazu (early init script with LUKS/Suspend2 support);
+Jan Matějka aka yaccz for his suggestions (idebug...);
+Simon Buehler for debugging...;
+And others;
+
 GENTOO USERS NOTE
 -----------------
 
