@@ -106,7 +106,7 @@ pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/${opts[-pkg]}/work/${opts[-pk
 
 if (( ${+opts[-minimal]} )) {
 	make allnoconfig || die
-	for cfg ($(< ${opts[-usrdir]:h}/scripts/minimal.config))
+	for cfg ($(< ${0:h}/minimal.config))
         sed -e "s|# ${cfg%'=y'} is not set|${cfg}|" -i .config || die 
 } else {
 	make defconfig || die "defconfig failed" 
