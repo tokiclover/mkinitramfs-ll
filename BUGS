@@ -1,4 +1,4 @@
-Header: mkinitramfs-ll/BUGS, 2014/10/10
+Header: mkinitramfs-ll/BUGS, 2015/01/20
 
 ---
 rescue shell (rsh):
@@ -16,7 +16,7 @@ die (helper):
    die() does not work properly in a script/module (rsh is ignored all together).
    So helper alternative (in LIBDIR/helpers) is available that will properly exit.
 ___
-squashdir-mount.initd:
+squashdir.initd:
     this init service cannot manage mounting in time with newer >=udev-182, so
     some depend() hacks were added, still system directories should listed first
     especially `usr'.
