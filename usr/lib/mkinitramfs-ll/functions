@@ -2,7 +2,7 @@
 # $Header: /lib/mkinitramfs-ll/functions                 Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.3 2015/01/14 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 # @USAGE: <var> <var> <char> <int> <opt>
@@ -277,18 +277,20 @@ stk() {
 # @DESCRIPTION: get BlocK Device (dm|md-raid, dm-crypt, lvm)
 bkd() {
 	debug -d test -n "$1"
-	local _ilvm _iraid _name="$2"
-	debug -d stk "$4"
-
+	local _cut _luks _lvm _raid _name="$2"
 	local _bkd _grp="${3:-1}"
+
 	if [ $_grp -ge 2 ]; then
 		eval set -- $(echo "$1" | sed -e 's/:/ /g')
 		local _typ="$1" _dev="$2" _sig="$3"
+		_cut=-s
 	else
 		local _dev="${1%%:*}"
 	fi
-	[ -n "$iraid" ] && debug arg "_raid" "$iraid" "," "$_grp" "$_cut"
-	[ -n "$ilvm"  ] && debug arg "_lvm" "$ilvm" "," "$_grp" "$_cut"
+	[ -n "$luks" ] && debug arg "_luks" "$luks" "," "$_grp" "$_cut"
+	[ -n "$raid" ] && debug arg "_raid" "$raid" "," "$_grp" "$_cut"
+	[ -n "$lvm"  ] && debug arg "_lvm" "$lvm" "," "$_grp" "$_cut"
+	debug -d stk "$_luks"
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
 	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "_bkd"
 
@@ -438,10 +440,10 @@ mdopen() {
 
 # @DESCRIPTION: (AUFS+SquashFS) squashdir helper
 squashd() {
-	local _squashdir="${isquashd%%:*}" _squashd
+	local _squashdir="${1%%:*}" _squashd
 :	${_squashdir:=aufs}
-	[ "${_squashdir#/}" = "$_squashdir" ] || _dir="${_squashdir#/}"
-	eval set -- $(echo "${isquashd#*:}" | sed -e 's/:/ /g')
+	[ "${_squashdir#/}" = "$_squashdir" ] || _squashdir="${_squashdir#/}"
+	eval set -- $(echo "${1#*:}" | sed -e 's/:/ /g')
 
 	while [ $# -ge 1 ]; do
 		case "$1" in
@@ -483,7 +485,7 @@ fmount() {
 	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
 	[ -f $NEWROOT/etc/fstab ] || die "fmount: no /etc/fstab file found"
 
-	for _x in $imount; do
+	for _x in $@; do
 		_y="$(grep $_x $NEWROOT/etc/fstab)"
 
 		if [ -n "${y}" ]; then
