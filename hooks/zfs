@@ -2,13 +2,13 @@
 # $Header: mkinitramfs-ll/hooks/zfs                      Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.2 2015/01/10 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 set +e +x
 source $LIBDIR/functions || return
 source $LIBDIR/helpers   || return
-[ -n "$izfs" ] || return
+[ -n "$zfs" ] || return
 
 # @FUNCTION: dozfs
 # @DESCRIPTION: import a zfs pool
@@ -20,10 +20,11 @@ dozfs() {
 		debug -d bck $bin
 	done
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"
-	local _env="$1" _grp="$2" _vol="$3" _key="$4" _opt="$5"
+	local _env="$1" _grp="$2" _vol="$3" _KEY _opt="$4"
 
 	local _sign _type _vdev
-	[ -n "$izfs" ] && arg "_vdev" "$izfs" "," "$_grp" "${_opt:+-s}"
+	[ -n "$zfs"  ] && arg "_vdev" "$zfs" "," "$_grp" "${_opt:+-s}"
+	[ -n "$luks" ] && arg "_KEY" "$luks" "," "$_grp" "${_opt:+-s}"
 	[ -n "$_vdev" ] || return
 
 	if [ "$_grp" -ge 2 ]; then
@@ -38,7 +39,7 @@ dozfs() {
 			error "zfs: No $_pool pool found"
 			return
 		fi
-		debug stk "$_key"
+		debug -d stk "$_KEY"
 		[ "$KEYMODE" != "none" ] &&
 		for _dev in $(echo "$_vdev" | sed 's/:/ /g'); do
 			debug -d dmopen "$_dev"
@@ -55,9 +56,9 @@ dozfs() {
 	echo "$_env=${_type:+$_type:}$_vol${_sign:+$_sign}" >> /run/env
 }
 
-[ -n "$iswap" ]   && debug dozfs "SWAP" "2" "$iswap"   "$ikswap"   "-N"
-[ -n "$iresume" ] && debug dozfs "RESU" "3" "$iresume" "$ikresume" "-N"
-[ -n "$iroot" ]   && debug dozfs "ROOT" "1" "$iroot"   "$ikroot"
+[ -n "$swap"   ] && debug dozfs "SWAP" "2" "$swap"   "-N"
+[ -n "$resume" ] && debug dozfs "RESU" "3" "$resume" "-N"
+[ -n "$root"   ] && debug dozfs "ROOT" "1" "$root"
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
