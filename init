@@ -316,7 +316,8 @@ echo >/proc/sys/kernel/hotplug
 msg -i "Switching / ..."
 $SPLD && debug spld_stop
 
-for _dir in /run /sys /dev /dev/pts /proc; do
+umount -l /dev/pts
+for _dir in /run /sys /dev /proc; do
 	[ -f $LOGFILE ] || export LOGFILE=/$0.log
 	if [ "${SYSFS/$_dir}" != "$SYSFS" ]; then
 		mkdir -p $NEWROOT$_dir
