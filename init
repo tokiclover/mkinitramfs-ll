@@ -149,9 +149,9 @@ for arg in $(cat /proc/cmdline); do
 	 esac
 done
 
-if [ -n "$RSL" ]; then
-	RSH="${RSL%:*}"
-	arg "RIL" "$RSL" ":" "2" "-s"
+if [ -n "$level" ]; then
+	RSH="${level%:*}"
+	arg "RIL" "$level" ":" "2" "-s"
 fi
 
 yesno "${env:-YES}"
@@ -245,7 +245,7 @@ lvl 2
 
 for hook in bcache btrfs \
 	zfs zram; do
-	eval test -n \"\$$hook\" && eval 'HOOKS="$hook $HOOKS"'
+	eval test -n \"\$$hook\" && eval HOOKS="$hook $HOOKS"
 done
 export HOOKS="$(echo $HOOKS | sed -e 's/:/ /g')"
 for hook in $HOOKS; do

@@ -293,8 +293,7 @@ bkd() {
 	debug -d stk "$_luks"
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
 	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "_bkd"
-
-	test -n "$KEYMODE" -a "$KEYMODE" != "none" && debug -d dmopen "$_dev" "_bkd"
+	[ -n "$KEYMODE" -a "$KEYMODE" != "none" ] && debug -d dmopen "$_dev" "_bkd"
 	[ "$KEYMODE" =  "none" ] && debug -d blk "$_dev" "_bkd"
 
 	eval ${_name:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
