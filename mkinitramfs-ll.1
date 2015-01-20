@@ -199,20 +199,18 @@ for more info.
 .TP
 .RB zram=[4-2-lzo]:[\fIsize\fR[-\fIFileSystem\fR]]
 .br
-The first part set up zram internal options (see
-.B ZRAM
-).
-The second part set up each device e.g. `4G-ext4' for a 4GB ext4 file system;
+Set optional zram internal options (\fIdevices\fR-\fIstreams\fR-\fIcompressor\fR);
+Followed by device pair e.g. `4G-ext4' for a 4GB ext4 filesystem device.
 Just make sure to have the appropriate binary & symlink in the initramfs.
 .br
 .B ZRAM
-internal options (\fIdevices\fR-\fIstreams\fR-\fIcompressor\fR) can be tweaked
+internal options  can be tweaked
 e.g. `8-4-lz4' would set up 8 devices, 4 streams per device and use lz4 compressor;
 Default options are `4-2-lz4' (e.g. `zram=:4G:4G' setup 2 devices.)
 .TP
 .RB debug=[\fIoption\fR]:[\fIn\fR]
 .br
-First part can be used to set shell options; the second part, an integer, to set
+Set extra init shell options; And/Or
 dmesg console log level e.g. `debug=ax:3' (to enable shell tracing & export
 every variable; and set log level to error.)
 .TP
@@ -269,7 +267,6 @@ to real init.
 .br
 Halt init and drop to a rescue shell at shell run level 1.
 Exit the rescue shell to resume booting.
-(`/run/env' would be sourced, if present, for environment variables.)
 
 A rescue shell is also available in any `read' loop (when a password or a device
 is requested.) Any (case insensitive) `Rsh|Sh|Shell|Rescue' (Enter) may be used
