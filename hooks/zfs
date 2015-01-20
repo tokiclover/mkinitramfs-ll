@@ -49,7 +49,7 @@ dozfs() {
 		zfs mount | grep -q "$_vol" || debug -d zfs mount -vO -a
 	else
 		zfs list  | grep -q "$_vol" || die "zfs: $_vol volume not found"
-		_zvol="/dev/zvol/$_zvol"
+		_vol=/dev/zvol/$_vol
 	fi
 	rm /run/${0##*/}.pid
 	echo "$_env=${_type:+$_type:}$_vol${_sign:+$_sign}" >> /run/env
