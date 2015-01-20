@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/svc/squashdir.initd            Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.15.0 2015/01/01 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 description="Manage (AUFS+SquashFS) squashed directories"
@@ -71,7 +71,7 @@ stop_pre()
 {
 	[ -n "${squash_rebuild_dir}" ] || return 0
 	local IFS="${IFS}:"
-:	${sdr:=$(which sdr)}
+:	${sdr:=$(type -p sdr)}
 
 	if test -n "${sdr}" -a -x "${sdr}"; then
 		ebegin "Rebuilding ${squash_rebuild_dir} squashed directories"
@@ -85,7 +85,7 @@ stop_pre()
 squash_mount()
 {
 	local base="${1}/${dir#/}" ret
-	local dir="/${dir#/}"
+	dir=/${dir#/}
 
 	grep -q "aufs:${dir}" /proc/mounts && return
 	if ! grep -q "${base}.squashfs" /proc/mounts; then 
@@ -104,6 +104,7 @@ squash_mount()
 squash_umount()
 {
 	local base="${1}/${dir#/}" no_netdev
+	dir=/${dir#/}
 	[ "${RC_UNAME}" = "Linux" ] && no_netdev="-O no_netdev"
 
 	auplink "${dir}" flush
@@ -121,6 +122,7 @@ squash_umount()
 squash_remount()
 {
 	local opt="${2:-ro}"
+	dir=/${dir#/}
 	ebegin "Re-Mounting aufs:${dir} in ${opt} mode"
 	mount -o "remount,${opt}" "aufs:${dir}" 1>/dev/null 2>&1
 	eend "${?}"
