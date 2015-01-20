@@ -172,6 +172,7 @@ while read _line; do
 		([a-zA-Z]*) [ "${ienv/:${_line%%=*}}" = "$ienv" ] && export "$_line"   ;;
 	esac
 done < $CONFDIR/env
+$ECK && debug ack
 
 [ -n "$DEBUG" ]  && set -${DEBUG/e/}
 [ -n "$DMESG" ]  && debug dmesg -n $DMESG
@@ -179,18 +180,14 @@ unset DEBUG DMESG
 
 debug -d mount -t sysfs sysfs /sys
 debug -d mount -t tmpfs -o mode=755 tmpfs /run
-debug -d mkdir -p /run/log
-
+mv -f $LOGFILE /run && export LOGFILE=/run$LOGFILE
 debug umask 0077
-debug mv -f $LOGFILE /run/log && export LOGFILE=/run/log/$LOGFILE
-$ECK && debug ack
 
 if grep -q devtmpfs /proc/filesystems; then
 	debug -d mount -t devtmpfs devtmpfs /dev
 else
 	debug -d mount -t tmpfs -o mode=755 tmpfs /dev
 fi
-
 debug mkdir /dev/pts
 debug mount -t devpts -o gid=5,mode=0620 devpts /dev/pts
 
