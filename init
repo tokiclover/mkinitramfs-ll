@@ -163,7 +163,7 @@ while read _line; do
 	case "${_line%%=*}" in
 		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RIL|PATH|RSH|SPLD|sh)
 			:;;
-		([a-zA-Z]*) [ "${env/:${_line%%=*}}" = "$env" ] && export "$_line" ;;
+		([a-zA-Z]*) [ "${env/:${_line%%=*}:}" = "$env" ] && export "$_line" ;;
 	esac
 done < $CONFDIR/env
 $ECK && debug ack
