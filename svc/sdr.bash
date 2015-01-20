@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/svc/sdr.bash                   Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.0 2015/01/01 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 shopt -qs extglob
@@ -15,7 +15,6 @@ PKG=(
 	[version]=0.16.0
 )
 
-# @FUNCTION: usage
 # @DESCRIPTION: print usages message
 function usage {
   cat <<-EOH
@@ -36,14 +35,11 @@ function usage {
 EOH
 exit $?
 }
-
 (( $# == 0 )) && usage
 
-# @VARIABLE: opts [associative array]
 # @DESCRIPTION: declare if not declared while arsing options,
 # hold almost every single option/variable
 declare -A opts
-
 declare -a opt
 opt=(
 	"-o" "?b:c:d:o:nhruq:X:x::"
@@ -94,17 +90,14 @@ for (( ; $# > 0; )); do
 	esac
 done
 
-# @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
 function info {
 	echo -ne " \e[1;32m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n"
 }
-# @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
 function error {
 	echo -ne " \e[1;31m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n"
 }
-# @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
 function die {
 	local ret=$?
@@ -112,31 +105,23 @@ function die {
 	return $ret
 }
 
-# @VARIABLE: opts[-arc]
 # @DESCRIPTION: LONG_BIT, word length, supported
 opts[-arc]=$(getconf LONG_BIT)
-# @VARIABLE: opts[-root]
 # @DESCRIPTION: root of squashed dir
 [[ "${opts[-root]}" ]] || opts[-root]=/aufs
 [[ "${opts[-root]#/}" == "${opts[-root]}" ]] && opts[-root]="/${opts[-root]}"
-# @VARIABLE: opts[-bsize]
 # @DESCRIPTION: Block SIZE of squashfs underlying filesystem block
 [[ "${opts[-bsize]}" ]] || opts[-bsize]=131072
-# @VARIABLE: opts[-busybox]
 # @DESCRIPTION: full path to a static busysbox binary needed for updtating 
 # system wide dir
 [[ "${opts[-busybox]}" ]] || opts[-busybox]="$(type -p busybox)"
-# @VARIABLE: opts[-comp]
 # @DESCRIPTION: COMPression command with optional option
 [[ "${opts[-comp]}" ]] || opts[-comp]="lzo -Xcompression-level 1"
-# @VARIABLE: opts[-exclude]
 # @DESCRIPTION: colon separated list of excluded dir
 [[ "${opts[-exclude]}" ]] && opts[-exclude]="-wildcards -regex -e ${opts[-exclude]//:/ }"
-# @VARIABLE: opts[-offset]
 # @DESCRIPTION: offset or rw/rr or ro branch ratio
 [[ "${opts[-offset]}" ]] || opts[-offset]=10
 
-# @FUNCTION: squash-mount
 # @DESCRIPTION: mount squashed dir
 function squash-mount {
 	if [[ "${dir}" == *(s)bin || "${dir}" == *lib*(32|64) ]]; then
@@ -157,11 +142,9 @@ function squash-mount {
 		auplink ${dir} flush
 		${umount} -l aufs:${dir} || die "failed to umount aufs:${dir}"
 	fi
-
 	if ${grep} -q ${base}/rr /proc/mounts; then
 		${umount} -l ${base}/rr || die "failed to umount ${base}.squashfs"
 	fi
-
 	${rm} "${base}"/rw/* || die "failed to clean up ${base}/rw"
 
 	[[ -e ${base}.squashfs ]] && [[ -e ${base}.tmp.squashfs ]] &&
@@ -184,16 +167,12 @@ function squash-mount {
 	fi
 }
 
-# @FUNCTION: squash-dir
 # @DESCRIPTION: squash dir
 function squash-dir {
 	mkdir -p -m 0755 "${base}"/{rr,rw} || die "failed to create ${base}/{rr,rw} dirs"
-
 	mksquashfs ${dir} ${base}.tmp.squashfs -b ${opts[-bsize]} -comp ${opts[-comp]} \
 		${opts[-exclude]} || die "failed to build ${dir}.squashfs img"
-
 	[[ "${opts[-mount]}" ]] || squash-mount
-
 	echo ">>> ${0##*/}: ...sucessfully build squashed"
 }
 
@@ -210,8 +189,8 @@ grep -q squashfs /proc/filesystems ||
 	die "failed to initialize squashfs kernel module, exiting"
 
 for dir in ${opts[-dir]//:/ }; do
-	[[ "${dir#/}" == "${dir}" ]] && dir="/${dir}"
 	base="${opts[-root]}${dir}"
+	dir="/${dir#/}"
 
 	if [[ -e ${base}.squashfs ]]; then
 		if (( ${opts[-offset]} != 0 )); then
