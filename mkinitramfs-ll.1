@@ -254,6 +254,12 @@ command line argument, along with
 .RB console|CONSOLE
 e.g. `CONSOLE=tty1', are supported for fbsplash.
 .TP
+.RB env=No|:\fIVAR\fR:\fIVAR\fR:
+.br
+Disable default `env' environment variables; Or disable only appended colon
+separated list e.g. `env=:root:init:' to disable `root' & `init' default.
+NOTE: The list start & end with a colon!
+.TP
 .RB level=[\fIlevel\fR][:\fIrunlevel\fR]
 .br
 Set
