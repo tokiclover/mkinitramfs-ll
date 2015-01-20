@@ -96,7 +96,7 @@ CONTRIBUTORS
 Thanks to:
 
 Federico Zagarzazu (early init script with LUKS/Suspend2 support);
-Jan Matějka aka yaccz for his suggestions (idebug...);
+Jan Matějka aka yaccz for his suggestions (debug...);
 Simon Buehler for debugging...;
 And others;
 
