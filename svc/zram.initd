@@ -1,9 +1,9 @@
 #!/sbin/runscript
 #
 # $Header: mkinitramfs-ll/svc/zram.initd                 Exp $
-# $Author: (c) 2011-2014 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.15.1 2014/12/31 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 configfile=/etc/conf.d/${RC_SVCNAME}
@@ -52,7 +52,6 @@ start()
 		fi
 		num=$(($num + 1))
 	done
-
 	return 0
 }
 
@@ -112,7 +111,7 @@ stop()
 			eend "$?"
 		else
 			case "$mtpt" in
-				(*/run|/tmp) continue;;
+				(*/run|/tmp) :;;
 				(*)
 					ebegin "Unmounting $mtpt"
 					umount -l "$mtpt" > /dev/null 2>&1
