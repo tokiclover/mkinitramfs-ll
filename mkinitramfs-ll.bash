@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.3 2015/01/14 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 typeset -A PKG
@@ -13,7 +13,6 @@ PKG=(
 	[version]=0.16.0
 )
 
-# @FUNCTION: usage
 # @DESCRIPTION: print usages message
 function usage {
   cat <<-EOH
@@ -51,22 +50,18 @@ EOH
 exit $?
 }
 
-# @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
 function error {
 	echo -ne " \e[1;31m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n" >&2
 }
-# @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
 function info {
 	echo -ne " \e[1;32m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n"
 }
-# @FUNCTION: warn
 # @DESCRIPTION: print warning message to stdout
 function warn {
 	echo -ne " \e[1;33m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n" >&2
 }
-# @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
 function die {
 	local ret=$?
@@ -74,7 +69,6 @@ function die {
 	exit $ret
 }
 
-# @FUNCTION: mktmp
 # @DESCRIPTION: make tmp dir or file in ${TMPDIR:-/tmp}
 # @ARG: -d|-f [-m <mode>] [-o <owner[:group]>] [-g <group>] TEMPLATE
 function mktmp {
@@ -83,7 +77,6 @@ function mktmp {
 	echo "$tmp"
 }
 
-# @FUNCTION: donod
 # @DESCRIPTION: add the essential nodes to be able to boot
 function donod {
 	pushd dev || die
@@ -102,7 +95,6 @@ function donod {
 }
 
 shopt -qs extglob nullglob
-
 declare -a opt
 opt=(
 	"-o" "ab:c::f::F::gk::lH:KLm::p::qrs::thu::y::?"
@@ -116,7 +108,6 @@ opt=(
 opt=($(getopt "${opt[@]}" -- "$@" || usage))
 eval set -- "${opt[@]}"
 
-# @VARIABLE: opts [associative array]
 # @DESCRIPTION: declare if not declared while arsing options,
 # hold almost every single option/variable
 declare -A opts
@@ -172,41 +163,33 @@ done
 	source "${PKG[name]}".conf ||
 	die "no ${PKG[name]}.conf found"
 
-# @VARIABLE: opts[-kv]
 # @DESCRIPTION: kernel version to pick up
 if [[ -z "${opts[-kv]}" ]]; then
 	[[ "${opts[-k]}" ]] && opts[-kv]="${opts[-k]}" || opts[-kv]="$(uname -r)"
 fi
-# @VARIABLE: opts[-prefix]
 # @DESCRIPTION: initramfs prefx name <$prefix-$kv.$ext>
 if [[ -z "${opts[-prefix]}" ]]; then
 	[[ "${opts[-p]}" ]] && opts[-prefix]="${opts[-p]}" ||
 		opts[-prefix]=initramfs-
 fi
-# @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path, to get extra files
 if [[ -z "${opts[-usrdir]}" ]]; then
 	[[ "${opts[-u]}" ]] && opts[-usrdir]="${opts[-u]}" ||
 		opts[-usrdir]="${PWD}"/usr
 fi
-# @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
 opts[-initramfs]=${opts[-prefix]}${opts[-kv]}
 if [[ -z "${opts[-compressor]}" ]]; then
 	[[ "${opts[-c]}" ]] && opts[-compressor]="${opts[-c]}" ||
 		opts[-compressor]="xz -9 --check=crc32"
 fi
-# @VARIABLE: opts[-arch]
 # @DESCRIPTION: kernel architecture
 [[ "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
-# @VARIABLE: opts[-arc]
 # @DESCRIPTION: kernel bit lenght supported
 [[ "${opts[-arc]}" ]] || opts[-arc]=$(getconf LONG_BIT)
-# @VARIABLE: opts[-tmpdir]
 # @DESCRIPTION: tmp dir where to generate initramfs
 # an initramfs compressed image
 opts[-tmpdir]="$(mktmp ${opts[-initramfs]})"
-# @VARIABLE: opts[-confdir]
 # @DESCRIPTION: configuration directory
 opts[-confdir]="etc/${PKG[name]}"
 
@@ -224,7 +207,6 @@ if [[ "${opts[-compressor]}" ]] && [[ "${opts[-compressor]}" != "none" ]]; then
 		warn "no kernel config file found"
 	fi
 fi
-
 if [[ "${config}" ]]; then
 	COMP="${opts[-compressor]%% *}"
 	CONFIG=CONFIG_RD_${COMP^^[a-z]}
@@ -245,7 +227,6 @@ if [[ "${config}" ]]; then
 	unset config xgrep CONFIG COMP compressor
 fi
 
-# @FUNCTION: docpio
 # @DESCRIPTION: generate an initramfs image
 function docpio {
 	local ext=.cpio initramfs=${1:-/boot/${opts[-initramfs]}}
@@ -386,11 +367,9 @@ done
 if [[ "${opts[-L]}" ]] || [[ "${opts[-luks]}" ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 fi
-
 if [[ "${opts[-q]}" ]] || [[ "${opts[-squashd]}" ]]; then
 	opts[-bin]+=:umount.aufs:mount.aufs opts[-mgrp]+=:squashd
 fi
-
 if [[ "${opts[-g]}" ]] || [[ "${opts[-gpg]}" ]]; then
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]]; then :;
@@ -400,12 +379,10 @@ if [[ "${opts[-g]}" ]] || [[ "${opts[-gpg]}" ]]; then
 		die "there is no usable gpg/gnupg-1.4.x binary"
 	fi
 fi
-
 if [[ "${opts[-l]}" ]] || [[ "${opts[-lvm]}" ]]; then
 	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
 fi
 
-# @FUNCTION: domod
 # @DESCRIPTION: copy kernel module
 function domod {
 	case $1 in
@@ -491,7 +468,6 @@ if [[ "${opts[-s]}" ]] || [[ "${opts[-splash]}" ]]; then
 	done
 fi
 
-# @FUNCTION: docp
 # @DESCRIPTION: follow and copy link until binary/library is copied
 function docp {
 	local link=${1} prefix
@@ -508,8 +484,6 @@ function docp {
 	done
 	return 0
 }
-
-# @FUNCTION: dobin
 # @DESCRIPTION: copy binary with libraries if not static
 function dobin {
 	local bin=$1 lib
@@ -561,11 +535,8 @@ for lib in $(find usr/lib/gcc -iname 'lib*'); do
 done
 
 docpio || die
-
 [[ "${opts[-K]}" ]] || [[ "${opts[-keep-tmpdir]}" ]] || rm -rf ${opts[-dir]}
-
 echo ">>> ${opts[-initramfs]} initramfs built"
-
 unset -v comp opt opts PKG
 
 #

@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.3 2015/01/14 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 typeset -A PKG
@@ -13,7 +13,6 @@ PKG=(
 	version 0.16.0
 )
 
-# @FUNCTION: usage
 # @DESCRIPTION: print usages message
 function usage {
   cat <<-EOF
@@ -51,22 +50,18 @@ EOF
 exit $?
 }
 
-# @FUNCTION: error
 # @DESCRIPTION: print error message to stdout
 function error {
 	print -P " %B%F{red}*%b %1x: %F{yellow}%U%I%u%f: $@" >&2
 }
-# @FUNCTION: info
 # @DESCRIPTION: print info message to stdout
 function info {
 	print -P " %B%F{green}*%b%f %1x: $@"
 }
-# @FUNCTION: warn
 # @DESCRIPTION: print warning message to stdout
 function warn {
 	print -P " %B%F{red}*%b%f %1x: $@" >&2
 }
-# @FUNCTION: die
 # @DESCRIPTION: call error() to print error message before exiting
 function die {
 	local ret=$?
@@ -74,7 +69,6 @@ function die {
 	exit $ret
 }
 
-# @FUNCTION: mktmp
 # @DESCRIPTION: make tmp dir or file in ${TMPDIR:-/tmp}
 # @ARG: TEMPLATE
 function mktmp {
@@ -83,7 +77,6 @@ function mktmp {
 	print "$tmp"
 }
 
-# @FUNCTION: donod
 # @DESCRIPTION: add the essential nodes to be able to boot
 function donod {
 	pushd dev || die
@@ -104,11 +97,9 @@ function donod {
 setopt EXTENDED_GLOB NULL_GLOB
 unsetopt KSH_ARRAYS
 
-# @VARIABLE: opts [associative array]
 # @DESCRIPTION: declare if not declared while arsing options,
 # hold almost every single option/variable
 typeset -A opts
-
 typeset -a opt
 opt=(
 	"-o" "ab:c::f::F::gk::lH:KLm::p::qrs::thu::y::?"
@@ -144,7 +135,6 @@ if (( ${+opts[-a]} )) || (( ${+opts[-all]} )) {
 	opts[-toi]= opts[-luks]= opts[-keymap]+=:
 	opts[-hook]+=:btrfs:zfs:zram
 }
-
 if (( ${+opts[-y]} )) || (( ${+opts[-keymap]} )) &&
 	[[ ${opts[-keymap]:-$opts[-y]} == ":" ]] {
 	if [[ -e /etc/conf.d/keymaps ]] {
@@ -154,7 +144,6 @@ if (( ${+opts[-y]} )) || (( ${+opts[-keymap]} )) &&
 		warn "no console keymap found"
 	}
 }
-
 if (( ${+opts[-f]} )) || (( ${+opts[-font]} )) &&
 	[[ ${opts[-font]:-$opts[-f]} == ":" ]] {
 	if [[ -e /etc/conf.d/consolefont ]] {
@@ -164,39 +153,29 @@ if (( ${+opts[-f]} )) || (( ${+opts[-font]} )) &&
 		warn "no console font found"
 	}
 }
-
 if [[ -f "${PKG[name]}".conf ]] {
 	source "${PKG[name]}".conf 
 } else {
 	die "no ${PKG[name]}.conf found"
 }
 
-# @VARIABLE: opts[-kv]
 # @DESCRIPTION: kernel version to pick up
 :	${opts[-kv]:=${opts[-k]:-$(uname -r)}}
-# @VARIABLE: opts[-prefix]
 # @DESCRIPTION: initramfs prefx name <$prefix-$kv.$ext>
 :	${opts[-prefix]:=${opts[-p]:-initramfs-}}
-# @VARIABLE: opts[-usrdir]
 # @DESCRIPTION: usr dir path, to get extra files
 :	${opts[-usrdir]:=${opts[-u]:-"${PWD}"/usr}}
-# @VARIABLE: opts[-compressor]
 # @DESCRIPTION: compression command
 :	${opts[-compressor]:=${opts[-c]:-xz -9 --check=crc32}}
-# @VARIABLE: opts[-initrmafs]
 # @DESCRIPTION: full to initramfs compressed image
 :	${opts[-initramfs]:=${opts[-prefix]}${opts[-kv]}}
-# @VARIABLE: opts[-arch]
 # @DESCRIPTION: kernel architecture
 :	${opts[-arch]:=$(uname -m)}
-# @VARIABLE: opts[-arc]
 # @DESCRIPTION: kernel bit lenght supported
 :	${opts[-arc]:=$(getconf LONG_BIT)}
-# @VARIABLE: opts[-tmpdir]
 # @DESCRIPTION: tmp dir where to generate initramfs
 # an initramfs compressed image
 :	${opts[-tmpdir]:=$(mktmp ${opts[-initramfs]:t})}
-# @VARIABLE: opts[-confdir]
 # @DESCRIPTION: configuration directory
 :	${opts[-confdir]=etc/${PKG[name]}}
 
@@ -212,7 +191,6 @@ if (( ${+opts[-compressor]} )) && [[ ${opts[-compressor]} != "none" ]] {
 		xgrep=${commands[zgrep]}
 	} else { warn "no kernel config file found" }
 }
-
 if (( ${+config} )) {
 	CONFIG=CONFIG_RD_${${opts[-compressor][(w)1]}:u}
 	if ! ${=xgrep} -q "^${CONFIG}=y" ${config}; then
@@ -231,7 +209,6 @@ if (( ${+config} )) {
 	unset config xgrep CONFIG comp compressor
 }
 
-# @FUNCTION: docpio
 # @DESCRIPTION: generate an initramfs image
 function docpio {
 	local ext=.cpio initramfs=${1:-/boot/${opts[-initramfs]}}
@@ -360,7 +337,6 @@ for bin ($(grep '^sbin' ${opts[-confdir]}/busybox.applets))
 if (( ${+opts[-L]} )) || (( ${+opts[-luks]} )) {
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 }
-
 if (( ${+opts[-g]} )) || (( ${+opts[-gpg]} )) {
 	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]] { :;
@@ -368,16 +344,13 @@ if (( ${+opts[-g]} )) || (( ${+opts[-gpg]} )) {
 		opts[-bin]+=:${commands[gpg]}
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
 }
-
 if (( ${+opts[-l]} )) || (( ${+opts[-lvm]} )) {
 	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
 }
-
 if (( ${+opts[-q]} )) || (( ${+opts[-squashd]} )) {
 	opts[-bin]+=:mount.aufs:umount.aufs opts[-mgrp]+=:squashd
 }
 
-# @FUNCTION: domod
 # @DESCRIPTION: copy kernel module
 function domod {
 	case $1 in
@@ -459,7 +432,6 @@ if (( ${+$opts[-s]} )) || (( ${+opts[-splash]} )) {
 		} else { warn "splash themes does not exist" }
 }
 
-# @FUNCTION: docp
 # @DESCRIPTION: follow and copy link until binary/library is copied
 function docp {
 	local link=${1} prefix
@@ -477,7 +449,6 @@ function docp {
 	return 0
 }
 
-# @FUNCTION: dobin
 # @DESCRIPTION: copy binary with libraries if not static
 function dobin {
 	local bin=$1 lib
@@ -519,11 +490,8 @@ for lib (usr/lib/gcc/**/lib*.so*(.N)) {
 }
 
 docpio || die
-
 print -P "%F{green}>>> ${opts[-initramfs]} initramfs built%f"
-
 (( ${+opts[-K]} )) || (( ${+opts[-keep-tmpdir]} )) || rm -rf ${opts[-tmpdir]}
-
 unset comp opts PKG
 
 #
