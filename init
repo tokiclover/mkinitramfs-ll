@@ -66,7 +66,6 @@ spld() {
 	event="$(grep -Hsi keyboard /sys/class/input/input*/name | \
 		sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"
 :	${cachedir:=/run/splash/cache}
-:	${util=$(which splash_util)}
 :	${BOOT_MSG:="Booting the system (\$progress%)... Press F2 for verbose mode."}
 :	${SPLASH_FIFO=$cachedir/.splash}
 	export BOOT_MSG SPLASH_FIFO
@@ -82,7 +81,7 @@ spld() {
 
 	[ -d "$cachedir" ] || mkdir -p $cachedir
 	debug mkfifo $SPLASH_FIFO
-	debug $util -d -ms -t $theme && SPLD=true
+	debug splash_util -d -ms -t $theme && SPLD=true
 	[ -n "$_opts" ] && debug spld_cmd $_opts
 	debug spld_cmd "set event dev /dev/input/$event"
 	debug spld_cmd "set autoverbose 0"
@@ -99,14 +98,13 @@ resume() {
 		if $SPLD; then
 			[ -n "$theme" ] &&
 			debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
-			_hpr="$(which tuxoniceui_fbsplash)"
+			_hpr="$(type -p tuxoniceui_fbsplash)"
 		else
-			_hpr="$(which tuxoniceui_text)"
+			_hpr="$(type -p tuxoniceui_text)"
 		fi
 		$ECK && debug -d bck $_hpr
-		echo $_hpr >/sys/power/tuxonice/user_interface/program
-		
 		debug _modprobe tuxonice
+		echo $_hpr >/sys/power/tuxonice/user_interface/program
 		echo $_dev >/sys/power/tuxonice/resume
 
 		read _img </sys/power/tuxonice/image_exists
@@ -121,7 +119,7 @@ resume() {
 		echo disk >/sys/power/state
 
 		local _node=${_dev#*:}
-		[ "${_node/mapper}" = "$_node" ] || _node=$(readlink $_node)
+		[ -h "$_node" ] && _node=$(readlink $_node)
 		read _node  </sys/class/block/${_node#*/}/dev
 		echo $_node >/sys/power/resume
 
@@ -319,7 +317,7 @@ $SPLD && debug spld_stop
 umount -l /dev/pts
 for _dir in /run /sys /dev /proc; do
 	[ -f $LOGFILE ] || export LOGFILE=/$0.log
-	if [ "${SYSFS/$_dir}" != "$SYSFS" ]; then
+	if [ "${SYSFS/${_dir#/}}" != "$SYSFS" ]; then
 		mkdir -p $NEWROOT$_dir
 		debug -d mount -M $_dir $NEWROOT$_dir
 	else
