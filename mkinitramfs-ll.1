@@ -488,31 +488,36 @@ Root & swap(LVM/LUKS)--ldk crypted keyfile--& rootfs mount options
 .SH ENVIRONMENTS
 .TP
 .B SYSFS
-system file system to keep mounted e.g. `SYSFS=/dev:/sys:/proc'
+.br
+Filesystem to keep mounted e.g. `SYSFS=/dev:/sys:/proc'
 .TP
 .B INTERNAL
 Other Environment Variables are defined internaly in
 .B init.
 .SH FILES
 .TP
-.I /etc/mkinitramfs-ll/
-.nf
+.RB /etc/mkinitramfs-ll/
+.br
 busybox.applets
   BusyBox applets list
+.br
 env
   Environment Variables file (kernel command line less is possible)
+.br
 font
   Default console font
+.br
 id
   ID of the build script
+.br
 kmap
   Deafult keymap
+.br
 KERNEL-MODULE-GROUPS
-  Optional kernel module group (used if present)
-  The following supported groups are auto generated (build script)
-.fi
-.TP
-  \fBKERNEL-MODULE-GROUPS\fR
+  Optional kernel module group; Refer to the following (supported) auto generated groups.
+.br
+
+.B KERNEL-MODULE-GROUPS:\ \c
 .RB [\| bcache \|]\ \c
 .RB [\| boot \|]\ \c
 .RB [\| btrfs \|]\ \c
@@ -520,7 +525,6 @@ KERNEL-MODULE-GROUPS
 .RB [\| dm-crypt \|]\ \c
 .RB [\| dm-raid \|]\ \c
 .RB [\| gpg \|]\ \c
-.RB [\| kms \|]\ \c
 .RB [\| raid \|]\ \c
 .RB [\| remdev \|]\ \c
 .RB [\| squashd \|]\ \c
@@ -528,54 +532,52 @@ KERNEL-MODULE-GROUPS
 .RB [\| tuxonice \]\ \c
 .RB [\| zfs \|]\ \c
 .RB [\| zram \|]
-.br
 .TP
-.I /etc/mdev.conf
+.RB /etc/mdev.conf
 mdev 
 .IR configuration
-file which should use
-.IR uid:gid
-instead of
-.IR user:group
-to avoid buggy parsings.
+file which should (BUG: use uid:gid instead of user:group, see BUGS.)
 .TP
-.I /etc/group
-Group list in order to get meaningfull user:group instead of uid:gid
+.RB /etc/group
+Group/gid list (usefull to get user:group instead of uid:gid)
 .TP
-.I /etc/modprobe.d/zfs.conf
+.RB /etc/modprobe.d/zfs.conf
 ZFS configuration file to set arc to a reasonable value
 .TP
-.I /lib/mkinitramfs-ll/
-.nf
+.RB /lib/mkinitramfs-ll/
+.br
 functions
+.br
 helpers
+.br
+HOOKS/SCRIPTS
+  Optional (user) script are supported; Refer to the following supported list.
+
 .B HOOKS: \c
 .RB [\| bcache \|]\ \c
 .RB [\| btrfs \|]\ \c
 .RB [\| zfs \|]\ \c
 .RB [\| zram \|]
   Supported hooks used when the appropriate kernel cmdline is present
+.br
 .B SCRIPTS: \c
 .RB [\| mkswap-zfs \|]\ \c
-.RB [\| undo-bcache \|]\ \c
+.RB [\| undo-bcache \|]
 .br
-  Optional scripts
-  Some usefull scripts which can be executed in the rescue shell with something
-  like `$sh $LIBDIR/\fIscript\fR \fIARGS\fR'.
+  Use this syntax `$sh $LIBDIR/\fIscript\fR \fIARGS\fR' to execute a script in the rescue shell;
   (sh/LIBDIR are defined, just append the appropriate arguments.)
-.fi
 .TP
-.I /lib/mdev/
-.nf
+.RB /lib/mdev/
+.br
 dm_link
+.br
 SCRIPTS
   Extra mdev scripts are supported
-.fi
 .TP 
-.I /usr/share/consolefonts
+.RB /usr/share/consolefonts
 console fonts directory used to search and load font
 .TP
-.I /usr/share/keymaps
+.RB /usr/share/keymaps
 key map directory used to search and load keymap
 .SH "SEE ALSO"
 .BR mkinitramfs-ll (8)
