@@ -1,4 +1,4 @@
-Header: mkinitramfs-ll/README.md,v 0.16.2 2015/01/10 Exp
+Header: mkinitramfs-ll/README.md,v 0.18.0 2015/01/20 Exp
 
 > A lightweight, modular and yet powerfull initramfs generating tool
 with RAID (ATA RAID & SOFTWARE RAID), dm-crypt LUKS, LVM(2), BTRFS, ZFS,
@@ -31,7 +31,7 @@ app-crypt/gnupg-1.4.x is mandatory for GnuPG support (a binary along with
 its options.skel file is required.)
 
 And then run `mkinitramfs-ll.$SHELL -a -f$FONT -y$LINGUAS` to build an initramfs.
-The appended font and keymap will be the default if there is no *ikmap* kernel
+The appended font and keymap will be the default if there is no *keymap* kernel
 cmdline argument.
 
 Of course, one can append extra fonts and keymaps with `-f:ter-g12n -y:fr-latin1`
