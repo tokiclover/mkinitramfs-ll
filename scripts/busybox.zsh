@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/busybox.zsh                    Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.0 2015/01/01 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 typeset -A PKG
@@ -13,8 +13,7 @@ PKG=(
 	version 0.16.0
 )
 
-# @FUNCTION: usage
-# @DESCRIPTION: print usages message
+# @FUNCTION: Print help message
 function usage {
   cat <<-EOH
   ${PKG[name]}.${PKG[shell]} version ${PKG[version]}
@@ -29,13 +28,11 @@ EOH
 exit $?
 }
 
-# @FUNCTION: error
-# @DESCRIPTION: print error message to stdout
+# @FUNCTION: Print error message to stdout
 function error {
 	print -P " %B%F{red}*%b %1x: %F{yellow}%U%I%u%f: $@" >&2
 }
-# @FUNCTION: die
-# @DESCRIPTION: call error() to print error message before exiting
+# @FUNCPTION: Fatal error heler
 function die {
 	local ret=$?
 	error $@
@@ -52,7 +49,6 @@ opt=(
 )
 opt=($(getopt ${opt} -- ${argv} || usage))
 eval set -- ${opt}
-
 for (( ; $# > 0; ))
 	case $1 {
 		(-n|--minimal)
@@ -80,14 +76,8 @@ if [[ -f /etc/portage/make.conf ]] {
 	die "no /etc/portage/make.conf found"
 }
 
-# @VARIABLE: opts[-usrdir]
-# @DESCRIPTION: usr dir path where to get extra files
+# @VARIABLE: USRDIR path to use
 :	${opts[-usrdir]:=${opts[-d]:-"${PWD}"/usr}}
-# @VARIABLE: opts[-version] | opts[-v]
-# @DESCRIPTION: GnuPG version to build
-#
-# @VARIABLE: opts[-pkg]
-# @DESCRIPTION: busybox package to build
 opts[-pkg]=busybox
 
 if (( ${+opts[-version]} )) {
@@ -97,9 +87,7 @@ if (( ${+opts[-version]} )) {
 }
 
 mkdir -p ${opts[-usrdir]}/bin
-
 pushd ${PORTDIR:-/usr/portage}/sys-apps/busybox || die
-
 ebuild ${opts[-pkg]}.ebuild clean || die "clean failed"
 ebuild ${opts[-pkg]}.ebuild unpack || die "unpack failed"
 pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/sys-apps/${opts[-pkg]}/work/${opts[-pkg]} || die
@@ -114,7 +102,6 @@ if (( ${+opts[-minimal]} )) {
 		-e "s|# CONFIG_INSTALL_NO_USR is not set|CONFIG_INSTALL_NO_USR=y|" \
 		-i .config || die
 }
-
 if (( ${+opts[-abi]} )) {
 	sed -e "s|CONFIG_CROSS_COMPILER_PREFIX=\"\"|CONFIG_CROSS_COMPILER_PREFIX=\"${opts[-abi]}\"|" \
 	-i .config || die "setting uClib ARCH failed"
@@ -123,9 +110,7 @@ if (( ${+opts[-abi]} )) {
 make || die "failed to build busybox"
 cp -a busybox ${opts[-usrdir]}/bin || die
 popd || die
-
 ebuild ${opts[-pkg]}.ebuild clean || die
-
 unset opts PKG
 
 #
