@@ -255,7 +255,7 @@ function docpio {
 echo ">>> building ${opts[-initramfs]}..."
 pushd "${opts[-tmpdir]}" || die "${opts[-tmpdir]} not found"
 
-if [[ "${opts[-r]}" ]] || [[ "${opts[-regen]}" ]]; then
+if [[ "${opts[-r]}" ]] || [[ "${opts[-rebuild]}" ]]; then
 	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio || die
@@ -290,7 +290,6 @@ done
 touch etc/{fs,m}tab
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
-
 KV=(${opts[-kv]//./ })
 if [[ "${KV[0]}" -eq 3 && "${KV[1]}" -ge 1 ]]; then
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
@@ -360,7 +359,6 @@ for bin in $(< ${opts[-usrdir]}/../scripts/minimal.applets); do
 	grep -q ${bin} ${opts[-confdir]}/busybox.applets ||
 	die "${bin} applet not found, no suitable busybox found"
 done
-
 for bin in $(grep  '^bin' ${opts[-confdir]}/busybox.applets); do
 	ln -s busybox ${bin}
 done
@@ -376,7 +374,6 @@ if [[ "${opts[-q]}" ]] || [[ "${opts[-squashd]}" ]]; then
 	opts[-bin]+=:umount.aufs:mount.aufs opts[-mgrp]+=:squashd
 fi
 if [[ "${opts[-g]}" ]] || [[ "${opts[-gpg]}" ]]; then
-	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]]; then :;
 	elif [[ "$(gpg --version | sed -nre '/^gpg/s/.* ([0-9]{1})\..*$/\1/p')" -eq 1 ]]; then
 		opts[-bin]+=:$(type -p gpg)
@@ -426,7 +423,7 @@ function domod {
 declare -a FONT KEYMAP
 for keymap in ${opts[-y]//:/ } ${opts[-keymap]//:/ }; do
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]]; then
-		continue
+		:;
 	elif [[ -f "${keymap}" ]]; then
 		cp -a "${keymap}" usr/share/keymaps/
 	else 
@@ -459,9 +456,9 @@ unset FONT font KEYMAP keymap
 if [[ "${opts[-s]}" ]] || [[ "${opts[-splash]}" ]]; then
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
 	
-	[[ "${opts[-toi]}" ]] &&
+	if [[ "${opts[-t]}" ]] || [[ "${opts[-toi]}" ]]; then
 		opts[-bin]+=:tuxoniceui_text && opts[-kmodule]+=:tuxonice
-	
+	fi
 	for theme in ${opts[-splash]//:/ }; do 
 		if [[ -d etc/splash/${theme} ]]; then :; 
 		elif [[ -d /etc/splash/${theme} ]]; then

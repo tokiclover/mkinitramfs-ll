@@ -343,7 +343,6 @@ if (( ${+opts[-L]} )) || (( ${+opts[-luks]} )) {
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 }
 if (( ${+opts[-g]} )) || (( ${+opts[-gpg]} )) {
-	opts[-mgrp]+=:gpg
 	if [[ -x usr/bin/gpg ]] { :;
 	} elif [[ $(gpg --version | sed -nre '/^gpg/s/.* ([0-9]{1})\..*$/\1/p') -eq 1 ]] {
 		opts[-bin]+=:${commands[gpg]}
@@ -435,7 +434,7 @@ if (( ${+$opts[-s]} )) || (( ${+opts[-splash]} )) {
 			cp -ar {/,}etc/splash/${theme}
 		} elif [[ -d ${theme} ]] {
 			cp -r ${theme} etc/splash/
-		} else { warn "splash themes does not exist" }
+		} else { warn "Failed to copy ${theme} splash theme" }
 }
 
 # @FUNCTION: Binary/Library copy helper (handle symlink)
