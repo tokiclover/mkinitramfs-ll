@@ -13,7 +13,7 @@ PKG=(
 	version 0.16.0
 )
 
-# @DESCRIPTION: print usages message
+# @FUNCTION: Print help message
 function usage {
   cat <<-EOH
   ${PKG[name]}.${PKG[shell]} version ${PKG[version]}
@@ -35,10 +35,7 @@ exit $?
 }
 (( $# == 0 )) && usage
 
-# @DESCRIPTION: declare if not declared while arsing options,
-# hold almost every single option/variable
 typeset -A opts
-
 declare -a opt
 opt=(
 	"-o" "?b:c:d:o:nhruq:X:x::"
@@ -86,30 +83,29 @@ for (( ; $# > 0; ))
 			usage;;
 	}
 
-# @DESCRIPTION: LONG_BIT, word length, supported
+# @VARIABLE: Kernel bit lenght
 opts[-arc]=$(getconf LONG_BIT)
-# @DESCRIPTION: root of squashed dir
+# @VARIABLE: Root directory (mount hierarchy)
 :	${opts[-root]:=${opts[-r]:-/aufs}}
 [[ ${opts[-root]#/} == ${opts[-root]} ]] && opts[-root]=/${opts[-root]}
-# @DESCRIPTION: offset or rw/rr or ro branch ratio
+# @VARIABLE: rw/rr branch ration (percent)
 :	${opts[-offset]:=10}
-# @DESCRIPTION: Block SIZE of squashfs underlying filesystem block
+# @VARIABLE: Block size of underlying SquashFS filesystem
 :	${opts[-bsize]:=131072}
-# @DESCRIPTION: COMPression command with optional option
+# @VARIABLE: Compression command
 :	${opts[-comp]:=lzo -Xcompression-level 1}
-# @DESCRIPTION: full path to a static busysbox binary needed for updtating 
-# system wide dir
+# @VARIABLE: Full path to a static busysbox (required for system update)
 :	${opts[-busybox]:=$commands[busyboxb]}
 
-# @DESCRIPTION: print info message to stderr
+# @FUNCTION: Print error message to stdout
 function error {
     print -P " %B%F{red}*%b %1x: %F{yellow}%U%I%u%f: $@" >&2
 }
-# @DESCRIPTION: print info message to stdout
+# @FUNCTION: Print info message to stdout
 function info {
     print -P " %B%F{green}*%b%f %1x: $@"
 }
-# @DESCRIPTION: call error() to print error message before exiting
+# @FUNCPTION: Fatal error heler
 function die {
 	local ret=$?
 	error $@
@@ -118,7 +114,7 @@ function die {
 
 setopt EXTENDED_GLOB NULL_GLOB
 
-# @DESCRIPTION: mount squashed dir
+# @FUNCTION: Helper to mount squashed directory
 function squash-mount {
 	if [[ ${dir} == /(|s)bin || ${dir} == /lib(32|64) ]] {
 		ldd ${opts[-busybox]} >/dev/null && die "no static busybox binary found"
@@ -161,8 +157,7 @@ function squash-mount {
 	    die "failed to mount ${base}.squashfs"
 	fi
 }
-
-# @DESCRIPTION: squash-dir
+# @FUNCTION: Helper to squash-directory
 function squash-dir {
 	mkdir -p -m 0755 ${base}/{rr,rw} || die "failed to create ${dir}/{rr,rw}"
 	mksquashfs ${dir} ${base}.tmp.squashfs -b ${opts[-bsize]} -comp ${=opts[-comp]} \
