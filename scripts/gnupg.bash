@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/gnupg.bash                     Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.0 2015/01/01 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 declare -A PKG
 PKG=(
 	[name]=gnupg
 	[shell]=bash
-	[version]=0.16.0
+	[version]=0.18.0
 )
 
 # @FUNCTION: Print help message

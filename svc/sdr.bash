@@ -11,7 +11,7 @@ typeset -A PKG
 PKG=(
 	[name]=sdr
 	[shell]=bash
-	[version]=0.16.0
+	[version]=0.18.0
 )
 
 # @FUNCTION: Print help message
