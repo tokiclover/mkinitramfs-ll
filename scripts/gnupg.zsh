@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/gnupg.zsh                      Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.13.6 2015/01/01 12:33:03                   Exp $
+# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
 #
 
 typeset -A PKG
@@ -13,8 +13,7 @@ PKG=(
 	version 0.16.0
 )
 
-# @FUNCTION: usage
-# @DESCRIPTION: print usages message
+# @FUNCTION: Print help message
 function usage {
   cat <<-EOH
   ${PKG[name]}.${PKG[shell]} version ${PKG[version]}
@@ -28,13 +27,11 @@ EOH
 exit $?
 }
 
-# @FUNCTION: error
-# @DESCRIPTION: print error message to stdout
+# @FUNCTION: Print error message to stdout
 function error {
 	print -P " %B%F{red}*%b %1x: %F{yellow}%U%I%u%f: $@" >&2
 }
-# @FUNCTION: die
-# @DESCRIPTION: call error() to print error message before exiting
+# @FUNCPTION: Fatal error heler
 function die {
 	local ret=$?
 	error $@
@@ -74,14 +71,11 @@ if [[ -f /etc/portage/make.conf ]] {
 	die "no /etc/portage/make.conf found"
 }
 
-# @VARIABLE: opts[-usrdir]
-# @DESCRIPTION: usr dir path where to get extra files
+# @VARIABLE: USRDIR path to use
 :	${opts[-usrdir]:=${opts[-d]:-"${PWD}"/usr}}
-# @VARIABLE: opts[-version] | opts[-v]
-# @DESCRIPTION: GnuPG version to build
+# @VARIABLE: GnuPG version to pick up
 :	${opts[-version]:=${opts[-v]:-1.4}}
-# @VARIABLE: opts[-pkg]
-# @DESCRIPTION: GnuPG version to build
+# @VARIABLE: GnuPG version to use
 opts[-gpg]=$(emerge -pvO "=app-crypt/gnupg-${opts[-version]}*" |
 	grep -o "gnupg-[-0-9.r]*")
 
