@@ -13,7 +13,7 @@ PKG=(
 	[version]=0.16.0
 )
 
-# @DESCRIPTION: print usages message
+# @FUNCTION: Print help message
 function usage {
   cat <<-EOH
   ${PKG[name]}.${PKG[shell]} version ${PKG[version]}
@@ -50,26 +50,26 @@ EOH
 exit $?
 }
 
-# @DESCRIPTION: print error message to stdout
+# @FUNCTION: Print error message to stdout
 function error {
 	echo -ne " \e[1;31m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n" >&2
 }
-# @DESCRIPTION: print info message to stdout
+# @FUNCTION: Print info message to stdout
 function info {
 	echo -ne " \e[1;32m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n"
 }
-# @DESCRIPTION: print warning message to stdout
+# @FUNCPTION: Print warning message to stdout
 function warn {
 	echo -ne " \e[1;33m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n" >&2
 }
-# @DESCRIPTION: call error() to print error message before exiting
+# @FUNCPTION: Fatal error helper
 function die {
 	local ret=$?
 	error "$@"
 	exit $ret
 }
 
-# @DESCRIPTION: make tmp dir or file in ${TMPDIR:-/tmp}
+# @FUNCTION: Temporary dir/file helper
 # @ARG: -d|-f [-m <mode>] [-o <owner[:group]>] [-g <group>] TEMPLATE
 function mktmp {
 	local tmp=${TMPDIR:-/tmp}/$1-XXXXXX
@@ -77,7 +77,7 @@ function mktmp {
 	echo "$tmp"
 }
 
-# @DESCRIPTION: add the essential nodes to be able to boot
+# @FUNCTION: Device nodes (helper)
 function donod {
 	pushd dev || die
 	[[ -c console ]] || mknod -m 600 console c 5 1 || die
@@ -108,8 +108,7 @@ opt=(
 opt=($(getopt "${opt[@]}" -- "$@" || usage))
 eval set -- "${opt[@]}"
 
-# @DESCRIPTION: declare if not declared while arsing options,
-# hold almost every single option/variable
+# @VARIABLE: Associative Array holding (almost) every options
 declare -A opts
 
 for (( ; $# > 0; )); do
@@ -163,36 +162,36 @@ done
 	source "${PKG[name]}".conf ||
 	die "no ${PKG[name]}.conf found"
 
-# @DESCRIPTION: kernel version to pick up
+# @VARIABLE: Kernel version
 if [[ -z "${opts[-kv]}" ]]; then
 	[[ "${opts[-k]}" ]] && opts[-kv]="${opts[-k]}" || opts[-kv]="$(uname -r)"
 fi
-# @DESCRIPTION: initramfs prefx name <$prefix-$kv.$ext>
+# @VARIABLE: Initramfs prefx
 if [[ -z "${opts[-prefix]}" ]]; then
 	[[ "${opts[-p]}" ]] && opts[-prefix]="${opts[-p]}" ||
 		opts[-prefix]=initramfs-
 fi
-# @DESCRIPTION: usr dir path, to get extra files
+# @VARIABLE: USRDIR path to use
 if [[ -z "${opts[-usrdir]}" ]]; then
 	[[ "${opts[-u]}" ]] && opts[-usrdir]="${opts[-u]}" ||
 		opts[-usrdir]="${PWD}"/usr
 fi
-# @DESCRIPTION: full to initramfs compressed image
+# @VARIABLE: Full path to initramfs image
 opts[-initramfs]=${opts[-prefix]}${opts[-kv]}
 if [[ -z "${opts[-compressor]}" ]]; then
 	[[ "${opts[-c]}" ]] && opts[-compressor]="${opts[-c]}" ||
 		opts[-compressor]="xz -9 --check=crc32"
 fi
-# @DESCRIPTION: kernel architecture
+# @VARIABLE: Kernel architecture
 [[ "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
-# @DESCRIPTION: kernel bit lenght supported
+# @VARIABLE: Kernel bit lenght
 [[ "${opts[-arc]}" ]] || opts[-arc]=$(getconf LONG_BIT)
-# @DESCRIPTION: tmp dir where to generate initramfs
-# an initramfs compressed image
+# @VARIABLE: (initramfs) Tmporary directory
 opts[-tmpdir]="$(mktmp ${opts[-initramfs]})"
-# @DESCRIPTION: configuration directory
+# @DESCRIPTION: (initramfs) Configuration directory
 opts[-confdir]="etc/${PKG[name]}"
 
+# Set up compression
 declare -a compressor
 compressor=(bzip2 gzip lzip lzop lz4 xz)
 
@@ -227,7 +226,8 @@ if [[ "${config}" ]]; then
 	unset config xgrep CONFIG COMP compressor
 fi
 
-# @DESCRIPTION: generate an initramfs image
+# @FUNCTION: CPIO image builder
+# @ARG: <out-file>
 function docpio {
 	local ext=.cpio initramfs=${1:-/boot/${opts[-initramfs]}}
 	local cmd="find . -print0 | cpio -0 -ov -Hnewc"
@@ -264,6 +264,7 @@ else
 	rm -fr *
 fi
 
+# Set up the initramfs
 if [[ -d "${opts[-usrdir]}" ]]; then
 	cp -ar "${opts[-usrdir]}" . &&
 	mv -f {usr/,}root &&
@@ -302,6 +303,7 @@ cp -a "${opts[-usrdir]}"/../init . && chmod 775 init || die
 cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
+# Set up (requested) firmware
 if [[ "${opts[-F]}" ]] || [[ "${opts[-firmware]}" ]]; then
 	if [[ "${opts[-F]}" == : ]] || [[ "${opts[-firmware]}" == : ]]; then
 		warn "Adding the whole firmware directory"
@@ -317,12 +319,14 @@ if [[ "${opts[-F]}" ]] || [[ "${opts[-firmware]}" ]]; then
 	unset firmware
 fi
 
+# Set up RAID option
 for bin in dmraid mdadm zfs; do
 	[[ "${opts[-bin]/$bin}" != "${opts[bin]}" ]] ||
 		[[ "${opts[-b]/$bin}" != "${opts[-b]}" ]] && opts[-mgrp]+=":$bin"
 done
 opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
 
+# Set up (requested) hook
 for hook in ${opts[-H]//:/ } ${opts[-hook]//:/ }; do
 	for file in ${opts[-usrdir]}/../hooks/*${hook}*; do
 		cp -a "${file}" lib/${PKG[name]}/
@@ -334,6 +338,7 @@ done
 
 [[ -f /etc/issue.logo ]] && cp {/,}etc/issue.logo
 
+# Handle & copy BusyBox binary
 if [[ -x usr/bin/busybox ]]; then
 	mv -f {usr/,}bin/busybox
 elif type -p busybox >/dev/null; then
@@ -348,7 +353,6 @@ elif type -p busybox >/dev/null; then
 else
 	die "no busybox binary found"
 fi
-
 if [[ ! -f ${opts[-confdir]}/busybox.applets ]]; then
 	bin/busybox --list-full >${opts[-confdir]}/busybox.applets || die
 fi
@@ -364,6 +368,7 @@ for bin in $(grep '^sbin' ${opts[-confdir]}/busybox.applets); do
 	ln -s ../bin/busybox ${bin}
 done
 
+# Set up a few options
 if [[ "${opts[-L]}" ]] || [[ "${opts[-luks]}" ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 fi
@@ -383,7 +388,8 @@ if [[ "${opts[-l]}" ]] || [[ "${opts[-lvm]}" ]]; then
 	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
 fi
 
-# @DESCRIPTION: copy kernel module
+# @FUNCTION: Kernel module copy helper
+# @ARG: [-v|--verbose] <module>
 function domod {
 	case $1 in
 		(-v|--verbose)
@@ -416,7 +422,8 @@ function domod {
 	return ${ret}
 }
 
-declare -a KEYMAP
+# Handle & copy keymap/consolefont
+declare -a FONT KEYMAP
 for keymap in ${opts[-y]//:/ } ${opts[-keymap]//:/ }; do
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]]; then
 		continue
@@ -429,9 +436,7 @@ for keymap in ${opts[-y]//:/ } ${opts[-keymap]//:/ }; do
 	(( $? == 0 )) && KEYMAP+=(${keymap}-${opts[-arch]}.bin)
 done
 echo "${KEYMAP[0]}" >${opts[-confdir]}/kmap
-unset KEYMAP keymap
 
-declare -a FONT
 for font in ${opts[-f]//:/ } ${opts[-font]//:/ }; do
 	if [[ -f usr/share/consolefonts/${font} ]]; then :;
 	elif [[ -f ${font} ]]; then
@@ -448,8 +453,9 @@ for font in ${opts[-f]//:/ } ${opts[-font]//:/ }; do
 	(( $? == 0 )) && FONT+=(${font})
 done
 echo "${FONT[0]}" >${opts[-confdir]}/font
-unset FONT font
+unset FONT font KEYMAP keymap
 
+# Handle & copy splash themes
 if [[ "${opts[-s]}" ]] || [[ "${opts[-splash]}" ]]; then
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
 	
@@ -468,7 +474,8 @@ if [[ "${opts[-s]}" ]] || [[ "${opts[-splash]}" ]]; then
 	done
 fi
 
-# @DESCRIPTION: follow and copy link until binary/library is copied
+# @FUNCTION: Binary/Library copy helper (handle symlink)
+# @ARG: <bin/lib>
 function docp {
 	local link=${1} prefix
 	[[ -n ${link} ]] || return
@@ -484,7 +491,8 @@ function docp {
 	done
 	return 0
 }
-# @DESCRIPTION: copy binary with libraries if not static
+# @FUNCTION: (static/dynamic) Binary copy helper
+# @ARG: <bin>
 function dobin {
 	local bin=$1 lib
 	docp ${bin} || return
@@ -496,6 +504,7 @@ function dobin {
 	done
 }
 
+# Handle & copy binaries
 for bin in ${opts[-b]//:/ } ${opts[-bin]//:/ }; do
 	for b in {usr/,}{,s}bin/${bin}; do
 		[ -x ${b} -a ! -h ${b} ] && continue 2
@@ -505,9 +514,9 @@ for bin in ${opts[-b]//:/ } ${opts[-bin]//:/ }; do
 done
 unset binary bin b
 
+# Handle & copy kernel module
 domod ${opts[-m]//:/ } ${opts[-kmod]//:/ }
 
-# Remove module group name from boot group before processing module groups
 for mod in ${opts[-mboot]//:/ }; do
 	if [[ "${opts[-m$mod]}" ]]; then
 		echo "${mod}" >> ${opts[-confdir]}/boot
@@ -528,6 +537,7 @@ for (( i=0; i < ${#env[@]}; i++ )); do
 done
 unset env
 
+# Handle GCC libraries symlinks
 [[ -d usr/lib/gcc ]] &&
 for lib in $(find usr/lib/gcc -iname 'lib*'); do
 	ln -fs /$lib     lib/${lib##*/}
