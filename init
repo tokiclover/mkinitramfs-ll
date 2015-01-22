@@ -212,7 +212,6 @@ done
 [ -n "$splash" ] && debug spld
 
 # -*- Font and keymap -*-
-
 if [ -n "$keymap" ]; then
 	arg "font" "$keymap" "2" ":" "-s"
 	kmap="${keymap%:*}"
@@ -312,6 +311,9 @@ fi
 lvl 4u
 echo >/proc/sys/kernel/hotplug
 msg -i "Switching / ..."
+#
+# FIXME: is this necessary?
+#
 $SPLD && debug spld_stop
 
 umount -l /dev/pts
@@ -319,7 +321,7 @@ for _dir in /run /sys /dev /proc; do
 	[ -f $LOGFILE ] || export LOGFILE=/$0.log
 	if [ "${SYSFS/${_dir#/}}" != "$SYSFS" ]; then
 		mkdir -p $NEWROOT$_dir
-		debug -d mount -M $_dir $NEWROOT$_dir
+		debug -d mount -o move $_dir $NEWROOT$_dir
 	else
 		debug -d umount -l $_dir
 	fi

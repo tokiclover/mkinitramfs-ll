@@ -10,6 +10,9 @@ source $LIBDIR/functions || return
 source $LIBDIR/helpers   || return
 [ -z "$bcache" ] && _getopt "bcache"
 
+#
+# FIXME: luks, lvm, raid support?
+#
 dobcache() {
 	echo $$ >/run/${0##*/}.pid
 	debug _modprobe bcache
