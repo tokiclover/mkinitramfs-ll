@@ -40,7 +40,6 @@ function die {
 
 declare -A opts
 declare -a opt
-
 opt=(
 	"-o" "?hd::u::v::"
 	"-l" "help,useflag::,usrdir::,version::"
@@ -78,7 +77,6 @@ opts[-gpg]=$(emerge -pvO "=app-crypt/gnupg-${opts[-version]}*" |
 	grep -o "gnupg-[-0-9.r]*")
 
 mkdir -p "${opts[-usrdir]}"/{bin,share/gnupg}
-
 pushd ${PORTDIR:-/usr/portage}/app-crypt/gnupg || die
 ebuild ${opts[-gpg]}.ebuild clean || die
 USE="nls static ${opts[-useflag]}" ebuild ${opts[-gpg]}.ebuild compile || die
@@ -86,10 +84,8 @@ pushd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/app-crypt/${opts[-gpg]}/work/${opts[
 
 cp -a g10/gpg          "${opts[-usrdir]}"/bin/ || die
 cp -a g10/options.skel "${opts[-usrdir]}"/share/gnupg/ || die
-
 popd || die
 ebuild ${opts[-gpg]}.ebuild clean || die
-
 unset -v opts PKG
 
 #
