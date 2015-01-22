@@ -40,12 +40,10 @@ function die {
 
 declare -A opts
 declare -a opt
-
 opt=(
 	"-o" "?hd::u::v::"
 	"-l" "help,useflag::,usrdir::,version::"
 	"-n" ${PKG[name]}.${PKG[shell]}
-	"-s" ${PKG[shell]}
 )
 opt=($(getopt ${opt} -- ${argv} || usage))
 eval set -- ${opt}
@@ -70,7 +68,6 @@ if [[ -f /etc/portage/make.conf ]] {
 } else {
 	die "no /etc/portage/make.conf found"
 }
-
 # @VARIABLE: USRDIR path to use
 :	${opts[-usrdir]:=${opts[-d]:-"${PWD}"/usr}}
 # @VARIABLE: GnuPG version to pick up
@@ -87,10 +84,8 @@ pushd ${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/${opts[-gpg]}/work/${opts[-g
 
 cp -a g10/gpg          ${opts[-usrdir]}/bin/ || die
 cp -a g10/options.skel ${opts[-usrdir]}/share/gnupg/ || die
-
 popd || die
 ebuild ${opts[-gpg]}.ebuild clean || die
-
 unset opts PKG
 
 #
