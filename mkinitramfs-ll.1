@@ -496,7 +496,7 @@ Other Environment Variables are defined internaly in
 .B init.
 .SH FILES
 .TP
-.RB /etc/mkinitramfs-ll/
+.RB /etc/mkinitramfs-ll/\ (CONFDIR)
 .br
 busybox.applets
   BusyBox applets list
@@ -536,7 +536,7 @@ KERNEL-MODULE-GROUPS
 .RB /etc/mdev.conf
 mdev 
 .IR configuration
-file which should (BUG: use uid:gid instead of user:group, see BUGS.)
+file (BUG: use uid:gid instead of user:group, see BUGS.)
 .TP
 .RB /etc/group
 Group/gid list (usefull to get user:group instead of uid:gid)
@@ -544,7 +544,7 @@ Group/gid list (usefull to get user:group instead of uid:gid)
 .RB /etc/modprobe.d/zfs.conf
 ZFS configuration file to set arc to a reasonable value
 .TP
-.RB /lib/mkinitramfs-ll/
+.RB /lib/mkinitramfs-ll/\ (LIBDIR)
 .br
 functions
 .br
