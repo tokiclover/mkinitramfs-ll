@@ -100,6 +100,7 @@ unsetopt KSH_ARRAYS
 # @VARIABLE: Associative Array holding (almost) every options
 typeset -A opts
 typeset -a opt
+
 opt=(
 	"-o" "ab:c::f::F::gk::lH:KLm::p::qrs::thu::y::?"
 	"-l" "all,bin:,compressor::,firmware::,font::,gpg,help"
@@ -273,7 +274,6 @@ if [[ ${${(pws:.:)opts[-kv]}[1]} -eq 3 ]] &&
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
 		mknod -m 600 dev/loop-control c 10 237 || die
 }
-
 cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 [[ -d root ]] && chmod 0700 root || mkdir -m700 root || die
 
@@ -288,7 +288,10 @@ for hook (${(pws,:,)opts[-H]} ${(pws,:,)opts[-hook]}) {
 	for file (${opts[-usrdir]:h}/hooks/*${hook}*) {
 		cp -a ${file} lib/${PKG[name]}
 	}
-	(( $? != 0 )) && warn "$mod module does not exist"
+	if (( $? != 0 )) {
+		warn "$hook hook/script does not exist"
+		continue
+	}
 	opts[-bin]+=:${opts[-b$hook]}
 	opts[-mgrp]+=:$hook
 }

@@ -273,7 +273,6 @@ if [[ -d "${opts[-usrdir]}" ]]; then
 else 
 	die "${opts[-usrdir]} dir not found"
 fi
-
 mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
 mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} || die
 mkdir -p run lib${opts[-arc]}/{modules/${opts[-kv]},${PKG[name]}} || die
@@ -330,7 +329,10 @@ for hook in ${opts[-H]//:/ } ${opts[-hook]//:/ }; do
 	for file in ${opts[-usrdir]}/../hooks/*${hook}*; do
 		cp -a "${file}" lib/${PKG[name]}/
 	done
-	(( $? != 0 )) && warn "$mod module does not exist"
+	if (( $? != 0 )); then
+		warn "$hook hook/script does not exist"
+		continue
+	fi
 	opts[-bin]+=:${opts[-b$hook]}
 	opts[-mgrp]+=:$hook
 done
