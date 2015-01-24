@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
+# $Version: 0.18.1 2015/01/24 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
-	[version]=0.18.0
+	[version]=0.18.1
 )
 
 # @FUNCTION: Print help message
@@ -75,6 +75,25 @@ function mktmp {
 	local tmp=${TMPDIR:-/tmp}/$1-XXXXXX
 	mkdir -p $tmp || die "mktmp: failed to make $tmp"
 	echo "$tmp"
+}
+
+# @FUNCTION: File copy helper (handle symlinks)
+# @ARG: <file>
+function docp {
+	local link=${1} prefix
+	[[ -n ${1} ]] && [[ -e ${1} ]] || return
+	mkdir -p .${1%/*}
+	rm -f .${1} && cp -a {,.}${1} || die
+
+	[[ -h ${link} ]] &&
+	while true; do
+	    prefix=${link%/*}
+		link=$(readlink ${link})
+		[[ ${link%/*} == ${link} ]] && link=${prefix}/${link}
+		rm -f .${link} && cp -a {,.}${link} || die
+		[[ -h ${link} ]] || break
+	done
+	return 0
 }
 
 # @FUNCTION: Device nodes (helper)
@@ -309,12 +328,13 @@ if [[ "${opts[-F]}" ]] || [[ "${opts[-firmware]}" ]]; then
 	fi
 	mkdir -p lib/firmware
 	for f in ${opts[-F]//:/ } ${opts[-firmware]//:/ }; do
-		[[ -e ${f} ]] && firmware+=(${f}) ||
+		[[ -e ${f} ]] && cp -a ${f} lib/firmware ||
 			firmware+=(/lib/firmware/*${f}*)
-		mkdir -p .${firmware[$((${#firmware[@]}-1))]%/*}
 	done
-	cp -a "${firmware[@]}" lib/firmware/
-	unset firmware
+	for f in ${firmware[@]}; do
+		docp ${f}
+	done
+	unset f firmware
 fi
 
 # Set up RAID option
@@ -473,23 +493,6 @@ if [[ "${opts[-s]}" ]] || [[ "${opts[-splash]}" ]]; then
 	done
 fi
 
-# @FUNCTION: Binary/Library copy helper (handle symlink)
-# @ARG: <bin/lib>
-function docp {
-	local link=${1} prefix
-	[[ -n ${link} ]] || return
-	rm -f .${link} && cp -a {,.}${link} || die
-
-	[[ -h ${link} ]] &&
-	while true; do
-	    prefix=${link%/*}
-		link=$(readlink ${link})
-		[[ ${link%/*} == ${link} ]] && link=${prefix}/${link}
-		rm -f .${link} && cp -a {,.}${link} || die
-		[[ -h ${link} ]] || break
-	done
-	return 0
-}
 # @FUNCTION: (static/dynamic) Binary copy helper
 # @ARG: <bin>
 function dobin {
@@ -544,7 +547,7 @@ for lib in $(find usr/lib/gcc -iname 'lib*'); do
 done
 
 docpio || die
-[[ "${opts[-K]}" ]] || [[ "${opts[-keep-tmpdir]}" ]] || rm -rf ${opts[-dir]}
+[[ "${opts[-K]}" ]] || [[ "${opts[-keep-tmpdir]}" ]] || rm -rf ${opts[-tmpdir]}
 echo ">>> ${opts[-initramfs]} initramfs built"
 unset -v comp opt opts PKG
 

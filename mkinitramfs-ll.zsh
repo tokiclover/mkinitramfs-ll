@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
+# $Version: 0.18.1 2015/01/24 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	name mkinitramfs-ll
 	shell zsh
-	version 0.18.0
+	version 0.18.1
 )
 
 # @FUNCTION: Print help message
@@ -75,6 +75,25 @@ function mktmp {
 	local tmp=${TMPDIR:-/tmp}/$1-XXXXXX
 	mkdir -p $tmp || die "mktmp: failed to make $tmp"
 	print "$tmp"
+}
+
+# @FUNCTION: File copy helper (handle symlinks)
+# @ARG: <file>
+function docp {
+	local link=${1} prefix
+	[[ -n ${1} ]] && [[ -e ${1} ]] || return
+	mkdir -p .${1:h}
+	rm -f .${1} && cp -a {,.}${1} || die
+
+	[[ -h ${link} ]] &&
+	while true; do
+	    prefix=${link%/*}
+		link=$(readlink ${link})
+		[[ ${link%/*} == ${link} ]] && link=${prefix}/${link}
+		rm -f .${link} && cp -f {,.}${link} || die
+		[[ -h ${link} ]] || break
+	done
+	return 0
 }
 
 # @FUNCTION: Device nodes (helper)
@@ -274,6 +293,7 @@ if [[ ${${(pws:.:)opts[-kv]}[1]} -eq 3 ]] &&
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
 		mknod -m 600 dev/loop-control c 10 237 || die
 }
+
 cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 [[ -d root ]] && chmod 0700 root || mkdir -m700 root || die
 
@@ -308,12 +328,11 @@ if (( ${+opts[-F]} || ${+opts[-firmware]} )) {
 	fi
 	mkdir -p lib/firmware
 	for f (${(pws,:,)opts[-F]} ${(pws,:,)opts[-firmware]}) {
-		[[ -e ${f} ]] && firmware+=(${f}) ||
+		[[ -e ${f} ]] && cp ${f} lib/firmware ||
 			firmware+=(/lib/firmware/*${f}*(N))
-		mkdir -p .${firmware[${#firmware}]:h}
 	}
-	cp -a ${firmware} lib/firmware/
-	unset firmware
+	for f (${firmware}) docp ${f}
+	unset f firmware
 }
 
 # Handle & copy BusyBox binary
@@ -440,23 +459,6 @@ if (( ${+$opts[-s]} )) || (( ${+opts[-splash]} )) {
 		} else { warn "Failed to copy ${theme} splash theme" }
 }
 
-# @FUNCTION: Binary/Library copy helper (handle symlink)
-# @ARG: <bin/lib>
-function docp {
-	local link=${1} prefix
-	[[ -n ${link} ]] || return
-	rm -f .${link} && cp -a {,.}${link} || die
-
-	[[ -h ${link} ]] &&
-	while true; do
-	    prefix=${link%/*}
-		link=$(readlink ${link})
-		[[ ${link%/*} == ${link} ]] && link=${prefix}/${link}
-		rm -f .${link} && cp -f {,.}${link} || die
-		[[ -h ${link} ]] || break
-	done
-	return 0
-}
 # @FUNCTION: (static/dynamic) Binary copy helper
 # @ARG: <bin>
 function dobin {
