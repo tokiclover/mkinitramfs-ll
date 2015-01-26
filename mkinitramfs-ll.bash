@@ -81,7 +81,7 @@ function mktmp {
 # @ARG: <file>
 function docp {
 	local link=${1} prefix
-	[[ -n ${1} ]] && [[ -e ${1} ]] || return
+	[[ -n ${1} && -e ${1} ]] || return
 	mkdir -p .${1%/*}
 	rm -f .${1} && cp -a {,.}${1} || die
 
@@ -149,14 +149,14 @@ for (( ; $# > 0; )); do
 	esac
 done
 
-if [[ "${opts[-a]}" ]] || [[ "${opts[-all]}" ]]; then
+if [[ "${opts[-a]}" || "${opts[-all]}" ]]; then
 	opts[-font]+=: opts[-gpg]=true opts[-lvm]=true opts[-squashd]=true
 	opts[-toi]=true opts[-luks]=true opts[-keymap]+=:
 	opts[-hook]+=:btrfs:zfs:zram
 fi
 
 for key in f{,ont}; do
-if [[ "${opts[-$key]}" ]] && [[ "${opts[-$key]}" == ":" ]]; then
+if [[ "${opts[-$key]}" && "${opts[-$key]}" == ":" ]]; then
 	if [[ -e /etc/conf.d/consolefont ]]; then
 		opts[-font]+=$(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' \
 			/etc/conf.d/consolefont)
@@ -167,7 +167,7 @@ fi
 done
 
 for key in y keymap; do
-if [[ "${opts[-$key]}" ]] && [[ "${opts[-$key]}" == ":" ]]; then
+if [[ "${opts[-$key]}" && "${opts[-$key]}" == ":" ]]; then
 	if [[ -e /etc/conf.d/keymaps ]]; then
 		opts[-keymap]+=:$(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
 			/etc/conf.d/keymaps)
@@ -214,7 +214,7 @@ opts[-confdir]="etc/${PKG[name]}"
 declare -a compressor
 compressor=(bzip2 gzip lzip lzop lz4 xz)
 
-if [[ "${opts[-compressor]}" ]] && [[ "${opts[-compressor]}" != "none" ]]; then
+if [[ "${opts[-compressor]}" && "${opts[-compressor]}" != "none" ]]; then
 	if [[ -e /usr/src/linux-${opts[-kv]}/.config ]]; then
 		config=/usr/src/linux-${opts[-kv]}/.config
 		xgrep=$(type -p grep)
@@ -274,7 +274,7 @@ function docpio {
 echo ">>> building ${opts[-initramfs]}..."
 pushd "${opts[-tmpdir]}" || die "${opts[-tmpdir]} not found"
 
-if [[ "${opts[-r]}" ]] || [[ "${opts[-rebuild]}" ]]; then
+if [[ "${opts[-r]}" || "${opts[-rebuild]}" ]]; then
 	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio || die
@@ -321,7 +321,7 @@ cp -af {/,}lib/modules/${opts[-kv]}/modules.dep ||
 	die "failed to copy modules.dep"
 
 # Set up (requested) firmware
-if [[ "${opts[-F]}" ]] || [[ "${opts[-firmware]}" ]]; then
+if [[ "${opts[-F]}" || "${opts[-firmware]}" ]]; then
 	if [[ "${opts[-F]}" == : ]] || [[ "${opts[-firmware]}" == : ]]; then
 		warn "Adding the whole firmware directory"
 		cp -a {/,}lib/firmware
@@ -389,13 +389,13 @@ for bin in $(grep '^sbin' ${opts[-confdir]}/busybox.applets); do
 done
 
 # Set up a few options
-if [[ "${opts[-L]}" ]] || [[ "${opts[-luks]}" ]]; then
+if [[ "${opts[-L]}" || "${opts[-luks]}" ]]; then
 	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
 fi
-if [[ "${opts[-q]}" ]] || [[ "${opts[-squashd]}" ]]; then
+if [[ "${opts[-q]}" || "${opts[-squashd]}" ]]; then
 	opts[-bin]+=:umount.aufs:mount.aufs opts[-mgrp]+=:squashd
 fi
-if [[ "${opts[-g]}" ]] || [[ "${opts[-gpg]}" ]]; then
+if [[ "${opts[-g]}" || "${opts[-gpg]}" ]]; then
 	if [[ -x usr/bin/gpg ]]; then :;
 	elif [[ "$(gpg --version | sed -nre '/^gpg/s/.* ([0-9]{1})\..*$/\1/p')" -eq 1 ]]; then
 		opts[-bin]+=:$(type -p gpg)
@@ -403,7 +403,7 @@ if [[ "${opts[-g]}" ]] || [[ "${opts[-gpg]}" ]]; then
 		die "there is no usable gpg/gnupg-1.4.x binary"
 	fi
 fi
-if [[ "${opts[-l]}" ]] || [[ "${opts[-lvm]}" ]]; then
+if [[ "${opts[-l]}" || "${opts[-lvm]}" ]]; then
 	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
 fi
 
@@ -475,7 +475,7 @@ echo "${FONT[0]}" >${opts[-confdir]}/font
 unset FONT font KEYMAP keymap
 
 # Handle & copy splash themes
-if [[ "${opts[-s]}" ]] || [[ "${opts[-splash]}" ]]; then
+if [[ "${opts[-s]}" || "${opts[-splash]}" ]]; then
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
 	
 	if [[ "${opts[-t]}" ]] || [[ "${opts[-toi]}" ]]; then
@@ -547,7 +547,7 @@ for lib in $(find usr/lib/gcc -iname 'lib*'); do
 done
 
 docpio || die
-[[ "${opts[-K]}" ]] || [[ "${opts[-keep-tmpdir]}" ]] || rm -rf ${opts[-tmpdir]}
+[[ "${opts[-K]}" || "${opts[-keep-tmpdir]}" ]] || rm -rf ${opts[-tmpdir]}
 echo ">>> ${opts[-initramfs]} initramfs built"
 unset -v comp opt opts PKG
 
