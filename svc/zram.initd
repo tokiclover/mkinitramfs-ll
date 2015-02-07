@@ -15,6 +15,7 @@ description_reset="Reset zram devices (WARNING: THIS WILL RESET EVERY DEVICE!)"
 depend()
 {
 	before bootmisc
+	provide zram
 }
 
 start()
