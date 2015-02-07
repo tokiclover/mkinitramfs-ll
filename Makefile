@@ -90,7 +90,7 @@ $(keep_DIRS): .FORCE
 
 install-scripts-%sh:
 	sed -e 's:"\$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
-	    -e 's:"\$${PKG\[name\]}".conf:/etc/"$${PKG[name]}".conf:g' \
+	    -e 's:"\$${PKG\[name\]}".conf:$(sysconfdir)/"$${PKG[name]}".conf:g' \
 	    -i scripts/busybox.$*sh scripts/gnupg.$*sh $(PACKAGE).$*sh
 	$(install_SCRIPT) scripts/busybox.$*sh $(DESTDIR)$(datadir)/scripts
 	$(install_SCRIPT) scripts/gnupg.$*sh   $(DESTDIR)$(datadir)/scripts
@@ -109,7 +109,6 @@ install-%-svc:
 
 uninstall-all: uninstall-bash unintsall-doc uninstall-zsh uninstall-services unintsall
 uninstall:
-	rm -f $(DESTDIR)$(sysconfdir)/$(PACKAGE).conf
 	rm -f $(dist_COMMON:%=$(DESTDIR)$(datadir)/%)
 	rm -f $(dist_SCRIPTS:%=$(DESTDIR)$(datadir)/%)
 	rm -f $(dist_HOOKS:%=$(DESTDIR)$(datadir)/hooks/%)
@@ -128,9 +127,12 @@ uninstall-doc:
 uninstall-services: uninstall-squashdir-svc \
 	uninstall-zram-svc uninstall-tmpdir-svc
 uninstall-scripts-%sh:
+	rm -f $(DESTDIR)$(sysconfdir)/$(PACKAGE).conf
+	rm -f $(DESTDIR)$(sbindir)/$(PACKAGE)
 	rm -f $(DESTDIR)$(sbindir)/$(PACKAGE).$*sh
 	rm -f $(DESTDIR)$(datadir)/scripts/busybox.$*sh
 	rm -f $(DESTDIR)$(datadir)/scripts/gnupg.$*sh
+	rm -f $(DESTDIR)$(sbindir)/svc/sdr
 	rm -f $(DESTDIR)$(sbindir)/svc/sdr.$*sh
 uninstall-%-svc:
 	rm -f $(DESTDIR)$(svcconfdir)/$*
