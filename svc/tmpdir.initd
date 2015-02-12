@@ -17,7 +17,6 @@ depend()
 {
 	if yesno ${use_zram}; then
 		use zram
-		after zram
 	fi
 	before logger
 }
