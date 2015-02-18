@@ -16,7 +16,7 @@ description_save="Archive directory contents using dir$extension"
 depend()
 {
 	if yesno ${use_zram}; then
-		use zram
+		need zram
 	fi
 	before logger
 }
