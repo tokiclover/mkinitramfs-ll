@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/hooks/btrfs                    Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
+# $Version: 0.19.0 2015/02/20 12:33:03                   Exp $
 #
 
 set +e +x
@@ -12,7 +12,7 @@ source $LIBDIR/helpers   || return
 
 dobtrfs() {
 	echo $$ >/run/${0##*/}.pid
-	local _bin _CHK _dev _DEV DEV
+	local _bin _CHK _dev _DEV DEV name=btrfs
 	$ECK && for _bin in btrfs; do 
 		debug -d bck $_bin
 	done
@@ -27,9 +27,9 @@ dobtrfs() {
 	[ -n "$_DEV"  ] || return
 	debug -d stk "$_KEY"
 
-	if ! btrfs filesystem show ${_vol#*=} >/dev/null 2>&1; then
+	if ! btrfs filesystem show ${_vol#*=} >$NULL 2>&1; then
 		if yesno "$_DEV"; then
-			error "btrfs: No $_vol filesystem found"
+			error "No $_vol filesystem found"
 			[ -n "$_CHK" ] || return
 		fi
 		[ "$KEYMODE" != "none" ] &&

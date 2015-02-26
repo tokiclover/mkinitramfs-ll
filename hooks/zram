@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/hooks/zram                     Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
+# $Version: 0.19.0 2015/02/20 12:33:03                   Exp $
 #
 
 set +e +x
@@ -16,7 +16,6 @@ dozram() {
 
 	local compressor="$3" devices="${1:-4}" streams="${2:-2}"
 	debug -d modprobe zram num_devices=$devices
-
 	case "$compressor" in
 		(lz4|lzo)        :;;
 		(*) compressor=lz4;;
@@ -24,7 +23,7 @@ dozram() {
 	[ -w /sys/block/zram0/comp_algorithm ] || compressor=
 	[ -w /sys/block/zram0/max_comp_streams ] || streams=
 
-	local num=0 dev device fs mopt size
+	local name=zram num=0 dev device fs mopt size
 	for device in $(echo "${zram#*:}" | sed -e 's/:/ /g'); do
 		[ "$num" = "$num_devices" ] && break
 
@@ -41,7 +40,7 @@ dozram() {
 		if [ -x /sbin/mkfs.$fs ]; then
 			debug -d /sbin/mkfs.$fs /dev/${dev##*/}
 		else
-			error "dozram: mkfs.$fs not found"
+			error "mkfs.$fs not found"
 		fi
 	done
 	rm -f /run/${0##*/}.pid
