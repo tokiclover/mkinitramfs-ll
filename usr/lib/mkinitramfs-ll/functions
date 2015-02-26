@@ -2,50 +2,84 @@
 # $Header: /lib/mkinitramfs-ll/functions                 Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
+# $Version: 0.19.0 2015/02/20 12:33:03                   Exp $
 #
 
-# @USAGE: <var> <var> <char> <int> <opt>
-# @DESCRIPTION: retrieve a value from a kernel cmdline
+# @FUNCTION: Argument field helper
+# @ARG: <var> <var> <char> <int> <opt>
 arg() {
 	eval ${1}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
 }
 
-# @USAGE: <srting>
-# @DESCRIPTION: print message on stdout
+# @FUNCTION: Print begin message to stdout
+# @ARG: <msg>
+begin() {
+	local prefix=${name:+"$CLR_MAG[$CLR_RST $CLR_BLU$name$CLR_RST: $CLR_MAG]$CLR_RST"}
+	echo -en " $prefix $@"
+}
+
+# @FUNCTION: Print end message to stdout
+# @ARG: <ret> [<msg>]
+end() {
+	local suffix
+	case "$1" in
+		(0) suffix="$CLR_BLU[$CLR_RST ${CLR_GRN}Ok${CLR_RST} $CLR_BLU]$CLR_RST";;
+		(*) suffix="$CLR_YLW[$CLR_RST ${CLR_RED}No${CLR_RST} $CLR_YLW]$CLR_RST";;
+	esac
+	shift
+	echo -en " $@ $suffix\n"
+}
+
+# @FUNCTION: Colors handler
+eval_colors() {
+	[ -t 1 ] && yesno "${COLOR:-Yes}" || return
+	local BLD='1;' ESC='\e[' FGD='3' clr
+	for clr in 0:BLK 1:RED 2:GRN 3:YLW 4:BLU 5:MAG 6:CYN 7:WHT; do
+		eval CLR_${clr#*:}="'$ESC$BLD$FGD${clr%:*}m'"
+	done
+	CLR_RST="${ESC}0m"
+}
+
+# @FUNCTION: Print message to stdout
+# @ARG: <msg>
 info() {
-	echo -ne "\033[1;32m * \033[0m$@\n"
+	local prefix=${name:+" $CLR_MAG$name:$CLR_RST"}
+	echo -e " ${CLR_BLU}*$CLR_RST$prefix $@"
 }
 
-# @USAGE: <string>
-# @DESCRIPTION: print error message on stdout
+# @FUNCTION: Print message to stderr
+# @ARG: <msg>
 error() {
-	echo -ne "\033[1;31m * \033[0m$@\n" >&2
+	local prefix=${name:+" $CLR_YLW$name:$CLR_RST"}
+	echo -e " ${CLR_RED}*$CLR_RST$prefix $@" >&2
 }
 
-# @USAGE: [ -e | -i ] <string>
-# @DESCRIPTION: manage message sent to stdout and to splash deamon
+# @FUNCTION: Printing message handler
+# @ARG: [-e|-i|-c <OPT>] <msg>
 msg() {
-	local _opt _msg
+	local _opt _msg _clr
 
 	while [ $# -ge 1 ]; do
 		case $1 in
 			(-e|-i) _opt="$1"
 			     shift;;
+			(-c) _opt="$1" _clr="$2"
+				shift 2;;
 			(--) shift;;
 			(*) _msg="$@"
 			     break;;
 		esac
 	done
-	case $_opt in
+	case "$_opt" in
 		(-e) error "${_msg}";;
 		(-i) info  "${_msg}";;
+		(-c) eval echo -e "\" \$CLR_${_clr}>>>$CLR_RST ${_msg}\"";;
 	esac
 	$SPLD && debug spld_cmd "set message $_msg" && debug spld_cmd "repaint"
 }
 
-# @USAGE: [ -d | -e | -i ] <string>
-# @DESCRIPTION: execute a command and log the command into $LOGFILE
+# @FUNCTION: Command exec handler
+# @ARG: [-d|-e|-i] <msg>
 debug() {
 	local _cmd _opt _ret
 
@@ -64,15 +98,14 @@ debug() {
 
 	if [ ! "$_ret" ]; then
 		case $_opt in
-			(-d) die    "${_msg:-cmd: $_cmd}";;
-			(-e) msg -e "${_msg:-cmd: $_cmd}";;
-			(-i) msg -i "${_msg:-cmd: $_cmd}";;
+			(-d)    die       "${_msg:-cmd: $_cmd}";;
+			(-e|-i) msg $_opt "${_msg:-cmd: $_cmd}";;
 		esac
 	fi
 	return "$_ret"
 }
 
-# @DESCRIPTON: Rescue SHell helper
+# @FUNCTON: Rescue SHell helper
 rsh() {
 	if $SPLD; then
 		debug openvt -c${CONSOLE:8:1} $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
@@ -83,7 +116,7 @@ rsh() {
 	fi
 }
 
-# @DESCRIPTION: YES or NO helper
+# @FUNCTION: Yes or No helper
 yesno() {
 	case "${1:-NO}" in
 	(0|[Dd][Ii][Ss][Aa][Bb][Ll][Ee]|[Oo][Ff][Ff]|[Ff][Aa][Ll][Ss][Ee]|[Nn][Oo])
@@ -95,13 +128,13 @@ yesno() {
 	esac
 }
 
-# @USAGE: <bin>
-# @DESCRIPTION: Binary ChecK
+# @FUNCTION: Binary ChecK helper
+# @ARG: <bin>
 bck() {
 	type -p $1 1>/dev/null 2>&1
 }
 
-# @DESCRIPTION: busybox Applets ChecK
+# @FUNCTION: BusyBox Applets ChecK
 ack() {
 	local _line _list=$CONFDIR/busybox.applets
 	[ -f $_list ] || busybox --list-full >$_list
@@ -111,11 +144,12 @@ ack() {
 	done <$_list
 }
 
-# @USAGE: <hook>
-# @DESCRIPTION: Hook/Script execution helper
+# @FUNCTION: Hook/Script execution helper
+# @ARG: <hook>
 dohook() {
-	msg -i "exec: $sh -aex $1..."
+	begin "exec: $sh -aex $1..."
 	debug $sh -aex $1
+	end "$?"
 
 	if [ -f /run/env ]; then
 		while read line; do
@@ -127,8 +161,8 @@ dohook() {
 	exec 0<$CONSOLE 1>$CONSOLE 2>&1	
 }
 
-# @USAGE: <kernel module(s) | module group>
-# @DESCRIPTION: ReMove kernel MODules from a file liste or...
+# @FUNCTION: Rmmod handler
+# @ARG: <module(s)|group>
 _rmmod() {
 	if [ -f "$CONFDIR/$1" ]; then
 		while read _mod; do 
@@ -139,8 +173,8 @@ _rmmod() {
 	fi
 }
 
-# @USAGE: <kernel module(s) | module group>
-# @DESCRIPTION: insert kernel MODules from a file liste or...
+# @FUNCTION: Modprobe handler
+# @ARG: <module(s)|group>
 _modprobe() {
 	if [ -f "$CONFDIR/$1" ]; then
 		while read _mod; do 
@@ -151,8 +185,8 @@ _modprobe() {
 	fi
 }
 
-# @USAGE: <kernel cmdline>
-# @DESCRIPTION: get kernel command line argument
+# @FUNCTION: Kernel cmdline handler
+# @ARG: <arg>
 _getopt() {
 	local _arg _cmd
 	for _arg in $*; do
@@ -162,25 +196,13 @@ _getopt() {
 	done
 }
 
-# @USAGE: <splash spld_cmd>
-# @DESCRIPTION: send command or message to splash deamon
+# @FUNCTION: Splash commands handler
+# @ARG: <cmd>
 spld_cmd() {
 	echo "$@" >$SPLASH_FIFO
 }
 
-# @DESCRIPTION: Set splash deamon to verbose message
-spld_verbose() {
-	debug chvt ${CONSOLE:8:1}
-	debug spld_cmd "set mode verbose"
-}
-
-# @DESCRIPTION: Set splash deamon to silent (helper)
-spld_silent() {
-	debug chvt ${CONSOLE:8:1}
-	debug spld_cmd "set mode silent"
-}
-
-# @DESCRIPTION: Stop splash deamon (helper)
+# @FUNCTION: Stop splash
 spld_stop() {
 	$SPLD && SPLD=false || return
 	debug spld_cmd "exit"
@@ -188,8 +210,8 @@ spld_stop() {
 	exec 0<$CONSOLE 1>$CONSOLE 2>&1
 }
 
-# @USAGE: <var>
-# @DESCRIPTION: read (superset) helper (with Rescue Shell support)
+# @FUNCTION: Read helper with Rescue Shell
+# @ARG: <var>
 shread() {
 	local _buffer
 
@@ -202,8 +224,8 @@ shread() {
 	done
 }
 
-# @USAGE: <block device node | (part of) uuid | (part of) label>
-# @DESCRIPTION: get BLocK device
+# @FUNCTION: BLocK device handler
+# @ARG: <dev|(part of)uuid|(part of)label>
 blk() {
 	local _asw _blk=$(blkid | grep "$1" | cut -d: -f1)
 	
@@ -222,8 +244,8 @@ blk() {
 	eval ${2:-BLK}=$_blk
 }
 
-# @USAGE: </path/to/file> plus a mapping indirectly given by <_fn>
-# @DESCRIPTION: decrypt dm-crypt LUKS Device Key file
+# @FUNCTION: dm-crypt LUKS Keyfile handler
+# @ARG: <file>
 ldk() {
 	[ -b "$1" ] && return
 
@@ -237,8 +259,8 @@ ldk() {
 	debug cryptsetup luksOpen "$_ld" "$_fn" && LBK="$_fn:$LBK"
 }
 
-# @USAGE: <mode:dev:/path/to/file>
-# @DESCRIPTION: SeT Key [file] mode for decryptiong
+# @FUNCTION: Key[file/mode] handler
+# @ARG: <mode:dev:file>
 stk() {
 	eval set -- $(echo "$1" | sed -e 's/:/ /g')
 	local _fn="${3##*/}" _fp="$3" _kd="$2" _km="$1"
@@ -273,8 +295,8 @@ stk() {
 	esac
 }
 
-# @USAGE: <dev> <key> [<BKD>] [<group>]
-# @DESCRIPTION: get BlocK Device (dm|md-raid, dm-crypt, lvm)
+# @FUNCTION: BlocK Device handler
+# @ARG: <dev> <key> [<BKD>] [<group>]
 bkd() {
 	debug -d test -n "$1"
 	local _cut _luks _lvm _raid _name="$2"
@@ -299,8 +321,8 @@ bkd() {
 	eval ${_name:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
 }
 
-# @USAGE: <mapping>
-# @DESCRIPTION: close dm-crypt mapping (colon separated list)
+# @FUNCTION: Close dm-crypt mapping
+# @ARG: <map>
 dmclose() {
 	local IFS="${IFS}:" 
 	for _p in $@; do 
@@ -308,8 +330,8 @@ dmclose() {
 	done
 }
 
-# @USAGE: <dev> <var>
-# @DESCRIPTION: get DM-Crypt LUKS block device or detached header
+# @FUNCTION: dm-crypt LUKS device|detached-header handler
+# @ARG: <dev> <var>
 dmcrypt() {
 	local _asw _ldh=$1
 
@@ -322,8 +344,8 @@ dmcrypt() {
 	eval ${2:-DMC}=$_ldh
 }
 
-# @USAGE: <map-dev+header>
-# @DESCRIPTION: open dm-crypt LUKS block device
+# @FUNCTION: dm-crypt LUKS device handler
+# @ARG: <map-dev+header>
 dmopen() {
 	$ECK && debug -d bck cryptsetup
 	debug _modprobe dm-crypt
@@ -365,8 +387,8 @@ dmopen() {
 	debug -d test -b $_ctx && eval ${_name:-CTX}=$_ctx
 }
 
-# @USAGE: <vg-lv> [<map-crypted_pv>]
-# @DESCRIPTION: open LVM Logical Volume
+# @FUNCTION: LVM handler
+# @ARG: <vg-lv> [<map-pv>]
 lvopen() {
 	$ECK && debug -d bck lvm
 	debug _modprobe device-mapper
@@ -396,8 +418,8 @@ lvopen() {
 	fi
 }
 
-# @USAGE: <mdn-opt>
-# @DESCRIPTION: open md-raid block device
+# @FUNCTION: RAID handler
+# @ARG: <md<n>-opt>
 mdopen() {
 	local _devices _dev="${1%+*}" _opt="${1#*+}" _set _uuid
 	[ "${_dev/dev}" != "$_dev" ] || _dev=/dev/$_dev
@@ -437,7 +459,8 @@ mdopen() {
 	eval ${2:-MD}=$_dev
 }
 
-# @DESCRIPTION: (AUFS+SquashFS) squashdir helper
+# @FUNCTION: (AUFS+SquashFS) Squashed-dir mounter
+# @ARG: <opt>
 squashd() {
 	local _squashdir="${1%%:*}" _squashd
 :	${_squashdir:=aufs}
@@ -479,7 +502,8 @@ squashd() {
 	done
 }
 
-# @DESCRIPTION: Mount helper (require an embeded /etc/fstab)
+# @FUNCTION: FileSystem mounter
+# @ARG: <dir|dev>
 fmount() {
 	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
 	[ -f $NEWROOT/etc/fstab ] || die "fmount: no /etc/fstab file found"
