@@ -1,5 +1,10 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.19.0:
+
+Eye-candy release! init,function clean up (splash/comments),
+added proper color support (+COLOR env var) & fixed init cmdline.
+
 0.18.1:
 
 * minor update (default config) & fix (handle firmware symlink);
