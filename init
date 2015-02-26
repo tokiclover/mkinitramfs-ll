@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
+# $Version: 0.19.0 2015/02/20 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 #
@@ -26,37 +26,39 @@
 :   ${NEWROOT=/newroot}
 # Set SPLash Daemon running state
 :   ${SPLD=false}
+:   ${NULL=/dev/null}
 
 export CONFDIR LIBDIR LOGFILE MNTDIR NEWROOT SPLD init sh
 export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin
 export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
 
-# @DESCRIPTION: Helper to handle fatal errors
-# @USAGE: <msg>
+# @FUNCTION: Handle fatal error
+# @ARG: <msg>
 die() {
 	local _ret=$?
 	[ -n "$@" ] && msg -e "[$_ret]: $@"
-	msg -i "Dropping into a rescueshell..."
-
+	msg -c RED "Dropping to a Rescue Shell"
 	$SPLD && spld_stop
 	debug rsh || debug $sh -aim
 }
-source $LIBDIR/functions || die
 
-# @DESCRIPTION: Shell Run Level helper
-# @USAGE: <LEVEL>
+source $LIBDIR/functions || $sh -aim
+eval_colors
+name=init
+
+# @FUNCTION: Shell Run Level helper
+# @ARG: <level>
 lvl() {
-	msg -i ">>> Switching to init shell run level: $1"
+	msg -c GRN "Switching to init shell run level $CLR_BLU$1$CLR_RST"
 	export LVL=$1
-
-	for _f in $(ls $LIBDIR/${1}-* 2>/dev/null); do
+	for _f in $(ls $LIBDIR/${1}-* 2>$NULL); do
 		dohook "$_f"
 	done
 	[ "$LVL" = "$RSH" ] && debug die
 	return 0
 }
 
-# @DESCRIPTION: Splash daemon helper
+# @FUNCTION: Splash daemon helper
 spld() {
 	$ECK && for bin in fbcondecor_helper splash_util; do 
 		debug -d bck $bin
@@ -83,15 +85,15 @@ spld() {
 	debug mkfifo $SPLASH_FIFO
 	debug splash_util -d -ms -t $theme && SPLD=true
 	[ -n "$_opts" ] && debug spld_cmd $_opts
+	debug spld_cmd "set ${mode:-verbose}"
 	debug spld_cmd "set event dev /dev/input/$event"
 	debug spld_cmd "set autoverbose 0"
 }
 
-# @DESCRIPTION: Resume helper (support SwSusp/TuxOnIce)
-# @USAGE: <[type:]dev[:signature]>
+# @FUNCTION: Resume helper (support SwSusp/TuxOnIce)
+# @ARG: <[type:]dev[:signature]>
 resume() {
 	local _asw _dev=$1 _img_sz _hpr
-	msg -i "Resuming from hibernation..."
 	grep -q $MNTDIR /proc/mounts && debug -d umount -l $MNTDIR
 
 	if [ -d /sys/power/tuxonice ]; then
@@ -143,7 +145,7 @@ for arg in $(cat /proc/cmdline); do
 		(ro|rw) export rootflags="${rootflags:+$rootflags,}$arg";;
 		(single) export RIL=2              ;;
 		(hook=*) export HOOKS="${arg#*=}"  ;;
-		([CRbcdeklmnrsz]*=*) export "$arg" ;;
+		([Cbcdeiklmnrsz]*=*) export "$arg" ;;
 	 esac
 done
 
@@ -160,6 +162,8 @@ ${ENV:-true} && [ -f $CONFDIR/env ] &&
 while read _line; do
 	case "${_line%%=*}" in
 		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RIL|PATH|RSH|SPLD|sh)
+			:;;
+		(NULL|name)
 			:;;
 		([a-zA-Z]*) [ "${env/:${_line%%=*}:}" = "$env" ] && export "$_line" ;;
 	esac
@@ -193,23 +197,28 @@ for _m in $(echo "$module" | sed 's/:/ /g'); do
 	debug _modprobe $_m
 done
 
-[ -h /dev/fd     ] || debug ln -fs /proc/self/fd   /dev/fd
-[ -h /dev/stderr ] || debug ln -fs /proc/self/fd/2 /dev/stderr
-[ -h /dev/stdin  ] || debug ln -fs /proc/self/fd/0 /dev/stdin
-[ -h /dev/stdout ] || debug ln -fs /proc/self/fd/1 /dev/stdout
+[ -h /dev/fd     ] || debug ln -fns /proc/self/fd /dev/fd
+[ -h /dev/stderr ] || debug ln -fns fd/2 /dev/stderr
+[ -h /dev/stdin  ] || debug ln -fns fd/0 /dev/stdin
+[ -h /dev/stdout ] || debug ln -fns fd/1 /dev/stdout
 
 :	${CONSOLE:=${console:-/dev/console}}
 [ "${CONSOLE/dev}" != "$CONSOLE" ] || CONSOLE="/dev/$CONSOLE"
 [ -c $CONSOLE ] || CONFDIR=/dev/console
 exec 0<$CONSOLE 1>$CONSOLE 2>&1
 export CONSOLE
+eval_colors
 
 [ -f $CONFDIR/boot ] &&
 for _m in $(cat $CONFDIR/boot); do
 	debug _modprobe $_m
 done
 
-[ -n "$splash" ] && debug spld
+if [ -n "$splash" ]; then
+	begin "Starting Splash"
+	spld
+	end "$?"
+fi
 
 # -*- Font and keymap -*-
 if [ -n "$keymap" ]; then
@@ -249,7 +258,7 @@ for hook in $HOOKS; do
 	if [ -e "$LIBDIR/$hook" ]; then
 		debug dohook "$LIBDIR/$hook"
 	else
-		error "hook: $hook not found"
+		name=hook error "$hook not found"
 	fi
 done
 
@@ -257,14 +266,20 @@ done
 # SWAP should be set if available
 if [ -n "$swap" ]; then
 	lvl 2s
-	[ -z "$SWAP" ] && debug -d bkd "$swap" "SWAP" "2"
+	if [ -z "$SWAP" ]; then
+		begin "Enabling swap device"
+		bkd "$swap" "SWAP" "2"
+		end "$?"
+	fi
 fi
 # RESU should be set if available
 if [ -n "$resume" ]; then
-	if [ -z "$RESU" ] && [ "$resume" != "swap" ]; then
-		debug -d bkd "$resume" "RESU" "3"
-	fi
 	lvl 2r
+	if [ -z "$RESU" ] && [ "$resume" != "swap" ]; then
+		begin "Starting Resume"
+		bkd "$resume" "RESU" "3"
+		end 1
+	fi
 	debug resume "${RESU:-$SWAP}"
 fi
 
@@ -285,8 +300,17 @@ dorootfs() {
 	debug mount ${rootflags:+-o} $rootflags ${FS:+-t} $FS $ROOT $NEWROOT ||
 		die "Failed to mount rootfs"
 }
-[ -z "$ROOT" ] && dorootfs
-[ -n "$squashd" ] && lvl 3s && debug -d squashd "$squashd"
+if [ -z "$ROOT" ]; then
+	begin "Mounting RootFS"
+	dorootfs
+	end "$?"
+fi
+if [ -n "$squashd" ]; then
+	lvl 3s
+	begin "Mounting Squashed FileSystems"
+	squashd "$squashd"
+	end "$?"
+fi
 
 # -*- Clean up and switch -*-
 lvl 4
@@ -306,11 +330,14 @@ if grep -q $MNTDIR /proc/mounts; then
 	debug _rmmod remdev
 fi
 
-[ -n "$fsmount" ] && lvl 4m && debug fmount "$fsmount"
+if [ -n "$fsmount" ]; then
+	lvl 4m
+	begin "Mounting FileSystems"
+	fmount "$fsmount"
+	end "$?"
+fi
 
 lvl 4u
-echo >/proc/sys/kernel/hotplug
-msg -i "Switching / ..."
 #
 # FIXME: is this necessary?
 #
@@ -320,14 +347,19 @@ umount -l /dev/pts
 for _dir in /run /sys /dev /proc; do
 	[ -f $LOGFILE ] || export LOGFILE=/$0.log
 	if [ "${SYSFS/${_dir#/}}" != "$SYSFS" ]; then
+		begin "Moving $_dir to $NEWROOT"
 		mkdir -p $NEWROOT$_dir
-		debug -d mount -o move $_dir $NEWROOT$_dir
+		mount -o move $_dir $NEWROOT$_dir >$NULL 2>&1
 	else
-		debug -d umount -l $_dir
+		begin "Unmounting $_dir"
+		umount -l $_dir >$NULL >&1
 	fi
+	end "$?"
 done
 
 lvl 4s
+msg -c GRN "Switching Root"
+echo >/proc/sys/kernel/hotplug
 debug -d exec switch_root $NEWROOT ${init:-/sbin/init} $RIL
 
 #
