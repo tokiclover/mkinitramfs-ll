@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.18.1 2015/01/24 12:33:03                   Exp $
+# $Version: 0.19.0 2015/02/20 12:33:03                   Exp $
 #
 
 typeset -A PKG
@@ -498,8 +498,8 @@ unset env
 
 # Handle GCC libraries symlinks
 for lib (usr/lib/gcc/**/lib*.so*(.N)) {
-	ln -fs /$lib     lib/$lib:t
-	ln -fs /$lib usr/lib/$lib:t
+	ln -fns /$lib     lib/$lib:t
+	ln -fns /$lib usr/lib/$lib:t
 }
 
 docpio || die

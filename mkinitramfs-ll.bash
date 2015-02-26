@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.18.1 2015/01/24 12:33:03                   Exp $
+# $Version: 0.19.0 2015/02/20 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
-	[version]=0.18.1
+	[version]=0.19.0
 )
 
 # @FUNCTION: Print help message
@@ -542,8 +542,8 @@ unset env
 # Handle GCC libraries symlinks
 [[ -d usr/lib/gcc ]] &&
 for lib in $(find usr/lib/gcc -iname 'lib*'); do
-	ln -fs /$lib     lib/${lib##*/}
-	ln -fs /$lib usr/lib/${lib##*/}
+	ln -fns /$lib     lib/${lib##*/}
+	ln -fns /$lib usr/lib/${lib##*/}
 done
 
 docpio || die
