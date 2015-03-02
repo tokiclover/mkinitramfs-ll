@@ -2,7 +2,7 @@
 # $Header: /lib/mkinitramfs-ll/functions                 Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.19.0 2015/02/20 12:33:03                   Exp $
+# $Version: 0.19.1 2015/02/28 12:33:03                   Exp $
 #
 
 # @FUNCTION: Argument field helper
@@ -131,7 +131,10 @@ yesno() {
 # @FUNCTION: Binary ChecK helper
 # @ARG: <bin>
 bck() {
-	type -p $1 1>/dev/null 2>&1
+	local _cmd
+	for _cmd; do
+		type -p $_cmd 1>$NULL 2>&1 || return
+	done
 }
 
 # @FUNCTION: BusyBox Applets ChecK
@@ -325,7 +328,7 @@ bkd() {
 # @ARG: <map>
 dmclose() {
 	local IFS="${IFS}:" 
-	for _p in $@; do 
+	for _p in $@; do
 		debug cryptsetup close ${_p%-*}
 	done
 }
@@ -467,7 +470,7 @@ squashd() {
 	[ "${_squashdir#/}" = "$_squashdir" ] || _squashdir="${_squashdir#/}"
 	eval set -- $(echo "${1#*:}" | sed -e 's/:/ /g')
 
-	while [ $# -ge 1 ]; do
+	for _arg; do
 		case "$1" in
 			(+[Ss]|+[Ss][Yy][Ss]|+[Ss][Yy][Ss][Tt][Ee][Mm])
 				_squashd="usr bin sbin $_squashd"
@@ -476,8 +479,8 @@ squashd() {
 				_squashd="var/cache/edb var/db var/lib/layman $_squashd"
 				shift;;
 			(*)
-				_squashd="$* $_squashd"
-				break;;
+				_squashd="$1 $_squashd"
+				shift;;
 		esac
 	done
 
