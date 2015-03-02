@@ -507,18 +507,19 @@ squashd() {
 
 # @FUNCTION: FileSystem mounter
 # @ARG: <dir|dev>
-fmount() {
+fsmount() {
 	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
-	[ -f $NEWROOT/etc/fstab ] || die "fmount: no /etc/fstab file found"
+	local name=FSmount _tab=/etc/fstab
+	[ -f $NEWROOT$_tab ] || die "no $_tab file found"
 
-	for _x in $@; do
-		_y="$(grep $_x $NEWROOT/etc/fstab)"
+	for _x in $(echo "$@" | sed -e 's/:/ /g'); do
+		_y="$(grep $_x $NEWROOT$_tab)"
 
-		if [ -n "${y}" ]; then
-			eval set -- $y
+		if [ -n "$_y" ]; then
+			eval set -- $_y
 			_fs="$3" _dev="$1" _mpt="$2" _opt="$3"
 		else
-			msg -e "fmount: $_x not found in /etc/fstab"
+			msg -e "$_x not found in $_tab"
 			continue
 		fi
 		blk "$_dev" "_dev"
