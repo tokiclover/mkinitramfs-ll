@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/hooks/btrfs                    Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.19.0 2015/02/20 12:33:03                   Exp $
+# $Version: 0.19.1 2015/02/28 12:33:03                   Exp $
 #
 
 set +e +x
@@ -13,9 +13,7 @@ source $LIBDIR/helpers   || return
 dobtrfs() {
 	echo $$ >/run/${0##*/}.pid
 	local _bin _CHK _dev _DEV DEV name=btrfs
-	$ECK && for _bin in btrfs; do 
-		debug -d bck $_bin
-	done
+	$ECK && debug -d bck btrfs
 	debug _modprobe btrfs
 
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"
