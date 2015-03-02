@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.19.0 2015/02/20 12:33:03                   Exp $
+# $Version: 0.19.1 2015/02/28 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 #
@@ -60,9 +60,7 @@ lvl() {
 
 # @FUNCTION: Splash daemon helper
 spld() {
-	$ECK && for bin in fbcondecor_helper splash_util; do 
-		debug -d bck $bin
-	done
+	$ECK && debug -d bck fbcondecor_helper splash_util
 	local IFS="${IFS}," _opt _opts cachedir event mode theme util
 	
 	event="$(grep -Hsi keyboard /sys/class/input/input*/name | \
@@ -100,11 +98,12 @@ resume() {
 		if $SPLD; then
 			[ -n "$theme" ] &&
 			debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
-			_hpr="$(type -p tuxoniceui_fbsplash)"
+			_hpr=tuxoniceui_fbsplash
 		else
-			_hpr="$(type -p tuxoniceui_text)"
+			_hpr=tuxoniceui_text
 		fi
-		$ECK && debug -d bck $_hpr
+		$ECK && debug -d bck $_hpr && _hpr="$(type -p $_hpr)"
+
 		debug _modprobe tuxonice
 		echo $_hpr >/sys/power/tuxonice/user_interface/program
 		echo $_dev >/sys/power/tuxonice/resume
@@ -333,7 +332,7 @@ fi
 if [ -n "$fsmount" ]; then
 	lvl 4m
 	begin "Mounting FileSystems"
-	fmount "$fsmount"
+	fsmount "$fsmount"
 	end "$?"
 fi
 
