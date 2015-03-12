@@ -226,15 +226,15 @@ if [ -n "$keymap" ]; then
 fi
 [ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
 [ -z "$kmap" ] && [ -f "$CONFDIR/kmap" ] && kmap=$(cat $CONFDIR/kmap)
-FONTDIR=/usr/share/consolefonts
-KMAPDIR=/usr/share/keymaps
-for file in $FONTDIR/$font*; do
+[ -n "$font" ] &&
+for file in /usr/share/consolefonts/$font*; do
 	[ -f "$file" ] && debug loadfont < $file && break
 done
-for file in $KMAPDIR/$kmap*; do
+[ -n "$kmap" ] &&
+for file in /usr/share/keymaps/$kmap*; do
 	[ -f "$file" ] && debug loadkmap < $file && break
 done
-unset FONTDIR KMAPDIR file font kmap
+unset file font kmap
 
 lvl 1
 
