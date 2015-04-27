@@ -143,7 +143,7 @@ ack() {
 	[ -f $_list ] || busybox --list-full >$_list
 
 	while read _line; do
-		type -p /$_line >/dev/null 2>&1 || ln -s /bin/busybox /$_line
+		type -p ${_line#*/} >$NULL 2>&1 || ln -s /bin/busybox /$_line
 	done <$_list
 }
 
@@ -512,7 +512,7 @@ fsmount() {
 	local name=FSmount _tab=/etc/fstab
 	[ -f $NEWROOT$_tab ] || die "no $_tab file found"
 
-	for _x in $(echo "$@" | sed -e 's/:/ /g'); do
+	for _x in $@; do
 		_y="$(grep $_x $NEWROOT$_tab)"
 
 		if [ -n "$_y" ]; then
