@@ -1,5 +1,5 @@
 #
-# $Header: mkinitramfs-ll/svc/tmpdir.confd, 2015/01/01 Exp $
+# $Header: mkinitramfs-ll/svc/tmpdir.confd, 2015/04/18 Exp $
 #
 # tmpdir maintain a temporary directory hierarchy on a tmpfs or zram
 # backed device. Keeping the state of a diretory across machine reboot
@@ -11,14 +11,15 @@ use_zram=yes
 # Root directory of the file system hierachy
 tmpdir_root=/var/tmp
 # Set the size to use (tmpfs case)
-tmpdir_size=10%
+tmpdir_size=20%
+
 # Colon separated list of directory to archive
-tmpdir_saved=/var/log
+tmpdir_saved=
 # Colon separated list of direcory (without saved state, backup)
 tmpdir_unsaved=
 # Set the compressor to use (for state saved directory)
 compressor="lz4 -1 -"
 
 #
-# vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
 #

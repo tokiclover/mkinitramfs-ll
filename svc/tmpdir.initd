@@ -1,17 +1,19 @@
 #!/sbin/runscript
 #
-# $Header: mkinitramfs-ll/svc/tmpdir.initd               Exp $
-# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Header: mkinitramfs-ll/svc/squashdir.initd            Exp $
+# $Author: (c) 2012-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.16.0 2015/01/01 12:33:03                   Exp $
+# $Version: 0.20.0 2015/04/18 12:33:03                   Exp $
 #
 
-description="Maintain temporary directory with optional backup"
+description="Temporary directory (with optional backup) setup"
 extra_commands="restore save"
-description_restore="Restore directory contents using dir$extension"
-description_save="Archive directory contents using dir$extension"
+description_restore="Restore temporary directories"
+description_save="Archive temporary directories"
+
 :	${compressor:=lz4 -1 -}
 :	${extension:=.tar.${compressor%% *}}
+:	${NULL=/dev/null}
 
 depend()
 {
@@ -23,30 +25,14 @@ depend()
 
 start()
 {
-	local IFS=":${IFS}" dir _dir
-	
-	if ! grep -q "${tmpdir_root}" /proc/mounts; then
-		if yesno ${use_zram}; then
-			ewarn "No suitable zram backed root dir found"
-			return 0
-		else
-			local ret
-			mkdir -p "${tmpdir_root}"
-			ebegin "Mounting ${tmpdir_root}"
-			mount -o rw,nodev,relatime,mode=0755,size=${tmpdir_size:-10%} \
-				-t tmpfs "${RC_SVCNAME:-tmpdir}" "${tmpdir_root}"
-			ret=$?
-			eend "${ret}"
-			[ "${ret}" = 0 ] || return 0
-		fi
-	fi
-	
+	local DIR IFS=":${IFS}" dir
+
 	for dir in ${tmpdir_saved} ${tmpdir_unsaved}; do
-		_dir="${tmpdir_root}${dir}"
-		grep -q "${_dir}" /proc/mounts && continue
-		mkdir -p "${_dir}"
-		ebegin  "Mounting ${_dir}"
-		mount --bind "${_dir}" "${dir}" > /dev/null 2>&1
+		DIR="${tmpdir_root}${dir}"
+		grep -q "${DIR}" /proc/mounts && continue
+		mkdir -p "${DIR}"
+		ebegin  "Mounting ${DIR}"
+		mount --bind "${DIR}" "${dir}" >${NULL} 2>&1
 		eend "$?"
 	done
 	restore
@@ -55,18 +41,16 @@ start()
 
 stop()
 {
-	local IFS=":${IFS}" dir _dir
-
 	save
+	local IFS=":${IFS}" dir
+
 	for dir in ${tmpdir_saved} ${tmpdir_unsaved}; do
 		case "${dir}" in
-			(/var/log|/var/run)
-				continue;;
+			(*/log|*/run|*/tmp) continue;;
 		esac
-		_dir="${tmpdir_root}${dir}"
-		grep -q "${_dir}" /proc/mounts || continue
-		ebegin  "Unmounting ${_dir}"
-		umount -l "${_dir}" > /dev/null 2>&1
+		grep -q "${dir}" /proc/mounts || continue
+		ebegin  "Unmounting ${dir}"
+		umount -l "${dir}" >${NULL} 2>&1
 		eend "$?"
 	done
 	return 0
@@ -74,12 +58,17 @@ stop()
 
 start_pre()
 {
-	local IFS=":${IFS}"
-
+	local IFS=":${IFS}" dir ret
 	for dir in ${tmpdir_saved}; do
 		[ -e "${dir}${extension}" ] && continue
 		[ -d "${dir}" ] && save "${dir}" || mkdir -p "${dir}"
 	done
+
+	grep -q "${tmpdir_root}" /proc/mounts && return
+	yesno ${use_zram} && ewarn "No suitable (zram) root-dir found"
+	mkdir -p "${tmpdir_root}"
+	mount -o rw,nodev,relatime,mode=0755,size=${tmpdir_size:-20%} \
+		-t tmpfs tmp "${tmpdir_root}" || return 2
 }
 
 restart()
@@ -89,13 +78,11 @@ restart()
 
 restore()
 {
-	local IFS=":${IFS}"
-	local swd="$(pwd)"
-	local decompress="${compressor%% *}"
-	local tarball
+	local IFS=":${IFS}" decompress swd tarball
+	decompress="${compressor%% *}" swd="${PWD}"
 
-	for dir in ${1:-${tmpdir_saved}}; do
-		cd "${dir%/*}" > /dev/null 2>&1
+	for dir in ${@:-${tmpdir_saved}}; do
+		cd "${dir%/*}" >${NULL} 2>&1 || continue
 
 		if [ -f "${dir}${extension}" ]; then
 		:	tarball="${dir}${extension}"
@@ -109,16 +96,15 @@ restore()
 		${decompress} -cd "${tarball}" | tar -xp
 		eend "${?}"
 	done
-	cd "${swd}" > /dev/null 2>&1
+	cd "${swd}" >${NULL} 2>&1
 }
 
 save()
 {
-	local IFS=":${IFS}"
-	local swd="$(pwd)"
+	local IFS=":${IFS}" swd="${PWD}"
 
-	for dir in ${1:-${tmpdir_saved}}; do
-		cd "${dir%/*}" > /dev/null 2>&1
+	for dir in ${@:-${tmpdir_saved}}; do
+		cd "${dir%/*}" >${NULL} 2>&1 || continue
 
 		if [ -f "${dir}${extension}" ]; then
 			mv -f "${dir}${extension}" "${dir}.old${extension}"
@@ -127,7 +113,7 @@ save()
 		tar -Ocp ${dir##*/} | ${compressor} "${dir}${extension}"
 		eend "${?}"
 	done
-	cd "${swd}" > /dev/null 2>&1
+	cd "${swd}" >${NULL} 2>&1
 }
 
 #
