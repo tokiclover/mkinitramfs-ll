@@ -342,6 +342,7 @@ lvl 4u
 #
 $SPLD && debug spld_stop
 
+echo >/proc/sys/kernel/hotplug
 umount -l /dev/pts
 for _dir in /run /sys /dev /proc; do
 	[ -f $LOGFILE ] || export LOGFILE=/$0.log
@@ -358,7 +359,6 @@ done
 
 lvl 4s
 msg -c GRN "Switching Root"
-echo >/proc/sys/kernel/hotplug
 debug -d exec switch_root $NEWROOT ${init:-/sbin/init} $RIL
 
 #
