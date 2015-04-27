@@ -1,45 +1,40 @@
 #!/sbin/runscript
 #
 # $Header: mkinitramfs-ll/svc/squashdir.initd            Exp $
-# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2012-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
+# $Version: 0.20.0 2015/04/18 12:33:03                   Exp $
 #
 
-description="Manage (AUFS+SquashFS) squashed directories"
+description="(AUFS+SquashFS) squash-directories"
+
+:	${NULL=/dev/null}
 :	${squash_rootdir:=/aufs}
+:	${sdr:=$(type -p sdr 2>${NULL})}
 
 depend()
 {
 	after localmount
-	if [ "${RC_RUNLEVEL}" == "boot" ]; then
+	if [ "${RC_RUNLEVEL}" = "boot" ]; then
 		before consolefont bootmisc acpid keymaps
 	fi
 }
 
 start_pre()
 {
-	local ret
-	if ! grep -q aufs /proc/filesystems; then
-		ebegin "Loading aufs kernel module"
-		modprobe aufs >/dev/null 2>&1
-		ret=$?
-		eend "${ret}"
-		[ ${ret} = 0 ] || return 1
-	fi
-	if ! grep -q squashfs /proc/filesystems; then
-		ebegin "Loading squashfs kernel module"
-		modprobe squashfs >/dev/null 2>&1
-		ret=$?
-		eend "${ret}"
-		[ ${ret} = 0 ] || return 2
-	fi
+	local mod
+	ebegin "Setting up kernel modules"
+	for mod in aufs squashfs; do
+		grep -q ${mod} /proc/filesystems || modprobe ${mod} >${NULL} 2>&1 ||
+		{ eend 1 ${mod}; return 1; }
+	done
+	eend ${?}
 }
 
 start()
 {
-	local IFS="${IFS}:"
-	for dir in ${squash_sysdir} ${squash_localdir}; do 
+	local IFS=":${IFS}" dir
+	for dir in ${squash_sysdir} ${squash_localdir}; do
 		squash_mount "${squash_rootdir}" "${dir}"
 	done
 	return 0
@@ -47,7 +42,7 @@ start()
 
 stop()
 {
-	local IFS="${IFS}:"
+	local IFS=":${IFS}" dir
 	for dir in ${squash_localdir}; do
 		squash_umount "${squash_rootdir}" "${dir}"
 	done
@@ -57,75 +52,64 @@ stop()
 	return 0
 }
 
+stop_pre()
+{
+	local IFS="${IFS}:"
+	[ -n "${squash_rebuild_dir}" ] || return 0
+	[ -n "${sdr}" -a -x "${sdr}" ] || { ewarn "No suitable sdr found."; return; }
+
+	ebegin "Rebuilding ${squash_rebuild_dir}"
+	${sdr} -o${offset:-5} -d${squash_rebuild_dir} >${NULL} 2>&1
+	eend ${?}
+}
+
 restart()
 {
 	stop
 	start
+	local IFS=":${IFS}" dir
 	for dir in ${squashdir_sysdir}; do
 		squash_remount "${dir}" "rw"
 	done
 	return 0
 }
 
-stop_pre()
-{
-	[ -n "${squash_rebuild_dir}" ] || return 0
-	local IFS="${IFS}:"
-:	${sdr:=$(type -p sdr)}
-
-	if test -n "${sdr}" -a -x "${sdr}"; then
-		ebegin "Rebuilding ${squash_rebuild_dir} squashed directories"
-		${sdr} -o${offset:-5} -d${squash_rebuild_dir} >/dev/null 2>&1
-		eend "${?}"
-	else
-		ewarn "No suitable sdr script found in PATH"
-	fi
-}
-
 squash_mount()
 {
-	local base="${1}/${dir#/}" ret
-	dir=/${dir#/}
+	local DIR
+	DIR="${1}/${2#/}" dir="/${2#/}"
+	grep -q aufs:${dir} /proc/mounts && return
 
-	grep -q "aufs:${dir}" /proc/mounts && return
-	if ! grep -q "${base}.squashfs" /proc/mounts; then 
-		ebegin "Mounting ${base}.squashfs"
-		mount -t squashfs -o loop,nodev,ro "${base}.squashfs" "${base}/rr"
-		ret="${?}"
-		eend "${ret}"
-		[ ${ret} != 0 ] && return
-	fi
 	ebegin "Mounting aufs:${dir}"
-	mount -t aufs -o "nodev,udba=reval,br:${base}/rw:${base}/rr" \
-		 "aufs:${dir}" "${dir}"
-	eend "${?}"
+	if ! grep -q ${DIR}.squashfs /proc/mounts; then
+		mount -t squashfs -o loop,nodev,ro ${DIR}.squashfs ${DIR}/rr \
+			>${NULL} 2>&1 || { eend 1 SquashFS; return 1; }
+	fi
+	mount -t aufs -o nodev,udba=reval,br:${DIR}/rw:${DIR}/rr aufs:${dir} ${DIR} \
+		>${NULL} 2>&1
+	eend ${?} AUFS
 }
 
 squash_umount()
 {
-	local base="${1}/${dir#/}" no_netdev
-	dir=/${dir#/}
-	[ "${RC_UNAME}" = "Linux" ] && no_netdev="-O no_netdev"
-
-	auplink "${dir}" flush
+	local DIR opt
+	DIR="${1}/${2#/}" dir="/${2#/}"
+	case "${RC_UNAME}" in
+		(Linux) opt="-O no_netdev";;
+	esac
+	auplink ${DIR} flush >${NULL} 2>&1
 	ebegin "Umounting aufs:${dir}"
-	umount -lt aufs "aufs:${dir}" "${no_netdev}" > /dev/null 2>&1
-	local ret=$?
-	eend "${ret}"
-	[ ${ret} != 0 ] && return
-	
-	ebegin "Unmounting ${base}.squashfs"
-	umount -lt squashfs "${base}/rr" "${no_netdev}" >/dev/null 2>&1
-	eend "${?}"
+	umount -l ${opt} aufs:${dir} >${NULL} 2>&1 || { eend 1 AUFS; return 1; }
+	umount -l ${opt} ${DIR}/rr   >${NULL} 2>&1
+	eend ${?} SquashFS
 }
 
 squash_remount()
 {
-	local opt="${2:-ro}"
-	dir=/${dir#/}
-	ebegin "Re-Mounting aufs:${dir} in ${opt} mode"
-	mount -o "remount,${opt}" "aufs:${dir}" 1>/dev/null 2>&1
-	eend "${?}"
+	dir="/${1#/}"
+	ebegin "Re-Mounting aufs:${DIR}"
+	mount -o remount,${2:-ro} aufs:${dir} >${NULL} 2>&1
+	eend ${?}
 }
 
 #

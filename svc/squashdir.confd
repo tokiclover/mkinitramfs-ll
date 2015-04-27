@@ -1,25 +1,25 @@
 #
-# $Header: mkinitramfs-ll/svc/squashdir.confd, 2015/01/01 Exp $
+# $Header: mkinitramfs-ll/svc/squashdir.confd, 2015/04/18 Exp $
 #
 
 # Squash directory root, where to put aufs hierchichal tree
 squash_rootdir=/aufs
 
 # System wide squash-ed directory-ies
-#squash_sysdir=/usr:/lib32:/lib64:/bin:/sbin:/opt
+#squash_sysdir=/usr:/opt
 
 # Local squash-ed directory-ies
-squash_localdir=/var/db:/var/cache/edb:/var/lib/layman:/var/portage
+squash_localdir=/var/db:/var/cache/edb:/var/lib/layman
 
 # Squashed directory-ies to rebuild before shutting down the service
 # WARN: This list should be in either squash_sysdir|localdir group
 squash_rebuild_dir=
-
+#
 # Full path to sdr.$shell script, else default to $(which sdr)
 sdr=/usr/sbin/sdr.bash
 # Offset to use when rebuilding (in percent)
 offset=10
 
 #
-# vim:fenc=utf-8:ft=gentoo-conf-d:ci:pi:sts=0:sw=4:ts=4:
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
 #
