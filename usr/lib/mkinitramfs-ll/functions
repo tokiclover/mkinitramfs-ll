@@ -188,10 +188,13 @@ _modprobe() {
 # @FUNCTION: Kernel cmdline handler
 # @ARG: <arg>
 _getopt() {
-	local _arg _cmd
+	local _arg _opt
 	for _arg in $*; do
-		for _cmd in $(cat /proc/cmdline); do
-			[ "${_cmd%%=*}" = "$_arg" ] && export $_cmd && break
+		for _cmd in $CMDLINE; do
+			case "$_arg" in
+				("${_opt%%=*}") export $_opt ; break;;
+				("$_opt") eval export $_opt=1; break;;
+			esac
 		done
 	done
 }
