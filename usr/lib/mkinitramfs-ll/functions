@@ -289,8 +289,8 @@ get_key() {
 			[ $(cryptsetup -v | sed -nre 's/.*\.(.*)\..*/\1/p') -ge 3 ] &&
 				LBD_CRYPT=true || LBD_CRYPT=false
 		fi;;
-	esac
-	if [ "$_km" != "pwd" ]; then
+		(pwd) ;;
+		(*)
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
 
@@ -300,7 +300,8 @@ get_key() {
 			debug -d mount -n -r "$_kd" $MNTDIR
 		fi
 		debug -d test -f "$MNTDIR/$_fp"
-	fi
+		;;
+	esac
 	case $_km in
 		(gpg) $ENV_CHK && debug -d bin_chk gpg
 		      [ -f $CONFDIR/gpg ] && debug MODPROBE gpg
