@@ -135,14 +135,30 @@ resume() {
 
 # -*- Initialisation -*-
 
-debug -d mkdir -p dev/pts proc run sys $NEWROOT $MNTDIR
-debug -d mount -t proc proc /proc
+debug umask 0077
+debug mkdir -p dev/pts proc run sys $NEWROOT $MNTDIR
 
-for arg in $(cat /proc/cmdline); do
+debug mount -t proc proc /proc
+debug mount -t sysfs sysfs /sys
+if grep -q devtmpfs /proc/filesystems; then
+	debug mount -t devtmpfs devtmpfs /dev
+else
+	debug mount -t tmpfs -o exec,mode=755 tmpfs /dev
+fi
+echo >/dev/mdev.seq
+[ -x /sbin/mdev ] && mdev=/sbin/mdev || mdev="/bin/busybox mdev"
+debug -d $mdev -s
+echo $mdev >/proc/sys/kernel/hotplug
+
+debug mount -t tmpfs -o mode=755,size=1% tmpfs /run
+mv -f $LOGFILE /run && export LOGFILE=/run$LOGFILE
+
+CMDLINE="$(cat /proc/cmdline)"
+for arg in $CMDLINE; do
 	case "$arg" in
 		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) export RSH=1;;
 		(ro|rw) export rootflags="${rootflags:+$rootflags,}$arg";;
-		(single) export RIL=2              ;;
+		(single) export RUNLEVEL=2         ;;
 		(hook=*) export HOOKS="${arg#*=}"  ;;
 		([Cbcdeiklmnrsz]*=*) export "$arg" ;;
 	 esac
@@ -150,7 +166,7 @@ done
 
 if [ -n "$level" ]; then
 	RSH="${level%:*}"
-	arg "RIL" "$level" ":" "2" "-s"
+	arg "RUNLEVEL" "$level" ":" "2" "-s"
 fi
 
 yesno "${env:-YES}"
@@ -173,25 +189,11 @@ DEBUG="${debug%:*}"
 arg "DMESG" "$debug" ":" "2" "-s"
 [ -n "$DEBUG" ]  && set -${DEBUG/e/}
 [ -n "$DMESG" ]  && debug dmesg -n $DMESG
-unset DEBUG DMESG
 
-debug -d mount -t sysfs sysfs /sys
-debug -d mount -t tmpfs -o mode=755 tmpfs /run
-mv -f $LOGFILE /run && export LOGFILE=/run$LOGFILE
-debug umask 0077
-
-if grep -q devtmpfs /proc/filesystems; then
-	debug -d mount -t devtmpfs devtmpfs /dev
-else
-	debug -d mount -t tmpfs -o mode=755 tmpfs /dev
-fi
-debug mkdir /dev/pts
-debug mount -t devpts -o gid=5,mode=0620 devpts /dev/pts
-
-echo >/dev/mdev.seq
-debug -d mdev -s
-echo /sbin/mdev >/proc/sys/kernel/hotplug
-	
+[ -f $CONFDIR/boot ] &&
+for _m in $(cat $CONFDIR/boot); do
+	debug _modprobe $_m
+done
 for _m in $(echo "$module" | sed 's/:/ /g'); do
 	debug _modprobe $_m
 done
@@ -207,11 +209,6 @@ done
 exec 0<$CONSOLE 1>$CONSOLE 2>&1
 export CONSOLE
 eval_colors
-
-[ -f $CONFDIR/boot ] &&
-for _m in $(cat $CONFDIR/boot); do
-	debug _modprobe $_m
-done
 
 if [ -n "$splash" ]; then
 	begin "Starting Splash"
@@ -343,7 +340,6 @@ lvl 4u
 $SPLD && debug spld_stop
 
 echo >/proc/sys/kernel/hotplug
-umount -l /dev/pts
 for _dir in /run /sys /dev /proc; do
 	[ -f $LOGFILE ] || export LOGFILE=/$0.log
 	if [ "${SYSFS/${_dir#/}}" != "$SYSFS" ]; then
@@ -359,7 +355,7 @@ done
 
 lvl 4s
 msg -c GRN "Switching Root"
-debug -d exec switch_root $NEWROOT ${init:-/sbin/init} $RIL
+debug -d exec switch_root $NEWROOT ${init:-/sbin/init} $RUNLEVEL
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
