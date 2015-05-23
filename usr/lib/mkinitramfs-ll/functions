@@ -357,41 +357,45 @@ dmopen() {
 	$ECK && debug -d bck cryptsetup
 	debug _modprobe dm-crypt
 
-	local _name="$2"
+	local _dm _arg _name="$2"
 	eval set -- ${1/+/ }
 	local _dev="${1#*-}" _hdr="$2" _header _map="${1%-*}"
 	blk "$_dev" "_dev"
+	_dm=/dev/mapper/$_map
+	[ -b "$_dm" ] && eval ${_name:-DM}=$_dm && return
 
-	local _ctx=/dev/mapper/$_map
-	[ -b "$_ctx" ] && eval ${_name:-CTX}=$_ctx && return
-
-	if [ -n "$_hdr" ]; then
-		if [ -n "$(echo "$_hdr" | grep -E '(UUID|LABEL|sd[a-z])')" ]; then 
-			blk "$_hdr" "_hdr"
-			debug dmcrypt "$_hdr" "_header"
-		elif [ -e "$MNTDIR/$_hdr" ]; then
+	[ -z "$_hdr" ] && debug dmcrypt "$_dev" "_dev" ||
+	case "$_hdr" in
+		(UUID*|LABEL*|*sd[a-z]*)
+		blk "$_hdr" "_hdr"
+		debug dmcrypt "$_hdr" "_header"
+		;;
+		(*)
+		if [ -e "$MNTDIR/$_hdr" ]; then
 			debug dmcrypt "$MNTDIR/$_hdr" "_header"
 		else
-			die "header not found"
+			die "Detached header not found"
 		fi
-		_header="--header $_header"
-	else
-		debug dmcrypt "$_dev" "_dev"
-	fi
-	local _arg="open $_dev $_map $_header"
+		;;
+	esac
+	_header="${header:+--header} $_header"
+	_arg="open $_dev $_map $_header"
 
-	if [ "$KEYMODE" = "gpg" ]; then 
+	case "$KEYMODE" in
+		(gpg)
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
 		local _i
 		for _i in 1 2 3; do
 			debug "gpg -qd \"$KEYFILE\" | cryptsetup $_arg"
 		done
 		rm /dev/tty && mv -f /dev/bak /dev/tty
-	elif [ "$KEYMODE" = "ldk" -o "$KEYMODE" = "reg" ]; then
+		;;
+		(ldk)
 		debug cryptsetup $_arg -d "$KEYFILE"
-	fi
-	[ -b "$_ctx" ] || debug -d cryptsetup $_arg
-	debug -d test -b $_ctx && eval ${_name:-CTX}=$_ctx
+		;;
+	esac
+	[ -b "$_dm" ] || debug -d cryptsetup $_arg
+	debug -d test -b $_dm && eval ${_name:-DM}=$_dm
 }
 
 # @FUNCTION: LVM handler
