@@ -417,7 +417,9 @@ lvopen() {
 	local _lv="${1/-//}"
 
 	if ! debug lvm lvchange -ay --noudevsync --sysinit "$_lv"; then
-		if [ -n "$2" -a "$KEYMODE" != "none" ]; then
+		case "$KEYMODE" in
+			(none) die "No logical volume found";;
+			([a-z]*)
 			local _pv="$2" IFS="${IFS}:"
 			[ -f "$MNTDIR/$_pv" ] && _pv="$(cat $MNTDIR/$_pv)"
 			for _p in $_pv; do
@@ -426,10 +428,8 @@ lvopen() {
 			debug lvm vgchange -ay --noudevsync  --sysinit "${1%-*}" ||
 				die "Failed to open ${1}"
 			debug lvm vgscan --mknodes
-			KEYMODE=
-		else
-			die "no logical volume found"
-		fi
+			;;
+		esac
 	fi
 	if [ -b "/dev/mapper/$1" ]; then
 		eval ${3:-LV}=/dev/mapper/$1
@@ -438,6 +438,7 @@ lvopen() {
 	else
 		die "$_lv VG/LV not found"
 	fi
+	KEYMODE=
 }
 
 # @FUNCTION: RAID handler
