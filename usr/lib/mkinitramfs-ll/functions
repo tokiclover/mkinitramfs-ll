@@ -163,7 +163,7 @@ dohook() {
 
 # @FUNCTION: rmmod wrapper
 # @ARG: <module(s)|group>
-_rmmod() {
+RMMOD() {
 	if [ -f "$CONFDIR/$1" ]; then
 		while read _mod; do 
 			debug rmmod -q $_mod
@@ -175,7 +175,7 @@ _rmmod() {
 
 # @FUNCTION: modprobe wrapper
 # @ARG: <module(s)|group>
-_modprobe() {
+MODPROBE() {
 	if [ -f "$CONFDIR/$1" ]; then
 		while read _mod; do 
 			debug modprobe -q $_mod
@@ -284,7 +284,7 @@ get_key() {
 		[ -n "$_fp" ] || die "file path field empty"
 
 		if ! grep -q $MNTDIR /proc/mounts; then
-			[ -f $CONFDIR/remdev ] && debug _modprobe remdev
+			[ -f $CONFDIR/remdev ] && debug MODPROBE remdev
 			[ -b "$_kd" ] || blk "$_kd" "_kd"
 			debug -d mount -n -r "$_kd" $MNTDIR
 		fi
@@ -292,7 +292,7 @@ get_key() {
 	fi
 	case $_km in
 		(gpg) $ENV_CHK && debug -d bin_chk gpg
-		      [ -f $CONFDIR/gpg ] && debug _modprobe gpg
+		      [ -f $CONFDIR/gpg ] && debug MODPROBE gpg
 		      export KEYFILE="$MNTDIR/$_fp" KEYMODE=gpg    ;;
 		(reg) export KEYFILE="$MNTDIR/$_fp" KEYMODE=reg    ;;
 		(ldk) ldk "$MNTDIR/$_fp"
@@ -355,7 +355,7 @@ dmcrypt() {
 # @ARG: <map-dev+header>
 dmopen() {
 	$ENV_CHK && debug -d bin_chk cryptsetup
-	debug _modprobe dm-crypt
+	debug MODPROBE dm-crypt
 
 	local _dm _arg _name="$2"
 	eval set -- ${1/+/ }
@@ -402,7 +402,7 @@ dmopen() {
 # @ARG: <vg-lv> [<map-pv>]
 lvopen() {
 	$ENV_CHK && debug -d bin_chk lvm
-	debug _modprobe device-mapper
+	debug MODPROBE device-mapper
 	local _lv="${1/-//}"
 
 	if ! debug lvm lvchange -ay --noudevsync --sysinit "$_lv"; then
@@ -446,7 +446,7 @@ mdopen() {
 	esac
 	if [ -n "$_uuid" -o -n "$_devices" ]; then
 		$ENV_CHK && debug -d bin_chk mdadm
-		debug _modprobe raid
+		debug MODPROBE raid
 	
 		if [ -n "$_uuid" ]; then
 			echo ARRAY $_dev $_uuid >>/etc/mdadm.conf
@@ -456,7 +456,7 @@ mdopen() {
 		debug mdadm --assemble ${_uuid:+-u${_uuid#*=}} -c/etc/mdadm.conf $_dev
 	else
 		$ENV_CHK && debug -d bin_chk dmraid
-		debug _modprobe dm-raid
+		debug MODPROBE dm-raid
 
 		local _f _s
 		for _f in $(echo "$_opt" | sed 's/:/ /g'); do
@@ -493,7 +493,7 @@ squashd() {
 	done
 
 	debug -d test -d $NEWROOT/$_squashdir
-	debug _modprobe squashd
+	debug MODPROBE squashd
 	cd $NEWROOT
 
 	local _DIR _dir

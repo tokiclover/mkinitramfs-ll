@@ -14,7 +14,7 @@ dobtrfs() {
 	echo $$ >/run/${0##*/}.pid
 	local _bin _CHK _dev _DEV DEV name=btrfs
 	$ENV_CHK && debug -d bin_chk btrfs
-	debug _modprobe btrfs
+	debug MODPROBE btrfs
 
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"
 	local _cut _env="$1" _grp="$2" _KEY _vol="$3"

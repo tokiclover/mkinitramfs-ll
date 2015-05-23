@@ -106,7 +106,7 @@ resume() {
 		fi
 		$ENV_CHK && debug -d bin_chk $_hpr && _hpr="$(type -p $_hpr)"
 
-		debug _modprobe tuxonice
+		debug MODPROBE tuxonice
 		echo $_hpr >/sys/power/tuxonice/user_interface/program
 		echo $_dev >/sys/power/tuxonice/resume
 
@@ -117,7 +117,7 @@ resume() {
 			echo >/sys/power/tuxonice/do_resume
 		fi
 	elif [ -f /sys/power/resume ]; then
-		debug _modprobe swsusp
+		debug MODPROBE swsusp
 		echo platform >/sys/power/disk # or 'shutdown'  if ACPI does not work
 		echo disk >/sys/power/state
 
@@ -192,10 +192,10 @@ CUT "DMESG" "$debug" ":" "2" "-s"
 
 [ -f $CONFDIR/boot ] &&
 for _m in $(cat $CONFDIR/boot); do
-	debug _modprobe $_m
+	debug MODPROBE $_m
 done
 for _m in $(echo "$module" | sed 's/:/ /g'); do
-	debug _modprobe $_m
+	debug MODPROBE $_m
 done
 
 [ -h /dev/fd     ] || debug ln -fns /proc/self/fd /dev/fd
@@ -323,10 +323,10 @@ for _d in $(echo $LBD_DEV | sed 's/:/ /g'); do
 	debug losetup -d $_d
 done
 
-[ "$KEYMODE" = "gpg" ] && debug _rmmod gpg
+[ "$KEYMODE" = "gpg" ] && debug RMMOD gpg
 if grep -q $MNTDIR /proc/mounts; then
 	debug -d umount -l $MNTDIR
-	debug _rmmod remdev
+	debug RMMOD remdev
 fi
 
 if [ -n "$fsmount" ]; then

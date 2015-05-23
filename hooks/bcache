@@ -15,7 +15,7 @@ source $LIBDIR/helpers   || return
 #
 dobcache() {
 	echo $$ >/run/${0##*/}.pid
-	debug _modprobe bcache
+	debug MODPROBE bcache
 
 	local IFS=":$IFS" _dev _DEV
 	for _dev in $bcache; do

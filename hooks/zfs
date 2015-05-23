@@ -29,7 +29,7 @@ dozfs() {
 		eval set -- $(echo "$_vol" | sed -e 's/:/ /g')
 		_vol="$2" _sign="$3" _type="$1"
 	fi
-	debug -d _modprobe zfs
+	debug -d MODPROBE zfs
 	local _pool="${_vol%/*}"
 
 	if ! zpool list -H $_pool >$NULL 2>&1; then
