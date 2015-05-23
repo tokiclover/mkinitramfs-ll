@@ -48,13 +48,15 @@ name=init
 
 # @FUNCTION: Shell Run Level helper
 # @ARG: <level>
-lvl() {
+level() {
 	msg -c GRN "Switching to init shell run level $CLR_BLU$1$CLR_RST"
-	export LVL=$1
+	export LEVEL=$1
 	for _f in $(ls $LIBDIR/${1}-* 2>$NULL); do
 		dohook "$_f"
 	done
-	[ "$LVL" = "$RSH" ] && debug die
+	case "$LEVEL" in
+		("$RSH") debug die;;
+	esac
 	return 0
 }
 
@@ -233,7 +235,7 @@ for file in /usr/share/keymaps/$kmap*; do
 done
 unset file font kmap
 
-lvl 1
+level 1
 
 # -*- Logo and or boot message -*-
 [ -f /etc/issue.logo ] && cat /etc/issue.logo
@@ -243,7 +245,7 @@ while read _line; do
 done </etc/msg
 
 # -*- Hooks -*-
-lvl 2
+level 2
 
 for hook in bcache btrfs \
 	zfs zram; do
@@ -261,7 +263,7 @@ done
 # -*- Swap/Resume -*-
 # SWAP should be set if available
 if [ -n "$swap" ]; then
-	lvl 2s
+	level 2s
 	if [ -z "$SWAP" ]; then
 		begin "Enabling swap device"
 		bkd "$swap" "SWAP" "2"
@@ -270,7 +272,7 @@ if [ -n "$swap" ]; then
 fi
 # RESU should be set if available
 if [ -n "$resume" ]; then
-	lvl 2r
+	level 2r
 	if [ -z "$RESU" ] && [ "$resume" != "swap" ]; then
 		begin "Starting Resume"
 		bkd "$resume" "RESU" "3"
@@ -281,19 +283,19 @@ fi
 
 # -*- Root -*-
 
-lvl 3
+level 3
 # ROOT should be set if available
 dorootfs() {
 	local FS="${rootfs%:*}" CHK ROOT
 	arg "CHK" "$rootfs" ":" "2" "-s"
 	debug -d bkd "$root" "ROOT" "1"
 
-	lvl 3f
+	level 3f
 	if [ -n "$CHK" ]; then
 		yesno $CHK && CHK=-d || CHK=-e
 		debug $CHK fsck ${FS:+-t$FS} $ROOT
 	fi
-	lvl 3m
+	level 3m
 	debug mount ${rootflags:+-o} $rootflags ${FS:+-t} $FS $ROOT $NEWROOT ||
 		die "Failed to mount rootfs"
 }
@@ -303,14 +305,14 @@ if [ -z "$ROOT" ]; then
 	end "$?"
 fi
 if [ -n "$squashd" ]; then
-	lvl 3s
+	level 3s
 	begin "Mounting Squashed FileSystems"
 	squashd "$squashd"
 	end "$?"
 fi
 
 # -*- Clean up and switch -*-
-lvl 4
+level 4
 
 [ -n "$LBD_KEY" ] &&
 for _k in $(echo $LBD_KEY | sed '/:/ /g'); do
@@ -328,13 +330,13 @@ if grep -q $MNTDIR /proc/mounts; then
 fi
 
 if [ -n "$fsmount" ]; then
-	lvl 4m
+	level 4m
 	begin "Mounting FileSystems"
 	fsmount "$fsmount"
 	end "$?"
 fi
 
-lvl 4u
+level 4u
 #
 # FIXME: is this necessary?
 #
@@ -354,7 +356,7 @@ for _dir in /run /sys /dev /proc; do
 	end "$?"
 done
 
-lvl 4s
+level 4s
 msg -c GRN "Switching Root"
 debug -d exec switch_root $NEWROOT ${init:-/sbin/init} $RUNLEVEL
 
