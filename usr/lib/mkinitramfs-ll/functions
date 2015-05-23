@@ -320,19 +320,19 @@ get_key() {
 get_dev() {
 	debug -d test -n "$1"
 	local _cut _luks _lvm _raid _name="$2"
-	local DEV _grp="${3:-1}"
+	local DEV _dev _grp="${3:-1}" _sig _typ
 
-	if [ $_grp -ge 2 ]; then
-		eval set -- $(echo "$1" | sed -e 's/:/ /g')
-		local _typ="$1" _dev="$2" _sig="$3"
-		_cut=-s
-	else
-		local _dev="${1%%:*}"
-	fi
+	case $_grp in
+		(1) _dev="${1%%:*}";;
+		(*) eval set -- $(echo "$1" | sed -e 's/:/ /g')
+		_typ="$1" _dev="$2" _sig="$3" _cut=-s;;
+	esac
+
 	[ -n "$luks" ] && debug CUT "_luks" "$luks" "," "$_grp" "$_cut"
 	[ -n "$raid" ] && debug CUT "_raid" "$raid" "," "$_grp" "$_cut"
 	[ -n "$lvm"  ] && debug CUT "_lvm"  "$lvm"  "," "$_grp" "$_cut"
 	debug -d get_key "$_luks"
+
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "DEV"
 	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "DEV"
 	[ -n "$KEYMODE" -a "$KEYMODE" != "none" ] && debug -d dmopen "$_dev" "DEV"
