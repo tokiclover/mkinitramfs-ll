@@ -311,12 +311,12 @@ fi
 # -*- Clean up and switch -*-
 lvl 4
 
-[ -n "$LBK" ] &&
-for _k in $(echo $LBK | sed '/:/ /g'); do
+[ -n "$LBD_KEY" ] &&
+for _k in $(echo $LBD_KEY | sed '/:/ /g'); do
 	debug dmclose "$_k"
 done
-[ -n "$LBD" ] &&
-for _d in $(echo $LBD | sed 's/:/ /g'); do
+[ -n "$LBD_DEV" ] &&
+for _d in $(echo $LBD_DEV | sed 's/:/ /g'); do
 	debug losetup -d $_d
 done
 

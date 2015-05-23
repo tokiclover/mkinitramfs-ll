@@ -252,14 +252,14 @@ blk() {
 ldk() {
 	[ -b "$1" ] && return
 
-	if [ ! "$CLD" ]; then
+	if ! $LBD_CRYPT; then
 		local _ld="$(debug -d losetup -f)"
 		debug -d losetup "$_ld" "$1"
-		LBD="$_ld:$LBD"
+		LBD_DEV="$_ld:$LBD_DEV"
 	else
 		local _ld="$1"
 	fi
-	debug cryptsetup luksOpen "$_ld" "$_fn" && LBK="$_fn:$LBK"
+	debug cryptsetup luksOpen "$_ld" "$_fn" && LBD_KEY="$_fn:$LBD_KEY"
 }
 
 # @FUNCTION: Key[file/mode] handler
@@ -268,13 +268,14 @@ stk() {
 	eval set -- $(echo "$1" | sed -e 's/:/ /g')
 	local _fn="${3##*/}" _fp="$3" _kd="$2" _km="$1"
 
-	if [ -z "$_km" ];then
-		export KEYMODE=none
-		return
-	elif [ "$_km" = "ldk" -a -z "$CLD" ];then
-		[ $(cryptsetup --version | awk '{print $2}' | cut -d'.' -f2) -ge 3 ] &&
-		CLD=true
-	fi
+	case "$_km" in
+		('') export KEYMODE=none; return;;
+		(ldk)
+		if [ -z "$LBD_CRYPT" ]; then
+			[ $(cryptsetup -v | sed -nre 's/.*\.(.*)\..*/\1/p') -ge 3 ] &&
+				LBD_CRYPT=true || LBD_CRYPT=false
+		fi;;
+	esac
 	if [ "$_km" != "pwd" ]; then
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
