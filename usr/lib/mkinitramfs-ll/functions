@@ -203,8 +203,8 @@ get_opt() {
 	for _arg in $*; do
 		for _cmd in $CMDLINE; do
 			case "$_arg" in
-				("${_opt%%=*}") export $_opt ; break;;
 				("$_opt") eval export $_opt=1; break;;
+				("${_opt%%=*}") export $_opt ; break;;
 			esac
 		done
 	done
