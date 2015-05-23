@@ -13,7 +13,7 @@ source $LIBDIR/helpers   || return
 dobtrfs() {
 	echo $$ >/run/${0##*/}.pid
 	local _bin _CHK _dev _DEV DEV name=btrfs
-	$ECK && debug -d bck btrfs
+	$ENV_CHK && debug -d bin_chk btrfs
 	debug _modprobe btrfs
 
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"

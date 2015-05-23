@@ -9,7 +9,7 @@
 #
 
 # Enable ChecKing binaries & busybox applets
-:   ${ECK=true}
+:   ${ENV_CHK=true}
 # Set real (path to) init
 :   ${init=/sbin/init}
 # Set configuration directory path
@@ -62,7 +62,7 @@ level() {
 
 # @FUNCTION: Splash daemon helper
 splashd() {
-	$ECK && debug -d bck fbcondecor_helper splash_util
+	$ENV_CHK && debug -d bck fbcondecor_helper splash_util
 	local IFS="${IFS}," _opt _opts cachedir event mode theme
 	
 	event="$(grep -Hsi keyboard /sys/class/input/input*/name | \
@@ -104,7 +104,7 @@ resume() {
 		else
 			_hpr=tuxoniceui_text
 		fi
-		$ECK && debug -d bck $_hpr && _hpr="$(type -p $_hpr)"
+		$ENV_CHK && debug -d bin_chk $_hpr && _hpr="$(type -p $_hpr)"
 
 		debug _modprobe tuxonice
 		echo $_hpr >/sys/power/tuxonice/user_interface/program
@@ -183,7 +183,7 @@ while read _line; do
 		([a-zA-Z]*) [ "${env/:${_line%%=*}:}" = "$env" ] && export "$_line" ;;
 	esac
 done < $CONFDIR/env
-$ECK && debug ack
+$ENV_CHK && debug app_chk
 
 DEBUG="${debug%:*}"
 arg "DMESG" "$debug" ":" "2" "-s"

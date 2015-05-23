@@ -2,13 +2,13 @@
 # $Header: /lib/mkinitramfs-ll/functions                 Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.19.1 2015/02/28 12:33:03                   Exp $
+# $Version: 0.20.0 2015/05/20 12:33:03                   Exp $
 #
 
-# @FUNCTION: Argument field helper
+# @FUNCTION: cut wrapper
 # @ARG: <var> <var> <char> <int> <opt>
 arg() {
-	eval ${1}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
+	eval ${1:-arg}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
 }
 
 # @FUNCTION: Print begin message to stdout
@@ -106,7 +106,7 @@ debug() {
 rsh() {
 	if $SPLASHD; then
 		debug openvt -c${CONSOLE:8:1} $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
-	elif bck setsid; then
+	elif bin_chk setsid; then
 		debug setsid $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
 	else
 		debug $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
@@ -127,7 +127,7 @@ yesno() {
 
 # @FUNCTION: Binary ChecK helper
 # @ARG: <bin>
-bck() {
+bin_chk() {
 	local _cmd
 	for _cmd; do
 		type -p $_cmd 1>$NULL 2>&1 || return
@@ -135,12 +135,12 @@ bck() {
 }
 
 # @FUNCTION: BusyBox Applets ChecK
-ack() {
+app_chk() {
 	local _line _list=$CONFDIR/busybox.applets
 	[ -f $_list ] || busybox --list-full >$_list
 
 	while read _line; do
-		type -p ${_line#*/} >$NULL 2>&1 || ln -s /bin/busybox /$_line
+		type -p ${_line##*/} >$NULL 2>&1 || ln -s /bin/busybox /$_line
 	done <$_list
 }
 
@@ -291,7 +291,7 @@ stk() {
 		debug -d test -f "$MNTDIR/$_fp"
 	fi
 	case $_km in
-		(gpg) $ECK && debug -d bck gpg
+		(gpg) $ENV_CHK && debug -d bin_chk gpg
 		      [ -f $CONFDIR/gpg ] && debug _modprobe gpg
 		      export KEYFILE="$MNTDIR/$_fp" KEYMODE=gpg    ;;
 		(reg) export KEYFILE="$MNTDIR/$_fp" KEYMODE=reg    ;;
@@ -354,7 +354,7 @@ dmcrypt() {
 # @FUNCTION: dm-crypt LUKS device handler
 # @ARG: <map-dev+header>
 dmopen() {
-	$ECK && debug -d bck cryptsetup
+	$ENV_CHK && debug -d bin_chk cryptsetup
 	debug _modprobe dm-crypt
 
 	local _dm _arg _name="$2"
@@ -401,7 +401,7 @@ dmopen() {
 # @FUNCTION: LVM handler
 # @ARG: <vg-lv> [<map-pv>]
 lvopen() {
-	$ECK && debug -d bck lvm
+	$ENV_CHK && debug -d bin_chk lvm
 	debug _modprobe device-mapper
 	local _lv="${1/-//}"
 
@@ -445,7 +445,7 @@ mdopen() {
 		                     _set="$_opt"        ;;
 	esac
 	if [ -n "$_uuid" -o -n "$_devices" ]; then
-		$ECK && debug -d bck mdadm
+		$ENV_CHK && debug -d bin_chk mdadm
 		debug _modprobe raid
 	
 		if [ -n "$_uuid" ]; then
@@ -455,7 +455,7 @@ mdopen() {
 		fi
 		debug mdadm --assemble ${_uuid:+-u${_uuid#*=}} -c/etc/mdadm.conf $_dev
 	else
-		$ECK && debug -d bck dmraid
+		$ENV_CHK && debug -d bin_chk dmraid
 		debug _modprobe dm-raid
 
 		local _f _s
