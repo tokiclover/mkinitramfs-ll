@@ -8,7 +8,7 @@
 set +e +x
 source $LIBDIR/functions || return
 source $LIBDIR/helpers   || return
-[ -z "$bcache" ] && _getopt "bcache"
+[ -z "$bcache" ] && get_opt "bcache"
 
 #
 # FIXME: luks, lvm, raid support?

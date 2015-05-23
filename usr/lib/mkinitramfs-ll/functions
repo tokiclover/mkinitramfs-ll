@@ -187,7 +187,7 @@ MODPROBE() {
 
 # @FUNCTION: Kernel cmdline handler
 # @ARG: <arg>
-_getopt() {
+get_opt() {
 	local _arg _opt
 	for _arg in $*; do
 		for _cmd in $CMDLINE; do
