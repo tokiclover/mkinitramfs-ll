@@ -14,6 +14,8 @@ CUT() {
 # @FUNCTION: Print begin message to stdout
 # @ARG: <msg>
 begin() {
+	[ -n "$eol" ] && echo
+	eol=0
 	local prefix=${name:+"$CLR_MAG[$CLR_RST $CLR_BLU$name$CLR_RST: $CLR_MAG]$CLR_RST"}
 	echo -en " $prefix $@"
 }
@@ -28,6 +30,7 @@ end() {
 	esac
 	shift
 	echo -en " $@ $suffix\n"
+	eol=
 }
 
 # @FUNCTION: Colors handler
@@ -44,14 +47,14 @@ eval_colors() {
 # @ARG: <msg>
 info() {
 	local prefix=${name:+" $CLR_MAG$name:$CLR_RST"}
-	echo -e " ${CLR_BLU}*$CLR_RST$prefix $@"
+	echo -e${eol+n} "${eol+\n} $CLR_BLU*$CLR_RST$prefix $@"
 }
 
 # @FUNCTION: Print message to stderr
 # @ARG: <msg>
 error() {
 	local prefix=${name:+" $CLR_YLW$name:$CLR_RST"}
-	echo -e " ${CLR_RED}*$CLR_RST$prefix $@" >&2
+	echo -e${eol+n} "${eol+\n} $CLR_RED*$CLR_RST$prefix $@" >&2
 }
 
 # @FUNCTION: Printing message handler
