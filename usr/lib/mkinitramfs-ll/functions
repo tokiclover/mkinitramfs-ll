@@ -82,15 +82,14 @@ debug() {
 	local _cmd _opt _ret
 
 	while [ $# -ge 1 ]; do
-		case $1 in
-			(-d|-e|-i) _opt="$1"
-			     shift;;
-			(--) shift;;
-			(*) _cmd="$@"
-			     break;;
+		case "$1" in
+			(-d|-e|-i) _opt="$1";;
+			(--) ;;
+			(*) _cmd="$*"; break;;
 		esac
+		shift
 	done
-	eval $_cmd
+	eval "$@"
 	_ret=$?
 	echo "[$_ret]: $_cmd" >>$LOGFILE
 
