@@ -265,14 +265,16 @@ blk() {
 # @ARG: <file>
 ldk() {
 	[ -b "$1" ] && return
-
-	if ! $LBD_CRYPT; then
+	case "$LBD_CRYPT" in
+		(1)
 		local _ld="$(debug -d losetup -f)"
 		debug -d losetup "$_ld" "$1"
 		LBD_DEV="$_ld:$LBD_DEV"
-	else
+		;;
+		(*)
 		local _ld="$1"
-	fi
+		;;
+	esac
 	debug cryptsetup luksOpen "$_ld" "$_fn" && LBD_KEY="$_fn:$LBD_KEY"
 }
 
@@ -287,7 +289,7 @@ get_key() {
 		(ldk)
 		if [ -z "$LBD_CRYPT" ]; then
 			[ $(cryptsetup -v | sed -nre 's/.*\.(.*)\..*/\1/p') -ge 3 ] &&
-				LBD_CRYPT=true || LBD_CRYPT=false
+				LBD_CRYPT=1 || LBD_CRYPT=0
 		fi;;
 		(pwd) ;;
 		(*)
