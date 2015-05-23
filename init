@@ -235,18 +235,16 @@ for file in /usr/share/keymaps/$kmap*; do
 done
 unset file font kmap
 
-level 1
-
 # -*- Logo and or boot message -*-
+level 1
 [ -f /etc/issue.logo ] && cat /etc/issue.logo
-debug test -f /etc/msg && clear &&
+debug test -f /etc/issue && clear &&
 while read _line; do
 	msg -i "$_line"
-done </etc/msg
+done </etc/issue
 
 # -*- Hooks -*-
 level 2
-
 for hook in bcache btrfs \
 	zfs zram; do
 	eval test -n \"\$$hook\" && eval HOOKS="$hook $HOOKS"
@@ -261,6 +259,7 @@ for hook in $HOOKS; do
 done
 
 # -*- Swap/Resume -*-
+
 # SWAP should be set if available
 if [ -n "$swap" ]; then
 	level 2s
@@ -328,7 +327,6 @@ if grep -q $MNTDIR /proc/mounts; then
 	debug -d umount -l $MNTDIR
 	debug RMMOD remdev
 fi
-
 if [ -n "$fsmount" ]; then
 	level 4m
 	begin "Mounting FileSystems"
