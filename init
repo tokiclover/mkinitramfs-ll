@@ -266,7 +266,7 @@ if [ -n "$swap" ]; then
 	level 2s
 	if [ -z "$SWAP" ]; then
 		begin "Enabling swap device"
-		bkd "$swap" "SWAP" "2"
+		get_dev "$swap" "SWAP" "2"
 		end "$?"
 	fi
 fi
@@ -275,7 +275,7 @@ if [ -n "$resume" ]; then
 	level 2r
 	if [ -z "$RESU" ] && [ "$resume" != "swap" ]; then
 		begin "Starting Resume"
-		bkd "$resume" "RESU" "3"
+		get_dev "$resume" "RESU" "3"
 		end 1
 	fi
 	debug resume "${RESU:-$SWAP}"
@@ -288,7 +288,7 @@ level 3
 dorootfs() {
 	local FS="${rootfs%:*}" CHK ROOT
 	arg "CHK" "$rootfs" ":" "2" "-s"
-	debug -d bkd "$root" "ROOT" "1"
+	debug -d get_dev "$root" "ROOT" "1"
 
 	level 3f
 	if [ -n "$CHK" ]; then

@@ -161,7 +161,7 @@ dohook() {
 	exec 0<$CONSOLE 1>$CONSOLE 2>&1	
 }
 
-# @FUNCTION: Rmmod handler
+# @FUNCTION: rmmod wrapper
 # @ARG: <module(s)|group>
 _rmmod() {
 	if [ -f "$CONFDIR/$1" ]; then
@@ -173,7 +173,7 @@ _rmmod() {
 	fi
 }
 
-# @FUNCTION: Modprobe handler
+# @FUNCTION: modprobe wrapper
 # @ARG: <module(s)|group>
 _modprobe() {
 	if [ -f "$CONFDIR/$1" ]; then
@@ -303,11 +303,11 @@ stk() {
 }
 
 # @FUNCTION: BlocK Device handler
-# @ARG: <dev> <key> [<BKD>] [<group>]
-bkd() {
+# @ARG: <dev> <key> [<DEV>] [<group>]
+get_dev() {
 	debug -d test -n "$1"
 	local _cut _luks _lvm _raid _name="$2"
-	local _bkd _grp="${3:-1}"
+	local DEV _grp="${3:-1}"
 
 	if [ $_grp -ge 2 ]; then
 		eval set -- $(echo "$1" | sed -e 's/:/ /g')
@@ -320,12 +320,12 @@ bkd() {
 	[ -n "$raid" ] && debug arg "_raid" "$raid" "," "$_grp" "$_cut"
 	[ -n "$lvm"  ] && debug arg "_lvm" "$lvm" "," "$_grp" "$_cut"
 	debug -d stk "$_luks"
-	[ -n "$_raid" ] && debug -d mdopen "$_raid" "_bkd"
-	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "_bkd"
-	[ -n "$KEYMODE" -a "$KEYMODE" != "none" ] && debug -d dmopen "$_dev" "_bkd"
-	[ "$KEYMODE" =  "none" ] && debug -d blk "$_dev" "_bkd"
+	[ -n "$_raid" ] && debug -d mdopen "$_raid" "DEV"
+	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "DEV"
+	[ -n "$KEYMODE" -a "$KEYMODE" != "none" ] && debug -d dmopen "$_dev" "DEV"
+	[ "$KEYMODE" =  "none" ] && debug -d blk "$_dev" "DEV"
 
-	eval ${_name:-BKD}=${_typ:+$_typ:}$_bkd${_sig:+:$_sig}
+	eval ${_name:-DEV}=${_typ:+$_typ:}$DEV${_sig:+:$_sig}
 }
 
 # @FUNCTION: Close dm-crypt mapping
