@@ -293,7 +293,6 @@ get_key() {
 		(*)
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
-
 		if ! grep -q $MNTDIR /proc/mounts; then
 			[ -f $CONFDIR/remdev ] && debug MODPROBE remdev
 			[ -b "$_kd" ] || blk "$_kd" "_kd"
