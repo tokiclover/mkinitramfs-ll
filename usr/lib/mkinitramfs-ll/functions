@@ -230,20 +230,23 @@ shread() {
 # @FUNCTION: BLocK device handler
 # @ARG: <dev|(part of)uuid|(part of)label>
 blk() {
-	local _asw _blk=$(blkid | grep "$1" | cut -d: -f1)
+	local _asw _blk
+	BLK() {
+		_blk=$(blkid | sed -nre "\|${1#*=}|s|(^/dev/.*):.*$|\1|p")
+	}
+	BLK "$1"
 	
 	if ! [ -n "$_blk" -a -b "$_blk" ]; then
 		msg -i "Insert $1 block device"
 		sleep 1
-		_blk=$(blkid | grep "$1" | cut -d: -f1)
-
-		while ! [ -n "$_blk" -a -b "$_blk" ]; do
-			msg -i "Type in a valid block device e.g. \
-				[ sda5 | UUID=<uuid> | LABEL=<label> ]"
-			shread _asw
-			_blk=$(blkid | grep "${_asw:-$1}" | cut -d: -f1)
-		done
+		BLK "$1"
 	fi
+	while ! [ -n "$_blk" -a -b "$_blk" ]; do
+		msg -i "Type in a valid block device e.g. \
+			[ sda5 | UUID=<uuid> | LABEL=<label> ]"
+		shread _asw
+		BLK "${_asw:-$1}"
+	done
 	eval ${2:-BLK}=$_blk
 }
 
