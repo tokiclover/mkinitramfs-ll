@@ -496,27 +496,27 @@ squashd() {
 	debug _modprobe squashd
 	cd $NEWROOT
 
-	local _base _dir
+	local _DIR _dir
 	for _dir in $_squashd; do
 		[ "${_dir#/}" = "$_dir" ] || _dir="${_dir#/}"
-		_base="$_squashdir/$_dir"
+		_DIR="$_squashdir/$_dir"
 
-		debug -d test -f $_base.squashfs || continue
-		debug mkdir -p -m 0755 $_base/rw $_base/rr $_dir
+		debug -d test -f $_DIR.squashfs || continue
+		debug mkdir -p -m 0755 $_DIR/rw $_DIR/rr $_dir
 
 		grep -q aufs:$_dir /proc/mounts && continue
-		if ! grep -q $_base/rr /proc/mounts; then
-			debug -d mount -t squashfs -o nodev,loop,ro $_base.squashfs \
-				$_base/rr || continue
+		if ! grep -q $_DIR/rr /proc/mounts; then
+			debug -d mount -t squashfs -o nodev,loop,ro $_DIR.squashfs \
+				$_DIR/rr || continue
 		fi
-		mount -t aufs -o nodev,udba=reval,br:$_base/rw:$_base/rr aufs:/$_dir $_dir
+		mount -t aufs -o nodev,udba=reval,br:$_DIR/rw:$_DIR/rr aufs:/$_dir $_dir
 	done
 }
 
 # @FUNCTION: FileSystem mounter
 # @ARG: <dir|dev>
 fsmount() {
-	local _fs _dev _mpt _opt _x _y _z IFS="${IFS}:"
+	local _fs _dev _dir _opt _x _y _z IFS="${IFS}:"
 	local name=FSmount _tab=/etc/fstab
 	[ -f $NEWROOT$_tab ] || die "no $_tab file found"
 
@@ -525,15 +525,15 @@ fsmount() {
 
 		if [ -n "$_y" ]; then
 			eval set -- $_y
-			_fs="$3" _dev="$1" _mpt="$2" _opt="$3"
+			_fs="$3" _dev="$1" _dir="$2" _opt="$3"
 		else
 			msg -e "$_x not found in $_tab"
 			continue
 		fi
 		blk "$_dev" "_dev"
 		debug -d test -b $_dev
-		[ -d $NEWROOT/$_mpt ] || mkdir -p $NEWROOT/$_mpt
-		debug -d mount -t$_fs ${_opt:+-o$_opt} $_dev $NEWROOT/$_mpt
+		[ -d $NEWROOT/$_dir ] || mkdir -p $NEWROOT/$_dir
+		debug -d mount -t $_fs ${_opt:+-o} $_opt $_dev $NEWROOT/$_dir
 	done
 }
 
