@@ -60,22 +60,20 @@ msg() {
 	local _opt _msg _clr
 
 	while [ $# -ge 1 ]; do
-		case $1 in
-			(-e|-i) _opt="$1"
-			     shift;;
-			(-c) _opt="$1" _clr="$2"
-				shift 2;;
-			(--) shift;;
-			(*) _msg="$@"
-			     break;;
+		case "$1" in
+			(-e|-i) _opt="$1";;
+			(-c) _opt="$1" _clr="$2"; shift;;
+			(--) ;;
+			(*) _msg="$@"; break;;
 		esac
+		shift
 	done
 	case "$_opt" in
 		(-e) error "${_msg}";;
 		(-i) info  "${_msg}";;
 		(-c) eval echo -e "\" \$CLR_${_clr}>>>$CLR_RST ${_msg}\"";;
 	esac
-	$SPLD && debug spld_cmd "set message $_msg" && debug spld_cmd "repaint"
+	$SPLASHD && debug splashd_cmd "set message $_msg" && debug splashd_cmd "repaint"
 }
 
 # @FUNCTION: Command exec handler
@@ -107,7 +105,7 @@ debug() {
 
 # @FUNCTON: Rescue SHell helper
 rsh() {
-	if $SPLD; then
+	if $SPLASHD; then
 		debug openvt -c${CONSOLE:8:1} $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
 	elif bck setsid; then
 		debug setsid $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
@@ -201,14 +199,14 @@ _getopt() {
 
 # @FUNCTION: Splash commands handler
 # @ARG: <cmd>
-spld_cmd() {
+splashd_cmd() {
 	echo "$@" >$SPLASH_FIFO
 }
 
 # @FUNCTION: Stop splash
-spld_stop() {
-	$SPLD && SPLD=false || return
-	debug spld_cmd "exit"
+splashd_stop() {
+	$SPLASHD && SPLASHD=false || return
+	debug splashd_cmd "exit"
 	export CONSOLE=/dev/console
 	exec 0<$CONSOLE 1>$CONSOLE 2>&1
 }

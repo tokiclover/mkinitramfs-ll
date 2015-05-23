@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.19.1 2015/02/28 12:33:03                   Exp $
+# $Version: 0.20.0 2015/05/20 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 #
@@ -25,10 +25,10 @@
 # Set New root directory to switch root
 :   ${NEWROOT=/newroot}
 # Set SPLash Daemon running state
-:   ${SPLD=false}
+:   ${SPLASHD=false}
 :   ${NULL=/dev/null}
 
-export CONFDIR LIBDIR LOGFILE MNTDIR NEWROOT SPLD init sh
+export CONFDIR LIBDIR LOGFILE MNTDIR NEWROOT SPLASHD init sh
 export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin
 export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
 
@@ -38,7 +38,7 @@ die() {
 	local _ret=$?
 	[ -n "$@" ] && msg -e "[$_ret]: $@"
 	msg -c RED "Dropping to a Rescue Shell"
-	$SPLD && spld_stop
+	$SPLASHD && splashd_stop
 	debug rsh || debug $sh -aim
 }
 
@@ -59,9 +59,9 @@ lvl() {
 }
 
 # @FUNCTION: Splash daemon helper
-spld() {
+splashd() {
 	$ECK && debug -d bck fbcondecor_helper splash_util
-	local IFS="${IFS}," _opt _opts cachedir event mode theme util
+	local IFS="${IFS}," _opt _opts cachedir event mode theme
 	
 	event="$(grep -Hsi keyboard /sys/class/input/input*/name | \
 		sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"
@@ -81,11 +81,11 @@ spld() {
 
 	[ -d "$cachedir" ] || mkdir -p $cachedir
 	debug mkfifo $SPLASH_FIFO
-	debug splash_util -d -ms -t $theme && SPLD=true
-	[ -n "$_opts" ] && debug spld_cmd $_opts
-	debug spld_cmd "set ${mode:-verbose}"
-	debug spld_cmd "set event dev /dev/input/$event"
-	debug spld_cmd "set autoverbose 0"
+	debug splash_util -d -ms -t $theme && SPLASHD=true
+	[ -n "$_opts" ] && debug splashd_cmd $_opts
+	debug splashd_cmd "set ${mode:-verbose}"
+	debug splashd_cmd "set event dev /dev/input/$event"
+	debug splashd_cmd "set autoverbose 0"
 }
 
 # @FUNCTION: Resume helper (support SwSusp/TuxOnIce)
@@ -95,7 +95,7 @@ resume() {
 	grep -q $MNTDIR /proc/mounts && debug -d umount -l $MNTDIR
 
 	if [ -d /sys/power/tuxonice ]; then
-		if $SPLD; then
+		if $SPLASHD; then
 			[ -n "$theme" ] &&
 			debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
 			_hpr=tuxoniceui_fbsplash
@@ -176,10 +176,8 @@ esac
 ${ENV:-true} && [ -f $CONFDIR/env ] &&
 while read _line; do
 	case "${_line%%=*}" in
-		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RIL|PATH|RSH|SPLD|sh)
-			:;;
-		(NULL|name)
-			:;;
+		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RUNLEVEL|PATH|RSH|SPLASHD|sh) ;;
+		(NULL|name) ;;
 		([a-zA-Z]*) [ "${env/:${_line%%=*}:}" = "$env" ] && export "$_line" ;;
 	esac
 done < $CONFDIR/env
@@ -212,17 +210,19 @@ eval_colors
 
 if [ -n "$splash" ]; then
 	begin "Starting Splash"
-	spld
+	splashd
 	end "$?"
 fi
 
 # -*- Font and keymap -*-
+
 if [ -n "$keymap" ]; then
 	arg "font" "$keymap" "2" ":" "-s"
 	kmap="${keymap%:*}"
 fi
 [ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
 [ -z "$kmap" ] && [ -f "$CONFDIR/kmap" ] && kmap=$(cat $CONFDIR/kmap)
+
 [ -n "$font" ] &&
 for file in /usr/share/consolefonts/$font*; do
 	[ -f "$file" ] && debug loadfont < $file && break
@@ -280,6 +280,7 @@ if [ -n "$resume" ]; then
 fi
 
 # -*- Root -*-
+
 lvl 3
 # ROOT should be set if available
 dorootfs() {
@@ -337,7 +338,7 @@ lvl 4u
 #
 # FIXME: is this necessary?
 #
-$SPLD && debug spld_stop
+$SPLASHD && debug splashd_stop
 
 echo >/proc/sys/kernel/hotplug
 for _dir in /run /sys /dev /proc; do
