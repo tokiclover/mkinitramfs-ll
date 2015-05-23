@@ -527,7 +527,7 @@ squashd() {
 	done
 }
 
-# @FUNCTION: FileSystem mounter
+# @FUNCTION: mount fstab entries
 # @ARG: <dir|dev>
 fsmount() {
 	local _fs _dev _dir _opt _x _y _z IFS="${IFS}:"
@@ -535,13 +535,10 @@ fsmount() {
 	[ -f $NEWROOT$_tab ] || die "no $_tab file found"
 
 	for _x in $@; do
-		_y="$(grep $_x $NEWROOT$_tab)"
-
-		if [ -n "$_y" ]; then
-			eval set -- $_y
-			_fs="$3" _dev="$1" _dir="$2" _opt="$3"
-		else
-			msg -e "$_x not found in $_tab"
+		eval set -- $(sed -nre "s|(^[^#].*$_x[[:space:]].*$)|\1|p" $NEWROOT$_tab)
+		_fs="$3" _dev="$1" _dir="$2" _opt="$3"
+		if [ -z "$_dev" ]; then
+			msg -e "$_x not entry found in $_tab"
 			continue
 		fi
 		blk "$_dev" "_dev"
