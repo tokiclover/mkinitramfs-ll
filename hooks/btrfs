@@ -18,10 +18,10 @@ dobtrfs() {
 
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"
 	local _cut _env="$1" _grp="$2" _KEY _vol="$3"
-	arg "_CHK" "$rootfs" ":" "2" "-s"
+	CUT "_CHK" "$rootfs" ":" "2" "-s"
 	[ $_grp -ge 2 ] && _cut=-s
-	[ -n "$btrfs" ] && arg "_DEV" "$btrfs" "," "$_grp" "$_cut"
-	[ -n "$luks"  ] && arg "_KEY" "$luks"  "," "$_grp" "$_cut"
+	[ -n "$btrfs" ] && CUT "_DEV" "$btrfs" "," "$_grp" "$_cut"
+	[ -n "$luks"  ] && CUT "_KEY" "$luks"  "," "$_grp" "$_cut"
 	[ -n "$_DEV"  ] || return
 	debug -d get_key "$_KEY"
 

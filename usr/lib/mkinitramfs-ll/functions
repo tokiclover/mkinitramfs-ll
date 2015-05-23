@@ -7,8 +7,8 @@
 
 # @FUNCTION: cut wrapper
 # @ARG: <var> <var> <char> <int> <opt>
-arg() {
-	eval ${1:-arg}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
+CUT() {
+	eval ${1:-CUT}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
 }
 
 # @FUNCTION: Print begin message to stdout
@@ -316,9 +316,9 @@ get_dev() {
 	else
 		local _dev="${1%%:*}"
 	fi
-	[ -n "$luks" ] && debug arg "_luks" "$luks" "," "$_grp" "$_cut"
-	[ -n "$raid" ] && debug arg "_raid" "$raid" "," "$_grp" "$_cut"
-	[ -n "$lvm"  ] && debug arg "_lvm" "$lvm" "," "$_grp" "$_cut"
+	[ -n "$luks" ] && debug CUT "_luks" "$luks" "," "$_grp" "$_cut"
+	[ -n "$raid" ] && debug CUT "_raid" "$raid" "," "$_grp" "$_cut"
+	[ -n "$lvm"  ] && debug CUT "_lvm"  "$lvm"  "," "$_grp" "$_cut"
 	debug -d get_key "$_luks"
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "DEV"
 	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "DEV"

@@ -168,7 +168,7 @@ done
 
 if [ -n "$level" ]; then
 	RSH="${level%:*}"
-	arg "RUNLEVEL" "$level" ":" "2" "-s"
+	CUT "RUNLEVEL" "$level" ":" "2" "-s"
 fi
 
 yesno "${env:-YES}"
@@ -186,7 +186,7 @@ done < $CONFDIR/env
 $ENV_CHK && debug app_chk
 
 DEBUG="${debug%:*}"
-arg "DMESG" "$debug" ":" "2" "-s"
+CUT "DMESG" "$debug" ":" "2" "-s"
 [ -n "$DEBUG" ]  && set -${DEBUG/e/}
 [ -n "$DMESG" ]  && debug dmesg -n $DMESG
 
@@ -219,7 +219,7 @@ fi
 # -*- Font and keymap -*-
 
 if [ -n "$keymap" ]; then
-	arg "font" "$keymap" "2" ":" "-s"
+	CUT "font" "$keymap" "2" ":" "-s"
 	kmap="${keymap%:*}"
 fi
 [ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
@@ -287,7 +287,7 @@ level 3
 # ROOT should be set if available
 dorootfs() {
 	local FS="${rootfs%:*}" CHK ROOT
-	arg "CHK" "$rootfs" ":" "2" "-s"
+	CUT "CHK" "$rootfs" ":" "2" "-s"
 	debug -d get_dev "$root" "ROOT" "1"
 
 	level 3f

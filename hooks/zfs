@@ -21,8 +21,8 @@ dozfs() {
 	local _env="$1" _grp="$2" _vol="$3" _KEY _opt="$4"
 
 	local _sign _type _vdev
-	[ -n "$zfs"  ] && arg "_vdev" "$zfs" "," "$_grp" "${_opt:+-s}"
-	[ -n "$luks" ] && arg "_KEY" "$luks" "," "$_grp" "${_opt:+-s}"
+	[ -n "$zfs"  ] && CUT "_vdev" "$zfs" "," "$_grp" "${_opt:+-s}"
+	[ -n "$luks" ] && CUT "_KEY" "$luks" "," "$_grp" "${_opt:+-s}"
 	[ -n "$_vdev" ] || return
 
 	if [ "$_grp" -ge 2 ]; then
