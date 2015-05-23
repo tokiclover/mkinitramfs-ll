@@ -42,15 +42,16 @@ start()
 stop()
 {
 	save
-	local IFS=":${IFS}" dir
+	local IFS=":${IFS}" DIR dir
 
 	for dir in ${tmpdir_saved} ${tmpdir_unsaved}; do
 		case "${dir}" in
 			(*/log|*/run|*/tmp) continue;;
 		esac
-		grep -q "${dir}" /proc/mounts || continue
-		ebegin  "Unmounting ${dir}"
-		umount -l "${dir}" >${NULL} 2>&1
+		DIR="${tmpdir_root}${dir}"
+		grep -q "${DIR}" /proc/mounts || continue
+		ebegin  "Unmounting ${DIR}"
+		umount -l "${DIR}" >${NULL} 2>&1
 		eend "$?"
 	done
 	return 0
