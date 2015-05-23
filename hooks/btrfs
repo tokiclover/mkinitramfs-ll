@@ -23,7 +23,7 @@ dobtrfs() {
 	[ -n "$btrfs" ] && arg "_DEV" "$btrfs" "," "$_grp" "$_cut"
 	[ -n "$luks"  ] && arg "_KEY" "$luks"  "," "$_grp" "$_cut"
 	[ -n "$_DEV"  ] || return
-	debug -d stk "$_KEY"
+	debug -d get_key "$_KEY"
 
 	if ! btrfs filesystem show ${_vol#*=} >$NULL 2>&1; then
 		if yesno "$_DEV"; then

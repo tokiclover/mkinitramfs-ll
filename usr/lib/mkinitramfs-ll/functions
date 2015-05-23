@@ -267,7 +267,7 @@ ldk() {
 
 # @FUNCTION: Key[file/mode] handler
 # @ARG: <mode:dev:file>
-stk() {
+get_key() {
 	eval set -- $(echo "$1" | sed -e 's/:/ /g')
 	local _fn="${3##*/}" _fp="$3" _kd="$2" _km="$1"
 
@@ -319,7 +319,7 @@ get_dev() {
 	[ -n "$luks" ] && debug arg "_luks" "$luks" "," "$_grp" "$_cut"
 	[ -n "$raid" ] && debug arg "_raid" "$raid" "," "$_grp" "$_cut"
 	[ -n "$lvm"  ] && debug arg "_lvm" "$lvm" "," "$_grp" "$_cut"
-	debug -d stk "$_luks"
+	debug -d get_key "$_luks"
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "DEV"
 	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "DEV"
 	[ -n "$KEYMODE" -a "$KEYMODE" != "none" ] && debug -d dmopen "$_dev" "DEV"

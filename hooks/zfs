@@ -37,7 +37,7 @@ dozfs() {
 			error "No $_pool pool found"
 			return
 		fi
-		debug -d stk "$_KEY"
+		debug -d get_key "$_KEY"
 		[ "$KEYMODE" != "none" ] &&
 		for _dev in $(echo "$_vdev" | sed 's/:/ /g'); do
 			debug -d dmopen "$_dev"
