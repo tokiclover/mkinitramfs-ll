@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/svc/sdr.bash                   Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.18.0 2015/01/20 12:33:03                   Exp $
+# $Version: 0.20.0 2015/05/24 12:33:03                   Exp $
 #
 
 shopt -qs extglob
@@ -139,34 +139,34 @@ function squash-mount {
 		auplink ${dir} flush
 		${umount} -l aufs:${dir} || die "failed to umount aufs:${dir}"
 	fi
-	if ${grep} -q ${base}/rr /proc/mounts; then
-		${umount} -l ${base}/rr || die "failed to umount ${base}.squashfs"
+	if ${grep} -q ${DIR}/rr /proc/mounts; then
+		${umount} -l ${DIR}/rr || die "failed to umount ${DIR}.squashfs"
 	fi
-	${rm} "${base}"/rw/* || die "failed to clean up ${base}/rw"
+	${rm} "${DIR}"/rw/* || die "failed to clean up ${DIR}/rw"
 
-	[[ -e ${base}.squashfs ]] && [[ -e ${base}.tmp.squashfs ]] &&
-	${rm} ${base}.squashfs
-	${mv} ${base}.tmp.squashfs ${base}.squashfs ||
+	[[ -e ${DIR}.squashfs ]] && [[ -e ${DIR}.tmp.squashfs ]] &&
+	${rm} ${DIR}.squashfs
+	${mv} ${DIR}.tmp.squashfs ${DIR}.squashfs ||
 	die "failed to move ${dir}.tmp.squashfs"
 
-	if ${mount} -t squashfs -o nodev,loop,ro ${base}.squashfs ${base}/rr; then
+	if ${mount} -t squashfs -o nodev,loop,ro ${DIR}.squashfs ${DIR}/rr; then
 		if [[ "${opts[-remove]}" ]]; then
 			${rm} ${dir} && $mkdir ${dir} || die "failed to clean up ${dir}"
 		fi
 		if [[ "${opts[-update]}" ]]; then
-			${rm} ${dir} && $mkdir ${dir} && ${cp} ${base}/rr ${dir} ||
+			${rm} ${dir} && $mkdir ${dir} && ${cp} ${DIR}/rr ${dir} ||
 			die "failed to update ${dir}"
 		fi
-		${mount} -t aufs -o nodev,udba=reval,br:${base}/rw:${base}/rr aufs:${dir} ${dir} ||
+		${mount} -t aufs -o nodev,udba=reval,br:${DIR}/rw:${DIR}/rr aufs:${dir} ${dir} ||
 		die "failed to mount aufs:${dir} branch"
 	else
-		die "failed to mount ${base}.squashfs"
+		die "failed to mount ${DIR}.squashfs"
 	fi
 }
 # @FUNCTION: Helper to squash-directory
 function squash-dir {
-	mkdir -p -m 0755 "${base}"/{rr,rw} || die "failed to create ${base}/{rr,rw} dirs"
-	mksquashfs ${dir} ${base}.tmp.squashfs -b ${opts[-bsize]} -comp ${opts[-comp]} \
+	mkdir -p -m 0755 "${DIR}"/{rr,rw} || die "failed to create ${DIR}/{rr,rw} dirs"
+	mksquashfs ${dir} ${DIR}.tmp.squashfs -b ${opts[-bsize]} -comp ${opts[-comp]} \
 		${opts[-exclude]} || die "failed to build ${dir}.squashfs img"
 	[[ "${opts[-mount]}" ]] || squash-mount
 	echo ">>> ${0##*/}: ...sucessfully build squashed"
@@ -185,13 +185,11 @@ grep -q squashfs /proc/filesystems ||
 	die "failed to initialize squashfs kernel module, exiting"
 
 for dir in ${opts[-dir]//:/ }; do
-	base="${opts[-root]}${dir}"
-	dir="/${dir#/}"
-
-	if [[ -e ${base}.squashfs ]]; then
+	dir="/${dir#/}"; DIR="${opts[-root]}${dir}"
+	if [[ -e ${DIR}.squashfs ]]; then
 		if (( ${opts[-offset]} != 0 )); then
-			rr=$(du -sk ${base}/rr | awk '{print $1}')
-			rw=$(du -sk ${base}/rw | awk '{print $1}')
+			rr=$(du -sk ${DIR}/rr | awk '{print $1}')
+			rw=$(du -sk ${DIR}/rw | awk '{print $1}')
 			if (( (${rw}*100/${rr}) < ${opts[-offset]} )); then
 				info "skiping ${dir}, or append -o|--offset option"
 			else
@@ -209,7 +207,7 @@ for dir in ${opts[-dir]//:/ }; do
 done
 
 [[ -f "$busybox" ]] && rm -f "$busybox"
-unset base dir opt opts rr rw
+unset DIR dir opt opts rr rw
 
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
