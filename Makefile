@@ -49,6 +49,7 @@ dist_SCRIPTS= \
 DISTFILES   = $(dist_COMMON) $(dist_SCRIPTS)
 .SECONDEXPANSION:
 base_DIRS   = $(SBINDIR) $(SYSCONFDIR) \
+	$(MANDIR)/man1 $(MANDIR)/man8 \
 	$(DATADIR)/$(PACKAGE) $(DOCDIR)/$(PACKAGE)-$(VERSION)
 keep_DIRS   = \
 	hooks scripts \
@@ -75,11 +76,14 @@ install: install-dir install-dist install-scripts-sh
 	sed -e 's:\$${PWD}/usr:${prefix}/share/$${pkg}/usr:g' \
 	    -e 's:\./\$${name}.conf:$(SYSCONFDIR)/$${name}.conf:g' \
 	    -i $(DESTDIR)$(SBINDIR)/$(PACKAGE).sh
-install-dist: $(DISTFILES) install-common install-hooks
+install-dist: $(DISTFILES) install-doc install-common install-hooks
 install-dir : $(keep_DIRS)
 	$(MKDIR_P) $(base_DIRS:%=$(DESTDIR)%)
 install-doc : $(dist_EXTRA)
-	$(install_DATA) -D $(PACKAGE).1 $(DESTDIR)$(mandir)/man1/$(PACKAGE).1
+	for man in man1/$(PACKAGE).1 man8/$(PACKAGE).8; do \
+		sed -e 's|@SYSCONFDIR@|$(SYSCONFDIR)|g' -e 's|@DATADIR@|$(DATADIR)|g' \
+			$${man#*/} >$(DESTDIR)$(MANDIR)/$${man}; \
+	done
 install-services: install-squashdir-svc install-zram-svc install-tmpdir-svc
 
 $(dist_COMMON): .FORCE
