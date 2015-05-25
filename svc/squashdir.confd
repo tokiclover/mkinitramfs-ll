@@ -15,8 +15,8 @@ squash_localdir=/var/db:/var/cache/edb:/var/lib/layman
 # WARN: This list should be in either squash_sysdir|localdir group
 squash_rebuild_dir=
 #
-# Full path to sdr.$shell script, else default to $(which sdr)
-sdr=/usr/sbin/sdr.bash
+# Full path to sdr script, or else default to $(which sdr)
+sdr=/usr/sbin/sdr
 # Offset to use when rebuilding (in percent)
 offset=10
 

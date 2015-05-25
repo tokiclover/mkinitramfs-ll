@@ -59,7 +59,7 @@ stop_pre()
 	[ -n "${sdr}" -a -x "${sdr}" ] || { ewarn "No suitable sdr found."; return; }
 
 	ebegin "Rebuilding ${squash_rebuild_dir}"
-	${sdr} -o${offset:-5} -d${squash_rebuild_dir} >${NULL} 2>&1
+	${sdr} -o${offset:-5} ${squash_rebuild_dir} >${NULL} 2>&1
 	eend ${?}
 }
 
@@ -97,7 +97,7 @@ squash_umount()
 	case "${RC_UNAME}" in
 		(Linux) opt="-O no_netdev";;
 	esac
-	auplink ${DIR} flush >${NULL} 2>&1
+	auplink ${dir} flush >${NULL} 2>&1
 	ebegin "Umounting aufs:${dir}"
 	umount -l ${opt} aufs:${dir} >${NULL} 2>&1 || { eend 1 AUFS; return 1; }
 	umount -l ${opt} ${DIR}/rr   >${NULL} 2>&1
