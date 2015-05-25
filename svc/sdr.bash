@@ -11,17 +11,16 @@ typeset -A PKG
 PKG=(
 	[name]=sdr
 	[shell]=bash
-	[version]=0.18.0
+	[version]=0.20.0
 )
 
 # @FUNCTION: Print help message
 function usage {
   cat <<-EOH
   ${PKG[name]}.${PKG[shell]} version ${PKG[version]}
-  usage: ${PKG[name]}.${PKG[shell]} [options] -d|--squashdir=:<dir>
+  usage: ${PKG[name]}.${PKG[shell]} [options] <directory-ies>
 
   -q, --squash-root=<dir>   Set root directory (default '/aufs')
-  -d, --squash-dir=:<dir>   Director-ies-y (list) to squash or update
   -b, --block-size=131072   Set block size in bytes (default 128KB)
   -x, --busybox=busybox     Static BusyBox to use (System Wide case)
   -c, --compressor=gzip     Set compressor to use (default to lzo)
@@ -41,16 +40,16 @@ exit $?
 declare -A opts
 declare -a opt
 opt=(
-	"-o" "?b:c:d:o:nhruq:X:x::"
+	"-o" "?b:c:o:nhruq:X:x::"
 	"-l" "block-size:,busybox::,compressor:,exclude:,offset,help"
-	"-l" "no-remount,squash-root:,squash-dir:,remove,update"
+	"-l" "no-remount,squash-root:,remove,update"
 	"-n" "${PKG[name]}.${PKG[shell]}"
 	"-s" "${PKG[shell]}"
 )
 opt=($(getopt "${opt[@]}" -- "$@" || usage))
 eval set -- "${opt[@]}"
 
-for (( ; $# > 0; )); do
+while true; do
 	case $1 in
 		(-b|--block-size)
 			opts[-bsize]="$2"
@@ -65,9 +64,6 @@ for (( ; $# > 0; )); do
 			shift 2;;
 		(-q|--squash-root)
 			opts[-root]="$2"
-			shift 2;;
-		(-d|--squash-dir)
-			opts[-dir]+=":$2"
 			shift 2;;
 		(-c|--compressor)
 			opts[-compressor]="$2"
@@ -108,7 +104,6 @@ function die {
 opts[-arc]=$(getconf LONG_BIT)
 # @VARIABLE: Root directory (mount hierarchy)
 [[ "${opts[-root]}" ]] || opts[-root]=/aufs
-[[ "${opts[-root]#/}" == "${opts[-root]}" ]] && opts[-root]="/${opts[-root]}"
 [[ "${opts[-bsize]}" ]] || opts[-bsize]=131072
 # @VARIABLE: Full path to a static busysbox (required for system update)
 [[ "${opts[-busybox]}" ]] || opts[-busybox]="$(type -p busybox)"
@@ -172,20 +167,17 @@ function squash-dir {
 	echo ">>> ${0##*/}: ...sucessfully build squashed"
 }
 
-# Check wether aufs is filesystem is available
-grep -q aufs /proc/filesystems ||
-	if ! modprobe aufs >/dev/null 2>&1; then
-		error "failed to initialize aufs kernel module, using nomount option"
-		opts[-nomount]=1
-	fi
+for mod in aufs squashfs; do
+	grep -q ${mod} /proc/filesystems || modprobe ${mod} >/dev/null 2>&1 ||
+	case ${mod} in
+		(aufs) warn "Failed to load ${mod} module"; opts[-mount]=false;;
+		(s*fs) die  "Failed to load ${mod} module";;
+	esac
+done
 
-# Check wether squashfs filesystem is available
-grep -q squashfs /proc/filesystems ||
-	modprobe squashfs >/dev/null 2>&1 ||
-	die "failed to initialize squashfs kernel module, exiting"
-
-for dir in ${opts[-dir]//:/ }; do
-	dir="/${dir#/}"; DIR="${opts[-root]}${dir}"
+IFS=":$IFS"
+for dir in $*; do
+	dir="/${dir#/}"; DIR="/${opts[-root]#/}${dir}"
 	if [[ -e ${DIR}.squashfs ]]; then
 		if (( ${opts[-offset]} != 0 )); then
 			rr=$(du -sk ${DIR}/rr | awk '{print $1}')
