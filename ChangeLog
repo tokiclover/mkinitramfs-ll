@@ -1,6 +1,6 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
-0.21.0
+0.21.0:
 
 Added POSIX scripts {mkinitramfs-ll,sdr,busybox,gnupg}.sh; and
 removed {busybox,gnupg}.{ba,z}sh. {mkinitramfs-ll,sdr}.{ba,z}sh
