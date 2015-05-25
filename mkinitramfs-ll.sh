@@ -18,7 +18,7 @@ usage() {
   ${pkg}.${shell} version ${version}
   usage: ${pkg} [-a|-all] [OPTIONS]
 
-  -a, --all                   Short variant of '-l -L -g -H:btrfs:zfs:zram -t -q'
+  -a, --all                   Short variant of -l -L -g -H'btrfs zfs zram' -t -q
   -f, --font=ter-v14n         Fonts to include in the initramfs
   -F, --firmware=name         Firmware file/directory to include
   -k, --kernel-version=KV     Build an initramfs for kernel version VERSION
@@ -193,6 +193,7 @@ while true; do
 		(-r|--rebuild) opt_rebuild=1;;
 		(-K|--keep-tmpdir) opt_tmpdir=1;;
 		(-b|--bin) shift; bins="${bins} ${1}";;
+		(-k|--kernel-version) shift; kv="${1}";;
 		(-f|--font) shift; fonts="${1} ${fonts}";;
 		(-c|--compressor) shift; compressor="${1}";;
 		(-y|--keymap) shift; keymaps="${1} ${keymaps}";;
@@ -507,8 +508,8 @@ for lib in $(find usr/lib/gcc -iname 'lib*'); do
 	ln -fns /$lib usr/lib/${lib##*/}
 done
 
-#docpio
-#[ -n "${opt_tmpdir}" ] || rm -rf ${tmpdir}
+docpio
+[ -n "${opt_tmpdir}" ] || rm -rf ${tmpdir}
 echo ">>> Built ${initramfs} initramfs"
 
 #
