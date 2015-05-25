@@ -40,6 +40,8 @@ dist_COMMON = \
 	usr/share/gnupg/options.skel
 dist_SCRIPTS= \
 	init \
+	scripts/busybox.sh \
+	scripts/gnupg.sh \
 	scripts/suspend \
 	scripts/xcpio \
 	usr/lib/mdev/ide_links \
@@ -68,7 +70,11 @@ DISTDIRS    = $(base_DIRS) $(keep_DIRS)
 all:
 
 install-all: intsall install-scripts-bash install-scripts-zsh install-services
-install: install-dir install-dist
+install: install-dir install-dist install-scripts-sh
+	$(install_DATA) mkinitramfs.conf $(DESTDIR)$(SYS_CONFDIR)
+	sed -e 's:\$${PWD}/usr:${prefix}/share/$${pkg}/usr:g' \
+	    -e 's:\./\$${name}.conf:$(SYS_CONFDIR)/$${name}.conf:g' \
+	    -i $(DESTDIR)$(SBINDIR)/$(PACKAGE).sh
 install-dist: $(DISTFILES) install-common install-hooks
 install-dir : $(keep_DIRS)
 	$(MKDIR_P) $(base_DIRS:%=$(DESTDIR)%)
@@ -107,6 +113,7 @@ install-%-svc:
 uninstall-all: uninstall uninstall-services \
 	uninstall-scripts-bash uninstall-scripts-zsh
 uninstall: uninstall-dist
+	rm -f $(DESTDIR)$(SYS_CONFDIR)/mkinitramfs.conf
 	for dir in $(keep_DIRS); do \
 		rm -f $(DESTDIR)$(DATADIR)/$(PACKAGE)/$${dir}/.keep-*-dir; \
 		rmdir $(DESTDIR)$(DATADIR)/$(PACKAGE)/$${dir}; \
