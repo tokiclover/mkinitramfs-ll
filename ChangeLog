@@ -1,5 +1,25 @@
 Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
+0.21.0
+
+Added POSIX scripts {mkinitramfs-ll,sdr,busybox,gnupg}.sh; and
+removed {busybox,gnupg}.{ba,z}sh. {mkinitramfs-ll,sdr}.{ba,z}sh
+will be removed later, so running `make install-scripts-{ba,z}sh'
+would install the old/legacy scripts. No need to install manually
+the new scripts as they will be installed with `install'.
+
+Nothing really changed but the configuration file! Could not keep
+associative arrays with POSIX shell obviously. So variables have
+new names which have more clarity than the previous ones, e.g.
+module group are named `module_<group>', binary group `bin_<group>'
+and used groups are kept in `module_group' variables.
+Chekout the new configuration file--mkinitramfs.conf--because the
+old one is still there for the old building scripts support.
+
+Another noticeable change is the removal of -d|--squash-dir cmdline
+switch to sdr scripts (which was really useless) and support space
+as a separator (along with colon.)
+
 0.20.0:
 
 Refactorized init (initialization/splash), functions (helpers),
