@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.19.0 2015/02/20 12:33:03                   Exp $
+# $Version: 0.20.0 2015/05/24 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	name mkinitramfs-ll
 	shell zsh
-	version 0.18.1
+	version 0.20.0
 )
 
 # @FUNCTION: Print help message
@@ -20,32 +20,30 @@ function usage {
   usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [options]
 
   -a, --all                   Short variant of '-l -L -g -H:btrfs:zfs:zram -t -q'
-  -f, --font=[:ter-v14n]      Fonts to include in the initramfs
-  -F, --firmware=[:file]      Firmware file/directory to include
-  -k, --kv=VERSION            Build an initramfs for kernel version VERSION
+  -f, --font=REGEX            Fonts to include in the initramfs
+  -F, --firmware=REGEX        Firmware file/directory to include
+  -k, --kernel-version=KV     Build an initramfs for kernel version VERSION
   -c, --compressor='gzip -9'  Use 'gzip -9' compressor instead of default
   -L, --luks                  Enable LUKS support (require cryptsetup binary)
   -l, --lvm                   Enable LVM2 support (require lvm2 binary)
-  -b, --bin=:<bin>            Binar-y-ies to include if available
-  -d, --usrdir=[DIRECTORY]    Use DIRECTORY as USRDIR instead of the default
+  -b, --bin=BINS              Binar-y-ies to include if available
+  -d, --usrdir=DIRECTORY      Use DIRECTORY as USRDIR instead of the default
   -g, --gpg                   Enable GnuPG support (require gnupg-1.4.x)
   -p, --prefix=initrd-        Use 'initrd-' prefix instead of default ['initramfs-']
-  -H, --hook=:<name>          Include hook or script if available
-  -m, --kmod=[:<mod>]         Include kernel modules if available
-      --mtuxonice=[:<mod>]    Append kernel modules to tuxonice group
-      --mremdev=[:<mod>]      Append kernel modules to remdev   group
-      --msquashd=[:<mod>]     Append kernel modules to squashd  group
-      --mgpg=[:<mod>]         Append kernel modules to gpg      group
-      --mboot=[:<mod>]        Append kernel modules to boot     group
-  -s, --splash=[:<theme>]     Include splash themes  if available
+  -H, --hook=REGEX            Include hook or script if available
+  -m, --module=REGEX          Include kernel modules if available
+      --module-tuxonice=REGEX Append kernel modules to tuxonice group
+      --module-remdev=REGEX   Append kernel modules to remdev   group
+      --module-squashd=REGEX  Append kernel modules to squashd  group
+      --module-gpg=REGEX      Append kernel modules to gpg      group
+      --module-boot=REGEX     Append kernel modules to boot     group
+  -s, --splash=THEMES         Include splash themes  if available
   -t, --toi                   Enable TuxOnIce support (require tuxoniceui-userui)
   -q, --squashd               Enable AUFS+SquashFS support (require aufs-util)
   -r, --rebuild               Re-Build an initramfs from an old directory
   -y, --keymap=:fr-latin1     Keymaps to include the initramfs
   -K, --keep-tmpdir           Keep the temporary build directory
   -h, --help, -?              Print this help or usage message
-
-  :argument|:option           Support a colon separated list of Argument|Option 
 EOF
 exit $?
 }
@@ -121,25 +119,25 @@ typeset -A opts
 typeset -a opt
 
 opt=(
-	"-o" "ab:c::f::F::gk::lH:KLm::p::qrs::thu::y::?"
-	"-l" "all,bin:,compressor::,firmware::,font::,gpg,help"
-	"-l" "hook:,luks,lvm,keep-tmpdir,kmod::,keymap::,kv::"
-	"-l" "mboot::,mgpg::,mremdev::,msquashd::,mtuxonice::"
-	"-l" "prefix::,rebuild,splash::,squashd,toi,usrdir::"
+	"-o" "ab:c:f:F:gk:lH:KLm:p:qrs:thu:y:?"
+	"-l" "all,bin:,compressor:,firmware:,font:,gpg,help"
+	"-l" "hook:,luks,lvm,keep-tmpdir,module:,keymap:,kernel-version:"
+	"-l" "module-boot:,module-gpg:,module-remdev:,module-squashd:,module-tuxonice:"
+	"-l" "prefix:,rebuild,splash:,squashd,toi,usrdir:"
 	"-n" ${PKG[name]}.${PKG[shell]}
 )
 opt=($(getopt ${opt} -- ${argv} || usage))
 eval set -- ${opt}
 
-for (( ; $# > 0; ))
+while true; do
 	case $1 {
 		(-[KLaglqrt]|--[aglrt]*|--sq*|--keep*)
 			opts[${1/--/-}]=
 			shift;;
-		(-[cdkp]|--[cpu]*|--kv)
+		(-[cdkp]|--[cpu]*|--kernel-*)
 			opts[${1/--/-}]=$2
 			shift 2;;
-		(-[FHbfmsy]|--[bfks]*|--ho*)
+		(-[FHbfmsy]|--[bfks]*|--hool|--module-*)
 			opts[${1/--/-}]+=:$2
 			shift 2;;
 		(--)
@@ -148,6 +146,7 @@ for (( ; $# > 0; ))
 		(-?|-h|--help|*)
 			usage;;
 	}
+done
 
 if (( ${+opts[-a]} )) || (( ${+opts[-all]} )) {
 	opts[-font]+=: opts[-gpg]= opts[-lvm]= opts[-squashd]=
@@ -179,7 +178,7 @@ if [[ -f "${PKG[name]}".conf ]] {
 }
 
 # @VARIABLE: Kernel version
-:	${opts[-kv]:=${opts[-k]:-$(uname -r)}}
+:	${opts[-k]:=${opts[-kernel-version]:-$(uname -r)}}
 # @VARIABLE: initramfs prefx
 :	${opts[-prefix]:=${opts[-p]:-initramfs-}}
 # @VARIABLE: USRDIR path to use
@@ -187,7 +186,7 @@ if [[ -f "${PKG[name]}".conf ]] {
 # @VARIABLE: Compression command
 :	${opts[-compressor]:=${opts[-c]:-xz -9 --check=crc32}}
 # @VARIABLE: Full path to initramfs image
-:	${opts[-initramfs]:=${opts[-prefix]}${opts[-kv]}}
+:	${opts[-initramfs]:=${opts[-prefix]}${opts[-k]}}
 # @VARIABLE: Kernel architecture
 :	${opts[-arch]:=$(uname -m)}
 # @VARIABLE: Kernel bit lenght
@@ -202,8 +201,8 @@ typeset -a compressor
 compressor=(bzip2 gzip lzip lzop lz4 xz)
 
 if (( ${+opts[-compressor]} )) && [[ ${opts[-compressor]} != "none" ]] {
-	if [[ -e /usr/src/linux-${opts[-kv]}/.config ]] {
-		config=/usr/src/linux-${opts[-kv]}/.config
+	if [[ -e /usr/src/linux-${opts[-k]}/.config ]] {
+		config=/usr/src/linux-${opts[-k]}/.config
 		xgrep=${commands[grep]}
 	} elif [[ -e /proc/config.gz ]] {
 		config=/proc/config.gz
@@ -213,7 +212,7 @@ if (( ${+opts[-compressor]} )) && [[ ${opts[-compressor]} != "none" ]] {
 if (( ${+config} )) {
 	CONFIG=CONFIG_RD_${${opts[-compressor][(w)1]}:u}
 	if ! ${=xgrep} -q "^${CONFIG}=y" ${config}; then
-		warn "${opts[-compressor][(w)1]} decompression is not supported by kernel-${opts[-kv]}"
+		warn "${opts[-compressor][(w)1]} decompression is not supported by kernel-${opts[-k]}"
 		for comp (${compressor[@]}) {
 			CONFIG=CONFIG_RD_${comp:u}
 			if ${=xgrep} -q "^${CONFIG}=y" ${config}; then
@@ -221,7 +220,7 @@ if (( ${+config} )) {
 				info "setting compressor to ${comp}"
 				break
 			elif [[ ${comp} == "xz" ]]; then
-				die "no suitable compressor support found in kernel-${opts[-kv]}"
+				die "no suitable compressor support found in kernel-${opts[-k]}"
 			fi
 		}
 	fi
@@ -278,7 +277,7 @@ if [[ -d ${opts[-usrdir]} ]] {
 
 mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
 mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} || die
-mkdir -p run lib${opts[-arc]}/{modules/${opts[-kv]},${PKG[name]}} || die
+mkdir -p run lib${opts[-arc]}/{modules/${opts[-k]},${PKG[name]}} || die
 for dir ({,usr/}lib) ln -s lib${opts[-arc]} ${dir}
 
 {
@@ -288,8 +287,8 @@ for dir ({,usr/}lib) ln -s lib${opts[-arc]} ${dir}
 touch etc/{fs,m}tab
 
 cp -a /dev/{console,random,urandom,mem,null,tty{,[0-6]},zero} dev/ || donod
-if [[ ${${(pws:.:)opts[-kv]}[1]} -eq 3 ]] &&
-	[[ ${${(pws:.:)opts[-kv]}[2]} -ge 1 ]] {
+if [[ ${${(pws:.:)opts[-k]}[1]} -eq 3 ]] &&
+	[[ ${${(pws:.:)opts[-k]}[2]} -ge 1 ]] {
 	cp -a {/,}dev/loop-control 1>/dev/null 2>&1 ||
 		mknod -m 600 dev/loop-control c 10 237 || die
 }
@@ -300,8 +299,8 @@ cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 # Set up RAID option
 for bin (dmraid mdadm zfs)
 	for opt (${opts[-b]} ${opts[-bin]})
-		if [[ ${opt/$bin} != $opt ]] { opts[-mgrp]+=:$bin }
-opts[-mgrp]=${opts[-mgrp]/mdadm/raid}
+		if [[ ${opt/$bin} != $opt ]] { opts[-module-group]+=:$bin }
+opts[-module-group]=${opts[-module-group]/mdadm/raid}
 
 # Set up (requested) hook
 for hook (${(pws,:,)opts[-H]} ${(pws,:,)opts[-hook]}) {
@@ -312,11 +311,11 @@ for hook (${(pws,:,)opts[-H]} ${(pws,:,)opts[-hook]}) {
 		warn "$hook hook/script does not exist"
 		continue
 	}
-	opts[-bin]+=:${opts[-b$hook]}
-	opts[-mgrp]+=:$hook
+	opts[-bin]+=:${opts[-bin-$hook]}
+	opts[-module-group]+=:$hook
 }
 
-cp -ar {/,}lib/modules/${opts[-kv]}/modules.dep ||
+cp -ar {/,}lib/modules/${opts[-k]}/modules.dep ||
 	die "failed to copy modules.dep"
 [[ -f /etc/issue.logo ]] && cp {/,}etc/issue.logo
 
@@ -362,7 +361,7 @@ for bin ($(grep '^sbin' ${opts[-confdir]}/busybox.applets))
 
 # Set up a few options
 if (( ${+opts[-L]} )) || (( ${+opts[-luks]} )) {
-	opts[-bin]+=:cryptsetup opts[-mgrp]+=:dm-crypt
+	opts[-bin]+=:cryptsetup opts[-module-group]+=:dm-crypt
 }
 if (( ${+opts[-g]} )) || (( ${+opts[-gpg]} )) {
 	if [[ -x usr/bin/gpg ]] { :;
@@ -371,10 +370,10 @@ if (( ${+opts[-g]} )) || (( ${+opts[-gpg]} )) {
 	} else { die "there's no usable gpg/gnupg-1.4.x" }
 }
 if (( ${+opts[-l]} )) || (( ${+opts[-lvm]} )) {
-	opts[-bin]+=:lvm opts[-mgrp]+=:device-mapper
+	opts[-bin]+=:lvm opts[-module-group]+=:device-mapper
 }
 if (( ${+opts[-q]} )) || (( ${+opts[-squashd]} )) {
-	opts[-bin]+=:mount.aufs:umount.aufs opts[-mgrp]+=:squashd
+	opts[-bin]+=:mount.aufs:umount.aufs opts[-module-group]+=:squashd
 }
 
 # @FUNCTION: Kernel module copy helper
@@ -385,7 +384,7 @@ function domod {
 			local verbose=$2
 			shift 2;;
 	esac
-	local mod ret prefix=/lib/modules/${opts[-kv]}/
+	local mod ret prefix=/lib/modules/${opts[-k]}/
 	local -a modules
 
 	for mod (${argv}) {
@@ -480,16 +479,16 @@ for bin (${(pws,:,)opts[-b]} ${(pws,:,)opts[-bin]}) {
 unset -v binary bin b
 
 # Handle & copy kernel module
-for mod (${(pws,:,)opts[-mboot]})
-	if (( ${+opts[-m$mod]} )) {
+for mod (${(pws,:,)opts[-module-boot]})
+	if (( ${+opts[-module-$mod]} )) {
 		print ${mod} >>${opts[-confdir]}/boot
 	} else { mboot+=:${mod} }
-opts[-mboot]=${mboot}
+opts[-module-boot]=${mboot}
 unset mboot mod
 
-for module (${(pws,:,)opts[-m]}${(pws,:,)opts[-kmod]}) domod ${module}
-for grp (${(pws,:,)opts[-mgrp]})
-	domod -v ${opts[-confdir]}/${grp} ${(pws,:,)opts[-m${grp}]}
+for module (${(pws,:,)opts[-m]}${(pws,:,)opts[-module]}) domod ${module}
+for group (${(pws,:,)opts[-module-group]})
+	domod -v ${opts[-confdir]}/${group} ${(pws,:,)opts[-module-${group}]}
 
 # Set up user environment if present
 for (( i=1; i <= ${#env[@]}; i++ ))
