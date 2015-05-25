@@ -3,9 +3,9 @@ VERSION     = $(shell sed -nre '3s/(.*):/\1/p' ChangeLog)
 
 PREFIX      = /usr/local
 SBINDIR     = $(PREFIX)/sbin
-SYS_CONFDIR = /etc
-SVC_CONFDIR = $(SYS_CONFDIR)/conf.d
-SVC_INITDIR = $(SYS_CONFDIR)/init.d
+SYSCONFDIR = /etc
+SVCCONFDIR = $(SYSCONFDIR)/conf.d
+SVCINITDIR = $(SYSCONFDIR)/init.d
 DATADIR     = $(PREFIX)/share
 DOCDIR      = $(DATADIR)/doc
 MANDIR      = $(DATADIR)/man
@@ -48,7 +48,7 @@ dist_SCRIPTS= \
 	usr/lib/mdev/dm_link
 DISTFILES   = $(dist_COMMON) $(dist_SCRIPTS)
 .SECONDEXPANSION:
-base_DIRS   = $(SBINDIR) $(SYS_CONFDIR) \
+base_DIRS   = $(SBINDIR) $(SYSCONFDIR) \
 	$(DATADIR)/$(PACKAGE) $(DOCDIR)/$(PACKAGE)-$(VERSION)
 keep_DIRS   = \
 	hooks scripts \
@@ -71,9 +71,9 @@ all:
 
 install-all: intsall install-scripts-bash install-scripts-zsh install-services
 install: install-dir install-dist install-scripts-sh
-	$(install_DATA) mkinitramfs.conf $(DESTDIR)$(SYS_CONFDIR)
+	$(install_DATA) mkinitramfs.conf $(DESTDIR)$(SYSCONFDIR)
 	sed -e 's:\$${PWD}/usr:${prefix}/share/$${pkg}/usr:g' \
-	    -e 's:\./\$${name}.conf:$(SYS_CONFDIR)/$${name}.conf:g' \
+	    -e 's:\./\$${name}.conf:$(SYSCONFDIR)/$${name}.conf:g' \
 	    -i $(DESTDIR)$(SBINDIR)/$(PACKAGE).sh
 install-dist: $(DISTFILES) install-common install-hooks
 install-dir : $(keep_DIRS)
@@ -96,16 +96,16 @@ $(keep_DIRS): .FORCE
 
 install-scripts-%:
 	$(install_SCRIPT) $(PACKAGE).$* svc/sdr.$* $(DESTDIR)$(SBINDIR)
-	$(install_DATA)   $(PACKAGE).conf      $(DESTDIR)$(SYS_CONFDIR)
+	$(install_DATA)   $(PACKAGE).conf      $(DESTDIR)$(SYSCONFDIR)
 	ln -f -s $(PACKAGE).$* $(DESTDIR)$(SBINDIR)/mkinitramfs
 	ln -f -s sdr.$* $(DESTDIR)$(SBINDIR)/sdr
 	sed -e 's:"\$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
-	    -e 's:"\$${PKG\[name\]}".conf:$(SYS_CONFDIR)/"$${PKG[name]}".conf:g' \
+	    -e 's:"\$${PKG\[name\]}".conf:$(SYSCONFDIR)/"$${PKG[name]}".conf:g' \
 	    -i $(DESTDIR)$(SBINDIR)/$(PACKAGE).$*
 install-%-svc:
-	$(MKDIR_P) $(DESTDIR)$(SVC_CONFDIR) $(DESTDIR)$(SVC_INITDIR)
-	$(install_SCRIPT) svc/$*.initd $(DESTDIR)$(SVC_INITDIR)/$*
-	$(install_DATA)   svc/$*.confd $(DESTDIR)$(SVC_CONFDIR)/$*
+	$(MKDIR_P) $(DESTDIR)$(SVCCONFDIR) $(DESTDIR)$(SVCINITDIR)
+	$(install_SCRIPT) svc/$*.initd $(DESTDIR)$(SVCINITDIR)/$*
+	$(install_DATA)   svc/$*.confd $(DESTDIR)$(SVCCONFDIR)/$*
 
 .PHONY: uninstall uninstall-scripts-bash uninstall-scripts-zsh uninstall-squashd \
 	uninstall-zram
@@ -113,7 +113,7 @@ install-%-svc:
 uninstall-all: uninstall uninstall-services \
 	uninstall-scripts-bash uninstall-scripts-zsh
 uninstall: uninstall-dist
-	rm -f $(DESTDIR)$(SYS_CONFDIR)/mkinitramfs.conf
+	rm -f $(DESTDIR)$(SYSCONFDIR)/mkinitramfs.conf
 	for dir in $(keep_DIRS); do \
 		rm -f $(DESTDIR)$(DATADIR)/$(PACKAGE)/$${dir}/.keep-*-dir; \
 		rmdir $(DESTDIR)$(DATADIR)/$(PACKAGE)/$${dir}; \
@@ -132,14 +132,14 @@ uninstall-doc:
 uninstall-services: uninstall-squashdir-svc \
 	uninstall-zram-svc uninstall-tmpdir-svc
 uninstall-scripts-%:
-	rm -f $(DESTDIR)$(SYS_CONFDIR)/$(PACKAGE).conf \
+	rm -f $(DESTDIR)$(SYSCONFDIR)/$(PACKAGE).conf \
 		$(DESTDIR)$(SBINDIR)/$(PACKAGE).$* \
 		$(DESTDIR)$(SBINDIR)/sdr.$* \
 		$(DESTDIR)$(SBINDIR)/mkinitramfs \
 		$(DESTDIR)$(SBINDIR)/sdr
 uninstall-%-svc:
-	rm -f $(DESTDIR)$(SVC_CONFDIR)/$* $(DESTDIR)$(SVC_INITDIR)/$*
-	-rmdir $(DESTDIR)$(SVC_CONFDIR) $(DESTDIR)$(SVC_INITDIR)
+	rm -f $(DESTDIR)$(SVCCONFDIR)/$* $(DESTDIR)$(SVCINITDIR)/$*
+	-rmdir $(DESTDIR)$(SVCCONFDIR) $(DESTDIR)$(SVCINITDIR)
 
 .PHONY: clean
 
