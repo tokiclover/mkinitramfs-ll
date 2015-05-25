@@ -45,8 +45,6 @@ DOCUMENTATION
 
 See mkinitramfs-ll(1) for more info on kernel command line options
 
-See mkinitramfs-ll(8) for more info on the build script options
-
 COPYING
 -------
 
@@ -108,9 +106,9 @@ An [ebuild][1] for Gentoo users.
 Gentoo users can use provided scripts to build static busybox/gnupg.
 (See in /scripts directory for extra scripts.)
 
-`gnupg.{ba,z}sh` will build a binary in the current directory
+`gnupg.sh` will build a binary in the current directory
 (with a usr/bin/gpg and usr/share/gnupg/options.skel)
 or else in /usr/local/mkiniramfs-ll directory if installed variant.
-The same goes for busybox.{ba,z}sh which build a static binary.
+The same goes for `busybox.sh' which build a static binary.
 
 [1]: https://github.com/tokiclover/bar-overlay
