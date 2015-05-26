@@ -34,7 +34,7 @@ And then run `mkinitramfs-ll.$SHELL -a -f$FONT -y$LINGUAS` to build an initramfs
 The appended font and keymap will be the default if there is no *keymap* kernel
 cmdline argument.
 
-Of course, one can append extra fonts and keymaps with `-f:ter-g12n -y:fr-latin1`
+Of course, one can append extra fonts and keymaps with `-fter-g12n -yfr-latin1`
 etc. and the `-a|--all` option depend on `mkinitramfs-ll.conf`
 so one can put many sane default values there.
 
@@ -56,7 +56,7 @@ INSTALLATION
 sub-section);
 `install-all` for everything minus {ba,z}sh scripts...
 
-WARING: POSIX build script cannot be used with {ba,z}sh build script because of
+**WARING:** POSIX build script cannot be used with {ba,z}sh build script because of
 a configuration file mismatch (associative array usage.) Or else, a few quick
 edits would do the trick!
 
@@ -122,8 +122,8 @@ Gentoo users can use provided scripts to build static busybox/gnupg.
 (See in /scripts directory for extra scripts.)
 
 `gnupg.sh` will build a binary in the current directory
-(with a usr/bin/gpg and usr/share/gnupg/options.skel)
-or else in /usr/local/mkiniramfs-ll directory if installed variant.
+(with a USRDIR/bin/gpg and USRDIR/share/gnupg/options.skel)
+or else in DATADIR/mkiniramfs-ll directory if installed variant.
 The same goes for `busybox.sh' which build a static binary.
 
 [1]: https://github.com/tokiclover/bar-overlay
