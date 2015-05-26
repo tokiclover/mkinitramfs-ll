@@ -25,7 +25,7 @@
 # `dm-crypt' group name to `module_group'.)
 # User groups are also supported e.g. kms module group
 #
-module_boot="kms ext2 ext3 ext4 hid-multitouch ohci-pci vhci-hcd"
+module_boot="kms ext2 ext3 ext4"
 module_device_mapper="device-mapper"
 module_dm_crypt="aes dm-crypt sha256 sha512 wp512 ecb lrw xts twofish serpent"
 module_dm_raid="dm-raid dm-mirror dm-multipath dm-snapshot"
@@ -41,7 +41,6 @@ module_zram="zram"
 module_bcache="bcache"
 module_btrfs="btrfs"
 
-firmwares="iwlwifi-7260 nouveau/nv108"
 #
 # A list of kernel modules to include in the initramfs that can be loaded
 # at boot time if passed to *module* kernel cmdline argument
@@ -88,11 +87,11 @@ env="${MIR_EXTRA_ENV}"
 # Disable applets/binaries checking
 env="${env} ENV_CHK=false"
 # Set a default rootfs mount option
-env="${env} rootflags=user_xattr"
+#env="${env} rootflags=user_xattr"
 # Set up root options with fsck disabled
-env="${env} root=lvg-root rootfs=ext4:no"
+#env="${env} root=root-sda2 rootfs=ext4:no"
 # Set up root key mode (dm-crypt LUKS)
-env="${env} lvm=lpv-sda4 luks=pwd"
+#env="${env} luks=pwd"
 # Setup init variable if necessary
 #env="${env} init=/sbin/runit-init"
 # Set up extra option (squash(ed) directory)
