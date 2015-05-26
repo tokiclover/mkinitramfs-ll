@@ -47,6 +47,19 @@ See mkinitramfs-ll(1) for more info on kernel command line options
 
 See mkinitramfs-ll(8) for more info on the build script options
 
+INSTALLATION
+------------
+
+`make DESTDIR=/tmp PREFIX=/usr/local install` to install initramfs files hierarchy;
+`install-{,ba,z}sh-scripts` for POSIX, Bourne Again or Z shell build script;
+`install-{squashd,tmpdir,zram}-svc` for extra init scripts service (refer to FILES
+sub-section);
+`install-all` for everything minus {ba,z}sh scripts...
+
+WARING: POSIX build script cannot be used with {ba,z}sh build script because of
+a configuration file mismatch (associative array usage.) Or else, a few quick
+edits would do the trick!
+
 COPYING
 -------
 
