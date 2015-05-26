@@ -4,17 +4,23 @@ Header: mkinitramfs-ll/ChangeLog, 2014/10/01
 
 Added POSIX scripts {mkinitramfs-ll,sdr,busybox,gnupg}.sh; and
 removed {busybox,gnupg}.{ba,z}sh. {mkinitramfs-ll,sdr}.{ba,z}sh
-will be removed later, so running `make install-scripts-{ba,z}sh'
-would install the old/legacy scripts. No need to install manually
-the new scripts as they will be installed with `install'.
+will be removed later, so running `make install-scripts-{ba,z,}sh'
+would install the right building scripts.
+
+WARNING: sh build script cannot be installed in parallele with
+{ba,z}sh scripts because of configuration file conflict! A symlink
+was added to the source directory to be able to select one and run
+any in place like before.
 
 Nothing really changed but the configuration file! Could not keep
 associative arrays with POSIX shell obviously. So variables have
 new names which have more clarity than the previous ones, e.g.
 module group are named `module_<group>', binary group `bin_<group>'
 and used groups are kept in `module_group' variables.
-Chekout the new configuration file--mkinitramfs.conf--because the
-old one is still there for the old building scripts support.
+
+Incindently, the old/legacy configuration file was cleaned to reflect
+this new clarity ('-m'=>'-module-'/'-b'=>'-bin-'.)
+Chekout the new configuration file!!!
 
 Another noticeable change is the removal of -d|--squash-dir cmdline
 switch to sdr scripts (which was really useless) and support space
