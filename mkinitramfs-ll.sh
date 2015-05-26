@@ -169,7 +169,7 @@ mktmp() {
 	echo "${tmp}"
 }
 
-[ -f ./${name}.conf ] && source ./${name}.conf ||
+[ -f ./${pkg}.conf ] && source ./${pkg}.conf ||
 	die "No ${name}.conf configuration file found"
 
 opt="$(getopt \
