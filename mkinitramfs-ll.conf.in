@@ -1,0 +1,109 @@
+#
+# Header: mkinitramfs-ll/mkinitramfs-ll.conf, 2015/05/24 Exp
+#
+# opts an associative array which hold pretty much every single option,
+# so one could assign default values for pretty much everything: opts[-arg]
+# <arg> being an options or a command line switch. opts[-arg] is a colon ':' 
+# separated list for each option or arg that is a list.
+#
+# opts[-module-<group>] a list of kernel module group, nls_cp437:vfat should be putted
+# to remdev group for vfat remdev users for example.
+#
+#   Support kernel module dependencies, so no need to stuff modules groups;
+#   Support kernel module groups in the boot group e.g. kms group.
+#
+#   Support an improved regular expression kernel module name, e.g. appending
+#   `serpent' to opts[-module-dm-crypt] would rightly add serpent_generic and
+#   architecture specific modules serpent-{avx{2,-x86_64},sse-x86_64}.
+#
+#   Support extended kernel module group that can be appended directly to
+#   `module' kernel cmdline argument: module=group;
+#   just create opts[-module-<group>] grooups and then append them to opts[-mgrp].
+#
+# Every item if built as module will be included or nothing if not, so one
+# can leave as is or add a few items.
+#
+
+#
+# Default kernel module groups:
+# User groups are also supported e.g. kms module group
+#
+opts[-module-boot]+=:kms:ext2:ext3:ext4
+opts[-module-device-mapper]+=:device-mapper
+opts[-module-dm-crypt]+=aes:dm-crypt:sha256:sha512:wp512:ecb:lrw:xts:twofish:serpent
+opts[-module-dm-raid]+=:dm-raid:dm-mirror:dm-multipath:dm-snapshot
+opts[-module-gpg]+=:cast5
+opts[-module-kms]+=:i915:nouveau:radeon
+opts[-module-raid]+=:raid0:raid10:raid1:raid456
+opts[-module-remdev]+=:nls_cp437:vfat
+opts[-module-squashd]+=:aufs:squashfs
+opts[-module-swsusp]+=
+opts[-module-tuxonice]+=:tuxonice_swap:tuxonice_userui:tuxonice_file
+opts[-module-zfs]+=:zfs
+opts[-module-zram]+=:zram
+opts[-module-bcache]+=:bcache
+opts[-module-btrfs]+=:btrfs
+
+#
+# A list of kernel modules to include in the initramfs that can be loaded
+# at boot time if passed to *module* kernel cmdline argument
+#
+opts[-module]+=:uvesafb
+
+#
+# Default kernel module group included in the initramfs
+#
+opts[-module-group]+=:boot:kms:remdev:swsusp
+
+#
+# A list of binaries to include into the initramfs, library
+# dependencies will be copied over using `$(ldd /path/to/bin)'.
+#
+opts[-bin]+=:blkid:v86d
+
+#
+# opts[-bin-<hook>] are list of binaries to include if <hook> hook or script
+# is included in the initramfs
+#
+opts[-bin-zfs]=zfs:zpool
+opts[-bin-btrfs]=btrfs:btrfsck:fsck.btrfs
+
+#
+# A colon separated list of console fonts to include into the initramfs
+#
+opts[-font]+=:ter-g12n:ter-g14n:ter-112n:ter-v12n
+
+#
+# A colon separated list of keymap to include in the initramfs
+#
+opts[-keymap]+=:azerty:dvorak:unicode
+
+#
+# An array holding *environment* variables or kernel cmdline arguments,
+# To disable default kernel cmdline, append `env=0'
+# or case insensitive disable|false|off|no for that matter.
+#
+# Note, however, this will disbale everything. Or else, a colon separated
+# list can be used instead e.g. `env=:root:'; (NOTE: start/end with a colon `:').
+#
+env=(
+	${MIR_EXTRA_ENV}
+	# Disable applets/binaries checking
+	'ENV_CHK=false'
+	# Set a default rootfs mount option
+	#'rootflags=user_xattr'
+	# Set up root options with fsck enabled
+	#'root=root-sda2' 'rootfs=ext4:no'
+	# Set up root key mode (dm-crypt LUKS)
+	#'luks=pwd'
+	# Setup init variable if necessary
+	#'init=/sbin/runit-init'
+	# Set up extra option (squash(ed) directory)
+	#'squashd=:+LOCAL:var/portage'
+	# Set this variable to keep some system file systems mounted
+	#'SYSFS=/run:/sys:/dev:/proc'
+)
+
+#
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
+#

@@ -88,11 +88,11 @@ env="${MIR_EXTRA_ENV}"
 # Disable applets/binaries checking
 env="${env} ENV_CHK=false"
 # Set a default rootfs mount option
-#env="${env} rootflags=user_xattr"
+env="${env} rootflags=user_xattr"
 # Set up root options with fsck disabled
-#env="${env} root=root-sda2 rootfs=ext4:no"
+env="${env} root=lvg-root rootfs=ext4:no"
 # Set up root key mode (dm-crypt LUKS)
-#env="${env} luks=pwd"
+env="${env} lvm=lpv-sda4 luks=pwd"
 # Setup init variable if necessary
 #env="${env} init=/sbin/runit-init"
 # Set up extra option (squash(ed) directory)
@@ -101,5 +101,5 @@ env="${env} ENV_CHK=false"
 #env="${env} SYSFS=/run:/sys:/dev:/proc"
 
 #
-# vim:fenc=utf-8:ft=zsh:ci:pi:sts=0:sw=4:ts=4:
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
 #
