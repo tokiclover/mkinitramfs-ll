@@ -64,19 +64,11 @@ DISTDIRS    = $(base_DIRS) $(keep_DIRS)
 
 .FORCE:
 
-.PHONY: all install install-dir install-dist install-scripts-bash \
-	install-common install-extra install-hooks install-scripts \
-	install-scripts-zsh install-services install-all
-
 all:
 
-install-all: intsall install-scripts-bash install-scripts-zsh install-services
-install: install-dir install-dist install-scripts-sh
-	$(install_DATA) mkinitramfs.conf $(DESTDIR)$(SYSCONFDIR)
-	sed -e 's:\$${PWD}/usr:${prefix}/share/$${pkg}/usr:g' \
-	    -e 's:\./\$${name}.conf:$(SYSCONFDIR)/$${name}.conf:g' \
-	    -i $(DESTDIR)$(SBINDIR)/$(PACKAGE).sh
-install-dist: $(DISTFILES) install-doc install-common install-hooks
+install-all: install install-services install-sh-scripts
+install: install-dir install-dist
+install-dist: $(DISTFILES) install-doc install-hooks
 install-dir : $(keep_DIRS)
 	$(MKDIR_P) $(base_DIRS:%=$(DESTDIR)%)
 install-doc : $(dist_EXTRA)
@@ -98,26 +90,28 @@ $(keep_DIRS): .FORCE
 	$(MKDIR_P) $(DESTDIR)$(DATADIR)/$(PACKAGE)/$@
 	echo     > $(DESTDIR)$(DATADIR)/$(PACKAGE)/$@/.keep-$(@F)-dir
 
-install-scripts-%:
+install-%-scripts:
 	$(install_SCRIPT) $(PACKAGE).$* svc/sdr.$* $(DESTDIR)$(SBINDIR)
-	$(install_DATA)   $(PACKAGE).conf      $(DESTDIR)$(SYSCONFDIR)
+	if test $* = sh; then \
+		$(install_DATA) $(PACKAGE).conf.in-sh $(DESTDIR)$(SYSCONFDIR)/$(PACKAGE).conf; \
+		sed -e 's:\$${PWD}/usr:${prefix}/share/$${pkg}/usr:g' \
+		    -e 's:\./\$${pkg}.conf:$(SYSCONFDIR)/$${pkg}.conf:g' \
+			-i $(DESTDIR)$(SBINDIR)/$(PACKAGE).sh; \
+	else \
+		$(install_DATA) $(PACKAGE).conf.in    $(DESTDIR)$(SYSCONFDIR)/$(PACKAGE).conf; \
+		sed -e 's:"\$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
+		    -e 's:"\$${PKG\[name\]}".conf:$(SYSCONFDIR)/"$${PKG[name]}".conf:g' \
+			-i $(DESTDIR)$(SBINDIR)/$(PACKAGE).$*; \
+	fi
 	ln -f -s $(PACKAGE).$* $(DESTDIR)$(SBINDIR)/mkinitramfs
 	ln -f -s sdr.$* $(DESTDIR)$(SBINDIR)/sdr
-	sed -e 's:"\$${PWD}"/usr:${prefix}/share/"$${PKG[name]}"/usr:g' \
-	    -e 's:"\$${PKG\[name\]}".conf:$(SYSCONFDIR)/"$${PKG[name]}".conf:g' \
-	    -i $(DESTDIR)$(SBINDIR)/$(PACKAGE).$*
 install-%-svc:
 	$(MKDIR_P) $(DESTDIR)$(SVCCONFDIR) $(DESTDIR)$(SVCINITDIR)
 	$(install_SCRIPT) svc/$*.initd $(DESTDIR)$(SVCINITDIR)/$*
 	$(install_DATA)   svc/$*.confd $(DESTDIR)$(SVCCONFDIR)/$*
 
-.PHONY: uninstall uninstall-scripts-bash uninstall-scripts-zsh uninstall-squashd \
-	uninstall-zram
-
-uninstall-all: uninstall uninstall-services \
-	uninstall-scripts-bash uninstall-scripts-zsh
+uninstall-all: uninstall uninstall-services uninstall-sh-scripts
 uninstall: uninstall-dist
-	rm -f $(DESTDIR)$(SYSCONFDIR)/mkinitramfs.conf
 	for dir in $(keep_DIRS); do \
 		rm -f $(DESTDIR)$(DATADIR)/$(PACKAGE)/$${dir}/.keep-*-dir; \
 		rmdir $(DESTDIR)$(DATADIR)/$(PACKAGE)/$${dir}; \
@@ -132,10 +126,11 @@ uninstall-dist: uninstall-doc
 		$(dist_HOOKS:%=$(DESTDIR)$(DATADIR)/$(PACKAGE)/hooks/%)
 uninstall-doc:
 	rm -f $(DESTDIR)$(MANDIR)/man1/$(PACKAGE).1 \
+		$(DESTDIR)$(MANDIR)/man8/$(PACKAGE).8 \
 		$(dist_EXTRA:%=$(DESTDIR)$(DOCDIR)/$(PACKAGE)-$(VERSION)/%)
 uninstall-services: uninstall-squashdir-svc \
 	uninstall-zram-svc uninstall-tmpdir-svc
-uninstall-scripts-%:
+uninstall-%-scripts:
 	rm -f $(DESTDIR)$(SYSCONFDIR)/$(PACKAGE).conf \
 		$(DESTDIR)$(SBINDIR)/$(PACKAGE).$* \
 		$(DESTDIR)$(SBINDIR)/sdr.$* \
