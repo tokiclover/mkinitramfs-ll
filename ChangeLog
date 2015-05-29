@@ -26,6 +26,10 @@ Another noticeable change is the removal of -d|--squash-dir cmdline
 switch to sdr scripts (which was really useless) and support space
 as a separator (along with colon.)
 
+Two new cmdline switches {-m|--mount,-M|--unmount} were added so that
+sdr scripts can be used as a standalone union-mount utility without
+an extra init script service.
+
 Last noticeable change is the addition of OverlayFS support to init
 (functions: squashd()), squashdir init script service and sdr.$SHELL.
 
