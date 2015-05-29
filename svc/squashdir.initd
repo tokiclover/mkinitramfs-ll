@@ -3,14 +3,19 @@
 # $Header: mkinitramfs-ll/svc/squashdir.initd            Exp $
 # $Author: (c) 2012-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.20.0 2015/04/18 12:33:03                   Exp $
+# $Version: 0.21.0 2015/05/28 12:33:03                   Exp $
 #
 
 description="(AUFS+SquashFS) squash-directories"
 
 :	${NULL=/dev/null}
-:	${squash_rootdir:=/aufs}
+:	${squash_rootdir:=/squash}
 :	${sdr:=$(type -p sdr 2>${NULL})}
+
+case "${squash_filesystem}" in
+	(aufs|overlay) ;;
+	(*) squash_filesystem=;;
+esac
 
 depend()
 {
@@ -24,16 +29,21 @@ start_pre()
 {
 	local mod
 	ebegin "Setting up kernel modules"
-	for mod in aufs squashfs; do
+	for mod in ${squash_filesystem:-aufs overlay} squashfs; do
 		grep -q ${mod} /proc/filesystems || modprobe ${mod} >${NULL} 2>&1 ||
-		{ eend 1 ${mod}; return 1; }
+			case "${mod}" in
+				(overlay|squashfs) { end 1 ${mod}; return 1; };;
+			esac
+		case "${mod}" in
+			(aufs|overlay) squash_filesystem="${mod}";;
+		esac
 	done
 	eend ${?}
 }
 
 start()
 {
-	local IFS=":${IFS}" dir
+	local dir
 	for dir in ${squash_sysdir} ${squash_localdir}; do
 		squash_mount "${squash_rootdir}" "${dir}"
 	done
@@ -42,7 +52,7 @@ start()
 
 stop()
 {
-	local IFS=":${IFS}" dir
+	local dir
 	for dir in ${squash_localdir}; do
 		squash_umount "${squash_rootdir}" "${dir}"
 	done
@@ -54,12 +64,11 @@ stop()
 
 stop_pre()
 {
-	local IFS="${IFS}:"
 	[ -n "${squash_rebuild_dir}" ] || return 0
 	[ -n "${sdr}" -a -x "${sdr}" ] || { ewarn "No suitable sdr found."; return; }
 
 	ebegin "Rebuilding ${squash_rebuild_dir}"
-	${sdr} -o${offset:-5} ${squash_rebuild_dir} >${NULL} 2>&1
+	${sdr} -o${offset:-5} -f${squash_filesystem} ${squash_rebuild_dir} >${NULL} 2>&1
 	eend ${?}
 }
 
@@ -67,7 +76,7 @@ restart()
 {
 	stop
 	start
-	local IFS=":${IFS}" dir
+	local dir
 	for dir in ${squashdir_sysdir}; do
 		squash_remount "${dir}" "rw"
 	done
@@ -76,30 +85,42 @@ restart()
 
 squash_mount()
 {
-	local DIR
+	local DIR opt
 	DIR="${1}/${2#/}" dir="/${2#/}"
-	grep -q aufs:${dir} /proc/mounts && return
+	grep -q ${squash_filesystem}:${dir} /proc/mounts && return
+	case "${squash_filesystem}" in
+		(aufs)
+			mkdir -p -m 0755 ${DIR}/rr ${DIR}/rw
+			opt=nodev,udba=reval,br:${DIR}/rw:${DIR}/rr;;
+		(overlay)
+			mkdir -p -m 0755 ${DIR}/rr ${DIR}/up ${DIR}/wk
+			opt=nodev,upperdir=${DIR}/up,lowerdir=${DIR}/rr,workdir=${DIR}/wk;;
+	esac
 
-	ebegin "Mounting aufs:${dir}"
-	if ! grep -q ${DIR}.squashfs /proc/mounts; then
+	ebegin "Mounting ${squash_filesystem}:${dir}"
+	if ! grep -q ${DIR}/rr /proc/mounts; then
 		mount -t squashfs -o loop,nodev,ro ${DIR}.squashfs ${DIR}/rr \
 			>${NULL} 2>&1 || { eend 1 SquashFS; return 1; }
 	fi
-	mount -t aufs -o nodev,udba=reval,br:${DIR}/rw:${DIR}/rr aufs:${dir} ${DIR} \
-		>${NULL} 2>&1
-	eend ${?} AUFS
+	mount -t ${squash_filesystem} -o ${opt} \
+		${squash_filesystem}:${dir} ${dir} >${NULL} 2>&1
+	eend "${?}" "${squash_filesystem}"
 }
 
 squash_umount()
 {
 	local DIR opt
 	DIR="${1}/${2#/}" dir="/${2#/}"
+
 	case "${RC_UNAME}" in
 		(Linux) opt="-O no_netdev";;
 	esac
-	auplink ${dir} flush >${NULL} 2>&1
-	ebegin "Umounting aufs:${dir}"
-	umount -l ${opt} aufs:${dir} >${NULL} 2>&1 || { eend 1 AUFS; return 1; }
+	case "${squash_filesystem}" in
+		(aufs) auplink ${dir} flush >${NULL} 2>&1;;
+	esac
+	ebegin "Umounting ${squash_filesystem}:${dir}"
+	umount -l ${opt} ${squash_filesystem}:${dir} >${NULL} 2>&1 ||
+		{ eend 1 ${squash_filesystem}; return 1; }
 	umount -l ${opt} ${DIR}/rr   >${NULL} 2>&1
 	eend ${?} SquashFS
 }
@@ -107,8 +128,8 @@ squash_umount()
 squash_remount()
 {
 	dir="/${1#/}"
-	ebegin "Re-Mounting aufs:${DIR}"
-	mount -o remount,${2:-ro} aufs:${dir} >${NULL} 2>&1
+	ebegin "Re-Mounting ${squash_filesystem}:${DIR}"
+	mount -o remount,${2:-ro} ${squash_filesystem}:${dir} >${NULL} 2>&1
 	eend ${?}
 }
 

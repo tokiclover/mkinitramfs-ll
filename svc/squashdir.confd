@@ -1,15 +1,18 @@
 #
-# $Header: mkinitramfs-ll/svc/squashdir.confd, 2015/04/18 Exp $
+# $Header: mkinitramfs-ll/svc/squashdir.confd, 2015/05/28 Exp $
 #
 
-# Squash directory root, where to put aufs hierchichal tree
-squash_rootdir=/aufs
+# Squash directory root, where to put the merged hierchy filesystem
+squash_rootdir=/squash
+# File system to use for the merged hierachy
+#   Supported value: aufs, overlay; or else, auto-detected
+#squash_filesystem=aufs
 
 # System wide squash-ed directory-ies
-#squash_sysdir=/usr:/opt
+#squash_sysdir="/usr /opt"
 
 # Local squash-ed directory-ies
-squash_localdir=/var/db:/var/cache/edb:/var/lib/layman
+squash_localdir="/var/db /var/cache/edb /var/lib/layman"
 
 # Squashed directory-ies to rebuild before shutting down the service
 # WARN: This list should be in either squash_sysdir|localdir group
