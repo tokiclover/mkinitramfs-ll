@@ -3,14 +3,14 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.20.0 2015/05/24 12:33:03                   Exp $
+# $Version: 0.21.0 2015/05/28 12:33:03                   Exp $
 #
 
 typeset -A PKG
 PKG=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
-	[version]=0.20.0
+	[version]=0.21.0
 )
 
 # @FUNCTION: Print help message
