@@ -62,8 +62,8 @@ while true; do
 		(-c|--compressor)  opts[-compressor]="${2}"; shift;;
 		(-X|--exclude) opts[-exclude]+=":${2}"; shift;;
 		(-o|--offset) opts[-offset]="${2}"; shift;;
-		(-u|--update)  opts[-update]= ;;
-		(-r|--remove)  opts[-remove]= ;;
+		(-u|--update)  opts[-update]=1;;
+		(-r|--remove)  opts[-remove]=1;;
 		(-n|--no-mount) opts[-mount]=0;;
 		(-m|--mount)    opts[-mount]=2;;
 		(-M|--unmount)  opts[-mount]=3;;
