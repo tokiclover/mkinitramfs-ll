@@ -141,12 +141,16 @@ function squash-mount {
 		${=umount} -l ${DIR}/rr >${NULL} 2>&1 ||
 			die "Failed to umount ${DIR}.squashfs" 
 	fi
-	${=rm} ${DIR}/rw/* || die "Failed to clean up ${DIR}/rw"
 
 	[[ -e ${DIR}.squashfs ]] && [[ -e ${DIR}.tmp.squashfs ]] && ${=rm} ${DIR}.squashfs 
 	${=mv} ${DIR}.tmp.squashfs ${DIR}.squashfs ||
 		die "Failed to move ${DIR}.tmp.squashfs"
-
+	case ${opts[-filesystem]} {
+		(aufs)    ${=rm} ${DIR}/rw && ${=mkdir} ${DIR}/rw ||
+			die "Failed to clean up ${DIR}/rw";;
+		(overlay) ${=rm} ${DIR}/{up,wk} && ${=mkdir} ${DIR}/{up,wk} ||
+			die "Failed to clean up ${DIR}/{up,wk}";;
+	}
 	${=mount} -t squashfs -o nodev,loop,ro ${DIR}.squashfs ${DIR}/rr >${NULL} 2>&1 ||
 	    die "Failed to mount ${DIR}.squashfs"
 	if (( ${+opts[-remove]} )) {
