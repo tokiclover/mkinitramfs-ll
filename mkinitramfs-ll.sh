@@ -3,13 +3,13 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.sh              Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.20.0 2015/02/20 12:33:03                   Exp $
+# $Version: 0.20.1 2015/05/28 12:33:03                   Exp $
 #
 
 name=mkinitramfs
 pkg=${name}-ll
 shell=sh
-version=0.20.0
+version=0.21.0
 null=/dev/null
 
 # @FUNCTION: Print help message
@@ -291,8 +291,7 @@ fi
 # Set up the initramfs
 if [ -d "${usrdir}" ]; then
 	cp -ar "${usrdir}" . &&
-	mv -f usr/root . &&
-	mv -f usr/etc . &&
+	mv -f usr/root usr/etc . &&
 	mv -f usr/lib lib${LONG_BIT} || die
 else 
 	die "${usrdir} usrdir not found"
