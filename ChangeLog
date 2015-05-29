@@ -1,10 +1,10 @@
-Header: mkinitramfs-ll/ChangeLog, 2014/10/01
+Header: mkinitramfs-ll/ChangeLog, 2015/05/28
 
 0.21.0:
 
 Added POSIX scripts {mkinitramfs-ll,sdr,busybox,gnupg}.sh; and
 removed {busybox,gnupg}.{ba,z}sh. {mkinitramfs-ll,sdr}.{ba,z}sh
-will be removed later, so running `make install-scripts-{ba,z,}sh'
+will be removed later, so running `make install-{ba,z,}sh-scripts'
 would install the right building scripts.
 
 WARNING: sh build script cannot be installed in parallele with
@@ -25,6 +25,9 @@ Chekout the new configuration file!!!
 Another noticeable change is the removal of -d|--squash-dir cmdline
 switch to sdr scripts (which was really useless) and support space
 as a separator (along with colon.)
+
+Last noticeable change is the addition of OverlayFS support to init
+(functions: squashd()), squashdir init script service and sdr.$SHELL.
 
 0.20.0:
 
