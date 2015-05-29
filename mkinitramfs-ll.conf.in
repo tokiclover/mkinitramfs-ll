@@ -1,5 +1,5 @@
 #
-# Header: mkinitramfs-ll/mkinitramfs-ll.conf, 2015/05/24 Exp
+# Header: mkinitramfs-ll/mkinitramfs-ll.conf, 2015/05/28 Exp
 #
 # opts an associative array which hold pretty much every single option,
 # so one could assign default values for pretty much everything: opts[-arg]
@@ -36,7 +36,7 @@ opts[-module-gpg]+=:cast5
 opts[-module-kms]+=:i915:nouveau:radeon
 opts[-module-raid]+=:raid0:raid10:raid1:raid456
 opts[-module-remdev]+=:nls_cp437:vfat
-opts[-module-squashd]+=:aufs:squashfs
+opts[-module-squashd]+=:aufs:overlay:squashfs
 opts[-module-swsusp]+=
 opts[-module-tuxonice]+=:tuxonice_swap:tuxonice_userui:tuxonice_file
 opts[-module-zfs]+=:zfs

@@ -1,5 +1,5 @@
 #
-# Header: mkinitramfs-ll/mkinitramfs-ll.conf, 2015/01/20 Exp
+# Header: mkinitramfs-ll/mkinitramfs-ll.conf, 2015/05/28 Exp
 #
 # module_<group> a list of kernel module group, nls_cp437,vfat should be putted
 # to remdev group for vfat remdev users for example.
@@ -33,7 +33,7 @@ module_gpg="cast5"
 module_kms="i915 nouveau radeon"
 module_raid="raid0 raid10 raid1 raid456"
 module_remdev="nls_cp437 vfat"
-module_squashd="aufs squashfs"
+module_squashd="aufs overlay squashfs"
 module_swsusp=""
 module_tuxonice="tuxonice_swap tuxonice_userui tuxonice_file"
 module_zfs="zfs"
