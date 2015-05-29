@@ -25,7 +25,9 @@ usage() {
   -o, --offset=0            Offset to use when rebuilding (default 10%)
   -u, --update              Update the underlying source directory
   -r, --remove              Remove the underlying source directory
-  -n, --no-mount            Disable mount after rebuild or update
+  -m, --mount               Enable mount-only mode, no-(re)build
+  -n, --no-mount            Disable mount, (re-)build-only mode
+  -M, --unmount             Enable unmount-only mode, no-build
   -h, --help, -?            Print this help message and exit
 EOH
 ${1:+exit $1}
@@ -34,23 +36,25 @@ ${1:+exit $1}
 [ ${#} = 0 ] && usage 1
 
 opt="$(getopt \
-	-o \?b:c:f:o:nhruq:X:x:: \
+	-o \?b:c:f:o:Mmnhruq:X:x:: \
 	-l block-size:,busybox::,compressor:,exclude:,filesystem:,offset,help \
-	-l no-mount,,squash-root:,remove,update \
+	-l mount,no-mount,squash-root:,remove,update,unmount \
 	-n "${name}" -s sh -- "${@}" || usage)"
 [ ${?} = 0 ] || exit 2
 eval set -- ${opt}
 
 while true; do
 	case "${1}" in
-		(-x|--busybox) shift; busybox="${1:-$(type -p busybox)}";;
+		(-x|--busybox) shift; busybox="${1:-$(type -p busybox 2>${NULL})}";;
 		(-X|--exclude) shift; exclude="${exlude} ${1}";;
 		(-f|--filesystem) shift; filesystem="${1}";;
 		(-b|--block-*) shift; block_size="${1}";;
 		(-c|--compre*) shift; compressor="${1}";;
 		(-q|--squash-root) shift; squash_root="${1}";;
 		(-o|--offset)  shift; offset="${1}";;
-		(-n|--no-mount) mount_dir=false;;
+		(-n|--no-mount) mount_dir=0;;
+		(-m|--mount)   mount_dir=2;;
+		(-M|--unmount) mount_dir=3;;
 		(-u|--update) update=true;;
 		(-r|--remove) remove=true;;
 		(--) shift; break;;
@@ -67,6 +71,7 @@ eval_colors
 :	${busybox:=$(type -p busybox 2>${NULL})}
 :	${compressor:=lzo -Xcompression-level 1}
 :	${offset:=10}
+:	${mount_dir:=1}
 
 #
 # @FUNCTION: Print error message to stderr & exit
@@ -104,11 +109,10 @@ squash_mount() {
 		${umount} -l ${DIR}/rr >${NULL} 2>&1 ||
 			die "Failed to umount ${DIR}.squashfs"
 	fi
+	[  "${mount_dir}" -gt 2 ] && return
 
 	[ -e ${DIR}.squashfs -a -e ${DIR}.tmp.squashfs ] &&
-		${rm} ${DIR}.squashfs
-	${mv} ${DIR}.tmp.squashfs ${DIR}.squashfs >${NULL} 2>&1 ||
-		die "Failed to move ${dir}.tmp.squashfs"
+		${rm} ${DIR}.squashfs && ${mv} ${DIR}.tmp.squashfs ${DIR}.squashfs
 	case "${filesystem}" in
 		(aufs)    ${rm} ${DIR}/rw && ${mkdir} ${DIR}/rw ||
 			die "Failed to clean up ${DIR}/rw";;
@@ -139,13 +143,14 @@ squash_dir() {
 			mkdir -p -m 0755 ${DIR}/rr ${DIR}/up ${DIR}/wk;;
 	esac
 	[ "${?}" = 0 ] || die "Failed to create required directories"
+	[ "${mount_dir}" -gt 1 ] && { squash_mount; return; }
 
 	mksquashfs ${dir} ${DIR}.tmp.squashfs -b ${block_size} -comp ${compressor} \
 		${exclude+=-wildcards -regex -e} ${exclude} ||
 		die "Failed to build ${dir}.squashfs image"
 	echo ">>> ${0##*/}: ...sucessfully build squashed"
 
-	${mount_dir-true} && squash_mount
+	[ "${mount_dir}" = 1 ] && squash_mount
 }
 
 for mod in ${filesystem:-aufs overlay} squashfs; do
@@ -155,34 +160,45 @@ for mod in ${filesystem:-aufs overlay} squashfs; do
 			(squashfs) die  "Failed to load ${mod} module";;
 		esac
 	case "${mod}" in
-		(aufs|overlay) filesystem="${mod}";;
+		(aufs|overlay) filesystem="${mod}"
+			case "${mod}" in
+				(aufs) RW=rw;;
+				(ove*) RW=up;;
+			esac;;
 	esac
 done
 
 for dir in ${*}; do
 	DIR="/${squash_root#/}/${dir#/}" dir="/${dir#/}"
 	if [ -e ${DIR}.squashfs ]; then
+		case "${mount_dir}" in
+			(3) echo -e "\e[1;34m>>>\e[0m Umounting ${dir}..."
+				squash_dir; continue;;
+			(2) echo -e "\e[1;35m>>>\e[0m Mounting ${dir}..."
+				squash_dir; continue;;
+		esac
 		if [ ${offset} != 0 ]; then
-			rr=$(du -sk ${DIR}/rr | awk '{print $1}')
-			rw=$(du -sk ${DIR}/rw | awk '{print $1}')
+			rr=$(du -sk ${DIR}/rr    | awk '{print $1}')
+			rw=$(du -sk ${DIR}/${RW} | awk '{print $1}')
 			if [ $((${rw} * 100 / ${rr})) -lt ${offset} ]; then
-				info "Skiping ${dir}, or append -o option to force rebuilding"
+				echo -e "\e[1;31m>>>\e[0m Skiping ${dir}... or use -o option"
 			else
-				begin "Rebuilding squashed ${dir}...\n"
+				echo -e "\e[1;32m>>>\e[0m Updating squashed ${dir}..."
 				squash_dir
 			fi
 		else
-			begin "Rebuilding squashed ${dir}...\n"
+			echo -e "\e[1;32m>>>\e[0m Updating squashed ${dir}..."
 			squash_dir
 		fi
 	else
-		begin "Building squashed ${dir}...\n"
+		echo -e "\e[1;32m>>>\e[0m Building squashed ${dir}..."
 		squash_dir
 	fi
 	end "${?}"
 done
 
 [ -x "${busybox}" ] && rm -f "${busybox}"
+unset DIR RW dir exclude filesystem rr rw opt mount_dir squash_root
 
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
