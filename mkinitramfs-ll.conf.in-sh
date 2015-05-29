@@ -95,7 +95,7 @@ env="${env} ENV_CHK=false"
 # Setup init variable if necessary
 #env="${env} init=/sbin/runit-init"
 # Set up extra option (squash(ed) directory)
-#env="${env} squashd=:+LOCAL:var/portage"
+#env="${env} squashd=:aufs:+LOCAL:opt"
 # Set this variable to keep some system file systems mounted
 #env="${env} SYSFS=/run:/sys:/dev:/proc"
 

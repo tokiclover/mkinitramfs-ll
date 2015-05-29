@@ -99,7 +99,7 @@ env=(
 	# Setup init variable if necessary
 	#'init=/sbin/runit-init'
 	# Set up extra option (squash(ed) directory)
-	#'squashd=:+LOCAL:var/portage'
+	#'squashd=:aufs:+LOCAL:opt'
 	# Set this variable to keep some system file systems mounted
 	#'SYSFS=/run:/sys:/dev:/proc'
 )
