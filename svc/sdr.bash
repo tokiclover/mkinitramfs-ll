@@ -30,7 +30,9 @@ function usage {
   -o, --offset=0            Offset to use when rebuilding (default 10%)
   -u, --update              Update the underlying source directory
   -r, --remove              Remove the underlying source directory
-  -n, --no-mount            Disable mount after rebuild or update
+  -m, --mount               Enable mount-only mode, no-(re)build
+  -M, --no-mount            Disable mount, (re-)build-only mode
+  -U, --unmount             Enable unmount-only mode, no-build
   -h, --help, -?            Print this help message and exit
 EOH
 exit $?
@@ -42,9 +44,9 @@ exit $?
 declare -A opts
 declare -a opt
 opt=(
-	"-o" "?b:c:f:o:nhruq:X:x::"
+	"-o" "?b:c:f:o:Mmnhruq:X:x::"
 	"-l" "block-size:,busybox::,compressor:,exclude:,filesystem:,offset,help"
-	"-l" "no-mount,squash-root:,remove,update"
+	"-l" "mount,no-mount,squash-root:,remove,update,unmount"
 	"-n" "${PKG[name]}.${PKG[shell]}"
 	"-s" "${PKG[shell]}"
 )
@@ -52,42 +54,23 @@ opt=($(getopt "${opt[@]}" -- "$@" || usage))
 eval set -- "${opt[@]}"
 
 while true; do
-	case "$1" in
-		(-b|--block-size)
-			opts[-block-size]="$2"
-			shift 2;;
-		(-x|--busybox)
-			opts[-busybox]="${2:-$commands[busybox]}"
-			shift 2;;
-		(-f|--filesystem)
-			opts[-filesystem]="$2"
-			shift 2;;
-		(-o|--offset)
-			opts[-offset]="$2"
-			shift 2;;
-		(-X|--exclude) opts[-exclude]+=":$2"
-			shift 2;;
-		(-q|--squash-root)
-			opts[squash-root]="$2"
-			shift 2;;
-		(-c|--compressor)
-			opts[-compressor]="$2"
-			shift 2;;
-		(-u|--update)
-			opts[-update]=true
-			shift;;
-		(-r|--remove)
-			opts[-remove]=true
-			shift;;
-		(-n|--no-mount)
-			opts[-mount]=false
-			shift;;
-		(--)
-			shift
-			break;;
-		(-h|--help|-?|*)
-			usage;;
+	case "${1}" in
+		(-x|--busybox) opts[-busybox]="${2:-$(type -p busybox 2>${NULL})}"; shift;;
+		(-b|--block-size) opts[-block-size]="${2}"; shift;;
+		(-f|--filesystem) opts[-filesystem]="${2}"; shift;;
+		(-q|--squash-root) opts[squash-root]="${2}"; shift;;
+		(-c|--compressor)  opts[-compressor]="${2}"; shift;;
+		(-X|--exclude) opts[-exclude]+=":${2}"; shift;;
+		(-o|--offset) opts[-offset]="${2}"; shift;;
+		(-u|--update)  opts[-update]= ;;
+		(-r|--remove)  opts[-remove]= ;;
+		(-n|--no-mount) opts[-mount]=0;;
+		(-m|--mount)    opts[-mount]=2;;
+		(-M|--unmount)  opts[-mount]=3;;
+		(--) shift; break;;
+		(-h|--help|-?|*) usage;;
 	esac
+	shift
 done
 
 # @DESCRIPTION: print info message to stdout
@@ -114,6 +97,7 @@ function die {
 :	${opts[-compressor]:=lzo -Xcompression-level 1}
 # @VARIABLE: rw/rr branch ration (percent)
 :	${opts[-offset]:=10}
+:	${opts[-mount]:=1}
 
 # @FUNCTION: Helper to mount squashed directory
 function squash-mount {
@@ -143,11 +127,10 @@ function squash-mount {
 		${umount} -l ${DIR}/rr >${NULL} 2>&1 ||
 			die "Failed to umount ${DIR}.squashfs"
 	fi
+	(( ${opts[-mount]} > 2 )) && return
 
 	[[ -e ${DIR}.squashfs ]] && [[ -e ${DIR}.tmp.squashfs ]] &&
-		${rm} ${DIR}.squashfs
-	${mv} ${DIR}.tmp.squashfs ${DIR}.squashfs ||
-		die "Failed to move ${dir}.tmp.squashfs"
+		${rm} ${DIR}.squashfs && ${mv} ${DIR}.tmp.squashfs ${DIR}.squashfs
 	case "${opts[-filesystem]}" in
 		(aufs)    ${rm} ${DIR}/rw && ${mkdir} ${DIR}/rw ||
 			die "Failed to clean up ${DIR}/rw";;
@@ -178,13 +161,14 @@ function squash-dir {
 			mkdir -p -m 0755 ${DIR}/{rr,up,wk};;
 	esac
 	(( ${?} == 0 )) || die "Failed to create required directories"
+	(( ${opts[-mount]} > 1 )) && { squash-mount; return; }
 
 	mksquashfs ${dir} ${DIR}.tmp.squashfs -b ${opts[-block-size]} -comp ${opts[-compressor]} \
 		${opts[-exclude]:+-wildcards -regex -e} ${opts[-exclude]} ||
 		die "Failed to build ${dir}.squashfs image"
 	echo ">>> ${0##*/}: ...sucessfully build squashed"
 
-	[[ "${opts[-mount]}" ]] || squash-mount
+	(( ${opts[-mount]} )) && squash-mount
 }
 
 for mod in ${opts[-filesystem]:-aufs overlay} squashfs; do
@@ -194,34 +178,44 @@ for mod in ${opts[-filesystem]:-aufs overlay} squashfs; do
 			(squashfs) die  "Failed to load ${mod} module";;
 		esac
 	case "${mod}" in
-		(aufs|overlay) opts[-filesystem]="${mod}";;
+		(aufs|overlay) opts[-filesystem]="${mod}"
+			case "${mod}" in
+				(aufs) RW=rw;;
+				(ove*) RW=up;;
+			esac;;
 	esac
 done
 
 for dir in ${*//:/ }; do
 	DIR="/${opts[squash-root]#/}/${dir#/}" dir="/${dir#/}"
 	if [[ -e ${DIR}.squashfs ]]; then
+		case "${opts[-mount]}" in
+			(3) echo -e "\e[1;34m>>>\e[0m Umounting ${dir}..."
+				squash-dir; continue;;
+			(2) echo -e "\e[1;35m>>>\e[0m Mounting ${dir}..."
+				squash-dir; continue;;
+		esac
 		if (( ${opts[-offset]} != 0 )); then
-			rr=$(du -sk ${DIR}/rr | awk '{print $1}')
-			rw=$(du -sk ${DIR}/rw | awk '{print $1}')
+			rr=$(du -sk ${DIR}/rr    | awk '{print $1}')
+			rw=$(du -sk ${DIR}/${RW} | awk '{print $1}')
 			if (( (${rw}*100/${rr}) < ${opts[-offset]} )); then
-				info "skiping ${dir}, or append -o|--offset option"
+				echo -e "\e[1;31m>>>\e[0m Skiping ${dir}... or use -o option"
 			else
-				echo ">>> ${0##*/}: updating squashed ${dir}..."
+				echo -e "\e[1;32m>>>\e[0m Updating squashed ${dir}..."
 				squash-dir
 			fi
 		else
-			echo ">>> ${0##*/}: updating squashed ${dir}..."
+			echo -e "\e[1;32m>>>\e[0m Updating squashed ${dir}..."
 			squash-dir
 		fi
 	else
-		echo ">>> ${0##*/}: building squashed ${dir}..."
+		echo -e "\e[1;32m>>>\e[0m Building squashed ${dir}..."
 		squash-dir
 	fi			
 done
 
-[[ -f "${busybox}" ]] && rm -f "${busybox}"
-unset DIR dir opt opts rr rw
+[[ -x "${busybox}" ]] && rm -f "${busybox}"
+unset DIR RW dir opt opts rr rw
 
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
