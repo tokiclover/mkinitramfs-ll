@@ -2,7 +2,7 @@
 # $Header: /lib/mkinitramfs-ll/functions                 Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.20.0 2015/05/20 12:33:03                   Exp $
+# $Version: 0.21.0 2015/05/28 12:33:03                   Exp $
 #
 
 # @FUNCTION: cut wrapper
@@ -484,46 +484,66 @@ mdopen() {
 	eval ${2:-MD}=$_dev
 }
 
-# @FUNCTION: (AUFS+SquashFS) Squashed-dir mounter
-# @ARG: <opt>
+# @FUNCTION: (AUFS|OverlayFS+SquashFS) Squashed-dir mounter
+# @ARG: <root-dir:filesystem:OPTIONS:DIR:...>
 squashd() {
-	local _squashdir="${1%%:*}" _squashd
-:	${_squashdir:=aufs}
-	[ "${_squashdir#/}" = "$_squashdir" ] || _squashdir="${_squashdir#/}"
-	eval set -- $(echo "${1#*:}" | sed -e 's/:/ /g')
+	local _fs _mod _msg _squashdir="${1%%:*}" _squashd
+:	${_squashdir:=squash}
 
+	eval set -- $(echo "${1#*:}" | sed -e 's/:/ /g')
 	for _arg; do
 		case "$1" in
 			(+[Ss]|+[Ss][Yy][Ss]|+[Ss][Yy][Ss][Tt][Ee][Mm])
-				_squashd="usr bin sbin $_squashd"
-				shift;;
+				_squashd="usr bin sbin $_squashd";;
 			(+[Ll]|+[Ll][Oo][Cc][Aa][Ll])
-				_squashd="var/cache/edb var/db var/lib/layman $_squashd"
-				shift;;
-			(*)
-				_squashd="$1 $_squashd"
-				shift;;
+				_squashd="var/cache/edb var/db var/lib/layman $_squashd";;
+			(aufs|overlay) _fs="$1" ;;
+			(*) _squashd="$1 $_squashd";;
 		esac
+		shift
 	done
 
-	debug -d test -d $NEWROOT/$_squashdir
+	mkdir -p -m 0755 "$NEWROOT/$_squashdir"
 	debug MODPROBE squashd
 	cd $NEWROOT
 
-	local _DIR _dir
+	begin "Setting up kernel modules"
+	for _mod in ${_fs:-aufs overlay} squashfs; do
+		grep -q $_mod /proc/filesystems || modprobe $_mod >$NULL 2>&1 ||
+			case "$_mod" in
+				(overlay|squashfs) { end 1 $_mod; return 1; };;
+			esac
+		case "$_mod" in
+			(aufs|overlay) _fs="$_mod";;
+		esac
+	done
+	end "$?"
+
+	local _DIR _dir _opt
 	for _dir in $_squashd; do
-		[ "${_dir#/}" = "$_dir" ] || _dir="${_dir#/}"
-		_DIR="$_squashdir/$_dir"
+		_DIR="${_squashdir#/}/${_dir#/}" _dir="${_dir#/}"
+		grep -q $_fs:$_dir /proc/mounts && continue
+		[ -f $_DIR.squashfs ] || continue
+	
+		case "$_fs" in
+			(aufs)
+				mkdir -p -m 0755 $_DIR/rw $_DIR/rr $_dir
+				_opt=nodev,udba=reval,br:$_DIR/rw:$_DIR/rr
+				_msg=AUFS;;
+			(overlay)
+				mkdir -p -m 0755 $_DIR/rw $_DIR/up $_dir $_DIR/wk
+				_opt=nodev,upperdir=$_DIR/up,lowerdir=$_DIR/rr,workdir=$_DIR/wk
+				_msg=OverlayFS;;
+		esac
 
-		debug -d test -f $_DIR.squashfs || continue
-		debug mkdir -p -m 0755 $_DIR/rw $_DIR/rr $_dir
-
-		grep -q aufs:$_dir /proc/mounts && continue
+		begin "Mounting $_fs:$_dir"
 		if ! grep -q $_DIR/rr /proc/mounts; then
-			debug -d mount -t squashfs -o nodev,loop,ro $_DIR.squashfs \
-				$_DIR/rr || continue
+			mount -t squashfs -o nodev,loop,ro \
+				$_DIR.squashfs $_DIR/rr >${NULL} 2>&1 ||
+				{ end 1 SquashFS; continue; }
 		fi
-		mount -t aufs -o nodev,udba=reval,br:$_DIR/rw:$_DIR/rr aufs:/$_dir $_dir
+		eval mount -t $_fs -o $_opt $_fs:/$_dir $_dir >$NULL 2>&1
+		end "$?" "$_msg"
 	done
 }
 
