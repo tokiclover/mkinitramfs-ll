@@ -1,8 +1,8 @@
-Header: mkinitramfs-ll/README.md,v 0.21.0 2015/05/24 Exp
+Header: mkinitramfs-ll/README.md,v 0.21.0 2015/05/28 Exp
 
 > A lightweight, modular and yet powerfull initramfs generating tool
 with RAID (ATA RAID & SOFTWARE RAID), dm-crypt LUKS, LVM(2), BTRFS, ZFS,
-TuxOnIce/SwSusp hibernation, AUFS+SquashFS, ZRAM and bCache support
+TuxOnIce/SwSusp hibernation, AUFS|OverlayFS+SquashFS, ZRAM and bCache support
 
 INTRODUCTION
 -----------
@@ -86,7 +86,7 @@ and list) are available.
 
 ### /svc
 
-## AUFS+SquashFS
+## AUFS|OverlayFS+SquashFS
 
 An init service script along with a build script for squashed directory are
 available. Managing system wide directories is problematic, so put `usr'
