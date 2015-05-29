@@ -284,15 +284,14 @@ fi
 # Set up the initramfs
 if [[ -d "${opts[-usrdir]}" ]]; then
 	cp -ar "${opts[-usrdir]}" . &&
-	mv -f {usr/,}root &&
-	mv -f {usr/,}etc &&
+	mv -f usr/{root,etc} . &&
 	mv -f usr/lib lib${opts[-arc]} || die
 else 
 	die "${opts[-usrdir]} dir not found"
 fi
-mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
-mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} || die
-mkdir -p run lib${opts[-arc]}/{modules/${opts[-k]},${PKG[name]}} || die
+mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} \
+	{,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} \
+	run lib${opts[-arc]}/{modules/${opts[-k]},${PKG[name]}} || die
 for dir in {,usr/}lib; do
 	ln -s lib${opts[-arc]} ${dir}
 done
@@ -325,14 +324,12 @@ if [[ "${opts[-F]}" || "${opts[-firmware]}" ]]; then
 		cp -a {/,}lib/firmware
 	fi
 	mkdir -p lib/firmware
-	for f in ${opts[-F]//:/ } ${opts[-firmware]//:/ }; do
-		[[ -e ${f} ]] && cp -a ${f} lib/firmware ||
-			firmware+=(/lib/firmware/*${f}*)
+	for fw in ${opts[-F]//:/ } ${opts[-firmware]//:/ }; do
+		[[ -e ${fw} ]] && cp -a ${fw} lib/firmware ||
+		for fw in /lib/firmware/*${fw}*; do
+			docp ${fw}
+		done
 	done
-	for f in ${firmware[@]}; do
-		docp ${f}
-	done
-	unset f firmware
 fi
 
 # Set up RAID option

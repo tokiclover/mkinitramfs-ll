@@ -268,16 +268,15 @@ if (( ${+opts[-r]} )) || (( ${+opts[-rebuild]} )) {
 # Set up the initramfs
 if [[ -d ${opts[-usrdir]} ]] {
 	cp -ar ${opts[-usrdir]} . &&
-	mv -f {usr/,}root &&
-	mv -f {usr/,}etc &&
+	mv -f usr/{etc,root} . &&
 	mv -f usr/lib lib${opts[-arc]} || die
 } else {
 	die "${opts[-usrdir]} dir not found"
 }
 
-mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} || die
-mkdir -p {,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} || die
-mkdir -p run lib${opts[-arc]}/{modules/${opts[-k]},${PKG[name]}} || die
+mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} \
+	{,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} \
+	run lib${opts[-arc]}/{modules/${opts[-k]},${PKG[name]}} || die
 for dir ({,usr/}lib) ln -s lib${opts[-arc]} ${dir}
 
 {
@@ -326,12 +325,9 @@ if (( ${+opts[-F]} || ${+opts[-firmware]} )) {
 		cp -a {/,}lib/firmware
 	fi
 	mkdir -p lib/firmware
-	for f (${(pws,:,)opts[-F]} ${(pws,:,)opts[-firmware]}) {
-		[[ -e ${f} ]] && cp ${f} lib/firmware ||
-			firmware+=(/lib/firmware/*${f}*(N))
-	}
-	for f (${firmware}) docp ${f}
-	unset f firmware
+	for fw (${(pws,:,)opts[-F]} ${(pws,:,)opts[-firmware]})
+		[[ -e ${fw} ]] && cp ${fw} lib/firmware ||
+		for fw (/lib/firmware/*${fw}*(.N)) docp ${fw}
 }
 
 # Handle & copy BusyBox binary
