@@ -5,7 +5,7 @@
 .\" stated in the COPYING file that comes with the source files
 .\"
 .pc
-.TH MKINITRAMFS-LL 8 "2015-05-24" "0.21.0" "Build Script Page"
+.TH MKINITRAMFS-LL 8 "2015-05-28" "0.21.0" "Build Script Page"
 .SH NAME
 mkinitramfs-ll \- tool for building initramfs
 .SH DESCRIPTION
@@ -194,7 +194,7 @@ append `-H|--hook' with a colon separated list of hooks (`-H$HOOKS'.)
 Build an initramfs with
 .B GnuPG, LUKS, LVM2,
 .B BTRFS, ZFS,
-.B zram, AUFS+SquashFS support for
+.B zram, AUFS|OverlayFS+SquashFS support for
 linux kernel 3.14.26-git; nVidia and iwlWIFI-5000 firmwares are included as well.
 .SH ENVIRONMENTS
 .TP
