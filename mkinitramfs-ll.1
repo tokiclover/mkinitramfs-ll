@@ -5,7 +5,7 @@
 .\" stated in the COPYING file that comes with the source files
 .\"
 .pc
-.TH MKINITRAMFS-LL 1 "2015-01-20" "0.18.0" "Init Script Page"
+.TH MKINITRAMFS-LL 1 "2015-05-28" "0.21.0" "Init Script Page"
 .SH NAME
 init \- an initramfs init script
 .SH DESCRIPTION
@@ -47,7 +47,7 @@ Similarly, `swap' and `resume' are available as well. Of course, resuming for
 the regular swap device is supported by setting `resume=swap'.
 
 Each \fIfeature\fR,--
-.B SQUASHD (AUFS+SquashFS),
+.B SQUASHD (AUFS|OverlayFS+SquashFS),
 .B BTRFS,
 .B LUKS,
 .B LVM,
@@ -242,7 +242,7 @@ e.g. `module=uvesafb:hid-multitouch'
 .TP
 .RB squashd=[\fIdir\fR]:[\fIoption\fR]:[\fIdir\fR]
 .br
-Set up squash-dir (AUFS+SquashFS) argument. See
+Set up squash-dir (AUFS|OverlayFS+SquashFS) argument. See
 .B SQUASHED DIRECTORY
 for more info.
 .TP
@@ -370,25 +370,25 @@ device set described in the
 .B OVERVIEW
 sub-section (`[/dev/]sd[\fIX\fR-\fIY\fR]\fIn\fR').)
 .TP
-.SS SQUASHED DIRECTORY (AUFS+SQUAHFS)
+.SS SQUASHED DIRECTORY (AUFS|OVERLAYFS+SQUAHFS)
 Squashed directory require
-.B AUFS+SquahsFS
+.B AUFS|OverlayFS+SquahsFS
 kernel module and
 .RB squashd
 kernel command line argument.
 .br
 The first optional
 .IR direcory
-is the root directory where to mount AUFS tree (default is `/aufs'.)
-The second
-.IR option
-is case insensitive
-.RB [+S[system]][:+L[ocal]]
+is the root directory where to mount the merged directories hierarchy (default is `/squash'.)
+A case insensitive
+.RB [:+S[system]][:+L[ocal]]
 to use system default (`usr:bin:sbin') and local default
 (`var/cache/edb:var/db:var/lib/layman') directory sets.
-Third optional
-.IR direcory
-can be used to append extra squashed directories e.g `squashd=:+l:var/portage'.
+An optional
+.IR :(aufs|overlay)
+option selects a union filesystem implementation to use.
+Eextra squashed directories (colon separated list) can be appended
+e.g `squashd=:aufs:+l:usr/src:opt'.
 .br
 .TP
 .SS BTRFS
