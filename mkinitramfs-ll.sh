@@ -244,7 +244,7 @@ fi
 
 case "${compressor}" in
 	(none) ;;
-	(*)
+	([a-z]*)
 	if [ -e /usr/src/linux-${kv}/.config ]; then
 		config=/usr/src/linux-${kv}/.config
 		xgrep=$(type -p grep 2>${null})
@@ -451,16 +451,16 @@ unset FONTS font KEYMAPS keymap
 # Handle & copy splash themes
 if [ -n "${splash}" ]; then
 	bins="${bins} splash_util.static fbcondecor_helper"
-	
+
 	if [ -n "${opt_toi}" ]; then
 		bins="${bins} tuxoniceui_text" && module_group="${module_group} tuxonice"
 	fi
-	for theme in ${splash}; do 
-		if [ -d etc/splash/${theme} ]; then :; 
+	for theme in ${splash}; do
+		if [ -d etc/splash/${theme} ]; then :;
 		elif [ -d /etc/splash/${theme} ]; then
 			cp -r /etc/splash/${theme} etc/splash/
 		elif [ -d ${theme} ]; then
-			cp -ar ${theme} etc/splash/ 
+			cp -ar ${theme} etc/splash/
 		else
 			warn "Failed to copy ${theme} theme"
 		fi
