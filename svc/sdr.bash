@@ -44,8 +44,8 @@ exit $?
 declare -A opts
 declare -a opt
 opt=(
-	"-o" "?b:c:f:o:Mmnhruq:X:x::"
-	"-l" "block-size:,busybox::,compressor:,exclude:,filesystem:,offset,help"
+	"-o" "?b:c:f:o:Mmnhruq:X:x:"
+	"-l" "block-size:,busybox:,compressor:,exclude:,filesystem:,offset,help"
 	"-l" "mount,no-mount,squash-root:,remove,update,unmount"
 	"-n" "${PKG[name]}.${PKG[shell]}"
 	"-s" "${PKG[shell]}"
@@ -55,15 +55,15 @@ eval set -- "${opt[@]}"
 
 while true; do
 	case "${1}" in
-		(-x|--busybox) opts[-busybox]="${2:-$(type -p busybox 2>${NULL})}"; shift;;
+		(-x|--busybox) opts[-busybox]="${2}"; shift;;
 		(-b|--block-size) opts[-block-size]="${2}"; shift;;
 		(-f|--filesystem) opts[-filesystem]="${2}"; shift;;
 		(-q|--squash-root) opts[squash-root]="${2}"; shift;;
 		(-c|--compressor)  opts[-compressor]="${2}"; shift;;
 		(-X|--exclude) opts[-exclude]+=":${2}"; shift;;
 		(-o|--offset) opts[-offset]="${2}"; shift;;
-		(-u|--update)  opts[-update]=1;;
-		(-r|--remove)  opts[-remove]=1;;
+		(-u|--update)  opts[-keep-dir]=1;;
+		(-r|--remove)  opts[-keep-dir]=0;;
 		(-n|--no-mount) opts[-mount]=0;;
 		(-m|--mount)    opts[-mount]=2;;
 		(-M|--unmount)  opts[-mount]=3;;
@@ -83,9 +83,7 @@ function error {
 }
 # @FUNCPTION: Fatal error heler
 function die {
-	local ret=$?
-	error "$@"
-	exit $ret
+	local ret=${?}; error "${@}"; exit ${ret}
 }
 
 # @VARIABLE: Root directory (mount hierarchy)
@@ -139,13 +137,16 @@ function squash-mount {
 	esac
 	${mount} -t squashfs -o nodev,loop,ro ${DIR}.squashfs ${DIR}/rr >${NULL} 2>&1 ||
 		die "Failed to mount ${DIR}.squashfs"
-	if [[ "${opts[-remove]}" ]]; then
-		${rm} ${dir} && ${mkdir} ${dir} || die "Failed to clean up ${dir}"
+
+	if [[ "${opts[-keep-dir]}" ]]; then
+		${rm} ${dir} && ${mkdir} ${dir} ||
+			die "Failed to remove ${dir}"
 	fi
-	if [[ "${opts[-update]}" ]]; then
-		${rm} ${dir} && ${mkdir} ${dir} && ${cp} ${DIR}/rr ${dir} >${NULL} 2>&1 ||
-			die "Failed to update ${dir}"
-	fi
+	case "${opts[-keep-dir]}" in
+		(1) ${cp} ${DIR}/rr ${dir} ||
+			die "Failed to update ${dir}";;
+	esac
+
 	${mount} -t ${opts[-filesystem]} -o ${opt} \
 		${opts[-filesystem]}:${dir} ${dir} >${NULL} 2>&1 ||
 		die "Failed to mount ${opts[-filesystem]}:${dir}"
@@ -166,7 +167,7 @@ function squash-dir {
 	mksquashfs ${dir} ${DIR}.tmp.squashfs -b ${opts[-block-size]} -comp ${opts[-compressor]} \
 		${opts[-exclude]:+-wildcards -regex -e} ${opts[-exclude]} ||
 		die "Failed to build ${dir}.squashfs image"
-	echo ">>> ${0##*/}: ...sucessfully build squashed"
+	echo -e "\e[1;36m>>>\e[0m Sucessfully build ${DIR}.tmp.squashfs"
 
 	(( ${opts[-mount]} )) && squash-mount
 }
@@ -174,7 +175,7 @@ function squash-dir {
 for mod in ${opts[-filesystem]:-aufs overlay} squashfs; do
 	grep -q ${mod} /proc/filesystems || modprobe ${mod} >${NULL} 2>&1 ||
 		case ${mod} in
-			(aufsi|overlay) error "Failed to load ${mod} module"; opts[-mount]=false;;
+			(aufsi|overlay) error "Failed to load ${mod} module"; opts[-mount]=0;;
 			(squashfs) die  "Failed to load ${mod} module";;
 		esac
 	case "${mod}" in
@@ -215,6 +216,7 @@ for dir in ${*//:/ }; do
 done
 
 [[ -x "${busybox}" ]] && rm -f "${busybox}"
+
 unset DIR RW dir opt opts rr rw
 
 #
