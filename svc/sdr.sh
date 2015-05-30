@@ -35,9 +35,11 @@ ${1:+exit $1}
 
 [ ${#} = 0 ] && usage 1
 
+busybox= block_size= compressor= exclude= filesystem= keep_dir= mount_dir=
+squash_root= offset=
 opt="$(getopt \
-	-o \?b:c:f:o:Mmnhruq:X:x:: \
-	-l block-size:,busybox::,compressor:,exclude:,filesystem:,offset,help \
+	-o \?b:c:f:o:Mmnhruq:X:x: \
+	-l block-size:,busybox:,compressor:,exclude:,filesystem:,offset,help \
 	-l mount,no-mount,squash-root:,remove,update,unmount \
 	-n "${name}" -s sh -- "${@}" || usage)"
 [ ${?} = 0 ] || exit 2
@@ -45,7 +47,7 @@ eval set -- ${opt}
 
 while true; do
 	case "${1}" in
-		(-x|--busybox) shift; busybox="${1:-$(type -p busybox 2>${NULL})}";;
+		(-x|--busybox) shift; busybox="${1}";;
 		(-X|--exclude) shift; exclude="${exlude} ${1}";;
 		(-f|--filesystem) shift; filesystem="${1}";;
 		(-b|--block-*) shift; block_size="${1}";;
@@ -55,8 +57,8 @@ while true; do
 		(-n|--no-mount) mount_dir=0;;
 		(-m|--mount)   mount_dir=2;;
 		(-M|--unmount) mount_dir=3;;
-		(-u|--update) update=true;;
-		(-r|--remove) remove=true;;
+		(-u|--update) keep_dir=1;;
+		(-r|--remove) keep_dir=0;;
 		(--) shift; break;;
 		(-h|--help|-?|*) usage 0;;
 	esac
@@ -87,10 +89,10 @@ squash_mount() {
 	case "${dir}" in
 		(/bin|/sbin|/lib32|/lib64)
 		ldd ${busybox} >${NULL} 2>&1 && die "No static busybox binary found"
-		cp ${busybox} /tmp && busybox=/tmp/busybox || die
-		cp="${busybox} cp -a" mv="${busybox} mv" rm="${busybox} rm -fr"
-		mount="${busybox} mount" umount="${busybox} umount"
-		grep="${busybox} grep" mkdir="${busybox} mkdir -p -m 0755"
+		cp ${busybox} /tmp && bb=/tmp/busybox || die
+		cp="${bb} cp -a" mv="${bb} mv" rm="${bb} rm -fr"
+		mount="${bb} mount" umount="${bb} umount"
+		grep="${bb} grep" mkdir="${bb} mkdir -p -m 0755"
 		;;
 		(*)
 		cp="cp -a" grep=grep mv=mv rm="rm -fr"
@@ -121,13 +123,16 @@ squash_mount() {
 	esac
 	${mount} -t squashfs -o nodev,loop,ro ${DIR}.squashfs ${DIR}/rr >${NULL} 2>&1 ||
 		die "Failed to mount ${DIR}.squashfs"
-	if [ -n "${remove}" ]; then
-		${rm} ${dir} && ${mkdir} ${dir} || die "Failed to clean up ${dir}"
+
+	if [ -n "${keep_dir}" ]; then
+		${rm} ${dir} && ${mkdir} ${dir} ||
+			die "Failed to remove ${dir}"
 	fi
-	if [ -n "${update}" ]; then
-		${rm} ${dir} && ${mkdir} ${dir} && ${cp} ${DIR}/rr ${dir} ||
-			die "Failed to update ${dir}"
-	fi
+	case "${keep_dir}" in
+		(1) ${cp} ${DIR}/rr ${dir} ||
+			die "Failed to update ${dir}";;
+	esac
+
 	${mount} -t ${filesystem} -o ${opt} \
 		${filesystem}:${dir} ${dir} >${NULL} 2>&1 ||
 		die "Failed to mount ${filesystem}:${dir}"
@@ -146,9 +151,9 @@ squash_dir() {
 	[ "${mount_dir}" -gt 1 ] && { squash_mount; return; }
 
 	mksquashfs ${dir} ${DIR}.tmp.squashfs -b ${block_size} -comp ${compressor} \
-		${exclude+=-wildcards -regex -e} ${exclude} ||
+		${exclude:+-wildcards -regex -e} ${exclude} ||
 		die "Failed to build ${dir}.squashfs image"
-	echo ">>> ${0##*/}: ...sucessfully build squashed"
+	echo -e "\e[1;36m>>>\e[0m Sucessfully build ${DIR}.tmp.squashfs"
 
 	[ "${mount_dir}" = 1 ] && squash_mount
 }
@@ -156,7 +161,7 @@ squash_dir() {
 for mod in ${filesystem:-aufs overlay} squashfs; do
 	grep -q ${mod} /proc/filesystems || modprobe ${mod} >${NULL} 2>&1 ||
 		case ${mod} in
-			(aufs|overlay) error "Failed to load ${mod} module"; mount_dir=false;;
+			(aufs|overlay) error "Failed to load ${mod} module"; mount_dir=0;;
 			(squashfs) die  "Failed to load ${mod} module";;
 		esac
 	case "${mod}" in
@@ -197,7 +202,8 @@ for dir in ${*}; do
 	end "${?}"
 done
 
-[ -x "${busybox}" ] && rm -f "${busybox}"
+[ -x "${bb}" ] && rm -f "${bb}"
+
 unset DIR RW dir exclude filesystem rr rw opt mount_dir squash_root
 
 #
