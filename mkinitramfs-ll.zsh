@@ -200,7 +200,9 @@ if [[ -f "${PKG[name]}".conf ]] {
 typeset -a compressor
 compressor=(bzip2 gzip lzip lzop lz4 xz)
 
-if (( ${+opts[-compressor]} )) && [[ ${opts[-compressor]} != "none" ]] {
+case ${opts[-compressor]} )) {
+	(none) ;;
+	([a-z]*)
 	if [[ -e /usr/src/linux-${opts[-k]}/.config ]] {
 		config=/usr/src/linux-${opts[-k]}/.config
 		xgrep=${commands[grep]}
@@ -208,6 +210,7 @@ if (( ${+opts[-compressor]} )) && [[ ${opts[-compressor]} != "none" ]] {
 		config=/proc/config.gz
 		xgrep=${commands[zgrep]}
 	} else { warn "no kernel config file found" }
+	;;
 }
 if (( ${+config} )) {
 	CONFIG=CONFIG_RD_${${opts[-compressor][(w)1]}:u}
@@ -440,7 +443,7 @@ unset FONT font KEYMAP keymap
 # Handle & copy splash themes
 if (( ${+$opts[-s]} )) || (( ${+opts[-splash]} )) {
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
-	
+
 	if (( ${+opts[-toi]} || ${+opts[-t]} )) {
 		opts[-bin]+=:tuxoniceui_text
 	}
