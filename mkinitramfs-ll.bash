@@ -180,29 +180,18 @@ done
 	die "no ${PKG[name]}.conf found"
 
 # @VARIABLE: Kernel version
-if [[ -z "${opts[-k]}" ]]; then
-	[[ "${opts[-kernel-version]}" ]] && opts[-k]="${opts[-kernel-version]}" || opts[-k]="$(uname -r)"
-fi
+:	${opts[-k]:=${opts[-kernel-version]:-${opts[-k]=$(uname -r)}}}
 # @VARIABLE: Initramfs prefx
-if [[ -z "${opts[-prefix]}" ]]; then
-	[[ "${opts[-p]}" ]] && opts[-prefix]="${opts[-p]}" ||
-		opts[-prefix]=initramfs-
-fi
+:	${opts[-prefix]:=${opts[-p]:-initramfs-}}
 # @VARIABLE: USRDIR path to use
-if [[ -z "${opts[-usrdir]}" ]]; then
-	[[ "${opts[-u]}" ]] && opts[-usrdir]="${opts[-u]}" ||
-		opts[-usrdir]="${PWD}"/usr
-fi
+:	${opts[-usrdir]:=${opts[-d]:-"${PWD}"/usr}}
 # @VARIABLE: Full path to initramfs image
-opts[-initramfs]=${opts[-prefix]}${opts[-k]}
-if [[ -z "${opts[-compressor]}" ]]; then
-	[[ "${opts[-c]}" ]] && opts[-compressor]="${opts[-c]}" ||
-		opts[-compressor]="xz -9 --check=crc32"
-fi
+opts[-initramfs]="${opts[-prefix]}${opts[-k]}"
+:	${opts[-compressor]:=${opts[-c]:-xz -9 --check=crc32}}
 # @VARIABLE: Kernel architecture
-[[ "${opts[-arch]}" ]] || opts[-arch]=$(uname -m)
+opts[-arch]="$(uname -m)"
 # @VARIABLE: Kernel bit lenght
-[[ "${opts[-arc]}" ]] || opts[-arc]=$(getconf LONG_BIT)
+opts[-arc]="$(getconf LONG_BIT)"
 # @VARIABLE: (initramfs) Tmporary directory
 opts[-tmpdir]="$(mktmp ${opts[-initramfs]})"
 # @DESCRIPTION: (initramfs) Configuration directory
@@ -212,7 +201,9 @@ opts[-confdir]="etc/${PKG[name]}"
 declare -a compressor
 compressor=(bzip2 gzip lzip lzop lz4 xz)
 
-if [[ "${opts[-compressor]}" && "${opts[-compressor]}" != "none" ]]; then
+case "${opts[-compressor]}" in
+	(none) ;;
+	([a-z]*)
 	if [[ -e /usr/src/linux-${opts[-k]}/.config ]]; then
 		config=/usr/src/linux-${opts[-k]}/.config
 		xgrep=$(type -p grep)
@@ -222,7 +213,8 @@ if [[ "${opts[-compressor]}" && "${opts[-compressor]}" != "none" ]]; then
 	else
 		warn "no kernel config file found"
 	fi
-fi
+	;;
+esac
 if [[ "${config}" ]]; then
 	COMP="${opts[-compressor]%% *}"
 	CONFIG=CONFIG_RD_${COMP^^[a-z]}
@@ -472,16 +464,16 @@ unset FONT font KEYMAP keymap
 # Handle & copy splash themes
 if [[ "${opts[-s]}" || "${opts[-splash]}" ]]; then
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
-	
+
 	if [[ "${opts[-t]}" ]] || [[ "${opts[-toi]}" ]]; then
 		opts[-bin]+=:tuxoniceui_text && opts[-kmodule]+=:tuxonice
 	fi
-	for theme in ${opts[-splash]//:/ }; do 
-		if [[ -d etc/splash/${theme} ]]; then :; 
+	for theme in ${opts[-splash]//:/ }; do
+		if [[ -d etc/splash/${theme} ]]; then :;
 		elif [[ -d /etc/splash/${theme} ]]; then
 			cp -r {/,}etc/splash/${theme}
 		elif [[ -d ${theme} ]]; then
-			cp -ar ${theme} etc/splash/ 
+			cp -ar ${theme} etc/splash/
 		else
 			warn "failed to copy ${theme} theme"
 		fi
