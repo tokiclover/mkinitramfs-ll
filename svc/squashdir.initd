@@ -35,7 +35,7 @@ start_pre()
 				(overlay|squashfs) { end 1 ${mod}; return 1; };;
 			esac
 		case "${mod}" in
-			(aufs|overlay) squash_filesystem="${mod}";;
+			(aufs|overlay) squash_filesystem="${mod}"; break;;
 		esac
 	done
 	eend ${?}
@@ -99,7 +99,7 @@ squash_mount()
 
 	ebegin "Mounting ${squash_filesystem}:${dir}"
 	if ! grep -q ${DIR}/rr /proc/mounts; then
-		mount -t squashfs -o loop,nodev,ro ${DIR}.squashfs ${DIR}/rr \
+		mount -t squashfs -o nodev,ro ${DIR}.squashfs ${DIR}/rr \
 			>${NULL} 2>&1 || { eend 1 SquashFS; return 1; }
 	fi
 	mount -t ${squash_filesystem} -o ${opt} \
