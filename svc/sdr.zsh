@@ -133,7 +133,7 @@ function squash-mount {
 		(overlay) ${=rm} ${DIR}/{up,wk} && ${=mkdir} ${DIR}/{up,wk} ||
 			die "Failed to clean up ${DIR}/{up,wk}";;
 	}
-	${=mount} -t squashfs -o nodev,loop,ro ${DIR}.squashfs ${DIR}/rr >${NULL} 2>&1 ||
+	${=mount} -t squashfs -o nodev,ro ${DIR}.squashfs ${DIR}/rr >${NULL} 2>&1 ||
 	   die "Failed to mount ${DIR}.squashfs"
 
 	if (( ${+opts[-keep-dir]} )) {
@@ -170,7 +170,7 @@ function squash-dir {
 	(( ${opts[-mount]} )) && squash-mount
 }
 
-for mod (${opts[-filesystem]:-aufs overlay} squashfs) {
+for mod (${=opts[-filesystem]:-aufs overlay} squashfs) {
 	grep -q ${mod} /proc/filesystems || modprobe ${mod} >${NULL} 2>&1 ||
 		case ${mod} {
 			(aufs|overlay) error "Failed to load ${mod} module"; opts[-mount]=0;;
@@ -181,7 +181,8 @@ for mod (${opts[-filesystem]:-aufs overlay} squashfs) {
 			case ${mod} {
 				(aufs) RW=rw;;
 				(ove*) RW=up;;
-			};;
+			}
+			break;;
 	}
 }
 
