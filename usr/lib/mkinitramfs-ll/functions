@@ -514,7 +514,7 @@ squashd() {
 				(overlay|squashfs) { end 1 $_mod; return 1; };;
 			esac
 		case "$_mod" in
-			(aufs|overlay) _fs="$_mod";;
+			(aufs|overlay) _fs="$_mod"; break;;
 		esac
 	done
 	end "$?"
@@ -538,7 +538,7 @@ squashd() {
 
 		begin "Mounting $_fs:$_dir"
 		if ! grep -q $_DIR/rr /proc/mounts; then
-			mount -t squashfs -o nodev,loop,ro \
+			mount -t squashfs -o nodev,ro \
 				$_DIR.squashfs $_DIR/rr >${NULL} 2>&1 ||
 				{ end 1 SquashFS; continue; }
 		fi
