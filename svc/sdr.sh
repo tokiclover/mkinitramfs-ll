@@ -121,7 +121,7 @@ squash_mount() {
 		(overlay) ${rm} ${DIR}/up ${DIR}/wk && ${mkdir} ${DIR}/up ${DIR}/wk ||
 			die "Failed to clean up ${DIR}/{up,wk}";;
 	esac
-	${mount} -t squashfs -o nodev,loop,ro ${DIR}.squashfs ${DIR}/rr >${NULL} 2>&1 ||
+	${mount} -t squashfs -o nodev,ro ${DIR}.squashfs ${DIR}/rr >${NULL} 2>&1 ||
 		die "Failed to mount ${DIR}.squashfs"
 
 	if [ -n "${keep_dir}" ]; then
@@ -169,7 +169,8 @@ for mod in ${filesystem:-aufs overlay} squashfs; do
 			case "${mod}" in
 				(aufs) RW=rw;;
 				(ove*) RW=up;;
-			esac;;
+			esac
+			break;;
 	esac
 done
 
