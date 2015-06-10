@@ -18,7 +18,7 @@ usage() {
   ${pkg}.${shell} version ${version}
   usage: ${pkg} [-a|-all] [OPTIONS]
 
-  -a, --all                   Short variant of -l -L -g -H'btrfs zfs zram' -t -q
+  -a, --all                   Short variant of "-lLgtq -H'btrfs zfs zram'"
   -f, --font=ter-v14n         Fonts to include in the initramfs
   -F, --firmware=name         Firmware file/directory to include
   -k, --kernel-version=KV     Build an initramfs for kernel version VERSION
@@ -38,7 +38,7 @@ usage() {
       --module-boot=mod       Append kernel modules to boot     group
   -s, --splash=<theme>        Include splash themes  if available
   -t, --toi                   Enable TuxOnIce support (require tuxoniceui-userui)
-  -q, --squashd               Enable AUFS+SquashFS support (require aufs-util)
+  -q, --squashd               Enable UnionFS+SquashFS support (AUFS/OverlayFS)
   -r, --rebuild               Re-Build an initramfs from an old directory
   -y, --keymap=fr-latin1      Keymaps to include the initramfs
   -K, --keep-tmpdir           Keep the temporary build directory

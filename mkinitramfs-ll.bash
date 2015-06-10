@@ -19,7 +19,7 @@ function usage {
   ${PKG[name]}.${PKG[shell]} version ${PKG[version]}
   usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [options]
 
-  -a, --all                   Short variant of '-l -L -g -H:btrfs:zfs:zram -t -q'
+  -a, --all                   Short variant of '-lLgtq -H:btrfs:zfs:zram'
   -f, --font=REGEX            Fonts to include in the initramfs
   -F, --firmware=REGEX        Firmware file/directory to include
   -k, --kernel-version=KV     Build an initramfs for kernel version VERSION
@@ -39,7 +39,7 @@ function usage {
       --module-boot=REGEX     Append kernel modules to boot     group
   -s, --splash=THEMES         Include splash themes  if available
   -t, --toi                   Enable TuxOnIce support (require tuxoniceui-userui)
-  -q, --squashd               Enable AUFS+SquashFS support (require aufs-util)
+  -q, --squashd               Enable UnionFS+SquashFS support (AUFS/OverlayFS)
   -r, --rebuild               Re-Build an initramfs from an old directory
   -y, --keymap=:fr-latin1     Keymaps to include the initramfs
   -K, --keep-tmpdir           Keep the temporary build directory
