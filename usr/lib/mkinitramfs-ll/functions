@@ -391,8 +391,7 @@ dmopen() {
 		fi
 		;;
 	esac
-	_header="${header:+--header} $_header"
-	_arg="open $_dev $_map $_header"
+	_arg="open $_dev $_map ${_header:+--header} $_header"
 
 	case "$KEYMODE" in
 		(gpg)
