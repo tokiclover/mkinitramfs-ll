@@ -178,9 +178,13 @@ esac
 ${ENV:-true} && [ -f $CONFDIR/env ] &&
 while read _line; do
 	case "${_line%%=*}" in
-		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RUNLEVEL|PATH|RSH|SPLASHD|sh) ;;
-		(NULL|name) ;;
-		([a-zA-Z]*) [ "${env/:${_line%%=*}:}" = "$env" ] && export "$_line" ;;
+		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RUNLEVEL|PATH|RSH) ;;
+		(NULL|SPLASHD|sh|name) ;;
+		([a-zA-Z]*)
+		case "$env" in
+			(*${_line%%=*}*)  ;;
+			(*) export "$_line";;
+		esac;;
 	esac
 done < $CONFDIR/env
 $ENV_CHK && debug app_chk
@@ -254,7 +258,7 @@ for hook in $HOOKS; do
 	if [ -e "$LIBDIR/$hook" ]; then
 		debug dohook "$LIBDIR/$hook"
 	else
-		name=hook error "$hook not found"
+		error "$hook not found"
 	fi
 done
 
