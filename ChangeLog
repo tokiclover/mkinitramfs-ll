@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2015/05/28
 
+0.21.1:
+
+IMPORTANT FIX: Tiny dm-crypt LUKS detached header fix.
+
 0.21.0:
 
 Added POSIX scripts {mkinitramfs-ll,sdr,busybox,gnupg}.sh; and
