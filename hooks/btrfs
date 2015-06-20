@@ -25,7 +25,7 @@ dobtrfs() {
 	[ -n "$_DEV"  ] || return
 	debug -d get_key "$_KEY"
 
-	if ! btrfs filesystem show ${_vol#*=} >$NULL 2>&1; then
+	if ! btrfs filesystem show "${_vol#*=}" >$NULL 2>&1; then
 		if yesno "$_DEV"; then
 			error "No $_vol filesystem found"
 			[ -n "$_CHK" ] || return
@@ -36,11 +36,7 @@ dobtrfs() {
 			DEV="$_DEV $DEV"
 		done
 	fi
-	[ "$KEYMODE" = "none" ] &&
-	for _dev in $(echo "$_DEV" | sed 's/:/ /g'); do
-		blk "$_dev" "_DEV"
-		DEV="$_DEV $DEV"
-	done
+	[ "$KEYMODE" = "none" ] && blk "$_vol" "DEV"
 	debug -d btrfs device scan $DEV
 
 	if [ -n "$_CHK" ]; then
