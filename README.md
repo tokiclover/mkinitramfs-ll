@@ -40,6 +40,14 @@ so one can put many sane default values there.
 
 One can get more info on the scripts by running `$SCRIPT -?|-h|--help`
 
+**EFI STUB Kernel NOTE**
+
+If using a kernel stub with EFI boot loader, build an uncompressed
+initramfs, by passing `--compressor=none` command line to mkinitramfs-ll.$SHELL,
+and leave the compression to the kernel. Second, set up `env` variable in the
+configuration file with the appropriate kernel command line. This will ensure a
+more reliable and consistent kernel command line across various boot loaders.
+
 DOCUMENTATION
 -------------
 
