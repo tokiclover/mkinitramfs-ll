@@ -29,7 +29,7 @@
 :   ${NULL=/dev/null}
 
 export CONFDIR LIBDIR LOGFILE MNTDIR NEWROOT SPLASHD init sh
-export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin
+export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin ENV_CHK NULL
 export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
 
 # @FUNCTION: Handle fatal error
