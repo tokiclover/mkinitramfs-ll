@@ -71,7 +71,7 @@ install: install-dir install-dist
 install-dist: $(DISTFILES) install-doc install-hooks
 install-dir : $(keep_DIRS)
 	$(MKDIR_P) $(base_DIRS:%=$(DESTDIR)%)
-install-doc : $(dist_EXTRA)
+install-doc : install-extra
 	for man in man1/$(PACKAGE).1 man8/$(PACKAGE).8; do \
 		sed -e 's|@SYSCONFDIR@|$(SYSCONFDIR)|g' -e 's|@DATADIR@|$(DATADIR)|g' \
 			$${man#*/} >$(DESTDIR)$(MANDIR)/$${man}; \
