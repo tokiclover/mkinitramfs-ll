@@ -1,5 +1,10 @@
 Header: mkinitramfs-ll/ChangeLog, 2015/05/28
 
+0.21.2:
+
+Fixed USRDIR set up in a standard installation (Makefile);
+and plain (uncrypted) btrfs support.
+
 0.21.1:
 
 IMPORTANT FIX: Tiny dm-crypt LUKS detached header fix.
