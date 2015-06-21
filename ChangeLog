@@ -1,5 +1,10 @@
 Header: mkinitramfs-ll/ChangeLog, 2015/05/28
 
+0.21.3:
+
+Export NULL and ENV_CHK environment variables (tiny fix);
+and install documentation properly.
+
 0.21.2:
 
 Fixed USRDIR set up in a standard installation (Makefile);
