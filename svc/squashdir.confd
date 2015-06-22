@@ -12,7 +12,7 @@ squash_rootdir=/squash
 #squash_sysdir="/usr /opt"
 
 # Local squash-ed directory-ies
-squash_localdir="/var/db /var/cache/edb /var/lib/layman"
+squash_localdir="/var/db /var/cache/edb"
 
 # Squashed directory-ies to rebuild before shutting down the service
 # WARN: This list should be in either squash_sysdir|localdir group
