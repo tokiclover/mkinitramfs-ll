@@ -200,7 +200,7 @@ if [[ -f "${PKG[name]}".conf ]] {
 typeset -a compressor
 compressor=(bzip2 gzip lzip lzop lz4 xz)
 
-case ${opts[-compressor]} )) {
+case ${opts[-compressor]} {
 	(none) ;;
 	([a-z]*)
 	if [[ -e /usr/src/linux-${opts[-k]}/.config ]] {
