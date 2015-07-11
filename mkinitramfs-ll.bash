@@ -112,7 +112,7 @@ function donod {
 }
 
 shopt -qs extglob nullglob
-declare -a opt
+typeset -a opt
 opt=(
 	"-o" "ab:c:f:F:gk:lH:KLm:p:qrs:thu:y:?"
 	"-l" "all,bin:,compressor:,firmware:,font:,gpg,help"
@@ -126,7 +126,7 @@ opt=($(getopt "${opt[@]}" -- "$@" || usage))
 eval set -- "${opt[@]}"
 
 # @VARIABLE: Associative Array holding (almost) every options
-declare -A opts
+typeset -A opts
 
 while true; do
 	case "$1" in
@@ -198,7 +198,7 @@ opts[-tmpdir]="$(mktmp ${opts[-initramfs]})"
 opts[-confdir]="etc/${PKG[name]}"
 
 # Set up compression
-declare -a compressor
+typeset -a compressor
 compressor=(bzip2 gzip lzip lzop lz4 xz)
 
 case "${opts[-compressor]}" in
@@ -429,7 +429,7 @@ function domod {
 }
 
 # Handle & copy keymap/consolefont
-declare -a FONT KEYMAP
+typeset -a FONT KEYMAP
 for keymap in ${opts[-y]//:/ } ${opts[-keymap]//:/ }; do
 	if [[ -f usr/share/keymaps/${keymap}-${opts[-arch]}.bin ]]; then
 		:;
