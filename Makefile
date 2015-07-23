@@ -94,7 +94,7 @@ install-%-scripts:
 	$(install_SCRIPT) $(PACKAGE).$* svc/sdr.$* $(DESTDIR)$(SBINDIR)
 	if test $* = sh; then \
 		$(install_DATA) $(PACKAGE).conf.in-sh $(DESTDIR)$(SYSCONFDIR)/$(PACKAGE).conf; \
-		sed -e 's:\$${PWD}/usr:${PREFIX}/share/$${pkg}/usr:g' \
+		sed -e 's:.*\$${PWD}.*/usr:${PREFIX}/share/$${pkg}/usr:g' \
 		    -e 's:\./\$${pkg}.conf:$(SYSCONFDIR)/$${pkg}.conf:g' \
 			-i $(DESTDIR)$(SBINDIR)/$(PACKAGE).sh; \
 	else \
