@@ -141,7 +141,7 @@ function squash-mount {
 			die "Failed to remove ${dir}"
 	}
 	case ${opts[-keep-dir]} {
-		(1) ${=cp} ${DIR}/rr /${dir} ||
+		(1) ${=rm} ${dir} && ${=cp} ${DIR}/rr /${dir} ||
 			die "Failed to update ${dir}";;
 	}
 

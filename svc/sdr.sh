@@ -129,7 +129,7 @@ squash_mount() {
 			die "Failed to remove ${dir}"
 	fi
 	case "${keep_dir}" in
-		(1) ${cp} ${DIR}/rr ${dir} ||
+		(1) ${rm} ${dir} && ${cp} ${DIR}/rr ${dir} ||
 			die "Failed to update ${dir}";;
 	esac
 
