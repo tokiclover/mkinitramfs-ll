@@ -441,7 +441,7 @@ print ${FONT[1]} >${opts[-confdir]}/font
 unset FONT font KEYMAP keymap
 
 # Handle & copy splash themes
-if (( ${+$opts[-s]} )) || (( ${+opts[-splash]} )) {
+if (( ${+opts[-s]} )) || (( ${+opts[-splash]} )) {
 	opts[-bin]+=:splash_util.static:fbcondecor_helper
 
 	if (( ${+opts[-toi]} || ${+opts[-t]} )) {
