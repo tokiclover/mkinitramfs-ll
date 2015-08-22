@@ -8,7 +8,7 @@
 # @FUNCTION: cut wrapper
 # @ARG: <var> <var> <char> <int> <opt>
 CUT() {
-	eval ${1:-CUT}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
+	eval ${1:-REPLY}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
 }
 
 # @FUNCTION: Print begin message to stdout
@@ -233,7 +233,7 @@ shread() {
 		case "$_buffer" in
 			([Rr][Ss][Hh]|[Ss][Hh]|[Ss][Hh][Ee][Ll][Ll]|[Rr][Ee][Ss][Cc][Uu][Ee]|[Ss][Hh])
 				die;;
-			(*) eval ${1:-SHR}="$_buffer"; break;;
+			(*) eval ${1:-REPLY}="$_buffer"; break;;
 		esac
 	done
 }
@@ -258,7 +258,7 @@ blk() {
 		shread _asw
 		BLK "${_asw:-$1}"
 	done
-	eval ${2:-BLK}=$_blk
+	eval ${2:-REPLY}=$_blk
 }
 
 # @FUNCTION: dm-crypt LUKS Keyfile handler
@@ -338,7 +338,7 @@ get_dev() {
 	[ -n "$KEYMODE" -a "$KEYMODE" != "none" ] && debug -d dmopen "$_dev" "DEV"
 	[ "$KEYMODE" =  "none" ] && debug -d blk "$_dev" "DEV"
 
-	eval ${_name:-DEV}=${_typ:+$_typ:}$DEV${_sig:+:$_sig}
+	eval ${_name:-REPLY}=${_typ:+$_typ:}$DEV${_sig:+:$_sig}
 }
 
 # @FUNCTION: Close dm-crypt mapping
@@ -361,7 +361,7 @@ dmcrypt() {
 		shread _asw
 		[ -e "${_asw:-$1}" ] || debug blk "${_asw:-$1}" "_ldh"
 	done
-	eval ${2:-DMC}=$_ldh
+	eval ${2:-REPLY}=$_ldh
 }
 
 # @FUNCTION: dm-crypt LUKS device handler
@@ -375,7 +375,7 @@ dmopen() {
 	local _dev="${1#*-}" _hdr="$2" _header _map="${1%-*}"
 	blk "$_dev" "_dev"
 	_dm=/dev/mapper/$_map
-	[ -b "$_dm" ] && eval ${_name:-DM}=$_dm && return
+	[ -b "$_dm" ] && eval ${_name:-REPLY}=$_dm && return
 
 	[ -z "$_hdr" ] && debug dmcrypt "$_dev" "_dev" ||
 	case "$_hdr" in
@@ -407,7 +407,7 @@ dmopen() {
 		;;
 	esac
 	[ -b "$_dm" ] || debug -d cryptsetup $_arg
-	debug -d test -b $_dm && eval ${_name:-DM}=$_dm
+	debug -d test -b $_dm && eval ${_name:-REPLY}=$_dm
 }
 
 # @FUNCTION: LVM handler
@@ -433,9 +433,9 @@ lvopen() {
 		esac
 	fi
 	if [ -b "/dev/mapper/$1" ]; then
-		eval ${3:-LV}=/dev/mapper/$1
+		eval ${3:-REPLY}=/dev/mapper/$1
 	elif [ -b "/dev/$_lv" ]; then
-		eval ${3:-LV}=/dev/$_lv
+		eval ${3:-REPLY}=/dev/$_lv
 	else
 		die "$_lv VG/LV not found"
 	fi
@@ -447,7 +447,7 @@ lvopen() {
 mdopen() {
 	local _devices _dev="${1%+*}" _opt="${1#*+}" _set _uuid
 	[ "${_dev/dev}" != "$_dev" ] || _dev=/dev/$_dev
-	[ -b "$_dev" ] && eval ${2:-MD}=$_dev && return
+	[ -b "$_dev" ] && eval ${2:-REPLY}=$_dev && return
 
 	case "$_opt" in
 		([Uu][Uu][Ii][Dd]*) _uuid="$_opt"        ;;
@@ -480,7 +480,7 @@ mdopen() {
 		done
 	fi
 	debug -d test -b $_dev
-	eval ${2:-MD}=$_dev
+	eval ${2:-REPLY}=$_dev
 }
 
 # @FUNCTION: (AUFS|OverlayFS+SquashFS) Squashed-dir mounter
