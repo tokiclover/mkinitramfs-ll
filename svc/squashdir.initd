@@ -33,6 +33,7 @@ start_pre()
 		grep -q ${mod} /proc/filesystems || modprobe ${mod} >${NULL} 2>&1 ||
 			case "${mod}" in
 				(overlay|squashfs) { end 1 ${mod}; return 1; };;
+				(aufs) continue;;
 			esac
 		case "${mod}" in
 			(aufs|overlay) squash_filesystem="${mod}"; break;;
