@@ -1,4 +1,9 @@
-Header: mkinitramfs-ll/ChangeLog, 2015/05/28
+Header: mkinitramfs-ll/ChangeLog, 2016/01/10
+
+0.22.0:
+
+Added *l* option to *debug* cmdline argument to duplicate stderr
+to $LOGFILE/file descriptor 3 for easy debugging.
 
 0.21.4:
 
