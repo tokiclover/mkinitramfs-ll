@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.20.0 2015/05/20 12:33:03                   Exp $
+# $Version: 0.22.0 2016/01/10 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 #
@@ -31,6 +31,7 @@
 export CONFDIR LIBDIR LOGFILE MNTDIR NEWROOT SPLASHD init sh
 export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin ENV_CHK NULL
 export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
+exec 3>$LOGFILE
 
 # @FUNCTION: Handle fatal error
 # @ARG: <msg>
@@ -153,7 +154,6 @@ debug -d $mdev -s
 echo $mdev >/proc/sys/kernel/hotplug
 
 debug mount -t tmpfs -o mode=755,size=1% tmpfs /run
-mv -f $LOGFILE /run && export LOGFILE=/run$LOGFILE
 
 CMDLINE="$(cat /proc/cmdline)"
 for arg in $CMDLINE; do
@@ -191,6 +191,10 @@ $ENV_CHK && debug app_chk
 
 DEBUG="${debug%:*}"
 CUT "DMESG" "$debug" ":" "2" "-s"
+case "$DEBUG" in
+	(*l*) LOG=true DEBUG="${DEBUG/l/}"
+		exec 2>&3;;
+esac
 [ -n "$DEBUG" ]  && set -${DEBUG/e/}
 [ -n "$DMESG" ]  && debug dmesg -n $DMESG
 
@@ -344,9 +348,13 @@ level 4u
 #
 $SPLASHD && debug splashd_stop
 
+if [ -n "$LOG" ]; then
+	cp $LOGFILE $NEWROOT
+	cp $LOGFILE /run
+fi
+
 echo >/proc/sys/kernel/hotplug
 for _dir in /run /sys /dev /proc; do
-	[ -f $LOGFILE ] || export LOGFILE=/$0.log
 	if [ "${SYSFS/${_dir#/}}" != "$SYSFS" ]; then
 		begin "Moving $_dir to $NEWROOT"
 		mkdir -p $NEWROOT$_dir
@@ -360,7 +368,8 @@ done
 
 level 4s
 msg -c GRN "Switching Root"
-debug -d exec switch_root $NEWROOT ${init:-/sbin/init} $RUNLEVEL
+exec 3>&-
+exec switch_root $NEWROOT ${init:-/sbin/init} $RUNLEVEL
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
