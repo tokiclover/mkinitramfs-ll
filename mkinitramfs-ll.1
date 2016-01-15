@@ -5,7 +5,7 @@
 .\" stated in the COPYING file that comes with the source files
 .\"
 .pc
-.TH MKINITRAMFS-LL 1 "2015-05-28" "0.21.0" "Init Script Page"
+.TH MKINITRAMFS-LL 1 "2016-01-10" "0.22.0" "Init Script Page"
 .SH NAME
 init \- an initramfs init script
 .SH DESCRIPTION
@@ -213,6 +213,8 @@ Default options are `4-2-lz4' (e.g. `zram=:4G:4G' setup 2 devices.)
 Set extra init shell options; And/Or
 dmesg console log level e.g. `debug=ax:3' (to enable shell tracing & export
 every variable; and set log level to error.)
+.I l
+option cause standard error to be duplicated to $LOGFILE or file descriptor 3.
 .TP
 .RB fsmount=[/usr:/var:\fIdirectory\fR]
 .br
