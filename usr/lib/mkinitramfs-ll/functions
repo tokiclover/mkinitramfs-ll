@@ -2,7 +2,7 @@
 # $Header: /lib/mkinitramfs-ll/functions                 Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.21.0 2015/05/28 12:33:03                   Exp $
+# $Version: 0.22.0 2016/01/10 12:33:03                   Exp $
 #
 
 # @FUNCTION: cut wrapper
@@ -102,7 +102,7 @@ debug() {
 	done
 	eval "$@"
 	_ret=$?
-	echo "[$_ret]: $_cmd" >>$LOGFILE
+	echo "[$_ret]: $_cmd" >&3
 
 	if [ ! "$_ret" ]; then
 		case $_opt in
