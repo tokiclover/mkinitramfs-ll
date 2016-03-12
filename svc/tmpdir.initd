@@ -11,7 +11,7 @@ extra_commands="restore save"
 description_restore="Restore temporary directories"
 description_save="Archive temporary directories"
 
-:	${compressor:=lz4 -1 -}
+:	${compressor:=lz4 -1}
 :	${extension:=.tar.${compressor%% *}}
 :	${NULL=/dev/null}
 
@@ -79,8 +79,7 @@ restart()
 
 restore()
 {
-	local IFS=":${IFS}" decompress swd tarball
-	decompress="${compressor%% *}" swd="${PWD}"
+	local IFS=":${IFS}" swd="${PWD}" tarball
 
 	for dir in ${@:-${tmpdir_saved}}; do
 		cd "${dir%/*}" >${NULL} 2>&1 || continue
@@ -94,7 +93,7 @@ restore()
 			continue
 		fi
 		ebegin  "Restoring ${dir}"
-		${decompress} -cd "${tarball}" | tar -xp
+		tar -xpf "${tarball}" -I "${compressor}"
 		eend "${?}"
 	done
 	cd "${swd}" >${NULL} 2>&1
@@ -111,7 +110,7 @@ save()
 			mv -f "${dir}${extension}" "${dir}.old${extension}"
 		fi
 		ebegin  "Saving ${dir}"
-		tar -Ocp ${dir##*/} | ${compressor} "${dir}${extension}"
+		tar -cpf "${dir}${extension}" -I "${compressor}" ${dir##*/}
 		eend "${?}"
 	done
 	cd "${swd}" >${NULL} 2>&1
