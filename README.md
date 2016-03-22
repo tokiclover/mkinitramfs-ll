@@ -92,15 +92,19 @@ Gentoo Users.
 A suspend/hibernation script along with an initramfs utility (decompress
 and list) are available.
 
-### /svc
+### /svc (service)
 
-## AUFS|OverlayFS+SquashFS
+Some init service files for OpenRC are available... Or else, grab *svc/sdr.$SHELL*
+instead of *svc/squashdir.{init,conf}d* and [tmpdirs.{sh|pl|py}](2) instead of both
+*svc/tmpdir.{init,conf}d* and *svc/zram.{init,conf}d*.
+
+#### AUFS|OverlayFS+SquashFS
 
 An init service script along with a build script for squashed directory are
 available. Managing system wide directories is problematic, so put `usr'
 first (if squashded.) And this require a static busybox to function at all.
 
-## ZRAM
+#### ZRAM
 
 Two init service scripts are available, one that can be used to set up zram
 devices directly for space usage efficiency (compared to a regular tmpfs.)
@@ -135,3 +139,4 @@ or else in DATADIR/mkiniramfs-ll directory if installed variant.
 The same goes for `busybox.sh' which build a static binary.
 
 [1]: https://github.com/tokiclover/bar-overlay
+[2]: https://github.com/tokiclover/browser-home-profile
