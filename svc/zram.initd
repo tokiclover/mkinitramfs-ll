@@ -1,9 +1,9 @@
 #!/sbin/runscript
 #
 # $Header: mkinitramfs-ll/svc/zram.initd                 Exp $
-# $Author: (c) 2012-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2012-5 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.20.0 2015/04/18 12:33:03                   Exp $
+# $Version: 0.20.1 2016/02/18 12:33:03                   Exp $
 #
 
 description="Set up & initialize ZRAM devices"
@@ -12,7 +12,6 @@ extra_commands=reset
 
 :	${ZRAM_DEV:=4}
 :	${NULL=/dev/null}
-:	${CONTINUE='{ num=$((${num}+1)); continue; }'}
 
 depend()
 {
@@ -21,15 +20,32 @@ depend()
 
 start()
 {
-	local dev fs mode dir num opt ret; num=0
+	local DEV dev fs mode dir num=0 offset=0 opt ret
+	local CONTINUE='{ num=$((${num}+1)); continue; }'
 
 	while true; do
-		dev=/dev/zram${num}
+		#
+		# Find the first free device
+		#
+		dev=/dev/zram$((${num}+${offset}))
 		[ -b ${dev} ] || break
+		if [ "$(cat /sys/block/zram${offset}/size)" != 0 ]; then
+			offset=$((${offset}+1)); continue;
+		fi
 		eval set -- \${ZRAM_DEV_${num}}
-		fs="${2}" dir="${3}" opt="${4}" mode="${5}"
+		size="${1}" fs="${2}" dir="${3}" opt="${4}" mode="${5}"
+		#
+		# Initialize device if defined
+		#
+		DEV="/sys/block/${dev##*/}"
+		[ -n "${size}" ] || break
+		[ -n "${ZRAM_COMP}"   ] && echo ${ZRAM_COMP}   >${DEV}/comp_algorithm
+		[ -n "${ZRAM_STREAM}" ] && echo ${ZRAM_STREAM} >${DEV}/max_comp_streams
+		echo ${size} >${DEV}/disksize
+		#
+		# Setup device if requested
+		#
 		[ -n "${fs}" ] || eval ${CONTINUE}
-		
 		case "${fs}" in
 			(swap)
 			ebegin "Activating ${dev} swap device"
@@ -57,60 +73,45 @@ start()
 
 start_pre()
 {
-	local dev num size
-	yesno ${ZRAM_INIT} || return 0
-
-	if grep -q zram /proc/modules; then
-		if ! rmmod zram >${NULL} 2>&1; then
-			reset && rmmod zram >${NULL} 2>&1
-		fi
-	fi
-	modprobe zram num_devices=${ZRAM_DEV} >${NULL} 2>&1 || reset
-
 	case "${ZRAM_COMP}" in
 		(lz4|lzo)     ;;
 		(*) ZRAM_COMP=;;
 	esac
-	dev=/sys/block/zram0 num=0
-	[ -w ${dev}/comp_algorithm    ] || ZRAM_COMP=
-	[ -w ${dev}//max_comp_streams ] || ZRAM_STREAM=
+	[ -w /sys/block/zram0/comp_algorithm   ] || ZRAM_COMP=
+	[ -w /sys/block/zram0/max_comp_streams ] || ZRAM_STREAM=
 
-	while true; do
-		dev=/sys/block/zram${num}
-		[ -d ${dev} ] || break
-		eval set -- \${ZRAM_DEV_${num}}
-		size=${1}; [ -n "${fs}" ] || eval ${CONTINUE}
-
-		[ -n "${ZRAM_COMP}"   ] && echo ${ZRAM_COMP}   >${dev}/comp_algorithm
-		[ -n "${ZRAM_STREAM}" ] && echo ${ZRAM_STREAM} >${dev}/max_comp_streams
-		echo ${size} >${dev}/disksize
-		eval ${CONTINUE}
-	done
+	yesno ${ZRAM_INIT} || return 0
+	if grep -qw zram /proc/modules; then
+		if ! rmmod zram >${NULL} 2>&1; then
+			reset && rmmod zram >${NULL} 2>&1 ||
+				{ ewarn "Cannot initialize kernel module"; return; }
+		fi
+	fi
+	ebegin "Setting up zram kernel module"
+	modprobe zram num_devices=${ZRAM_DEV} >${NULL} 2>&1
+	eend "${?}"
 }
 
 stop()
 {
-	local dev fs dir num; num=0
+	local dev fs dir num=0
+	local CONTINUE='{ num=$((${num}+1)); continue; }'
 	while true; do
-		dev=/dev/zram${num}
-		[ -b ${dev} ] || break
 		eval set -- \${ZRAM_DEV_${num}}
 		fs="${2}" dir="${3}"
-		[ -n "${fs}" ] || eval ${CONTINUE}
-
 		case "${fs}" in
-			(swap)
-			ebegin "De-Activating ${dev} swap device"
-			swapoff "${dev}" >${NULL} 2>&1
-			eend ${?};;
-			(*)
-		case "${dir}" in
-			(*/run|*/tmp) ;;
-			(*)
-			ebegin "Unmounting ${dir}"
-			umount -l "${dir}" >${NULL} 2>&1
-			eend ${?};;
-		esac;;
+			(swap) ;;
+			([a-z]*)
+			case "${dir}" in
+				(*/run|*/tmp) ;;
+				(*)
+				if grep -qw "${dir}" /proc/mounts; then
+					ebegin "Unmounting ${dir}"
+					umount -l "${dir}" >${NULL} 2>&1
+					eend "${?}"
+				fi;;
+			esac;;
+			(*) break;;
 		esac
 		eval ${CONTINUE}
 	done
@@ -119,22 +120,14 @@ stop()
 
 reset()
 {
-	local dev force ret
-	service_started || force=1
-
+	local dev ret=0
 	for dev in /dev/zram[0-9]*; do
-		grep -q ${dev} /proc/mounts || continue
-		case ${force-0} in
-			(1)
-			ebegin "Umounting ${dev}"
-			umount -l ${dev}
-			eend ${?};;
-			(0)
-			ewarn "${dev} zram device is mounted"
+		if grep -qw ${dev} /proc/mounts || grep -qw ${dev} /proc/swaps; then
+			ewarn "${dev} is busy"
 			ret=$((${ret}+1))
-			continue;;
-		esac
-		echo 1 >/sys/block/${dev#/dev}reset
+			continue
+		fi
+		echo 1 >/sys/block/${dev##*/}/reset
 	done
 	return ${ret}
 }
