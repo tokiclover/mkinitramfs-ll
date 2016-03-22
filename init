@@ -283,7 +283,7 @@ if [ -n "$resume" ]; then
 	if [ -z "$RESU" ] && [ "$resume" != "swap" ]; then
 		begin "Starting Resume"
 		get_dev "$resume" "RESU" "3"
-		end 1
+		end "$?"
 	fi
 	debug resume "${RESU:-$SWAP}"
 fi
