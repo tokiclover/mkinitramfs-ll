@@ -95,7 +95,7 @@ and list) are available.
 ### /svc (service)
 
 Some init service files for OpenRC are available... Or else, grab *svc/sdr.$SHELL*
-instead of *svc/squashdir.{init,conf}d* and [tmpdirs.{sh|pl|py}](2) instead of both
+instead of *svc/squashdir.{init,conf}d* and [tmpdirs.{sh|pl|py}][2] instead of both
 *svc/tmpdir.{init,conf}d* and *svc/zram.{init,conf}d*.
 
 #### AUFS|OverlayFS+SquashFS
