@@ -8,8 +8,6 @@ ZRAM_DEV=4
 ZRAM_COMP=lz4
 # Set the maximum number of streams (for compression)
 ZRAM_STREAM=2
-# Whether to initialize zram devices or not
-ZRAM_INIT=yes
 #
 # ZRAM device definition is defined like:
 # <size> <file-system> <mount-point> <mount-options> <octal-mode>

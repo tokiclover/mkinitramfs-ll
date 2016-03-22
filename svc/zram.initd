@@ -80,7 +80,6 @@ start_pre()
 	[ -w /sys/block/zram0/comp_algorithm   ] || ZRAM_COMP=
 	[ -w /sys/block/zram0/max_comp_streams ] || ZRAM_STREAM=
 
-	yesno ${ZRAM_INIT} || return 0
 	if grep -qw zram /proc/modules; then
 		if ! rmmod zram >${NULL} 2>&1; then
 			reset && rmmod zram >${NULL} 2>&1 ||
