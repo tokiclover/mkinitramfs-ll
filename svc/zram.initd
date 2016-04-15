@@ -29,7 +29,7 @@ start()
 		#
 		dev=/dev/zram$((${num}+${offset}))
 		[ -b ${dev} ] || break
-		if [ "$(cat /sys/block/zram${offset}/size)" != 0 ]; then
+		if [ "$(cat /sys/block/${dev##*/}/size)" != 0 ]; then
 			offset=$((${offset}+1)); continue;
 		fi
 		eval set -- \${ZRAM_DEV_${num}}
