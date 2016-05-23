@@ -47,7 +47,7 @@ eval_colors() {
 # @ARG: <msg>
 info() {
 	local prefix=${name:+" $CLR_MAG$name:$CLR_RST"}
-	echo -e${eol+n} "${eol+\n} $CLR_BLU*$CLR_RST$prefix $@"
+	echo -e${eol+n} "${eol+\n} ${CLR_BLU}INFO:$CLR_RST$prefix $@"
 }
 
 # @FUNCTION: Print warn message to stdout
@@ -55,14 +55,14 @@ info() {
 warn()
 {
 	local prefix=${name:+" $CLR_RED$name:$CLR_RST"}
-	echo -e${eol+n} "${eol+\n} $CLR_YLW*$CLR_RST$prefix $@"
+	echo -e${eol+n} "${eol+\n} ${CLR_YLW}WARN:$CLR_RST$prefix $@"
 }
 
 # @FUNCTION: Print message to stderr
 # @ARG: <msg>
 error() {
 	local prefix=${name:+" $CLR_YLW$name:$CLR_RST"}
-	echo -e${eol+n} "${eol+\n} $CLR_RED*$CLR_RST$prefix $@" >&2
+	echo -e${eol+n} "${eol+\n} ${CLR_RED}:ERROR$CLR_RST$prefix $@" >&2
 }
 
 # @FUNCTION: Printing message handler
