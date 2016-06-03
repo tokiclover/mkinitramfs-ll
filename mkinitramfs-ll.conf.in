@@ -18,7 +18,8 @@
 #
 #   Support extended kernel module group that can be appended directly to
 #   `module' kernel cmdline argument: module=group;
-#   just create opts[-module-<group>] grooups and then append them to opts[-mgrp].
+#   just create opts[-module-<group>] grooups and then append them to
+#   opts[-module-group].
 #
 # Every item if built as module will be included or nothing if not, so one
 # can leave as is or add a few items.
