@@ -5,7 +5,7 @@
 .\" stated in the COPYING file that comes with the source files
 .\"
 .pc
-.TH MKINITRAMFS-LL 1 "2016-01-10" "0.22.0" "Init Script Page"
+.TH MKINITRAMFS-LL 1 "2016-06-02" "0.22.1" "Init Script Page"
 .SH NAME
 init \- an initramfs init script
 .SH DESCRIPTION
@@ -371,6 +371,22 @@ can be enabled using the \fIarray\fR+(UUID=\fIuuid\fR|\fIdevices\fR) syntax
 device set described in the
 .B OVERVIEW
 sub-section (`[/dev/]sd[\fIX\fR-\fIY\fR]\fIn\fR').)
+
+To get support of
+.B SOFTWARE RAID
+on top of
+.B DM-CRYPT LUKS
+, replace the previous syntax with
+.B /dev/mapper/*[X-Y]:[/dev]sd[X-Y]n
+with
+.B `[/dev]'
+being optional prefix, and
+.B `[X-Y]'
+being a valid device range e.g `[a-d]', and
+.B n
+being a valid integer e.g. `3'. The device range would be decrypted to
+.B `/dev/mapper/md-sd[X-Y]n
+and used for the array instead of the plain block devices.
 .TP
 .SS SQUASHED DIRECTORY (AUFS|OVERLAYFS+SQUAHFS)
 Squashed directory require
