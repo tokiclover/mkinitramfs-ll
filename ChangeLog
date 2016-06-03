@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
+0.22.1:
+
+Support SOFTWARE RAID on top of DM(CRYPT LUKS;
+
 0.22.0:
 
 Added *l* option to *debug* cmdline argument to duplicate stderr
