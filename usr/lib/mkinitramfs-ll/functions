@@ -254,7 +254,7 @@ blk() {
 	fi
 	while ! [ -n "$_blk" -a -b "$_blk" ]; do
 		msg -i "Type in a valid block device e.g. \
-			[ sda5 | UUID=<uuid> | LABEL=<label> ]"
+			[ sda5 | (PART)UUID=<uuid> | (PART)LABEL=<label> ]"
 		shread _asw
 		BLK "${_asw:-$1}"
 	done
@@ -429,6 +429,7 @@ lvopen() {
 			debug lvm vgchange -ay --noudevsync  --sysinit "${1%-*}" ||
 				die "Failed to open ${1}"
 			debug lvm vgscan --mknodes
+			KEYMODE=
 			;;
 		esac
 	fi
@@ -439,7 +440,6 @@ lvopen() {
 	else
 		die "$_lv VG/LV not found"
 	fi
-	KEYMODE=
 }
 
 # @FUNCTION: RAID handler
