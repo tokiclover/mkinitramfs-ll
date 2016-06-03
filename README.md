@@ -16,7 +16,8 @@ sense and expect horrible performance with such a mix bag. And this variant is
 not implemented although it could be done easily.
 (The same goes for BTRFS support (require >=btrfs-progs-3.12))
 
-The order of LUKS/LVM can be changed, that is LUKS+LVM or LVM+LUKS is possible.
+The order of LUKS/LVM and LUKS/RAID can be changed, that is, use any on top of
+the other.
 
 
 GETTING AN INTRAMFS QUICKLY AND READY
