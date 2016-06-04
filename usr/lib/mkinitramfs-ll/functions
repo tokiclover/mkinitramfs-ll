@@ -1,8 +1,8 @@
 #
 # $Header: /lib/mkinitramfs-ll/functions                 Exp $
-# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.23.0 2016/06/02 12:33:03                   Exp $
+# $Version: 0.22.1 2016/06/02 12:33:03                   Exp $
 #
 
 # @FUNCTION: cut wrapper
@@ -16,7 +16,7 @@ CUT() {
 begin() {
 	[ -n "$eol" ] && echo
 	eol=0
-	local prefix=${name:+"$CLR_MAG[$CLR_RST $CLR_BLU$name$CLR_RST: $CLR_MAG]$CLR_RST"}
+	local prefix=${name:+"$COLOR_MAG[$COLOR_RST $COLOR_BLU$name$COLOR_RST $COLOR_MAG]$COLOR_RST"}
 	echo -en " $prefix $@"
 }
 
@@ -25,8 +25,8 @@ begin() {
 end() {
 	local suffix
 	case "$1" in
-		(0) suffix="$CLR_BLU[$CLR_RST ${CLR_GRN}Ok${CLR_RST} $CLR_BLU]$CLR_RST";;
-		(*) suffix="$CLR_YLW[$CLR_RST ${CLR_RED}No${CLR_RST} $CLR_YLW]$CLR_RST";;
+		(0) suffix="$COLOR_BLU[$COLOR_RST ${COLOR_GRN}Ok${COLOR_RST} $COLOR_BLU]$COLOR_RST";;
+		(*) suffix="$COLOR_YLW[$COLOR_RST ${COLOR_RED}No${COLOR_RST} $COLOR_YLW]$COLOR_RST";;
 	esac
 	shift
 	echo -en " $@ $suffix\n"
@@ -36,33 +36,34 @@ end() {
 # @FUNCTION: Colors handler
 eval_colors() {
 	[ -t 1 ] && yesno "${COLOR:-Yes}" || return
+
 	local BLD='1;' ESC='\e[' FGD='3' clr
 	for clr in 0:BLK 1:RED 2:GRN 3:YLW 4:BLU 5:MAG 6:CYN 7:WHT; do
-		eval CLR_${clr#*:}="'$ESC$BLD$FGD${clr%:*}m'"
+		eval export COLOR_${clr#*:}="'$ESC$BLD$FGD${clr%:*}m'"
 	done
-	CLR_RST="${ESC}0m"
+	export COLOR_RST="${ESC}0m"
 }
 
 # @FUNCTION: Print message to stdout
 # @ARG: <msg>
 info() {
-	local prefix=${name:+" $CLR_MAG$name:$CLR_RST"}
-	echo -e${eol+n} "${eol+\n} ${CLR_BLU}INFO:$CLR_RST$prefix $@"
+	local prefix=${name:+" $COLOR_MAG$name:$COLOR_RST"}
+	echo -e${eol+n} "${eol+\n} ${COLOR_BLU}INFO:$COLOR_RST$prefix $@"
 }
 
 # @FUNCTION: Print warn message to stdout
 # @ARG: <msg>
 warn()
 {
-	local prefix=${name:+" $CLR_RED$name:$CLR_RST"}
-	echo -e${eol+n} "${eol+\n} ${CLR_YLW}WARN:$CLR_RST$prefix $@"
+	local prefix=${name:+" $COLOR_RED$name:$COLOR_RST"}
+	echo -e${eol+n} "${eol+\n} ${COLOR_YLW}WARN:$COLOR_RST$prefix $@"
 }
 
 # @FUNCTION: Print message to stderr
 # @ARG: <msg>
 error() {
-	local prefix=${name:+" $CLR_YLW$name:$CLR_RST"}
-	echo -e${eol+n} "${eol+\n} ${CLR_RED}:ERROR$CLR_RST$prefix $@" >&2
+	local prefix=${name:+" $COLOR_YLW$name:$COLOR_RST"}
+	echo -e${eol+n} "${eol+\n} ${COLOR_RED}:ERROR$COLOR_RST$prefix $@" >&2
 }
 
 # @FUNCTION: Printing message handler
@@ -82,7 +83,7 @@ msg() {
 	case "$_opt" in
 		(-e) error "${_msg}";;
 		(-i) info  "${_msg}";;
-		(-c) eval echo -e "\" \$CLR_${_clr}>>>$CLR_RST ${_msg}\"";;
+		(-c) eval echo -e "\" \$COLOR_${_clr}>>>$COLOR_RST ${_msg}\"";;
 	esac
 	$SPLASHD && debug splashd_cmd "set message $_msg" && debug splashd_cmd "repaint"
 }

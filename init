@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # $Header: mkinitramfs-ll/init                           Exp $
-# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
 # $Version: 0.22.0 2016/01/10 12:33:03                   Exp $
 #
@@ -50,8 +50,10 @@ name=init
 # @FUNCTION: Shell Run Level helper
 # @ARG: <level>
 level() {
-	msg -c GRN "Switching to init shell run level $CLR_BLU$1$CLR_RST"
+	msg -c GRN "Switching to init shell run level $COLOR_BLU$1$COLOR_RST"
 	export LEVEL=$1
+
+	local _f
 	for _f in $(ls $LIBDIR/${1}-* 2>$NULL); do
 		dohook "$_f"
 	done
