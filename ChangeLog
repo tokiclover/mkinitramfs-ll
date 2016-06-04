@@ -2,7 +2,9 @@ Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
 0.22.1:
 
-Support SOFTWARE RAID on top of DM(CRYPT LUKS;
+Support SOFTWARE RAID on top of DM-CRYPT LUKS;
+Set up the environment properly for hooks (inherit init's environment);
+And there is no need to source {functions,hooks} manualy anymore (in hooks);
 
 0.22.0:
 
