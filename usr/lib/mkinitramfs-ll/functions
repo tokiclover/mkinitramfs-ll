@@ -63,7 +63,7 @@ warn()
 # @ARG: <msg>
 error() {
 	local prefix=${name:+" $COLOR_YLW$name:$COLOR_RST"}
-	echo -e${eol+n} "${eol+\n} ${COLOR_RED}:ERROR$COLOR_RST$prefix $@" >&2
+	echo -e${eol+n} "${eol+\n} ${COLOR_RED}ERROR:$COLOR_RST$prefix $@" >&2
 }
 
 # @FUNCTION: Printing message handler
@@ -76,7 +76,7 @@ msg() {
 			(-e|-i) _opt="$1";;
 			(-c) _opt="$1" _clr="$2"; shift;;
 			(--) ;;
-			(*) _msg="$@"; break;;
+			(*) _msg="$*"; break;;
 		esac
 		shift
 	done
@@ -159,7 +159,7 @@ app_chk() {
 # @FUNCTION: Hook/Script execution helper
 # @ARG: <hook>
 dohook() {
-	local name="${1##*/}"
+	local line name="${1##*/}"
 	export -p >/run/INIT.ENV
 	begin "exec: $1...\n"
 	$sh -acex "source /run/INIT.ENV;
