@@ -5,10 +5,8 @@
 # $Version: 0.20.0 2015/05/20 12:33:03                   Exp $
 #
 
-set +e +x
-source $LIBDIR/functions || return
-source $LIBDIR/helpers   || return
-[ -n "$zfs" ] || return
+set +e
+[ -n "$zfs" ] || exit
 
 # @FUNCTION: dozfs
 # @DESCRIPTION: import a zfs pool
@@ -54,9 +52,21 @@ dozfs() {
 	echo "$_env=${_type:+$_type:}$_vol${_sign:+$_sign}" >> /run/env
 }
 
-[ -n "$swap"   ] && debug dozfs "SWAP" "2" "$swap"   "-N"
-[ -n "$resume" ] && debug dozfs "RESU" "3" "$resume" "-N"
-[ -n "$root"   ] && debug dozfs "ROOT" "1" "$root"
+retval=0
+
+if [ -n "$swap"   ]; then
+	debug dozfs "SWAP" "2" "$swap"   "-N"
+	retval="$?"
+fi
+if [ -n "$resume" ]; then
+	debug dozfs "RESU" "3" "$resume" "-N"
+	retval=$(($?+$ratval))
+if [ -n "$root"   ]; then
+	debug dozfs "ROOT" "1" "$root"
+	retval=$(($?+$retval))
+fi
+
+exit "$retval"
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:

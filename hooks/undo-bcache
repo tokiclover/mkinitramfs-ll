@@ -1,13 +1,11 @@
 #
 # $Header: mkinitramfs-ll/hooks/bacache                  Exp $
-# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
 # $Version: 0.20.0 2015/05/20 12:33:03                   Exp $
 #
 
-set +e +x
-source $LIBDIR/functions || return
-source $LIBDIR/helpers   || return
+source ${LIBDIR:-/lib/mkiniramfs-ll}/functions || exit
 [ -z "$bcache" ] && get_opt "bcache"
 
 undobcahe() {

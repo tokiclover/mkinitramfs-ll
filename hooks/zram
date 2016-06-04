@@ -1,13 +1,11 @@
 #
 # $Header: mkinitramfs-ll/hooks/zram                     Exp $
-# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
 # $Version: 0.20.0 2015/05/20 12:33:03                   Exp $
 #
 
-set +e +x
-source $LIBDIR/functions || return
-source $LIBDIR/helpers   || return
+set +e
 [ -z "$zram" ] && get_opt "zram"
 
 dozram() {
@@ -46,7 +44,14 @@ dozram() {
 	rm -f /run/${0##*/}.pid
 }
 
-[ -n "$zram" ] && dozram
+retval=0
+
+if [ -n "$zram" ]; then
+	dozram
+	retval="$?"
+fi
+
+exit "$retval"
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:

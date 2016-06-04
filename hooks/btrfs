@@ -1,13 +1,12 @@
 #
 # $Header: mkinitramfs-ll/hooks/btrfs                    Exp $
-# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.20.0 2015/05/20 12:33:03                   Exp $
+# $Version: 0.22.1 2015/05/20 12:33:03                   Exp $
 #
 
-source $LIBDIR/functions || return
-source $LIBDIR/helpers   || return
-[ -n "$btrfs" ] || return
+set +e
+[ -n "$btrfs" ] || exit
 
 dobtrfs() {
 	echo $$ >/run/${0##*/}.pid
@@ -49,7 +48,14 @@ dobtrfs() {
 	rm -f /run/${0##*/}.pid
 }
 
-[ -n "$root"   ] && debug dobtrfs "ROOT" "1" "$root"
+retval=0
+
+if [ -n "$root"   ]; then
+	debug dobtrfs "ROOT" "1" "$root"
+	retval="$?"
+fi
+
+exit "$retval"
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
