@@ -159,8 +159,14 @@ app_chk() {
 # @FUNCTION: Hook/Script execution helper
 # @ARG: <hook>
 dohook() {
-	begin "exec: $sh -aex $1..."
-	debug $sh -aex $1
+	local name="${1##*/}"
+	export -p >/run/INIT.ENV
+	begin "exec: $1...\n"
+	$sh -acex "source /run/INIT.ENV;
+		source $LIBDIR/functions;
+		source $LIBDIR/helpers;
+		source $1;
+		exit;"
 	end "$?"
 
 	if [ -f /run/env ]; then
