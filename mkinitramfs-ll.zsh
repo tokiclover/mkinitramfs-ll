@@ -480,14 +480,14 @@ unset -v binary bin b
 # Handle & copy kernel module
 for mod (${(pws,:,)opts[-module-boot]})
 	if (( ${+opts[-module-$mod]} )) {
-		print ${mod} >>${opts[-confdir]}/boot
+		print ${mod} >>${opts[-confdir]}/module-boot
 	} else { mboot+=:${mod} }
 opts[-module-boot]=${mboot}
 unset mboot mod
 
 for module (${(pws,:,)opts[-m]}${(pws,:,)opts[-module]}) domod ${module}
 for group (${(pws,:,)opts[-module-group]})
-	domod -v ${opts[-confdir]}/${group} ${(pws,:,)opts[-module-${group}]}
+	domod -v ${opts[-confdir]}/module-${group} ${(pws,:,)opts[-module-${group}]}
 
 # Set up user environment if present
 for (( i=1; i <= ${#env[@]}; i++ ))

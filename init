@@ -200,8 +200,8 @@ esac
 [ -n "$DEBUG" ]  && set -${DEBUG/e/}
 [ -n "$DMESG" ]  && debug dmesg -n $DMESG
 
-[ -f $CONFDIR/boot ] &&
-for _m in $(cat $CONFDIR/boot); do
+[ -f $CONFDIR/module-boot ] &&
+for _m in $(cat $CONFDIR/module-boot); do
 	debug MODPROBE $_m
 done
 for _m in $(echo "$module" | sed 's/:/ /g'); do

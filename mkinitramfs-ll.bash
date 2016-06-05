@@ -508,7 +508,7 @@ domod ${opts[-m]//:/ } ${opts[-module]//:/ }
 
 for mod in ${opts[-module-boot]//:/ }; do
 	if [[ "${opts[-module-$mod]}" ]]; then
-		echo "${mod}" >> ${opts[-confdir]}/boot
+		echo "${mod}" >> ${opts[-confdir]}/module-boot
 	else
 		mboot+=":${mod}"
 	fi
@@ -517,7 +517,7 @@ opts[-module-boot]="${mboot}"
 unset mboot mod
 
 for group in ${opts[-module-group]//:/ }; do
-	domod -v ${opts[-confdir]}/${group} ${opts[-module-${group}]//:/ }
+	domod -v ${opts[-confdir]}/module-${group} ${opts[-module-${group}]//:/ }
 done
 
 # Set up user environment if present

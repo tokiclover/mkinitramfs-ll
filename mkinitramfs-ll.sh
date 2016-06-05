@@ -482,7 +482,7 @@ domod ${modules}
 
 for mod in ${module_boot}; do
 	if eval [ -n \"\${module_$mod}\" ]; then
-		echo "${mod}" >> ${confdir}/boot
+		echo "${mod}" >> ${confdir}/module-boot
 	else
 		mboot="${boot} ${mod}"
 	fi
@@ -491,7 +491,7 @@ module_boot="${mboot}"
 unset mboot mod
 
 for group in ${module_group}; do
-	eval domod -v ${confdir}/${group/_/-} \${module_${group/-/_}}
+	eval domod -v ${confdir}/module-${group/_/-} \${module_${group/-/_}}
 done
 
 # Set up user environment if present

@@ -182,10 +182,10 @@ dohook() {
 # @FUNCTION: rmmod wrapper
 # @ARG: <module(s)|group>
 RMMOD() {
-	if [ -f "$CONFDIR/$1" ]; then
+	if [ -f "$CONFDIR/module-$1" ]; then
 		while read _mod; do 
 			debug rmmod -q $_mod
-		done <$CONFDIR/$1
+		done <$CONFDIR/module-$1
 	else
 		rmmod -q $*
 	fi
@@ -194,10 +194,10 @@ RMMOD() {
 # @FUNCTION: modprobe wrapper
 # @ARG: <module(s)|group>
 MODPROBE() {
-	if [ -f "$CONFDIR/$1" ]; then
+	if [ -f "$CONFDIR/module-$1" ]; then
 		while read _mod; do 
 			debug modprobe -q $_mod
-		done <$CONFDIR/$1
+		done <$CONFDIR/module-$1
 	else
 		modprobe -q $*
 	fi
