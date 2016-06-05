@@ -1,23 +1,23 @@
 #!/bin/bash
 #
 # $Header: mkinitramfs-ll/mkinitramfs-ll.bash            Exp $
-# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.21.0 2015/05/28 12:33:03                   Exp $
+# $Version: 0.22.0 2016/06/02 12:33:03                   Exp $
 #
 
-typeset -A PKG
-PKG=(
+typeset -A PKGINFO
+PKGINFO=(
 	[name]=mkinitramfs-ll
 	[shell]=bash
-	[version]=0.21.0
+	[version]=0.22.0
 )
 
 # @FUNCTION: Print help message
 function usage {
   cat <<-EOH
-  ${PKG[name]}.${PKG[shell]} version ${PKG[version]}
-  usage: ${PKG[name]}.${PKG[shell]} [-a|-all] [options]
+  ${PKGINFO[name]}.${PKGINFO[shell]} version ${PKGINFO[version]}
+  Usage: ${PKGINFO[name]}.${PKGINFO[shell]} [-a|-all] [options]
 
   -a, --all                   Short variant of '-lLgtq -H:btrfs:zfs:zram'
   -f, --font=REGEX            Fonts to include in the initramfs
@@ -50,15 +50,15 @@ exit $?
 
 # @FUNCTION: Print error message to stdout
 function error {
-	echo -ne " \e[1;31m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n" >&2
+	echo -ne "\e[1;31mERROR: \e[0;33m${PKGINFO[name]}.${PKGINFO[shell]}:\e[0m $@\n" >&2
 }
 # @FUNCTION: Print info message to stdout
 function info {
-	echo -ne " \e[1;32m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n"
+	echo -ne "\e[1;32mINFO: \e[0;35m${PKGINFO[name]}.${PKGINFO[shell]}:\e[0m $@\n"
 }
 # @FUNCPTION: Print warning message to stdout
 function warn {
-	echo -ne " \e[1;33m* \e[0m${PKG[name]}.${PKG[shell]}: $@\n" >&2
+	echo -ne "\e[1;33mWARN: \e[0;31m${PKGINFO[name]}.${PKGINFO[shell]}:\e[0m $@\n" >&2
 }
 # @FUNCPTION: Fatal error helper
 function die {
@@ -119,8 +119,8 @@ opt=(
 	"-l" "hook:,luks,lvm,keep-tmpdir,module:,keymap:,kernel-version:"
 	"-l" "module-boot:,module-gpg:,module-remdev:,module-squashd:,module-tuxonice:"
 	"-l" "prefix:,rebuild,splash:,squashd,toi,usrdir:"
-	"-n" "${PKG[name]}.${PKG[shell]}"
-	"-s" "${PKG[shell]}"
+	"-n" "${PKGINFO[name]}.${PKGINFO[shell]}"
+	"-s" "${PKGINFO[shell]}"
 )
 opt=($(getopt "${opt[@]}" -- "$@" || usage))
 eval set -- "${opt[@]}"
@@ -175,9 +175,9 @@ if [[ "${opts[-$key]}" && "${opts[-$key]}" == ":" ]]; then
 fi
 done
 
-[[ -f "${PKG[name]}".conf ]] &&
-	source "${PKG[name]}".conf ||
-	die "no ${PKG[name]}.conf found"
+[[ -f "${PKGINFO[name]}".conf ]] &&
+	source "${PKGINFO[name]}".conf ||
+	die "no ${PKGINFO[name]}.conf found"
 
 # @VARIABLE: Kernel version
 :	${opts[-k]:=${opts[-kernel-version]:-${opts[-k]=$(uname -r)}}}
@@ -195,7 +195,7 @@ opts[-arc]="$(getconf LONG_BIT)"
 # @VARIABLE: (initramfs) Tmporary directory
 opts[-tmpdir]="$(mktmp ${opts[-initramfs]})"
 # @DESCRIPTION: (initramfs) Configuration directory
-opts[-confdir]="etc/${PKG[name]}"
+opts[-confdir]="etc/${PKGINFO[name]}"
 
 # Set up compression
 typeset -a compressor
@@ -261,14 +261,15 @@ function docpio {
 	die "Failed to build ${initramfs}${ext} initramfs"
 }
 
-echo ">>> building ${opts[-initramfs]}..."
+echo -e "\e[1;32m>>>\e[0m building ${opts[-initramfs]}..."
 pushd "${opts[-tmpdir]}" || die "${opts[-tmpdir]} not found"
 
 if [[ "${opts[-r]}" || "${opts[-rebuild]}" ]]; then
-	cp -af {${opts[-usrdir]}/,}lib/${PKG[name]}/functions &&
+	cp -af {${opts[-usrdir]}/,}lib/${PKGINFO[name]}/functions &&
 	cp -af ${opts[-usrdir]}/../init . && chmod 775 init || die
 	docpio || die
-	echo ">>> regenerated ${opts[-initramfs]}..." && exit
+	echo -e "\e[1;32m>>>\e[0m regenerated ${opts[-initramfs]}..."
+	exit
 else
 	rm -fr *
 fi
@@ -282,15 +283,15 @@ else
 	die "${opts[-usrdir]} dir not found"
 fi
 mkdir -p usr/{{,s}bin,share/{consolefonts,keymaps},lib${opts[-arc]}} \
-	{,s}bin dev proc sys newroot mnt/tok etc/{${PKG[name]},splash} \
-	run lib${opts[-arc]}/{modules/${opts[-k]},${PKG[name]}} || die
+	{,s}bin dev proc sys newroot mnt/tok etc/{${PKGINFO[name]},splash} \
+	run lib${opts[-arc]}/{modules/${opts[-k]},${PKGINFO[name]}} || die
 for dir in {,usr/}lib; do
 	ln -s lib${opts[-arc]} ${dir}
 done
 
 {
-	for key in "${!PKG[@]}"; do
-		echo "${key}=${PKG[$key]}"
+	for key in "${!PKGINFO[@]}"; do
+		echo "${key}=${PKGINFO[$key]}"
 	done
 	echo "build=$(date +%Y-%m-%d-%H-%M-%S)"
 } >${opts[-confdir]}/id
@@ -334,7 +335,7 @@ opts[-module-group]=${opts[-module-group]/mdadm/raid}
 # Set up (requested) hook
 for hook in ${opts[-H]//:/ } ${opts[-hook]//:/ }; do
 	for file in ${opts[-usrdir]}/../hooks/*${hook}*; do
-		cp -a "${file}" lib/${PKG[name]}/
+		cp -a "${file}" lib/${PKGINFO[name]}/
 	done
 	if (( $? != 0 )); then
 		warn "$hook hook/script does not exist"
@@ -536,7 +537,7 @@ done
 docpio || die
 [[ "${opts[-K]}" || "${opts[-keep-tmpdir]}" ]] || rm -rf ${opts[-tmpdir]}
 echo ">>> ${opts[-initramfs]} initramfs built"
-unset -v comp opt opts PKG
+unset -v comp opt opts PKGINFO
 
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
