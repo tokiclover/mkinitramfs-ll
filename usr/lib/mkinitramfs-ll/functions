@@ -379,7 +379,7 @@ dmopen() {
 
 	local _dm _arg _name="$2"
 	eval set -- ${1/+/ }
-	local _dev="${1#*-}" _hdr="$2" _header _map="${1%-*}"
+	local _dev="${1##*-}" _hdr="$2" _header _map="${1%-*}"
 	blk "$_dev" "_dev"
 	_dm=/dev/mapper/$_map
 	[ -b "$_dm" ] && eval ${_name:-REPLY}=$_dm && return
