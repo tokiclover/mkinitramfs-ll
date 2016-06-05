@@ -364,7 +364,7 @@ dmcrypt() {
 
 	while ! debug cryptsetup isLuks "$_ldh"; do
 		msg -i "Type in a valid cyphertext device e.g. \
-			[ sda5 | UUID=<uuid> | LABEL=<label> ], or avalid detached header"
+			[ sda5 | (PART)UUID=<uuid> | (PART)LABEL=<label> ], or avalid detached header"
 		shread _asw
 		[ -e "${_asw:-$1}" ] || debug blk "${_asw:-$1}" "_ldh"
 	done
@@ -386,7 +386,7 @@ dmopen() {
 
 	[ -z "$_hdr" ] && debug dmcrypt "$_dev" "_dev" ||
 	case "$_hdr" in
-		(UUID*|LABEL*|*sd[a-z]*)
+		(*UUID*|*LABEL*|*sd[a-z]*)
 		blk "$_hdr" "_hdr"
 		debug dmcrypt "$_hdr" "_header"
 		;;
