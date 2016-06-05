@@ -216,7 +216,7 @@ every variable; and set log level to error.)
 .I l
 option cause standard error to be duplicated to $LOGFILE or file descriptor 3.
 .TP
-.RB fsmount=[/usr:/var:\fIdirectory\fR]
+.RB fsmount=[/usr:/var:\fIdirectory\fR]|\fBall\fR
 .br
 Mount file system according to (required in this case)
 .RI `/etc/fstab'
@@ -224,7 +224,10 @@ file. Every file system shoud be available before shell run level
 .RI 4m
 (see
 .B SHELL RUN LEVELS
-)
+). Or else, use case insensitive
+.B a|all
+to mount everything.
+(Or use \fBfstab\fR instead of \fBfsmount\fR to get the same effect.)
 .TP
 .RB hook=[\fIname\fR]
 .br

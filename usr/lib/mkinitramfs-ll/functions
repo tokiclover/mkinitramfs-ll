@@ -571,6 +571,15 @@ fsmount() {
 	local name=FSmount _tab=/etc/fstab
 	[ -f $NEWROOT$_tab ] || die "no $_tab file found"
 
+	case "${1}" in
+		([aA]|[aA][lL][lL])
+			begin "Mounting filesystems"
+			debug -d mount -a
+			end "$?"
+			return
+		;;
+	esac
+
 	for _x in $@; do
 		eval set -- $(sed -nre "s|(^[^#].*$_x[[:space:]].*$)|\1|p" $NEWROOT$_tab)
 		_fs="$3" _dev="$1" _dir="$2" _opt="$3"
@@ -581,7 +590,9 @@ fsmount() {
 		blk "$_dev" "_dev"
 		debug -d test -b $_dev
 		[ -d $NEWROOT/$_dir ] || mkdir -p $NEWROOT/$_dir
+		begin "Mounting $_dir"
 		debug -d mount -t $_fs ${_opt:+-o} $_opt $_dev $NEWROOT/$_dir
+		end "$?"
 	done
 }
 
