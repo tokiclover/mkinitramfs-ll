@@ -314,6 +314,11 @@ T}
 Block Device can be provided using a canonical name, that is, with or without
 `/dev/[mapper/]' prefix in any command line argument.
 Device can also be specifed using UUID/LABEL (part of an UUID/LABEL is supported.)
+
+.B WARNING:
+PARTUUID/LABEL is also supported if util-linux \fBblkid(1)\fR is used;
+the default configuration. Use only UUID/LABEL if blkid(1) is removed from the
+binary set becaue busybox blkid does not support the \fBPART\fR variant.
 .TP
 .SS DM-CRYPT (LUKS)
 Each member of
