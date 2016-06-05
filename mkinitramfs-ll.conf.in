@@ -6,6 +6,9 @@
 # <arg> being an options or a command line switch. opts[-arg] is a colon ':' 
 # separated list for each option or arg that is a list.
 #
+# To enable default options e.g. {all,luks,lvm,toi,gpg,squashd} use 'opts[-luks]=:',
+# 'opts[-lvm]=:' etc.
+#
 # opts[-module-<group>] a list of kernel module group, nls_cp437:vfat should be putted
 # to remdev group for vfat remdev users for example.
 #

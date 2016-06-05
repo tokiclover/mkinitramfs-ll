@@ -1,6 +1,9 @@
 #
 # Header: mkinitramfs-ll/mkinitramfs-ll.conf, 2015/05/28 Exp
 #
+# To enable default options e.g. {all,luks,lvm,toi,gpg,squashd} use 'option_luks=:',
+# 'option_lvm=:' etc.
+#
 # module_<group> a list of kernel module group, nls_cp437,vfat should be putted
 # to remdev group for vfat remdev users for example.
 #
