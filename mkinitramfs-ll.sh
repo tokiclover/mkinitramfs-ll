@@ -1,22 +1,22 @@
 #!/bin/sh
 #
 # $Header: mkinitramfs-ll/mkinitramfs-ll.sh              Exp $
-# $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
 # $Version: 0.20.1 2015/05/28 12:33:03                   Exp $
 #
 
-name=mkinitramfs
-pkg=${name}-ll
+name=mkinitramfs-ll
+package=${name}
 shell=sh
-version=0.21.0
+version=0.22.0
 null=/dev/null
 
 # @FUNCTION: Print help message
 usage() {
   cat <<-EOH
-  ${pkg}.${shell} version ${version}
-  usage: ${pkg} [-a|-all] [OPTIONS]
+  ${package}.${shell} version ${version}
+  Usage: ${0##*/} [-a|-all] [OPTIONS]
 
   -a, --all                   Short variant of "-lLgtq -H'btrfs zfs zram'"
   -f, --font=ter-v14n         Fonts to include in the initramfs
@@ -169,8 +169,8 @@ mktmp() {
 	echo "${tmp}"
 }
 
-[ -f ./${pkg}.conf ] && source ./${pkg}.conf ||
-	die "No ${name}.conf configuration file found"
+[ -f ./${package}.conf ] && source ./${package}.conf ||
+	die "No ${package}.conf configuration file found"
 
 opt="$(getopt \
 	-o ab:c:f:F:gk:lH:KLm:p:qrs:thu:y:\? \
@@ -184,14 +184,14 @@ eval set -- ${opt}
 while true; do
 	case "${1}" in
 		(--) shift; break;;
-		(-a|--all) opt_all=1;;
-		(-l|--lvm) opt_lvm=1;;
-		(-t|--toi) opt_toi=1;;
-		(-g|--gpg) opt_gpg=1;;
-		(-L|--luks) opt_luks=1;;
-		(-q|--squashd) opt_squashd=1;;
-		(-r|--rebuild) opt_rebuild=1;;
-		(-K|--keep-tmpdir) opt_tmpdir=1;;
+		(-a|--all) option_all=':';;
+		(-l|--lvm) option_lvm=':';;
+		(-t|--toi) option_toi=':';;
+		(-g|--gpg) option_gpg=':';;
+		(-L|--luks) option_luks=':';;
+		(-q|--squashd) option_squashd=':';;
+		(-r|--rebuild) option_rebuild=':';;
+		(-K|--keep-tmpdir) option_tmpdir=':';;
 		(-b|--bin) shift; bins="${bins} ${1}";;
 		(-k|--kernel-version) shift; kv="${1}";;
 		(-f|--font) shift; fonts="${1} ${fonts}";;
@@ -225,19 +225,19 @@ done
 # @VARIABLE: (initramfs) Tmporary directory
 tmpdir="$(mktmp ${initramfs})"
 # @DESCRIPTION: (initramfs) Configuration directory
-confdir="etc/${pkg}"
-source "${usrdir}"/lib/${pkg}/functions || exit 1
+confdir="etc/${package}"
+source "${usrdir}"/lib/${package}/functions || exit 1
 eval_colors
 
-if [ -n "${opt_all}" ]; then
-	fonts="${fonts-:}" keymaps="${keymaps-:}" hooks="${hooks} btrfs zfs zram"
-	opt_gpg=true opt_lvm=true opt_squashd=true opt_toi=true opt_luks=true
+if [ -n "${option_all}" ]; then
+	fonts="${fonts:-:}" keymaps="${keymaps:-:}" hooks="${hooks} btrfs zfs zram"
+	option_gpg=true option_lvm=true option_squashd=true option_toi=true option_luks=true
 fi
-if [ -n "${fonts}" -a "${fonts}" = ":" ] && [ -e /etc/conf.d/consolefont ]; then
+if [ -n "${fonts}" -a "${fonts}" = ":" -a -e /etc/conf.d/consolefont ]; then
 	fonts="${fonts} $(sed -nre 's,^consolefont="([a-zA-Z].*)",\1,p' \
 		/etc/conf.d/consolefont)"
 fi
-if [ -n "${keymaps}" -a "${keymaps}" = ":" ] && [ -e /etc/conf.d/keymaps ]; then
+if [ -n "${keymaps}" -a "${keymaps}" = ":" -a -e /etc/conf.d/keymaps ]; then
 	keymaps="${keymaps} $(sed -nre 's,^keymap="([a-zA-Z].*)",\1,p' \
 		/etc/conf.d/keymaps)"
 fi
@@ -275,14 +275,14 @@ if [ -f "${config}" ]; then
 	unset config xgrep CONFIG comp
 fi
 
-echo " >>> Building ${initramfs}..."
+echo -e "${COLOR_BLU}>>>${COLOR_RST} Building ${initramfs}..."
 cd "${tmpdir}" || die "${tmpdir} not found"
 
 if [ -n "${rebuild}" ]; then
-	cp -af "${usrdir}"/lib/${pkg}/functions lib/${pkg} &&
+	cp -af "${usrdir}"/lib/${package}/functions lib/${package} &&
 	cp -af "${usrdir}"/../init . && chmod 775 init || die
 	docpio
-	echo " >>> Regenerated ${initramfs}"
+	echo -e "${COLOR_BLU}>>>${COLOR_RST} Regenerated ${initramfs}"
 	exit
 else
 	rm -fr *
@@ -297,14 +297,14 @@ else
 	die "${usrdir} usrdir not found"
 fi
 mkdir -p usr/share/consolefonts usr/share/keymaps usr/lib${LONG_BIT} \
-	usr/bin usr/sbin sbin bin dev proc sys newroot mnt/tok etc/${pkg} \
-	etc/splash run lib${LONG_BIT}/modules/${kv} lib${LONG_BIT}/${pkg} || die
+	usr/bin usr/sbin sbin bin dev proc sys newroot mnt/tok etc/${package} \
+	etc/splash run lib${LONG_BIT}/modules/${kv} lib${LONG_BIT}/${package} || die
 for dir in lib usr/lib; do
 	ln -s lib${LONG_BIT} ${dir}
 done
 
 {
-	for key in pkg shell version; do
+	for key in name shell version; do
 		eval echo "${key}=\${$key}"
 	done
 	echo "build=$(date +%Y-%m-%d-%H-%M-%S)"
@@ -356,7 +356,7 @@ module_group="${module_group/mdadm/raid}"
 # Set up (requested) hook
 for hook in ${hooks}; do
 	for file in "${usrdir}"/../hooks/*${hook}*; do
-		cp -a "${file}" lib/${pkg}/
+		cp -a "${file}" lib/${package}/
 	done
 	if [ ${?} != 0 ]; then
 		warn "No $hook hook/script does not exist"
@@ -398,7 +398,7 @@ for bin in $(grep '^sbin/' ${confdir}/busybox.applets); do
 done
 
 # Set up a few options
-if [ -n "${opt_luks}" ]; then
+if [ -n "${option_luks}" ]; then
 	bins="${bins} cryptsetup" module_group="${module_group} dm-crypt"
 fi
 if [ -n "${opts_squashd}" ]; then
@@ -412,7 +412,7 @@ if [ -n "${opts_gpg}" ]; then
 		die "No usable gpg/gnupg-1.4.x binary found"
 	fi
 fi
-if [ -n "${opt_lvm}" ]; then
+if [ -n "${option_lvm}" ]; then
 	bins="${bins} lvm" module_group="${module_group} device-mapper"
 fi
 
@@ -426,9 +426,12 @@ for keymap in ${keymaps}; do
 		loadkeys -b -u ${keymap} >usr/share/keymaps/${keymap}-${ARCH}.bin ||
 			die "Failed to build ${keymap} keymap"
 	fi
-	[ ${?} = 0 ] && KEYMAPS="${KEYMAPS+$KEYMAPS }${keymap}-${ARCH}.bin"
+	[ "${?}" = 0 ] && KEYMAPS="${KEYMAPS} ${keymap}-${ARCH}.bin"
 done
-echo "${KEYMAPS%% *}" >${confdir}/kmap
+for keymap in ${KEYMAPS}; do
+	echo "${keymap}" >${confdir}/kmap
+	break
+done
 
 for font in ${fonts}; do
 	if [ -f usr/share/consolefonts/${font} ]; then :;
@@ -443,16 +446,19 @@ for font in ${fonts}; do
 		done
 		mv ${font}* usr/share/consolefonts/
 	fi
-	[ ${?} = 0 ] && FONTS="${FONTS+$FONTS }${font}"
+	[ ${?} = 0 ] && FONTS="${FONTS} ${font}"
 done
-echo "${FONTS%% *}" >${confdir}/font
+for font in ${FONTS}; do
+	echo "${font}" >${confdir}/font
+	break
+done
 unset FONTS font KEYMAPS keymap
 
 # Handle & copy splash themes
 if [ -n "${splash}" ]; then
 	bins="${bins} splash_util.static fbcondecor_helper"
 
-	if [ -n "${opt_toi}" ]; then
+	if [ -n "${option_toi}" ]; then
 		bins="${bins} tuxoniceui_text" && module_group="${module_group} tuxonice"
 	fi
 	for theme in ${splash}; do
@@ -508,8 +514,8 @@ for lib in $(find usr/lib/gcc -iname 'lib*'); do
 done
 
 docpio
-[ -n "${opt_tmpdir}" ] || rm -rf ${tmpdir}
-echo ">>> Built ${initramfs} initramfs"
+[ -n "${option_tmpdir}" ] || rm -rf ${tmpdir}
+echo -e "${COLOR_GRN}>>>${COLOR_RST} Built ${initramfs} initramfs"
 
 #
 # vim:fenc=utf-8:ci:pi:sts=2:sw=2:ts=2:
