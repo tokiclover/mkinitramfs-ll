@@ -155,8 +155,8 @@ donod() {
 	[ -c tty     ] || mknod -m 666 tty     c 5 0 || die
 	[ -c zero    ] || mknod -m 666 zero    c 1 5 || die
 
-	local i=0
-	while [ ${i} -lt 8 ]; do
+	local i
+	for i in 0 2 3 4 5 6 7; do
 		[ -c tty${i} ] || mknod -m 600 tty${i} c 4 ${i} || die
 	done
 	popd || die
