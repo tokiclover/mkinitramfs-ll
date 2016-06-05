@@ -164,8 +164,8 @@ for arg in $CMDLINE; do
 		(ro|rw) export rootflags="${rootflags:+$rootflags,}$arg";;
 		(single) export RUNLEVEL=2         ;;
 		(hook=*) export HOOKS="${arg#*=}"  ;;
-		([Cbcdeiklmnrsz]*=*) export "$arg" ;;
-	 esac
+		([Cbcdefiklmnrsz]*=*) export "$arg";;
+	esac
 done
 
 if [ -n "$level" ]; then
@@ -337,10 +337,10 @@ if grep -q $MNTDIR /proc/mounts; then
 	debug -d umount -l $MNTDIR
 	debug RMMOD remdev
 fi
-if [ -n "$fsmount" ]; then
+if [ -n "$fsmount" -o -n "$fstab" ]; then
 	level 4m
 	begin "Mounting FileSystems"
-	fsmount "$fsmount"
+	fsmount $fsmount $fstab
 	end "$?"
 fi
 
