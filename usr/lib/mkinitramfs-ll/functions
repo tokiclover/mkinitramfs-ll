@@ -459,14 +459,14 @@ mdopen() {
 	case "$_opt" in
 		([Uu][Uu][Ii][Dd]*) _uuid="$_opt"        ;;
 		(/dev/sd*[1-9])  _devices="$_opt"        ;;
-		(/dev/mapper/*[1-9]:*sd*[1-9])
+		(*mapper/*:*sd*[1-9])
 			_devices="${_opt#*:}"
 			_devices="/dev/mapper/md-${_devices#*/}"
 			local _d _p
 			cd /dev
 			for _d in ${_opt#*:}; do
 				_p="md-${_d##*/}"
-				debug -d dmopen $_p:$_d
+				debug -d dmopen "$_p-$_d"
 			done
 			cd /
 			KEYMODE=;;
