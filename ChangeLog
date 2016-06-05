@@ -4,7 +4,9 @@ Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
 Support SOFTWARE RAID on top of DM-CRYPT LUKS;
 Set up the environment properly for hooks (inherit init's environment);
-And there is no need to source {functions,hooks} manualy anymore (in hooks);
+And there is no need to source {functions,helpers} manualy anymore (in hooks);
+Added support to fsmount=all or fstab=all to mount everything (filesystems);
+Miscellaneous changes, updates and fixes.
 
 0.22.0:
 
