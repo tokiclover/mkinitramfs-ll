@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/init                           Exp $
 # $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.22.0 2016/01/10 12:33:03                   Exp $
+# $Version: 0.22.2 2016/06/06 12:33:03                   Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 #
@@ -32,6 +32,7 @@ export CONFDIR LIBDIR LOGFILE MNTDIR NEWROOT SPLASHD init sh
 export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin ENV_CHK NULL
 export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
 exec 3>$LOGFILE
+export LOGFD=3
 
 # @FUNCTION: Handle fatal error
 # @ARG: <msg>
