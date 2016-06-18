@@ -165,6 +165,7 @@ dohook() {
 	$sh -acex "source /run/INIT.ENV;
 		source $LIBDIR/functions;
 		source $LIBDIR/helpers;
+		exec 3>$LOGFILE;
 		source $1;
 		exit;"
 	end "$?"
