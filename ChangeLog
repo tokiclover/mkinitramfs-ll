@@ -1,5 +1,13 @@
 Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
+0.22.3:
+
+Bug fix: append to fd-3 instead of truncating; print helpers clean up.
+
+0.22.2:
+
+Bug fix: create file descriptor 3 for logfile; zram.initd major clean up.
+
 0.22.1:
 
 Support SOFTWARE RAID on top of DM-CRYPT LUKS;
