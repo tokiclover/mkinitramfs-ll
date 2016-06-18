@@ -2,7 +2,7 @@
 # $Header: /lib/mkinitramfs-ll/functions                 Exp $
 # $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.22.1 2016/06/02 12:33:03                   Exp $
+# $Version: 0.22.2 2016/06/06 12:33:03                   Exp $
 #
 
 # @FUNCTION: cut wrapper
@@ -14,23 +14,25 @@ CUT() {
 # @FUNCTION: Print begin message to stdout
 # @ARG: <msg>
 begin() {
-	[ -n "$eol" ] && echo
-	eol=0
-	local prefix=${name:+"$COLOR_MAG[$COLOR_RST $COLOR_BLU$name$COLOR_RST $COLOR_MAG]$COLOR_RST"}
-	echo -en " $prefix $@"
+	echo -en "$PRINT_EOL"
+	PRINT_EOL="\n"
+
+	local prefix="${name:+$COLOR_MAG[$COLOR_RST$COLOR_BLU$name$COLOR_RST$COLOR_MAG]$COLOR_RST}"
+	echo -en "$prefix $@"
 }
 
 # @FUNCTION: Print end message to stdout
 # @ARG: <ret> [<msg>]
 end() {
-	local suffix
+	local ret="$1" suffix
 	case "$1" in
-		(0) suffix="$COLOR_BLU[$COLOR_RST ${COLOR_GRN}Ok${COLOR_RST} $COLOR_BLU]$COLOR_RST";;
-		(*) suffix="$COLOR_YLW[$COLOR_RST ${COLOR_RED}No${COLOR_RST} $COLOR_YLW]$COLOR_RST";;
+		(0) suffix="$COLOR_BLU[$COLOR_RST${COLOR_GRN}ok$COLOR_RST$COLOR_BLU]$COLOR_RST";;
+		(*) suffix="$COLOR_YLW[$COLOR_RST${COLOR_RED}no$COLOR_RST$COLOR_YLW]$COLOR_RST";;
 	esac
 	shift
-	echo -en " $@ $suffix\n"
-	eol=
+	echo -e "$@ $suffix"
+	PRINT_EOL=
+	return "$ret"
 }
 
 # @FUNCTION: Colors handler
@@ -41,29 +43,32 @@ eval_colors() {
 	for clr in 0:BLK 1:RED 2:GRN 3:YLW 4:BLU 5:MAG 6:CYN 7:WHT; do
 		eval export COLOR_${clr#*:}="'$ESC$BLD$FGD${clr%:*}m'"
 	done
-	export COLOR_RST="${ESC}0m"
+	COLOR_RST="${ESC}0m"
+	COLOR_BLD="${ESC}1m"
+	COLOR_UND="${ESC}4m"
+	COLOR_ITA="${ESC}3m"
+	export COLOR_RST COLOR_BLD COLOR_ITA COLOR_UND
 }
 
 # @FUNCTION: Print message to stdout
 # @ARG: <msg>
 info() {
-	local prefix=${name:+" $COLOR_MAG$name:$COLOR_RST"}
-	echo -e${eol+n} "${eol+\n} ${COLOR_BLU}INFO:$COLOR_RST$prefix $@"
+	local prefix="${name:+$COLOR_MAG$name:$COLOR_RST}"
+	echo -e "$PRINT_EOL${COLOR_BLU}INFO:$COLOR_RST$prefix $@"
 }
 
 # @FUNCTION: Print warn message to stdout
 # @ARG: <msg>
-warn()
-{
-	local prefix=${name:+" $COLOR_RED$name:$COLOR_RST"}
-	echo -e${eol+n} "${eol+\n} ${COLOR_YLW}WARN:$COLOR_RST$prefix $@"
+warn() {
+	local prefix="${name:+$COLOR_RED$name:$COLOR_RST}"
+	echo -e "$PRINT_EOL${COLOR_YLW}WARN:$COLOR_RST$prefix $@"
 }
 
 # @FUNCTION: Print message to stderr
 # @ARG: <msg>
 error() {
-	local prefix=${name:+" $COLOR_YLW$name:$COLOR_RST"}
-	echo -e${eol+n} "${eol+\n} ${COLOR_RED}ERROR:$COLOR_RST$prefix $@" >&2
+	local prefix="${name:+$COLOR_YLW$name:$COLOR_RST}"
+	echo -e "$PRINT_EOL${COLOR_RED}ERROR:$COLOR_RST$prefix $@" >&2
 }
 
 # @FUNCTION: Printing message handler
