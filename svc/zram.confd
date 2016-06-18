@@ -1,21 +1,21 @@
 #
-# $Header: mkinitramfs-ll/svc/zram.confd, 2015/04/18 Exp $
+# $Id: mkinitramfs-ll/svc/zram.confd, 2016/06/06 Exp $
 #
 
 # Set the number of zram devices to use
-ZRAM_DEV=4
+ZRAM_DEVICE_NUMBER=4
 # Set compressor algorithm to use
-ZRAM_COMP=lz4
-# Set the maximum number of streams (for compression)
-ZRAM_STREAM=2
+ZRAM_COMPRESSOR=lz4
+# Set the maximum number of streams for (de)compression per device
+ZRAM_STREAM_NUMBER=2
 #
 # ZRAM device definition is defined like:
 # <size> <file-system> <mount-point> <mount-options> <octal-mode>
 # device size should not excede 2xRAM-SIZE to avoid memory waste
 #
-ZRAM_DEV_0='512M swap'
-ZRAM_DEV_1='4G ext4 /var/tmp user_xattr 1777'
-ZRAM_DEV_2='512M ext4 /tmp user_xattr 1777'
+ZRAM_DEVICE_0='512M swap'
+ZRAM_DEVICE_1='4G ext4 /var/tmp user_xattr 1777'
+ZRAM_DEVICE_2='512M ext4 /tmp user_xattr 1777'
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:

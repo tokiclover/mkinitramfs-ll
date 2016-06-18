@@ -1,16 +1,16 @@
 #!/sbin/runscript
 #
 # $Header: mkinitramfs-ll/svc/zram.initd                 Exp $
-# $Author: (c) 2012-5 tokiclover <tokiclover@gmail.com>  Exp $
+# $Author: (c) 2012-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.20.1 2016/02/18 12:33:03                   Exp $
+# $Version: 0.22.1 2016/06/06 12:33:03                   Exp $
 #
 
 description="Set up & initialize ZRAM devices"
 description_reset="Reset ZRAM devices"
 extra_commands=reset
 
-:	${ZRAM_DEV:=4}
+:	${ZRAM_DEVICE_NUMBER:=4}
 :	${NULL=/dev/null}
 
 depend()
@@ -32,15 +32,15 @@ start()
 		if [ "$(cat /sys/block/${dev##*/}/size)" != 0 ]; then
 			offset=$((${offset}+1)); continue;
 		fi
-		eval set -- \${ZRAM_DEV_${num}}
+		eval set -- \${ZRAM_DEVICE_${num}}
 		size="${1}" fs="${2}" dir="${3}" opt="${4}" mode="${5}"
 		#
 		# Initialize device if defined
 		#
 		DEV="/sys/block/${dev##*/}"
 		[ -n "${size}" ] || break
-		[ -n "${ZRAM_COMP}"   ] && echo ${ZRAM_COMP}   >${DEV}/comp_algorithm
-		[ -n "${ZRAM_STREAM}" ] && echo ${ZRAM_STREAM} >${DEV}/max_comp_streams
+		[ -n "${ZRAM_COMPRESSOR}"     ] && echo ${ZRAM_COMPRESSOR}     >${DEV}/comp_algorithm
+		[ -n "${ZRAM_STREAMS_NUMBER}" ] && echo ${ZRAM_STREAMS_NUMBER} >${DEV}/max_comp_streams
 		echo ${size} >${DEV}/disksize
 		#
 		# Setup device if requested
@@ -73,12 +73,12 @@ start()
 
 start_pre()
 {
-	case "${ZRAM_COMP}" in
+	case "${ZRAM_COMPRESSOR}" in
 		(lz4|lzo)     ;;
-		(*) ZRAM_COMP=;;
+		(*) ZRAM_COMPRESSOR=;;
 	esac
-	[ -w /sys/block/zram0/comp_algorithm   ] || ZRAM_COMP=
-	[ -w /sys/block/zram0/max_comp_streams ] || ZRAM_STREAM=
+	[ -w /sys/block/zram0/comp_algorithm   ] || ZRAM_COMPRESSOR=
+	[ -w /sys/block/zram0/max_comp_streams ] || ZRAM_STREAM_NUMBER=
 
 	if grep -qw zram /proc/modules; then
 		if ! rmmod zram >${NULL} 2>&1; then
@@ -87,7 +87,8 @@ start_pre()
 		fi
 	fi
 	ebegin "Setting up zram kernel module"
-	modprobe zram num_devices=${ZRAM_DEV} >${NULL} 2>&1
+	modprobe zram num_devices=${ZRAM_DEVICE_NUMBER} >${NULL} 2>&1
+
 	eend "${?}"
 }
 
@@ -96,7 +97,7 @@ stop()
 	local dev fs dir num=0
 	local CONTINUE='{ num=$((${num}+1)); continue; }'
 	while true; do
-		eval set -- \${ZRAM_DEV_${num}}
+		eval set -- \${ZRAM_DEVICE_${num}}
 		fs="${2}" dir="${3}"
 		case "${fs}" in
 			(swap) ;;
@@ -104,7 +105,7 @@ stop()
 			case "${dir}" in
 				(*/run|*/tmp) ;;
 				(*)
-				if grep -qw "${dir}" /proc/mounts; then
+				if mountinfo "${dir}"; then
 					ebegin "Unmounting ${dir}"
 					umount -l "${dir}" >${NULL} 2>&1
 					eend "${?}"
@@ -121,8 +122,8 @@ reset()
 {
 	local dev ret=0
 	for dev in /dev/zram[0-9]*; do
-		if grep -qw ${dev} /proc/mounts || grep -qw ${dev} /proc/swaps; then
-			ewarn "${dev} is busy"
+		if grep -qw "${dev} " /proc/mounts || grep -qw "${dev} " /proc/swaps; then
+			ewarn "${dev} is mounted"
 			ret=$((${ret}+1))
 			continue
 		fi
