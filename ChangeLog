@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
+0.22.5:
+
+Version bump the ChangeLog for previous release.
+
 0.22.4:
 
 Important installation path fix for {ba,z}sh scripts.
