@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
+0.22.4:
+
+Important installation path fix for {ba,z}sh scripts.
+
 0.22.3:
 
 Bug fix: append to fd-3 instead of truncating; print helpers clean up.
