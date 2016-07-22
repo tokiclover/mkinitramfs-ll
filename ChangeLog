@@ -1,5 +1,10 @@
 Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
+0.22.6:
+
+Important typo fixes for svc/{zram,squashdir}.initd; and a stop_pre() fix for
+svc/squashdir.initd.
+
 0.22.5:
 
 Version bump the ChangeLog for previous release.
