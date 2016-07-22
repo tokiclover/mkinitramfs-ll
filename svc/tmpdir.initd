@@ -1,9 +1,9 @@
 #!/sbin/runscript
 #
 # $Header: mkinitramfs-ll/svc/squashdir.initd            Exp $
-# $Author: (c) 2012-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2012-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.20.0 2015/04/18 12:33:03                   Exp $
+# $Version: 0.20.0 2016/07/20 12:33:03                   Exp $
 #
 
 description="Temporary directory (with optional backup) setup"
@@ -14,6 +14,8 @@ description_save="Archive temporary directories"
 :	${compressor:=lz4 -1}
 :	${extension:=.tar.${compressor%% *}}
 :	${NULL=/dev/null}
+mount="$(command -v mount 2>${NULL})"
+umount="$(command -v umount 2>${NULL})"
 
 depend()
 {
@@ -29,10 +31,10 @@ start()
 
 	for dir in ${tmpdir_saved} ${tmpdir_unsaved}; do
 		DIR="${tmpdir_root}${dir}"
-		grep -q "${DIR}" /proc/mounts && continue
+		mountinfo -q "${DIR}" && continue
 		mkdir -p "${DIR}"
 		ebegin  "Mounting ${DIR}"
-		mount --bind "${DIR}" "${dir}" >${NULL} 2>&1
+		${mount} --bind "${DIR}" "${dir}" >${NULL} 2>&1
 		eend "$?"
 	done
 	restore
@@ -49,9 +51,9 @@ stop()
 			(*/log|*/run|*/tmp) continue;;
 		esac
 		DIR="${tmpdir_root}${dir}"
-		grep -q "${DIR}" /proc/mounts || continue
+		mountinfo -q "${DIR}" || continue
 		ebegin  "Unmounting ${DIR}"
-		umount -l "${DIR}" >${NULL} 2>&1
+		${umount} -l "${DIR}" >${NULL} 2>&1
 		eend "$?"
 	done
 	return 0
@@ -65,10 +67,10 @@ start_pre()
 		[ -d "${dir}" ] && save "${dir}" || mkdir -p "${dir}"
 	done
 
-	grep -q "${tmpdir_root}" /proc/mounts && return
+	mountinfo -q "${tmpdir_root}" && return
 	yesno ${use_zram} && ewarn "No suitable (zram) root-dir found"
 	mkdir -p "${tmpdir_root}"
-	mount -o rw,nodev,relatime,mode=0755,size=${tmpdir_size:-20%} \
+	${mount} -o rw,nodev,relatime,mode=0755,size=${tmpdir_size:-20%} \
 		-t tmpfs tmp "${tmpdir_root}" || return 2
 }
 
