@@ -1,21 +1,22 @@
 #!/sbin/runscript
 #
 # $Header: mkinitramfs-ll/svc/squashdir.initd            Exp $
-# $Author: (c) 2012-2015 -tclover <tokiclover@gmail.com> Exp $
+# $Author: (c) 2012-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.21.0 2015/05/28 12:33:03                   Exp $
+# $Version: 0.22.0 2016/07/20 12:33:03                   Exp $
 #
 
-description="(AUFS+SquashFS) squash-directories"
+description="Set up (AUFS|OverlayFS+SquashFS) union filesystems"
 
 :	${NULL=/dev/null}
+:	${sdr:=$(command -v sdr 2>${NULL})}
 :	${squash_rootdir:=/squash}
-:	${sdr:=$(type -p sdr 2>${NULL})}
-
 case "${squash_filesystem}" in
 	(aufs|overlay) ;;
 	(*) squash_filesystem=;;
 esac
+mount="$(command -v mount 2>${NULL})"
+umount="$(command -v umount 2>${NULL})"
 
 depend()
 {
@@ -32,7 +33,7 @@ start_pre()
 	for mod in ${squash_filesystem:-aufs overlay} squashfs; do
 		grep -q ${mod} /proc/filesystems || modprobe ${mod} >${NULL} 2>&1 ||
 			case "${mod}" in
-				(overlay|squashfs) { end 1 ${mod}; return 1; };;
+				(overlay|squashfs) { eend 1 ${mod}; return 1; };;
 				(aufs) continue;;
 			esac
 		case "${mod}" in
@@ -57,7 +58,7 @@ stop()
 	for dir in ${squash_localdir}; do
 		squash_umount "${squash_rootdir}" "${dir}"
 	done
-	for dir in ${squashdir_sysdir}; do
+	for dir in ${squash_sysdir}; do
 		squash_remount "${dir}" "ro"
 	done
 	return 0
@@ -65,6 +66,12 @@ stop()
 
 stop_pre()
 {
+	local mod
+	for mod in ${squash_filesystem:-aufs overlay}; do
+		grep -q ${mod} /proc/filesystems &&
+			{ squash_filesystem="${mod}"; break; }
+	done
+	[ -n "${squash_filesystem}"  ] || return
 	[ -n "${squash_rebuild_dir}" ] || return 0
 	[ -n "${sdr}" -a -x "${sdr}" ] || { ewarn "No suitable sdr found."; return; }
 
@@ -78,7 +85,7 @@ restart()
 	stop
 	start
 	local dir
-	for dir in ${squashdir_sysdir}; do
+	for dir in ${squash_sysdir}; do
 		squash_remount "${dir}" "rw"
 	done
 	return 0
@@ -86,52 +93,66 @@ restart()
 
 squash_mount()
 {
-	local DIR opt
+	local DIR message mnt_opts
 	DIR="${1}/${2#/}" dir="/${2#/}"
-	grep -q ${squash_filesystem}:${dir} /proc/mounts && return
+	grep -qs ${squash_filesystem}:${dir} /proc/mounts && return
+	[ -f ${DIR}.squashfs ] || return
+
 	case "${squash_filesystem}" in
 		(aufs)
 			mkdir -p -m 0755 ${DIR}/rr ${DIR}/rw
-			opt=nodev,udba=reval,br:${DIR}/rw:${DIR}/rr;;
+			mnt_opts="nodev,udba=reval,br:${DIR}/rw:${DIR}/rr"
+			message=AUFS;;
 		(overlay)
 			mkdir -p -m 0755 ${DIR}/rr ${DIR}/up ${DIR}/wk
-			opt=nodev,upperdir=${DIR}/up,lowerdir=${DIR}/rr,workdir=${DIR}/wk;;
+			mnt_opts="nodev,upperdir=${DIR}/up,lowerdir=${DIR}/rr,workdir=${DIR}/wk"
+			message=OverlayFS;;
 	esac
 
 	ebegin "Mounting ${squash_filesystem}:${dir}"
-	if ! grep -q ${DIR}/rr /proc/mounts; then
-		mount -t squashfs -o nodev,ro ${DIR}.squashfs ${DIR}/rr \
+	if ! mountinfo -q ${DIR}/rr; then
+		${mount} -t squashfs -o nodev,ro ${DIR}.squashfs ${DIR}/rr \
 			>${NULL} 2>&1 || { eend 1 SquashFS; return 1; }
 	fi
-	mount -t ${squash_filesystem} -o ${opt} \
+	${mount} -t ${squash_filesystem} -o ${mnt_opts} \
 		${squash_filesystem}:${dir} ${dir} >${NULL} 2>&1
-	eend "${?}" "${squash_filesystem}"
+	eend "${?}" "${message}"
 }
 
 squash_umount()
 {
-	local DIR opt
+	local DIR mnt_opts message
 	DIR="${1}/${2#/}" dir="/${2#/}"
+	grep -qs ${squash_filesystem}:${dir} /proc/mounts || return
 
-	case "${RC_UNAME}" in
-		(Linux) opt="-O no_netdev";;
-	esac
+	if [ "${RC_UNAME}" = "Linux" ]; then
+		mnt_opts="-O no_netdev"
+	fi
 	case "${squash_filesystem}" in
-		(aufs) auplink ${dir} flush >${NULL} 2>&1;;
+		(aufs) auplink ${dir} flush >${NULL} 2>&1
+			message=AUFS;;
+		(*) message=OverlayFS;;
 	esac
 	ebegin "Umounting ${squash_filesystem}:${dir}"
-	umount -l ${opt} ${squash_filesystem}:${dir} >${NULL} 2>&1 ||
-		{ eend 1 ${squash_filesystem}; return 1; }
-	umount -l ${opt} ${DIR}/rr   >${NULL} 2>&1
-	eend ${?} SquashFS
+	${umount} -l ${mnt_opts} ${squash_filesystem}:${dir} >${NULL} 2>&1 ||
+		{ eend 1 ${message}; return 1; }
+	${umount} -l ${mnt_opts} ${DIR}/rr   >${NULL} 2>&1
+	eend "${?}" SquashFS
 }
 
 squash_remount()
 {
+	local message mnt_opts="${2:-ro}"
 	dir="/${1#/}"
-	ebegin "Re-Mounting ${squash_filesystem}:${DIR}"
-	mount -o remount,${2:-ro} ${squash_filesystem}:${dir} >${NULL} 2>&1
-	eend ${?}
+	if [ "${mnt_opts}" = "ro" ]; then
+		message=read-only
+	else
+		message=read-write
+	fi
+	grep -qs ${squash_filesystem}:${dir} /proc/mounts || return
+	ebegin "Remounting ${squash_filesystem}:${dir} (${message})"
+	${mount} -o remount,${mnt_opts} ${squash_filesystem}:${dir} >${NULL} 2>&1
+	eend "${?}"
 }
 
 #
