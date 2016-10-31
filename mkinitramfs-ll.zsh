@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.zsh             Exp $
 # $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.22.0 2016/06/02 12:33:03                   Exp $
+# $Version: 0.22.0 2016/10/31 12:33:03                   Exp $
 #
 
 typeset -A PKGINFO
@@ -20,6 +20,7 @@ function usage {
   Usage: ${PKGINFO[name]}.${PKGINFO[shell]} [-a|-all] [options]
 
   -a, --all                   Short variant of '-lLgtq -H:btrfs:zfs:zram'
+  -e, --extension=cpio.img    Extension to use (default to cpio.\$compressor)
   -f, --font=REGEX            Fonts to include in the initramfs
   -F, --firmware=REGEX        Firmware file/directory to include
   -k, --kernel-version=KV     Build an initramfs for kernel version VERSION
@@ -119,8 +120,8 @@ typeset -A opts
 typeset -a opt
 
 opt=(
-	"-o" "ab:c:f:F:gk:lH:KLm:p:qrs:thu:y:?"
-	"-l" "all,bin:,compressor:,firmware:,font:,gpg,help"
+	"-o" "ab:c:e:f:F:gk:lH:KLm:p:qrs:thu:y:?"
+	"-l" "all,bin:,compressor:,extension:,firmware:,font:,gpg,help"
 	"-l" "hook:,luks,lvm,keep-tmpdir,module:,keymap:,kernel-version:"
 	"-l" "module-boot:,module-gpg:,module-remdev:,module-squashd:,module-tuxonice:"
 	"-l" "prefix:,rebuild,splash:,squashd,toi,usrdir:"
@@ -137,7 +138,7 @@ while true; do
 		(-[cdkp]|--[cpu]*|--kernel-*)
 			opts[${1/--/-}]=$2
 			shift 2;;
-		(-[FHbfmsy]|--[bfks]*|--hool|--module-*)
+		(-[FHbefmsy]|--[befks]*|--hool|--module-*)
 			opts[${1/--/-}]+=:$2
 			shift 2;;
 		(--)
@@ -233,7 +234,7 @@ if (( ${+config} )) {
 # @FUNCTION: CPIO image builder
 # @ARG: <out-file>
 function docpio {
-	local ext=.cpio initramfs=${1:-/boot/${opts[-initramfs]}}
+	local extension ext=cpio initramfs=${1:-/boot/${opts[-initramfs]}}
 	local cmd="find . -print0 | cpio -0 -ov -Hnewc"
 
 	case ${opts[-compressor][(w)1]} {
@@ -246,14 +247,15 @@ function docpio {
 		(lz4)   ext+=.lz4;;
 		(*) opts[-compressor]=; warn "initramfs will not be compressed";;
 	}
-	if [[ -f ${initramfs}${ext} ]] {
-	    mv ${initramfs}${ext}{,.old}
+:	${extension:=${opts[-e]:-${opts[-extension]:-${ext}}}}
+	if [[ -f ${initramfs}.${extension} ]] {
+	    mv ${initramfs}.${extension}{,.old}
 	}
-	if [[ -n ${ext#.cpio} ]] {
+	if [[ -n ${extension#cpio} ]] {
 		cmd+=" | ${=opts[-compressor]} -c"
 	}
-	eval ${=cmd} > ${initramfs}${ext} ||
-	die "Failed to build ${initramfs}${ext} initramfs"
+	eval ${=cmd} > ${initramfs}.${extension} ||
+	die "Failed to build ${initramfs}.${extension} initramfs"
 }
 
 print -P "%F{blue}>>>%f building ${opts[-initramfs]}..."
