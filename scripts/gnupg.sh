@@ -6,7 +6,7 @@
 # $Version: 0.20.0 2015/05/24 12:33:03                   Exp $
 #
 
-name=busybox
+name=gnupg
 shell=sh
 version=0.20.0
 
