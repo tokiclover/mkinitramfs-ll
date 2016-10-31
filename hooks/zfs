@@ -61,6 +61,7 @@ fi
 if [ -n "$resume" ]; then
 	debug dozfs "RESU" "3" "$resume" "-N"
 	retval=$(($?+$ratval))
+fi
 if [ -n "$root"   ]; then
 	debug dozfs "ROOT" "1" "$root"
 	retval=$(($?+$retval))
