@@ -37,6 +37,7 @@ while true; do
 		(-u|--useflag) useflag="${2}"; shift;;
 		(-v|--version) vsn="${2}"; shift;;
 		(-?|-h|--help|*) usage;;
+		(--) shift; break;;
 	esac
 	shift
 done
