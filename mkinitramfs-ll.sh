@@ -3,7 +3,7 @@
 # $Header: mkinitramfs-ll/mkinitramfs-ll.sh              Exp $
 # $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.20.1 2015/05/28 12:33:03                   Exp $
+# $Version: 0.22.0 2016/10/31 12:33:03                   Exp $
 #
 
 name=mkinitramfs-ll
@@ -19,6 +19,7 @@ usage() {
   Usage: ${0##*/} [-a|-all] [OPTIONS]
 
   -a, --all                   Short variant of "-lLgtq -H'btrfs zfs zram'"
+  -e, --extension=cpio.img    Extension to use (default to cpio.\$compressor)
   -f, --font=ter-v14n         Fonts to include in the initramfs
   -F, --firmware=name         Firmware file/directory to include
   -k, --kernel-version=KV     Build an initramfs for kernel version VERSION
@@ -87,7 +88,7 @@ docp() {
 
 # @FUNCTION: CPIO image builder
 docpio() {
-	local ext=.cpio irfs=${1:-/boot/$initramfs}
+	local ext=.cpio file=${1:-/boot/$initramfs}
 	local cmd="find . -print0 | cpio -0 -ov -Hnewc"
 
 	case "${compressor%% *}" in
@@ -100,14 +101,15 @@ docpio() {
 		(lz4)   ext+=.lz4;;
 		(*) compressor=; warn "Initramfs will not be compressed";;
 	esac
-	if [ -f ${irfs}${ext} ]; then
-	    mv ${irfs}${ext} ${irfs}${ext}.old
+:	${extension:=${ext}}
+	if [ -f ${file}.${extension} ]; then
+	    mv ${file}.${extension} ${file}.${extension}.old
 	fi
-	if [ -n "${ext#.cpio}" ]; then
+	if [ -n "${extension#.cpio}" ]; then
 		cmd+=" | ${compressor} -c"
 	fi
-	eval ${cmd} >/${irfs}${ext} ||
-	die "Failed to build ${irfs}${ext} initramfs"
+	eval ${cmd} >/${file}.${extension} ||
+	die "Failed to build ${file}.${extension} initramfs"
 }
 
 # @FUNCTION: Kernel module copy helper
@@ -173,8 +175,8 @@ mktmp() {
 	die "No ${package}.conf configuration file found"
 
 opt="$(getopt \
-	-o ab:c:f:F:gk:lH:KLm:p:qrs:thu:y:\? \
-	-l all,bin:,compressor:,firmware:,font:,gpg,help \
+	-o ab:c:e:f:F:gk:lH:KLm:p:qrs:thu:y:\? \
+	-l all,bin:,compressor:,extension:,firmware:,font:,gpg,help \
 	-l hook:,luks,lvm,keep-tmpdir,module:,keymap:,kernel-version: \
 	-l module-boot:,module-gpg:,module-remdev:,module-squashd:,module-tuxonice: \
 	-l prefix:,rebuild,splash:,squashd,toi,usrdir: \
@@ -194,6 +196,7 @@ while true; do
 		(-K|--keep-tmpdir) option_tmpdir=':';;
 		(-b|--bin) shift; bins="${bins} ${1}";;
 		(-k|--kernel-version) shift; kv="${1}";;
+		(-e|--extension) shift; extension="${1}";;
 		(-f|--font) shift; fonts="${1} ${fonts}";;
 		(-c|--compressor) shift; compressor="${1}";;
 		(-y|--keymap) shift; keymaps="${1} ${keymaps}";;
