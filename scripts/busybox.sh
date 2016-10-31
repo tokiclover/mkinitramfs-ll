@@ -61,7 +61,7 @@ else
 fi
 
 mkdir -p "${usrdir}"/bin
-OLDPWD="${PORTDIR:-/usr/portage}/sys-apps/busybox"
+oldpwd="${PORTDIR:-/usr/portage}/sys-apps/busybox"
 cd "${oldpwd}" || die
 ebuild ${pkg}.ebuild clean || die "clean failed"
 ebuild ${pkg}.ebuild unpack || die "unpack failed"
