@@ -411,7 +411,7 @@ dmopen() {
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
 		local _i
 		for _i in 1 2 3; do
-			debug "gpg -qd \"$KEYFILE\" | cryptsetup $_arg"
+			debug "gpg -qd \"$KEYFILE\" | cryptsetup $_arg --key-file=-"
 		done
 		rm /dev/tty && mv -f /dev/bak /dev/tty
 		;;
