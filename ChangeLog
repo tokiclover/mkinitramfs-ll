@@ -1,5 +1,10 @@
 Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
+0.22.7:
+
+Minor fixes all over the place in {busybox,gnupg}.sh, zfs hook, and dmopen()
+when using GnuPG key thanks to szorfein.
+
 0.22.6:
 
 Important typo fixes for svc/{zram,squashdir}.initd; and a stop_pre() fix for
