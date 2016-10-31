@@ -46,7 +46,7 @@ while true; do
 	shift
 done
 
-:	${usrdir:="${PWD}"/usr}
+:	${usrdir:=${PWD}/usr}
 pkg=busybox
 
 [ -f /etc/portage/make.conf ] && source /etc/portage/make.conf ||

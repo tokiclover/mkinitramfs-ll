@@ -69,6 +69,8 @@ all:
 install-all: install install-services install-sh-scripts
 install: install-dir install-dist
 install-dist: $(DISTFILES) install-doc install-hooks
+		sed -e 's:\$${PWD}.*/usr:$(DATADIR)/$(PACKAGE)/usr:g' \
+			-i $(DESTDIR)$(DATADIR)/$(PACKAGE)/scripts/*.sh
 install-dir : $(keep_DIRS)
 	$(MKDIR_P) $(base_DIRS:%=$(DESTDIR)%)
 install-doc : install-extra

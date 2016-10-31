@@ -46,7 +46,7 @@ done
 source "${usrdir}"/lib/mkinitramfs-ll/functions || exit 1
 eval_colors
 
-:	${usrdir:="${PWD}"/usr}
+:	${usrdir:=${PWD}/usr}
 :	${vsn:=1.4}
 # @VARIABLE: GnuPG version to use
 pkg=$(emerge -pvO "=app-crypt/gnupg-${vsn}*" |
