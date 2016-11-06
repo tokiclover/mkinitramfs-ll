@@ -36,8 +36,8 @@ while true; do
 		(-d|--usrdir) usrdir="${2}"; shift;;
 		(-u|--useflag) useflag="${2}"; shift;;
 		(-v|--version) vsn="${2}"; shift;;
-		(-?|-h|--help|*) usage;;
 		(--) shift; break;;
+		(-?|-h|--help|*) usage;;
 	esac
 	shift
 done
@@ -53,8 +53,8 @@ eval_colors
 pkg=$(emerge -pvO "=app-crypt/gnupg-${vsn}*" |
 	grep -o "gnupg-[-0-9.r]*")
 
-cd ${PORTDIR:-/usr/portage}/sys-apps/busybox
 mkdir -p "${usrdir}"/{bin,share/gnupg}
+cd ${PORTDIR:-/usr/portage}/sys-apps/busybox
 ebuild ${pkg}.ebuild clean || die
 USE="nls static ${useflag}" ebuild ${pkg}.ebuild compile || die
 tmp="${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/${pkg}/work/${pkg}"
