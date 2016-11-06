@@ -105,7 +105,7 @@ docpio() {
 	if [ -f ${file}.${extension} ]; then
 	    mv ${file}.${extension} ${file}.${extension}.old
 	fi
-	if [ -n "${extension#.cpio}" ]; then
+	if [ -n "${ext#.cpio}" ]; then
 		cmd+=" | ${compressor} -c"
 	fi
 	eval ${cmd} >/${file}.${extension} ||
