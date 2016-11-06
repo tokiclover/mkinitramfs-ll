@@ -53,17 +53,15 @@ eval_colors
 pkg=$(emerge -pvO "=app-crypt/gnupg-${vsn}*" |
 	grep -o "gnupg-[-0-9.r]*")
 
+cd ${PORTDIR:-/usr/portage}/sys-apps/busybox
 mkdir -p "${usrdir}"/{bin,share/gnupg}
-oldpwd="${PORTDIR:-/usr/portage}/app-crypt/gnupg"
-cd "${oldpwd}" || die
 ebuild ${pkg}.ebuild clean || die
 USE="nls static ${useflag}" ebuild ${pkg}.ebuild compile || die
-cd "${PORTAGE_TMPDIR:-/var/tmp}"/portage/app-crypt/${pkg}/work/${pkg} || die
-
-cp -a g10/gpg          "${usrdir}"/bin/ || die
-cp -a g10/options.skel "${usrdir}"/share/gnupg/ || die
-cd "${oldpwd}" || die
+tmp="${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/${pkg}/work/${pkg}"
+cp -a ${tmp}/g10/gpg          "${usrdir}"/bin/ || die
+cp -a ${tmp}/g10/options.skel "${usrdir}"/share/gnupg/ || die
 ebuild ${pkg}.ebuild clean || die
+cd "${OLDPWD}"
 
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
