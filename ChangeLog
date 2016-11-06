@@ -1,5 +1,10 @@
 Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
+0.22.8:
+
+Tiny fixes all over the place (GnuPG decrypt and busybox related tiny fixes)
+thanks to szorfein.
+
 0.22.7:
 
 Minor fixes all over the place in {busybox,gnupg}.sh, zfs hook, and dmopen()
