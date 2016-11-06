@@ -56,15 +56,15 @@ else
 	pkg=$(emerge -pvO ${pkg} | grep -o "busybox-[-0-9.r]*")
 fi
 
+cd ${PORTDIR:-/usr/portage}/sys-apps/busybox
 mkdir -p "${usrdir}"/bin
-oldpwd="${PORTDIR:-/usr/portage}/sys-apps/busybox"
-cd "${oldpwd}" || die
 USE=static ebuild ${pkg}.ebuild clean || die "clean failed"
 USE=static ebuild ${pkg}.ebuild unpack || die "unpack failed"
 USE=static ebuild ${pkg}.ebuild compile || die "compile failed"
 cp "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/${pkg}/work/${pkg}/busybox \
 	"${usrdir}"/bin/ || die
 ebuild ${pkg}.ebuild clean || die
+cd "${OLDPWD}"
 
 #
 # vim:fenc=utf-8:ci:pi:sts=0:sw=4:ts=4:
