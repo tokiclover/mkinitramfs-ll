@@ -378,7 +378,7 @@ elif type -p busybox >${null} 2>&1; then
 	bb=$(type -p busybox 2>${null})
 	if ldd ${bb} >${null} 2>&1; then
 		busybox --list-full >${confdir}/busybox.applets
-		bin="${bb} ${bin}"
+		bins="${bb} ${bins}"
 		warn "busybox is not a static binary"
 	fi
 	cp -a ${bb} bin/
