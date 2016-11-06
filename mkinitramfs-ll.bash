@@ -256,7 +256,7 @@ function docpio {
 	if [[ -f ${initramfs}.${extension} ]]; then
 	    mv ${initramfs}.${extension}{,.old}
 	fi
-	if [[ -n "${extension#cpio}" ]]; then
+	if [[ -n "${ext#cpio}" ]]; then
 		cmd+=" | ${opts[-compressor]} -c"
 	fi
 	eval ${cmd} > /${initramfs}.${extension} ||
