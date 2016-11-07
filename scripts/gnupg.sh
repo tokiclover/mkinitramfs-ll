@@ -54,7 +54,7 @@ pkg=$(emerge -pvO "=app-crypt/gnupg-${vsn}*" |
 	grep -o "gnupg-[-0-9.r]*")
 
 mkdir -p "${usrdir}"/{bin,share/gnupg}
-cd ${PORTDIR:-/usr/portage}/sys-apps/busybox
+cd ${PORTDIR:-/usr/portage}/app-crypt/gnupg
 ebuild ${pkg}.ebuild clean || die
 USE="nls static ${useflag}" ebuild ${pkg}.ebuild compile || die
 tmp="${PORTAGE_TMPDIR:-/var/tmp}/portage/app-crypt/${pkg}/work/${pkg}"

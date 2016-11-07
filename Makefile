@@ -33,7 +33,6 @@ dist_COMMON = \
 	usr/etc/group \
 	usr/etc/modprobe.d/zfs.conf \
 	scripts/minimal.applets \
-	scripts/minimal.config \
 	usr/lib/$(PACKAGE)/functions \
 	usr/lib/$(PACKAGE)/helpers \
 	usr/root/.gnupg/gpg.conf \
