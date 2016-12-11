@@ -191,7 +191,7 @@ while read _line; do
 		esac;;
 	esac
 done < $CONFDIR/env
-$CHECK_ENV && debug app_chk
+$CHECK_ENV && debug check_applet
 
 DEBUG="${debug%:*}"
 CUT "DMESG" "$debug" ":" "2" "-s"

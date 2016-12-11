@@ -152,7 +152,7 @@ bin_chk() {
 }
 
 # @FUNCTION: BusyBox Applets ChecK
-app_chk() {
+check_applet() {
 	local _line _list=$CONFDIR/busybox.applets
 	[ -f $_list ] || busybox --list-full >$_list
 
