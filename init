@@ -108,7 +108,7 @@ resume() {
 		else
 			_hpr=tuxoniceui_text
 		fi
-		$CHECK_ENV && debug -d bin_chk $_hpr && _hpr="$(type -p $_hpr)"
+		$CHECK_ENV && debug -d check_bin $_hpr && _hpr="$(type -p $_hpr)"
 
 		debug MODPROBE tuxonice
 		echo $_hpr >/sys/power/tuxonice/user_interface/program

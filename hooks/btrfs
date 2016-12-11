@@ -11,7 +11,7 @@ set +e
 dobtrfs() {
 	echo $$ >/run/${0##*/}.pid
 	local _bin _CHK _dev _DEV DEV name=btrfs
-	$CHECK_ENV && debug -d bin_chk btrfs
+	$CHECK_ENV && debug -d check_bin btrfs
 	debug MODPROBE btrfs
 
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"

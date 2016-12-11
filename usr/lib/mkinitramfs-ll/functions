@@ -123,7 +123,7 @@ debug() {
 rescue_shell() {
 	if $SPLASHD; then
 		debug openvt -c${CONSOLE:8:1} $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
-	elif bin_chk setsid; then
+	elif check_bin setsid; then
 		debug setsid $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
 	else
 		debug $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
@@ -144,7 +144,7 @@ yesno() {
 
 # @FUNCTION: Binary ChecK helper
 # @ARG: <bin>
-bin_chk() {
+check_bin() {
 	local _cmd
 	for _cmd; do
 		type -p $_cmd 1>$NULL 2>&1 || return
@@ -317,7 +317,7 @@ get_key() {
 		;;
 	esac
 	case $_km in
-		(gpg) $CHECK_ENV && debug -d bin_chk gpg
+		(gpg) $CHECK_ENV && debug -d check_bin gpg
 		      [ -f $CONFDIR/gpg ] && debug MODPROBE gpg
 		      export KEYFILE="$MNTDIR/$_fp" KEYMODE=gpg    ;;
 		(reg) export KEYFILE="$MNTDIR/$_fp" KEYMODE=reg    ;;
@@ -380,7 +380,7 @@ dmcrypt() {
 # @FUNCTION: dm-crypt LUKS device handler
 # @ARG: <map-dev+header>
 dmopen() {
-	$CHECK_ENV && debug -d bin_chk cryptsetup
+	$CHECK_ENV && debug -d check_bin cryptsetup
 	debug MODPROBE dm-crypt
 
 	local _dm _arg _name="$2"
@@ -426,7 +426,7 @@ dmopen() {
 # @FUNCTION: LVM handler
 # @ARG: <vg-lv> [<map-pv>]
 lvopen() {
-	$CHECK_ENV && debug -d bin_chk lvm
+	$CHECK_ENV && debug -d check_bin lvm
 	debug MODPROBE device-mapper
 	local _lv="${1/-//}"
 
@@ -482,7 +482,7 @@ mdopen() {
 		                     _set="$_opt"        ;;
 	esac
 	if [ -n "$_uuid" -o -n "$_devices" ]; then
-		$CHECK_ENV && debug -d bin_chk mdadm
+		$CHECK_ENV && debug -d check_bin mdadm
 		debug MODPROBE raid
 	
 		if [ -n "$_uuid" ]; then
@@ -492,7 +492,7 @@ mdopen() {
 		fi
 		debug mdadm --assemble ${_uuid:+-u${_uuid#*=}} -c/etc/mdadm.conf $_dev
 	else
-		$CHECK_ENV && debug -d bin_chk dmraid
+		$CHECK_ENV && debug -d check_bin dmraid
 		debug MODPROBE dm-raid
 
 		local _f _s
