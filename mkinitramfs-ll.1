@@ -282,6 +282,17 @@ Exit the rescue shell to resume booting.
 A rescue shell is also available in any `read' loop (when a password or a device
 is requested.) Any (case insensitive) `Rsh|Sh|Shell|Rescue' (Enter) may be used
 to get a rescue shell (`exit' to leave it.)
+.TP
+.RB RUNLEVEL=2
+Pass RUNLEVEL to init; using
+.B single
+kernel command line argument pass
+.B RUNLEVEL=2
+to init.
+But this is only SysVinit hardcoding. Other init binary might support other
+values, so using
+.B RUNLEVEL
+directly prevent from using this hardcoded value.
 .SH OPTIONS
 .TP
 .SS KEYMODES
