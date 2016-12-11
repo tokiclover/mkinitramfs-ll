@@ -120,7 +120,7 @@ debug() {
 }
 
 # @FUNCTON: Rescue SHell helper
-rsh() {
+rescue_shell() {
 	if $SPLASHD; then
 		debug openvt -c${CONSOLE:8:1} $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
 	elif bin_chk setsid; then

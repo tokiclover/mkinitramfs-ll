@@ -30,7 +30,7 @@
 
 export CONFDIR LIBDIR LOGFILE MNTDIR NEWROOT SPLASHD init sh
 export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin CHECK_ENV NULL
-export PS1='-(rsh:$(tty | cut -c6-):$PWD)-# ' PS2='-# '
+export PS1='-($(tty | cut -c6-):$PWD)-# ' PS2='-# '
 exec 3>$LOGFILE
 export LOGFD=3
 
@@ -41,7 +41,7 @@ die() {
 	[ -n "$@" ] && msg -e "[$_ret]: $@"
 	msg -c RED "Dropping to a Rescue Shell"
 	$SPLASHD && splashd_stop
-	debug rsh || debug $sh -aim
+	debug rescue_shell || debug $sh -aim
 }
 
 source $LIBDIR/functions || $sh -aim
@@ -59,7 +59,7 @@ level() {
 		dohook "$_f"
 	done
 	case "$LEVEL" in
-		("$RSH") debug die;;
+		("$RESCUE_SHELL") debug die;;
 	esac
 	return 0
 }
@@ -161,7 +161,7 @@ debug mount -t tmpfs -o mode=755,size=1% tmpfs /run
 CMDLINE="$(cat /proc/cmdline)"
 for arg in $CMDLINE; do
 	case "$arg" in
-		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) export RSH=1;;
+		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) export RESCUE_SHELL=1;;
 		(ro|rw) export rootflags="${rootflags:+$rootflags,}$arg";;
 		(single) export RUNLEVEL=2         ;;
 		(RUNLEVEL=*) export "$arg"         ;;
@@ -171,7 +171,7 @@ for arg in $CMDLINE; do
 done
 
 if [ -n "$level" ]; then
-	RSH="${level%:*}"
+	RESCUE_SHELL="${level%:*}"
 	CUT "RUNLEVEL" "$level" ":" "2" "-s"
 fi
 
@@ -182,7 +182,7 @@ esac
 ${ENV:-true} && [ -f $CONFDIR/env ] &&
 while read _line; do
 	case "${_line%%=*}" in
-		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RUNLEVEL|PATH|RSH) ;;
+		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RUNLEVEL|PATH|RESCUE_SHELL) ;;
 		(NULL|SPLASHD|sh|name) ;;
 		([a-zA-Z]*)
 		case "$env" in
@@ -374,8 +374,8 @@ done
 export -p >/env
 unset CONFDIR LIBDIR LOGFD LOGFILE MNTDIR SPLASHD HOME PATH \
 	CHECK_ENV NULL PS1 PS2 btrfs debug env fsmount hook keymap level \
-	raid resume root rootfs rootflags sh swap luks lvm zfs zram rsh rshell \
-	HOOKS KEYMODE MNTDIR LEVEL RSH RSHELL RESCUE RESCUESHELL rescue rescueshell \
+	raid resume root rootfs rootflags sh swap luks lvm zfs zram \
+	HOOKS KEYMODE MNTDIR LEVEL RESCUE_SHELL \
 	COLOR_BLD COLOR_BLK COLOR_BLU COLOR_CYN COLOR_GRN COLOR_ITA COLOR_MAG \
 	COLOR_RED COLOR_RST COLOR_UND COLOR_WHT COLOR_YLW CONSOLE
 
