@@ -88,7 +88,7 @@ keymaps="azerty dvorak unicode"
 #
 env="${MIR_EXTRA_ENV}"
 # Disable applets/binaries checking
-env="${env} ENV_CHK=false"
+env="${env} CHECK_ENV=false"
 # Set a default rootfs mount option
 #env="${env} rootflags=user_xattr"
 # Set up root options with fsck disabled

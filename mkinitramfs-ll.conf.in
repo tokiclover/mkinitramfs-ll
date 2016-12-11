@@ -93,7 +93,7 @@ opts[-keymap]+=:azerty:dvorak:unicode
 env=(
 	${MIR_EXTRA_ENV}
 	# Disable applets/binaries checking
-	'ENV_CHK=false'
+	'CHECK_ENV=false'
 	# Set a default rootfs mount option
 	#'rootflags=user_xattr'
 	# Set up root options with fsck enabled

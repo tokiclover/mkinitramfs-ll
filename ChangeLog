@@ -50,7 +50,7 @@ Tiny USRDIR installtion setup and update.
 
 0.21.3:
 
-Export NULL and ENV_CHK environment variables (tiny fix);
+Export NULL and CHECK_ENV environment variables (tiny fix);
 and install documentation properly.
 
 0.21.2:

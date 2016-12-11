@@ -14,7 +14,7 @@ set +e
 dozfs() {
 	echo $$ >/run/${0##*/}.pid
 	local bin name=zfs
-	$ENV_CHK && debug -d bin_chk zfs spool
+	$CHECK_ENV && debug -d bin_chk zfs spool
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"
 	local _env="$1" _grp="$2" _vol="$3" _KEY _opt="$4"
 
