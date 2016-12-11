@@ -6,7 +6,7 @@
 #
 
 set +e
-[ -z "$bcache" ] && get_opt "bcache"
+[ -z "$bcache" ] && get_cmdline "bcache"
 
 #
 # FIXME: luks, lvm, raid support?
