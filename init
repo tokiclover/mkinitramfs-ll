@@ -164,6 +164,7 @@ for arg in $CMDLINE; do
 		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) export RSH=1;;
 		(ro|rw) export rootflags="${rootflags:+$rootflags,}$arg";;
 		(single) export RUNLEVEL=2         ;;
+		(RUNLEVEL=*) export "$arg"         ;;
 		(hook=*) export HOOKS="${arg#*=}"  ;;
 		([Cbcdefiklmnrsz]*=*) export "$arg";;
 	esac
@@ -369,10 +370,23 @@ for _dir in /run /sys /dev /proc; do
 	end "$?"
 done
 
+# clean up the environment
+export -p >/env
+unset CONFDIR LIBDIR LOGFD LOGFILE MNTDIR SPLASHD HOME PATH \
+	CHECK_ENV NULL PS1 PS2 btrfs debug env fsmount hook keymap level \
+	raid resume root rootfs rootflags sh swap luks lvm zfs zram rsh rshell \
+	HOOKS KEYMODE MNTDIR LEVEL RSH RSHELL RESCUE RESCUESHELL rescue rescueshell \
+	COLOR_BLD COLOR_BLK COLOR_BLU COLOR_CYN COLOR_GRN COLOR_ITA COLOR_MAG \
+	COLOR_RED COLOR_RST COLOR_UND COLOR_WHT COLOR_YLW CONSOLE
+
 level 4s
 msg -c GRN "Switching Root"
 exec 3>&-
-exec switch_root $NEWROOT ${init:-/sbin/init} $RUNLEVEL
+exec switch_root ${NEWROOT:-/newroot} ${init:-/sbin/init} $RUNLEVEL
+
+msg -c RED "Failed to switch root!"
+. /env
+exec /bin/sh -aim
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
