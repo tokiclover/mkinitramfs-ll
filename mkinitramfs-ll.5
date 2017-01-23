@@ -1,11 +1,11 @@
 .\"
-.\" CopyLeft (c) 2015 -tclover <tokiclover@gmail.com>
+.\" CopyLeft (c) 2015-2017 -tclover <tokiclover@gmail.com>
 .\"
 .\" Distributed under the terms of the 2-clause BSD License as
 .\" stated in the COPYING file that comes with the source files
 .\"
 .pc
-.TH MKINITRAMFS-LL 1 "2016-06-02" "0.22.1" "Init Script Page"
+.TH MKINITRAMFS-LL 1 "2017-01-22" "0.22.1" "File Format Manual"
 .SH NAME
 init \- an initramfs init script
 .SH DESCRIPTION
@@ -265,16 +265,13 @@ Disable default `env' environment variables; Or disable only appended colon
 separated list e.g. `env=:root:init:' to disable `root' & `init' default.
 NOTE: The list start & end with a colon!
 .TP
-.RB level=[\fIlevel\fR][:\fIrunlevel\fR]
+.RB level=[\fIlevel\fR]
 .br
 Set
 .I level
-to halt init in a particular shell run level,
-and/or pass
-.I runlevel
-to real init.
+to halt init in a particular shell run level.
 .TP
-.RB Rescue[Shell]|RSH[ell]\ (case\ insensitive)
+.RB rescue[shell]|rsh[ell]\ (case\ insensitive)
 .br
 Halt init and drop to a rescue shell at shell run level 1.
 Exit the rescue shell to resume booting.
@@ -282,17 +279,6 @@ Exit the rescue shell to resume booting.
 A rescue shell is also available in any `read' loop (when a password or a device
 is requested.) Any (case insensitive) `Rsh|Sh|Shell|Rescue' (Enter) may be used
 to get a rescue shell (`exit' to leave it.)
-.TP
-.RB RUNLEVEL=2
-Pass RUNLEVEL to init; using
-.B single
-kernel command line argument pass
-.B RUNLEVEL=2
-to init.
-But this is only SysVinit hardcoding. Other init binary might support other
-values, so using
-.B RUNLEVEL
-directly prevent from using this hardcoded value.
 .SH OPTIONS
 .TP
 .SS KEYMODES

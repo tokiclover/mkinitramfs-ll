@@ -48,7 +48,7 @@ dist_SCRIPTS= \
 DISTFILES   = $(dist_COMMON) $(dist_SCRIPTS)
 .SECONDEXPANSION:
 base_DIRS   = $(SBINDIR) $(SYSCONFDIR) \
-	$(MANDIR)/man1 $(MANDIR)/man8 \
+	$(MANDIR)/man5 $(MANDIR)/man8 \
 	$(DATADIR)/$(PACKAGE) $(DOCDIR)/$(PACKAGE)-$(VERSION)
 keep_DIRS   = \
 	hooks scripts \
@@ -73,7 +73,7 @@ install-dist: $(DISTFILES) install-doc install-hooks
 install-dir : $(keep_DIRS)
 	$(MKDIR_P) $(base_DIRS:%=$(DESTDIR)%)
 install-doc : install-extra
-	for man in man1/$(PACKAGE).1 man8/$(PACKAGE).8; do \
+	for man in man5/$(PACKAGE).5 man8/$(PACKAGE).8; do \
 		sed -e 's|@SYSCONFDIR@|$(SYSCONFDIR)|g' -e 's|@DATADIR@|$(DATADIR)|g' \
 			$${man#*/} >$(DESTDIR)$(MANDIR)/$${man}; \
 	done

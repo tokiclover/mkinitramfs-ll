@@ -52,7 +52,7 @@ more reliable and consistent kernel command line across various boot loaders.
 DOCUMENTATION
 -------------
 
-See mkinitramfs-ll(1) for more info on kernel command line options
+See mkinitramfs-ll(5) for more info on kernel command line options
 
 See mkinitramfs-ll(8) for more info on the build script options
 
