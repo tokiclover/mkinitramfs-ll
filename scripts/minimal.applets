@@ -1,6 +1,6 @@
 bin/ash
 bin/awk
-bin/blkid
+sbin/blkid
 bin/bunzip2
 bin/bzip2
 bin/cat
@@ -20,6 +20,8 @@ bin/dirname
 bin/dmesg
 bin/dumpkmap
 bin/ed
+bin/egrep
+bin/env
 bin/expr
 sbin/fsck
 bin/grep
@@ -43,10 +45,11 @@ bin/mount
 bin/mv
 bin/openvt
 bin/patch
+bin/printf
 bin/readlink
 bin/rm
 bin/rmdir
-bin/rmmod
+sbin/rmmod
 bin/sed
 bin/seq
 sbin/setconsole
