@@ -88,17 +88,17 @@ docp() {
 
 # @FUNCTION: CPIO image builder
 docpio() {
-	local ext=.cpio file=${1:-/boot/$initramfs}
+	local ext=cpio file=${1:-/boot/$initramfs}
 	local cmd="find . -print0 | cpio -0 -ov -Hnewc"
 
 	case "${compressor%% *}" in
-		(bzip2) ext+=.bz2;;
-		(gzip)  ext+=.gz ;;
-		(xz)    ext+=.xz ;;
-		(lzma)  ext+=.lzma;;
-		(lzip)  ext+=.lz ;;
-		(lzop)  ext+=.lzo;;
-		(lz4)   ext+=.lz4;;
+		(bzip2) ext=${ext}.bz2;;
+		(gzip)  ext=${ext}.gz ;;
+		(xz)    ext=${ext}.xz ;;
+		(lzma)  ext=${ext}.lzma;;
+		(lzip)  ext=${ext}.lz ;;
+		(lzop)  ext=${ext}.lzo;;
+		(lz4)   ext=${ext}.lz4;;
 		(*) compressor=; warn "Initramfs will not be compressed";;
 	esac
 :	${extension:=${ext}}
@@ -390,7 +390,7 @@ if [ ! -f ${confdir}/busybox.applets ]; then
 	bin/busybox --list-full >${confdir}/busybox.applets || die
 fi
 while read bin; do
-	grep -q ${bin} ${confdir}/busybox.applets ||
+	grep -qsw ${bin} ${confdir}/busybox.applets ||
 	die "${bin} applet not found, no suitable busybox found"
 done <"${usrdir}"/../scripts/minimal.applets
 for bin in $(grep  '^bin/' ${confdir}/busybox.applets); do
