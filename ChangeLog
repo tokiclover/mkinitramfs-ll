@@ -1,5 +1,11 @@
 Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
+0.22.10:
+
+Cleaned up environment, so init--PID 1--will not carry all the colors et al.
+environment variables; export only a few variables to avoid poluting init
+environment.
+
 0.22.8:
 
 Tiny fixes all over the place (GnuPG decrypt and busybox related tiny fixes)
