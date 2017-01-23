@@ -8,58 +8,50 @@
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 #
 
-# Enable ChecKing binaries & busybox applets
-:   ${CHECK_ENV=true}
-# Set real (path to) init
-:   ${init=/sbin/init}
-# Set configuration directory path
-:   ${CONFDIR=/etc/mkinitramfs-ll}
-# Set library directory path
-:   ${LIBDIR=/lib/mkinitramfs-ll}
-# Set SHell to use
-:   ${sh=/bin/sh}
-# Set log file to use (for debugging)
-:   ${LOGFILE=$0.log}
-# Set mount point to use for removable token or device
-:   ${MNTDIR=/mnt/tok}
-# Set New root directory to switch root
-:   ${NEWROOT=/newroot}
-# Set SPLash Daemon running state
-:   ${SPLASHD=false}
-:   ${NULL=/dev/null}
-
-export CONFDIR LIBDIR LOGFILE MNTDIR NEWROOT SPLASHD init sh
-export HOME=/root PATH=/sbin:/bin:/usr/bin:/usr/sbin CHECK_ENV NULL
-export PS1='-($(tty | cut -c6-):$PWD)-# ' PS2='-# '
-exec 3>$LOGFILE
-export LOGFD=3
+CHECK_ENV=true
+init=/sbin/init
+confdir=/etc/mkinitramfs-ll
+libdir=/lib/mkinitramfs-ll
+logfile=$0.log
+mntdir=/mnt/tok
+newroot=/newroot
+splashd=false
+NULL=/dev/null
+export SHELL=/bin/sh
+export HOME=/root
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+export TERM=linux
+exec 3>$logfile
+logfd=3
+PS1='-($(tty | cut -c6-):$PWD)-# '
+PS2='-# '
 
 # @FUNCTION: Handle fatal error
 # @ARG: <msg>
 die() {
 	local _ret=$?
 	[ -n "$@" ] && msg -e "[$_ret]: $@"
-	msg -c RED "Dropping to a Rescue Shell"
-	$SPLASHD && splashd_stop
-	debug rescue_shell || debug $sh -aim
+	echo -e "$color_fg_red>>>$color_rst Dropping to a Rescue Shell"
+	$splashd && splashd_stop
+	debug rescue_shell || debug $SHELL -lim
 }
 
-source $LIBDIR/functions || $sh -aim
+. $libdir/functions || $SHELL -lim
 eval_colors
 name=init
 
 # @FUNCTION: Shell Run Level helper
 # @ARG: <level>
 level() {
-	msg -c GRN "Switching to init shell run level $COLOR_BLU$1$COLOR_RST"
-	export LEVEL=$1
+	echo -e "$color_fg_grn>>>$color_rst Switching to init shell run level $color_fg_blu$1$color_rst"
+	level=$1
 
 	local _f
-	for _f in $(ls $LIBDIR/${1}-* 2>$NULL); do
+	for _f in $(ls $libdir/${1}-* 2>$NULL); do
 		dohook "$_f"
 	done
-	case "$LEVEL" in
-		("$RESCUE_SHELL") debug die;;
+	case "$level" in
+		("$rescue_shell") debug die;;
 	esac
 	return 0
 }
@@ -73,21 +65,20 @@ splashd() {
 		sed -e 's#.*input\([0-9]*\)/name.*#event\1#')"
 :	${cachedir:=/run/splash/cache}
 :	${BOOT_MSG:="Booting the system (\$progress%)... Press F2 for verbose mode."}
-:	${SPLASH_FIFO=$cachedir/.splash}
-	export BOOT_MSG SPLASH_FIFO
+:	${splash_fifo=$cachedir/.splash}
 	
 	for _opt in $splash; do
 		case "${_opt%:*}" in
-			(fad*) _opts="set effects $_opt"      ;;
-			(silent|verbose) mode="$_opt"         ;;
-			(tty) export CONSOLE=/dev/"${_opt/:/}";;
-			(theme) theme="${_opt#*:}"            ;;
+			(fad*) _opts="set effects $_opt";;
+			(silent|verbose) mode="$_opt"   ;;
+			(tty) CONSOLE=/dev/"${_opt/:/}" ;;
+			(theme) theme="${_opt#*:}"      ;;
 		esac
 	done
 
 	[ -d "$cachedir" ] || mkdir -p $cachedir
-	debug mkfifo $SPLASH_FIFO
-	debug splash_util -d -ms -t $theme && SPLASHD=true
+	debug mkfifo $splash_fifo
+	debug splash_util -d -ms -t $theme && splashd=true
 	[ -n "$_opts" ] && debug splashd_cmd $_opts
 	debug splashd_cmd "set ${mode:-verbose}"
 	debug splashd_cmd "set event dev /dev/input/$event"
@@ -98,10 +89,10 @@ splashd() {
 # @ARG: <[type:]dev[:signature]>
 resume() {
 	local _asw _dev=$1 _img_sz _hpr
-	grep -q $MNTDIR /proc/mounts && debug -d umount -l $MNTDIR
+	grep -q $mntdir /proc/mounts && debug -d umount -l $mntdir
 
 	if [ -d /sys/power/tuxonice ]; then
-		if $SPLASHD; then
+		if $splashd; then
 			[ -n "$theme" ] &&
 			debug ln -sf "/etc/splash/$theme" /etc/splash/tuxonice
 			_hpr=tuxoniceui_fbsplash
@@ -142,7 +133,7 @@ resume() {
 # -*- Initialisation -*-
 
 debug umask 0077
-debug mkdir -p dev/pts proc run sys $NEWROOT $MNTDIR
+debug mkdir -p dev/pts proc run sys $newroot $mntdir
 
 debug mount -t proc proc /proc
 debug mount -t sysfs sysfs /sys
@@ -161,52 +152,57 @@ debug mount -t tmpfs -o mode=755,size=1% tmpfs /run
 CMDLINE="$(cat /proc/cmdline)"
 for arg in $CMDLINE; do
 	case "$arg" in
-		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) export RESCUE_SHELL=1;;
-		(ro|rw) export rootflags="${rootflags:+$rootflags,}$arg";;
-		(single) export RUNLEVEL=2         ;;
-		(RUNLEVEL=*) export "$arg"         ;;
-		(hook=*) export HOOKS="${arg#*=}"  ;;
-		([Cbcdefiklmnrsz]*=*) export "$arg";;
+		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) rescue_shell=1;;
+		(ro|rw) rootflags="${rootflags:+$rootflags,}$arg";;
+		([Cbcdefhiklmnrsz]*=*) eval "$arg" ;;
 	esac
 done
 
 if [ -n "$level" ]; then
-	RESCUE_SHELL="${level%:*}"
-	CUT "RUNLEVEL" "$level" ":" "2" "-s"
+	rescue_shell="${level%:*}"
 fi
 
-yesno "${env:-YES}"
-case $? in
-	(1) ENV=false;;
+case "$env" in
+	(""|*:*) ENV=true;;
+	(*)
+	yesno "${env:-YES}"
+	case "$?" in
+		(0) ENV=true ;;
+		(*) ENV=false;;
+	esac
+	;;
 esac
-${ENV:-true} && [ -f $CONFDIR/env ] &&
+$ENV && [ -f $confdir/env ] &&
 while read _line; do
-	case "${_line%%=*}" in
-		(CONFDIR|LIBDIR|HOME|KEYMODE|LOGFILE|MNTDIR|NEWROOT|RUNLEVEL|PATH|RESCUE_SHELL) ;;
-		(NULL|SPLASHD|sh|name) ;;
-		([a-zA-Z]*)
+	case "$_line" in
+		(confdir=*|libdir=*|HOME=*|keymode=*|logfile=*|mntdir=*|newroot=*) ;;
+		(PATH=*|rescue_shell=*|NULL=*|splashd=*|SHELL=*|name=*) ;;
+		([A-Za-z]*=*)
 		case "$env" in
-			(*${_line%%=*}*)  ;;
-			(*) export "$_line";;
+			(*:${_line%%=*}:*) ;;
+			(*) eval "$_line"  ;;
 		esac;;
 	esac
-done < $CONFDIR/env
+done < $confdir/env
 $CHECK_ENV && debug check_applet
 
-DEBUG="${debug%:*}"
-CUT "DMESG" "$debug" ":" "2" "-s"
-case "$DEBUG" in
-	(*l*) LOG=true DEBUG="${DEBUG/l/}"
-		exec 2>&3;;
+CUT "dmesg" "$debug" ":" "2" "-s"
+debug="${debug%:*}"
+case "$debug" in
+	(*l*)
+	keeplog=true debug="${debug/l/}"
+	exec 2>&3
+	;;
 esac
-[ -n "$DEBUG" ]  && set -${DEBUG/e/}
-[ -n "$DMESG" ]  && debug dmesg -n $DMESG
+[ -n "$debug" ]  && set -${debug/e/}
+[ -n "$dmesg" ]  && debug dmesg -n $dmesg
+dmesg=
 
-[ -f $CONFDIR/module-boot ] &&
-for _m in $(cat $CONFDIR/module-boot); do
+[ -f $confdir/module-boot ] &&
+for _m in $(cat $confdir/module-boot); do
 	debug MODPROBE $_m
 done
-for _m in $(echo "$module" | sed 's/:/ /g'); do
+for _m in $(echo "$module" | sed 's/[:,]/ /g'); do
 	debug MODPROBE $_m
 done
 
@@ -217,10 +213,10 @@ done
 
 :	${CONSOLE:=${console:-/dev/console}}
 [ "${CONSOLE/dev}" != "$CONSOLE" ] || CONSOLE="/dev/$CONSOLE"
-[ -c $CONSOLE ] || CONFDIR=/dev/console
+[ -c $CONSOLE ] || CONSOLE=/dev/console
 exec 0<$CONSOLE 1>$CONSOLE 2>&1
-export CONSOLE
 eval_colors
+set >/environ
 
 if [ -n "$splash" ]; then
 	begin "Starting Splash"
@@ -234,8 +230,8 @@ if [ -n "$keymap" ]; then
 	CUT "font" "$keymap" "2" ":" "-s"
 	kmap="${keymap%:*}"
 fi
-[ -z "$font" ] && [ -f "$CONFDIR/font" ] && font=$(cat $CONFDIR/font)
-[ -z "$kmap" ] && [ -f "$CONFDIR/kmap" ] && kmap=$(cat $CONFDIR/kmap)
+[ -z "$font" ] && [ -f "$confdir/font" ] && font=$(cat $confdir/font)
+[ -z "$kmap" ] && [ -f "$confdir/kmap" ] && kmap=$(cat $confdir/kmap)
 
 [ -n "$font" ] &&
 for file in /usr/share/consolefonts/$font*; do
@@ -250,25 +246,27 @@ unset file font kmap
 # -*- Logo and or boot message -*-
 level 1
 [ -f /etc/issue.logo ] && cat /etc/issue.logo
-debug test -f /etc/issue && clear &&
+if debug test -f /etc/issue; then
+clear
 while read _line; do
 	msg -i "$_line"
 done </etc/issue
+fi
 
 # -*- Hooks -*-
 level 2
-for hook in bcache btrfs \
-	zfs zram; do
-	eval test -n \"\$$hook\" && eval HOOKS="$hook $HOOKS"
+for _h in bcache btrfs zfs zram; do
+	eval [ \"x\$$_h\" != x ] && hook="$hook $_h"
 done
-export HOOKS="$(echo $HOOKS | sed -e 's/:/ /g')"
-for hook in $HOOKS; do
-	if [ -e "$LIBDIR/$hook" ]; then
-		debug dohook "$LIBDIR/$hook"
+hook="$(echo $hook | sed -e 's/[:,]/ /g')"
+for _h in $hook; do
+	if [ -e "$libdir/$_h" ]; then
+		debug dohook "$libdir/$_h"
 	else
-		error "$hook not found"
+		error "$_h not found"
 	fi
 done
+_h=
 
 # -*- Swap/Resume -*-
 
@@ -297,17 +295,17 @@ fi
 level 3
 # ROOT should be set if available
 dorootfs() {
-	local FS="${rootfs%:*}" CHK ROOT
-	CUT "CHK" "$rootfs" ":" "2" "-s"
+	local fstype="${rootfs%:*}" check
+	CUT "check" "$rootfs" ":" "2" "-s"
 	debug -d get_dev "$root" "ROOT" "1"
 
 	level 3f
-	if [ -n "$CHK" ]; then
-		yesno $CHK && CHK=-d || CHK=-e
-		debug $CHK fsck ${FS:+-t$FS} $ROOT
+	if [ -n "$check" ]; then
+		yesno $check && check=-d || check=-e
+		debug $check fsck ${fstype:+-t} $fstype $ROOT
 	fi
 	level 3m
-	debug mount ${rootflags:+-o} $rootflags ${FS:+-t} $FS $ROOT $NEWROOT ||
+	debug mount ${rootflags:+-o} $rootflags ${fstype:+-t} $fstype $ROOT $newroot ||
 		die "Failed to mount rootfs"
 }
 if [ -z "$ROOT" ]; then
@@ -325,18 +323,16 @@ fi
 # -*- Clean up and switch -*-
 level 4
 
-[ -n "$LBD_KEY" ] &&
-for _k in $(echo $LBD_KEY | sed '/:/ /g'); do
+for _k in $loopback_key; do
 	debug dmclose "$_k"
 done
-[ -n "$LBD_DEV" ] &&
-for _d in $(echo $LBD_DEV | sed 's/:/ /g'); do
+for _d in $loopback_dev; do
 	debug losetup -d $_d
 done
 
-[ "$KEYMODE" = "gpg" ] && debug RMMOD gpg
-if grep -q $MNTDIR /proc/mounts; then
-	debug -d umount -l $MNTDIR
+[ "$keymode" = "gpg" ] && debug RMMOD gpg
+if grep -q $mntdir /proc/mounts; then
+	debug -d umount -l $mntdir
 	debug RMMOD remdev
 fi
 if [ -n "$fsmount" -o -n "$fstab" ]; then
@@ -350,19 +346,19 @@ level 4u
 #
 # FIXME: is this necessary?
 #
-$SPLASHD && debug splashd_stop
+$splashd && debug splashd_stop
 
-if [ -n "$LOG" ]; then
-	cp $LOGFILE $NEWROOT
-	cp $LOGFILE /run
+if [ -n "$keeplog" ]; then
+	cp $logfile $newroot
+	cp $logfile /run
 fi
 
 echo >/proc/sys/kernel/hotplug
 for _dir in /run /sys /dev /proc; do
 	if [ "${SYSFS/${_dir#/}}" != "$SYSFS" ]; then
-		begin "Moving $_dir to $NEWROOT"
-		mkdir -p $NEWROOT$_dir
-		mount -o move $_dir $NEWROOT$_dir >$NULL 2>&1
+		begin "Moving $_dir to $newroot"
+		mkdir -p $newroot$_dir
+		mount -o move $_dir $newroot$_dir >$NULL 2>&1
 	else
 		begin "Unmounting $_dir"
 		umount -l $_dir >$NULL >&1
@@ -370,23 +366,14 @@ for _dir in /run /sys /dev /proc; do
 	end "$?"
 done
 
-# clean up the environment
-export -p >/env
-unset CONFDIR LIBDIR LOGFD LOGFILE MNTDIR SPLASHD HOME PATH \
-	CHECK_ENV NULL PS1 PS2 btrfs debug env fsmount hook keymap level \
-	raid resume root rootfs rootflags sh swap luks lvm zfs zram \
-	HOOKS KEYMODE MNTDIR LEVEL RESCUE_SHELL \
-	COLOR_BLD COLOR_BLK COLOR_BLU COLOR_CYN COLOR_GRN COLOR_ITA COLOR_MAG \
-	COLOR_RED COLOR_RST COLOR_UND COLOR_WHT COLOR_YLW CONSOLE
-
 level 4s
-msg -c GRN "Switching Root"
+set >/environ
+echo -e "$color_fg_grn>>>$color_rst Switching Root"
 exec 3>&-
-exec switch_root ${NEWROOT:-/newroot} ${init:-/sbin/init} $RUNLEVEL
+exec switch_root ${newroot:-/newroot} ${init:-/sbin/init}
 
-msg -c RED "Failed to switch root!"
-. /env
-exec /bin/sh -aim
+echo -e "$color_fg_red>>>$color_rst Failed to switch root!"
+exec >${SHELL:-/bin/sh} -lim
 
 #
 # vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:

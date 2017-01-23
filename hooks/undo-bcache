@@ -5,7 +5,7 @@
 # $Version: 0.22.1 2016/06/02 12:33:03                   Exp $
 #
 
-[ -z "$bcache" ] && get_cmdline "bcache"
+[ -z "$bcache" ] && get_cmdline_option "bcache"
 
 undobcahe() {
 	echo $$ >/run/${0##*/}.pid

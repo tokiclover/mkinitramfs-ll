@@ -5,20 +5,24 @@
 # $Version: 0.22.2 2016/06/06 12:33:03                   Exp $
 #
 
+:	${COLUMNS:=80}
+
 # @FUNCTION: cut wrapper
 # @ARG: <var> <var> <char> <int> <opt>
 CUT() {
-	eval ${1:-REPLY}=$(echo "$2" | cut -d$3 -f${4:-:} $5)
+	eval "${1:-REPLY}=$(echo "$2" | cut -d$3 -f${4:-:} $5)"
 }
 
 # @FUNCTION: Print begin message to stdout
 # @ARG: <msg>
 begin() {
-	echo -en "$PRINT_EOL"
-	PRINT_EOL="\n"
+	local _msg="$*"
+	printf "$print_eol"
+	print_eol="\n"
+	print_len=$((${#msg}+8+${#name}))
 
-	local prefix="${name:+$COLOR_MAG[$COLOR_RST$COLOR_BLU$name$COLOR_RST$COLOR_MAG]$COLOR_RST}"
-	echo -en "$prefix $@"
+	local prefix="${name:+$color_fg_mag[$color_fg_blu$name$color_fg_mag]$color_rst}"
+	printf "$prefix $@"
 }
 
 # @FUNCTION: Print end message to stdout
@@ -26,12 +30,15 @@ begin() {
 end() {
 	local ret="$1" suffix
 	case "$1" in
-		(0) suffix="$COLOR_BLU[$COLOR_RST${COLOR_GRN}ok$COLOR_RST$COLOR_BLU]$COLOR_RST";;
-		(*) suffix="$COLOR_YLW[$COLOR_RST${COLOR_RED}no$COLOR_RST$COLOR_YLW]$COLOR_RST";;
+		(0) suffix="$color_fg_blu[${color_fg_grn}ok$color_fg_blu]$color_rst";;
+		(*) suffix="$color_fg_ylw[${color_fg_red}no$color_fg_ylw]$color_rst";;
 	esac
 	shift
-	echo -e "$@ $suffix"
-	PRINT_EOL=
+	print_len=$(($COLUMNS-$print_len))
+	printf "%${print_len}s" "$*"
+	printf "$suffix\n"
+	print_eol=
+	print_len=0
 	return "$ret"
 }
 
@@ -39,36 +46,38 @@ end() {
 eval_colors() {
 	[ -t 1 ] && yesno "${COLOR:-Yes}" || return
 
-	local BLD='1;' ESC='\e[' FGD='3' clr
-	for clr in 0:BLK 1:RED 2:GRN 3:YLW 4:BLU 5:MAG 6:CYN 7:WHT; do
-		eval export COLOR_${clr#*:}="'$ESC$BLD$FGD${clr%:*}m'"
+	local b='4' e='\e[' f='3' c
+	for c in 0:blk 1:red 2:grn 3:ylw 4:blu 5:mag 6:cyn 7:wht; do
+		eval color_bg_${c#*:}="'${e}1;${b}${c%:*}m'"
+		eval color_fg_${c#*:}="'${e}1;${f}${c%:*}m'"
+		eval color_bg_${c%:*}="'${e}${b}${c%:*}m'"
+		eval color_fg_${c%:*}="'${e}${f}${c%:*}m'"
 	done
-	COLOR_RST="${ESC}0m"
-	COLOR_BLD="${ESC}1m"
-	COLOR_UND="${ESC}4m"
-	COLOR_ITA="${ESC}3m"
-	export COLOR_RST COLOR_BLD COLOR_ITA COLOR_UND
+	color_rst="${e}0m"
+	color_bld="${e}1m"
+	color_und="${e}4m"
+	color_ita="${e}3m"
 }
 
 # @FUNCTION: Print message to stdout
 # @ARG: <msg>
 info() {
-	local prefix="${name:+$COLOR_MAG$name:$COLOR_RST}"
-	echo -e "$PRINT_EOL${COLOR_BLU}INFO:$COLOR_RST$prefix $@"
+	local prefix="${name:+$color_fg_mag$name:$color_rst}"
+	printf "$print_eol${color_fg_blu}INFO: $prefix $@\n"
 }
 
 # @FUNCTION: Print warn message to stdout
 # @ARG: <msg>
 warn() {
-	local prefix="${name:+$COLOR_RED$name:$COLOR_RST}"
-	echo -e "$PRINT_EOL${COLOR_YLW}WARN:$COLOR_RST$prefix $@"
+	local prefix="${name:+$color_fg_red$name:$color_rst}"
+	printf "$print_eol${color_fg_ylw}WARN: $prefix $@\n"
 }
 
 # @FUNCTION: Print message to stderr
 # @ARG: <msg>
 error() {
-	local prefix="${name:+$COLOR_YLW$name:$COLOR_RST}"
-	echo -e "$PRINT_EOL${COLOR_RED}ERROR:$COLOR_RST$prefix $@" >&2
+	local prefix="${name:+$color_fg_ylw$name:$color_rst}"
+	printf "$print_eol${color_fg_red}ERROR: $prefix $@\n" >&2
 }
 
 # @FUNCTION: Printing message handler
@@ -88,9 +97,8 @@ msg() {
 	case "$_opt" in
 		(-e) error "${_msg}";;
 		(-i) info  "${_msg}";;
-		(-c) eval echo -e "\" \$COLOR_${_clr}>>>$COLOR_RST ${_msg}\"";;
 	esac
-	$SPLASHD && debug splashd_cmd "set message $_msg" && debug splashd_cmd "repaint"
+	$splashd && debug splashd_cmd "set message $_msg" && debug splashd_cmd "repaint"
 }
 
 # @FUNCTION: Command exec handler
@@ -121,12 +129,12 @@ debug() {
 
 # @FUNCTON: Rescue SHell helper
 rescue_shell() {
-	if $SPLASHD; then
-		debug openvt -c${CONSOLE:8:1} $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
+	if $splashd && [ "${CONSOLE#/dev/tty}" != "$CONSOLE" ]; then
+		debug openvt -c${CONSOLE#/dev/tty} $SHELL -lim <$CONSOLE >$CONSOLE 2>&1
 	elif check_bin setsid; then
-		debug setsid $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
+		debug setsid $SHELL -lim <$CONSOLE >$CONSOLE 2>&1
 	else
-		debug $sh -aim 0<$CONSOLE 1>$CONSOLE 2>&1
+		debug $SHELL -lim <$CONSOLE >$CONSOLE 2>&1
 	fi
 }
 
@@ -153,7 +161,7 @@ check_bin() {
 
 # @FUNCTION: BusyBox Applets ChecK
 check_applet() {
-	local _line _list=$CONFDIR/busybox.applets
+	local _line _list=$confdir/busybox.applets
 	[ -f $_list ] || busybox --list-full >$_list
 
 	while read _line; do
@@ -165,13 +173,13 @@ check_applet() {
 # @ARG: <hook>
 dohook() {
 	local line name="${1##*/}"
-	export -p >/run/INIT.ENV
+	set >/environ
 	begin "exec: $1...\n"
-	$sh -acex "source /run/INIT.ENV;
-		source $LIBDIR/functions;
-		source $LIBDIR/helpers;
-		exec 3>>$LOGFILE;
-		source $1;
+	$SHELL -acex ". /environ;
+		. $libdir/functions;
+		. $libdir/helpers;
+		exec 3>>$logfile;
+		. $1;
 		exit;"
 	end "$?"
 
@@ -182,16 +190,16 @@ dohook() {
 		rm -f /run/env
 	fi
 	[ -f /run/${1##*/}.pid ] && rm -f /run/${1##*/}.pid && debug die
-	exec 0<$CONSOLE 1>$CONSOLE 2>&1	
+	exec <$CONSOLE >$CONSOLE 2>&1
 }
 
 # @FUNCTION: rmmod wrapper
 # @ARG: <module(s)|group>
 RMMOD() {
-	if [ -f "$CONFDIR/module-$1" ]; then
+	if [ -f "$confdir/module-$1" ]; then
 		while read _mod; do 
 			debug rmmod -q $_mod
-		done <$CONFDIR/module-$1
+		done <$confdir/module-$1
 	else
 		rmmod -q $*
 	fi
@@ -200,10 +208,10 @@ RMMOD() {
 # @FUNCTION: modprobe wrapper
 # @ARG: <module(s)|group>
 MODPROBE() {
-	if [ -f "$CONFDIR/module-$1" ]; then
+	if [ -f "$confdir/module-$1" ]; then
 		while read _mod; do 
 			debug modprobe -q $_mod
-		done <$CONFDIR/module-$1
+		done <$confdir/module-$1
 	else
 		modprobe -q $*
 	fi
@@ -211,13 +219,13 @@ MODPROBE() {
 
 # @FUNCTION: Kernel cmdline handler
 # @ARG: <arg>
-get_cmdline() {
+get_cmdline_option() {
 	local _arg _opt
 	for _arg in $*; do
 		for _cmd in $CMDLINE; do
 			case "$_arg" in
-				("$_opt") eval export $_opt=1; break;;
-				("${_opt%%=*}") export $_opt ; break;;
+				("$_opt") eval "$_opt=enable"; break;;
+				("${_opt%%=*}") eval "$_opt" ; break;;
 			esac
 		done
 	done
@@ -226,15 +234,15 @@ get_cmdline() {
 # @FUNCTION: Splash commands handler
 # @ARG: <cmd>
 splashd_cmd() {
-	echo "$@" >$SPLASH_FIFO
+	echo "$@" >$splash_fifo
 }
 
 # @FUNCTION: Stop splash
 splashd_stop() {
-	$SPLASHD && SPLASHD=false || return
+	$splashd && splashd=false || return
 	debug splashd_cmd "exit"
-	export CONSOLE=/dev/console
-	exec 0<$CONSOLE 1>$CONSOLE 2>&1
+	CONSOLE=/dev/console
+	exec <$CONSOLE >$CONSOLE 2>&1
 }
 
 # @FUNCTION: Read helper with Rescue Shell
@@ -246,7 +254,7 @@ shread() {
 		case "$_buffer" in
 			([Rr][Ss][Hh]|[Ss][Hh]|[Ss][Hh][Ee][Ll][Ll]|[Rr][Ee][Ss][Cc][Uu][Ee]|[Ss][Hh])
 				die;;
-			(*) eval ${1:-REPLY}="$_buffer"; break;;
+			(*) eval "${1:-REPLY}='$_buffer'"; break;;
 		esac
 	done
 }
@@ -271,24 +279,21 @@ blk() {
 		shread _asw
 		BLK "${_asw:-$1}"
 	done
-	eval ${2:-REPLY}=$_blk
+	eval "${2:-REPLY}='$_blk'"
 }
 
 # @FUNCTION: dm-crypt LUKS Keyfile handler
 # @ARG: <file>
 ldk() {
 	[ -b "$1" ] && return
-	case "$LBD_CRYPT" in
-		(1)
+	if $loopback_crypt; then
+		local _ld="$1"
+	else
 		local _ld="$(debug -d losetup -f)"
 		debug -d losetup "$_ld" "$1"
-		LBD_DEV="$_ld:$LBD_DEV"
-		;;
-		(*)
-		local _ld="$1"
-		;;
-	esac
-	debug cryptsetup luksOpen "$_ld" "$_fn" && LBD_KEY="$_fn:$LBD_KEY"
+		loopback_dev="$_ld $loopback_dev"
+	fi
+	debug cryptsetup luksOpen "$_ld" "$_fn" && loopback_key="$_fn $loopback_key"
 }
 
 # @FUNCTION: Key[file/mode] handler
@@ -298,33 +303,33 @@ get_key() {
 	local _fn="${3##*/}" _fp="$3" _kd="$2" _km="$1"
 
 	case "$_km" in
-		('') export KEYMODE=none; return;;
+		('') keymode=none; return;;
 		(ldk)
-		if [ -z "$LBD_CRYPT" ]; then
-			[ $(cryptsetup -v | sed -nre 's/.*\.(.*)\..*/\1/p') -ge 3 ] &&
-				LBD_CRYPT=1 || LBD_CRYPT=0
+		if [ -z "$loopback_crypt" ]; then
+			[ $(cryptsetup --version | sed -nre 's/.*([0-9]?)\.([0-9]?)\.([0-9]?)/\2/p') -ge 3 ] &&
+				loopback_crypt=true || loopback_crypt=false
 		fi;;
 		(pwd) ;;
 		(*)
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
-		if ! grep -q $MNTDIR /proc/mounts; then
-			[ -f $CONFDIR/remdev ] && debug MODPROBE remdev
+		if ! grep -sqw $mntdir /proc/mounts; then
+			[ -f $confdir/remdev ] && debug MODPROBE remdev
 			[ -b "$_kd" ] || blk "$_kd" "_kd"
-			debug -d mount -n -r "$_kd" $MNTDIR
+			debug -d mount -n -r "$_kd" $mntdir
 		fi
-		debug -d test -f "$MNTDIR/$_fp"
+		debug -d test -f "$mntdir/$_fp"
 		;;
 	esac
 	case $_km in
 		(gpg) $CHECK_ENV && debug -d check_bin gpg
-		      [ -f $CONFDIR/gpg ] && debug MODPROBE gpg
-		      export KEYFILE="$MNTDIR/$_fp" KEYMODE=gpg    ;;
-		(reg) export KEYFILE="$MNTDIR/$_fp" KEYMODE=reg    ;;
-		(ldk) ldk "$MNTDIR/$_fp"
-		      export KEYFILE="/dev/mapper/$_fn" KEYMODE=ldk;;
-		(pwd) export KEYMODE=pwd                           ;;
-		(*) die "$_km: invalid key mode"                   ;;
+		      [ -f $confdir/gpg ] && debug MODPROBE gpg
+		      keyfile="$mntdir/$_fp" keymode=gpg    ;;
+		(reg) keyfile="$mntdir/$_fp" keymode=reg    ;;
+		(ldk) ldk "$mntdir/$_fp"
+		      keyfile="/dev/mapper/$_fn" keymode=ldk;;
+		(pwd) keymode=pwd                           ;;
+		(*) die "$_km: invalid key mode"            ;;
 	esac
 }
 
@@ -348,10 +353,10 @@ get_dev() {
 
 	[ -n "$_raid" ] && debug -d mdopen "$_raid" "DEV"
 	[ -n "$_lvm" ]  && debug -d lvopen "$_dev" "$_lvm" "DEV"
-	[ -n "$KEYMODE" -a "$KEYMODE" != "none" ] && debug -d dmopen "$_dev" "DEV"
-	[ "$KEYMODE" =  "none" ] && debug -d blk "$_dev" "DEV"
+	[ -n "$keymode" -a "$keymode" != "none" ] && debug -d dmopen "$_dev" "DEV"
+	[ "$keymode" =  "none" ] && debug -d blk "$_dev" "DEV"
 
-	eval ${_name:-REPLY}=${_typ:+$_typ:}$DEV${_sig:+:$_sig}
+	eval "${_name:-REPLY}='${_typ:+$_typ:}$DEV${_sig:+:$_sig}'"
 }
 
 # @FUNCTION: Close dm-crypt mapping
@@ -374,7 +379,7 @@ dmcrypt() {
 		shread _asw
 		[ -e "${_asw:-$1}" ] || debug blk "${_asw:-$1}" "_ldh"
 	done
-	eval ${2:-REPLY}=$_ldh
+	eval "${2:-REPLY}='$_ldh'"
 }
 
 # @FUNCTION: dm-crypt LUKS device handler
@@ -388,7 +393,10 @@ dmopen() {
 	local _dev="${1##*-}" _hdr="$2" _header _map="${1%-*}"
 	blk "$_dev" "_dev"
 	_dm=/dev/mapper/$_map
-	[ -b "$_dm" ] && eval ${_name:-REPLY}=$_dm && return
+	if [ -b "$_dm" ]; then
+		eval "${_name:-REPLY}='$_dm'"
+		return
+	fi
 
 	[ -z "$_hdr" ] && debug dmcrypt "$_dev" "_dev" ||
 	case "$_hdr" in
@@ -397,8 +405,8 @@ dmopen() {
 		debug dmcrypt "$_hdr" "_header"
 		;;
 		(*)
-		if [ -e "$MNTDIR/$_hdr" ]; then
-			debug dmcrypt "$MNTDIR/$_hdr" "_header"
+		if [ -e "$mntdir/$_hdr" ]; then
+			debug dmcrypt "$mntdir/$_hdr" "_header"
 		else
 			die "Detached header not found"
 		fi
@@ -406,21 +414,21 @@ dmopen() {
 	esac
 	_arg="open $_dev $_map ${_header:+--header} $_header"
 
-	case "$KEYMODE" in
+	case "$keymode" in
 		(gpg)
 		mv /dev/tty /dev/bak && cp -a /dev/console /dev/tty
 		local _i
 		for _i in 1 2 3; do
-			debug "gpg -qd \"$KEYFILE\" | cryptsetup $_arg --key-file=-" && break
+			debug "gpg -qd \"$keyfile\" | cryptsetup $_arg --key-file=-" && break
 		done
 		rm /dev/tty && mv -f /dev/bak /dev/tty
 		;;
 		(ldk)
-		debug cryptsetup $_arg -d "$KEYFILE"
+		debug cryptsetup $_arg -d "$keyfile"
 		;;
 	esac
 	[ -b "$_dm" ] || debug -d cryptsetup $_arg
-	debug -d test -b $_dm && eval ${_name:-REPLY}=$_dm
+	debug -d test -b $_dm && eval "${_name:-REPLY}='$_dm'"
 }
 
 # @FUNCTION: LVM handler
@@ -431,25 +439,25 @@ lvopen() {
 	local _lv="${1/-//}"
 
 	if ! debug lvm lvchange -ay --noudevsync --sysinit "$_lv"; then
-		case "$KEYMODE" in
+		case "$keymode" in
 			(none) die "No logical volume found";;
 			([a-z]*)
 			local _pv="$2" IFS="${IFS}:"
-			[ -f "$MNTDIR/$_pv" ] && _pv="$(cat $MNTDIR/$_pv)"
+			[ -f "$mntdir/$_pv" ] && _pv="$(cat $mntdir/$_pv)"
 			for _p in $_pv; do
 				debug dmopen "$_p"
 			done
 			debug lvm vgchange -ay --noudevsync  --sysinit "${1%-*}" ||
 				die "Failed to open ${1}"
 			debug lvm vgscan --mknodes
-			KEYMODE=
+			keymode=
 			;;
 		esac
 	fi
 	if [ -b "/dev/mapper/$1" ]; then
-		eval ${3:-REPLY}=/dev/mapper/$1
+		eval "${3:-REPLY}='/dev/mapper/$1'"
 	elif [ -b "/dev/$_lv" ]; then
-		eval ${3:-REPLY}=/dev/$_lv
+		eval "${3:-REPLY}='/dev/$_lv'"
 	else
 		die "$_lv VG/LV not found"
 	fi
@@ -460,7 +468,10 @@ lvopen() {
 mdopen() {
 	local _devices _dev="${1%+*}" _opt="${1#*+}" _set _uuid
 	[ "${_dev/dev}" != "$_dev" ] || _dev=/dev/$_dev
-	[ -b "$_dev" ] && eval ${2:-REPLY}=$_dev && return
+	if [ -b "$_dev" ]; then
+		eval "${2:-REPLY}='$_dev'"
+		return
+	fi
 
 	case "$_opt" in
 		([Uu][Uu][Ii][Dd]*) _uuid="$_opt"        ;;
@@ -475,7 +486,7 @@ mdopen() {
 				debug -d dmopen "$_p-$_d"
 			done
 			cd /
-			KEYMODE=;;
+			keymode=;;
 		(sd*[1-9])       _devices="/dev/$_opt"   ;;
 		(*-*[1-9])       _devices="/dev/sd$_opt" ;;
 		(asr*|ddf*|hpt*|isw*|jmicron*|lsi*|nvidia*|pdc*|sil*|via*|dos*)
@@ -504,7 +515,7 @@ mdopen() {
 		done
 	fi
 	debug -d test -b $_dev
-	eval ${2:-REPLY}=$_dev
+	eval "${2:-REPLY}='$_dev'"
 }
 
 # @FUNCTION: (AUFS|OverlayFS+SquashFS) Squashed-dir mounter
@@ -526,13 +537,13 @@ squashd() {
 		shift
 	done
 
-	mkdir -p -m 0755 "$NEWROOT/$_squashdir"
+	mkdir -p -m 0755 "$newroot/$_squashdir"
 	debug MODPROBE squashd
-	cd $NEWROOT
+	cd $newroot
 
 	begin "Setting up kernel modules"
 	for _mod in ${_fs:-aufs overlay} squashfs; do
-		grep -q $_mod /proc/filesystems || modprobe $_mod >$NULL 2>&1 ||
+		grep -sqw $_mod /proc/filesystems || modprobe $_mod >$NULL 2>&1 ||
 			case "$_mod" in
 				(overlay|squashfs) { end 1 $_mod; return 1; };;
 			esac
@@ -545,7 +556,7 @@ squashd() {
 	local _DIR _dir _opt
 	for _dir in $_squashd; do
 		_DIR="${_squashdir#/}/${_dir#/}" _dir="${_dir#/}"
-		grep -q $_fs:$_dir /proc/mounts && continue
+		grep -sqw $_fs:$_dir /proc/mounts && continue
 		[ -f $_DIR.squashfs ] || continue
 	
 		case "$_fs" in
@@ -560,7 +571,7 @@ squashd() {
 		esac
 
 		begin "Mounting $_fs:$_dir"
-		if ! grep -q $_DIR/rr /proc/mounts; then
+		if ! grep -sqw $_DIR/rr /proc/mounts; then
 			mount -t squashfs -o nodev,ro \
 				$_DIR.squashfs $_DIR/rr >${NULL} 2>&1 ||
 				{ end 1 SquashFS; continue; }
@@ -575,7 +586,7 @@ squashd() {
 fsmount() {
 	local _fs _dev _dir _opt _x _y _z IFS="${IFS}:"
 	local name=FSmount _tab=/etc/fstab
-	[ -f $NEWROOT$_tab ] || die "no $_tab file found"
+	[ -f $newroot$_tab ] || die "no $_tab file found"
 
 	case "${1}" in
 		([aA]|[aA][lL][lL])
@@ -587,7 +598,7 @@ fsmount() {
 	esac
 
 	for _x in $@; do
-		eval set -- $(sed -nre "s|(^[^#].*$_x[[:space:]].*$)|\1|p" $NEWROOT$_tab)
+		eval set -- $(sed -nre "s|(^[^#].*$_x[[:space:]].*$)|\1|p" $newroot$_tab)
 		_fs="$3" _dev="$1" _dir="$2" _opt="$3"
 		if [ -z "$_dev" ]; then
 			msg -e "$_x not entry found in $_tab"
@@ -595,9 +606,9 @@ fsmount() {
 		fi
 		blk "$_dev" "_dev"
 		debug -d test -b $_dev
-		[ -d $NEWROOT/$_dir ] || mkdir -p $NEWROOT/$_dir
+		[ -d $newroot/$_dir ] || mkdir -p $newroot/$_dir
 		begin "Mounting $_dir"
-		debug -d mount -t $_fs ${_opt:+-o} $_opt $_dev $NEWROOT/$_dir
+		debug -d mount -t $_fs ${_opt:+-o} $_opt $_dev $newroot/$_dir
 		end "$?"
 	done
 }

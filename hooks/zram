@@ -6,7 +6,7 @@
 #
 
 set +e
-[ -z "$zram" ] && get_cmdline "zram"
+[ -z "$zram" ] && get_cmdline_option "zram"
 
 dozram() {
 	echo $$ >/run/${0##*/}.pid

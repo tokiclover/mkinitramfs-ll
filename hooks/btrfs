@@ -6,6 +6,7 @@
 #
 
 set +e
+[ -z "$bcache" ] && get_cmdline_option "btrfs"
 [ -n "$btrfs" ] || exit
 
 dobtrfs() {
