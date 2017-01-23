@@ -252,7 +252,7 @@ function docpio {
 		(lz4)   ext+=.lz4;;
 		(*) opts[-compressor]=; warn "initramfs will not be compressed";;
 	esac
-:	${extension:=${opt[-e]:-${opt[-extension]:-${ext}}}}
+:	${extension:=${opts[-e]:-${opts[-extension]:-${ext}}}}
 	if [[ -f ${initramfs}.${extension} ]]; then
 	    mv ${initramfs}.${extension}{,.old}
 	fi
@@ -368,7 +368,7 @@ if [[ ! -f ${opts[-confdir]}/busybox.applets ]]; then
 	bin/busybox --list-full >${opts[-confdir]}/busybox.applets || die
 fi
 for bin in $(< ${opts[-usrdir]}/../scripts/minimal.applets); do
-	grep -q ${bin} ${opts[-confdir]}/busybox.applets ||
+	grep -qsw ${bin} ${opts[-confdir]}/busybox.applets ||
 	die "${bin} applet not found, no suitable busybox found"
 done
 for bin in $(grep  '^bin' ${opts[-confdir]}/busybox.applets); do
