@@ -352,7 +352,7 @@ if [[ ! -f ${opts[-confdir]}/busybox.applets ]] {
 	bin/busybox --list-full >${opts[-confdir]}/busybox.applets || die
 }
 for bin ($(< ${opts[-usrdir]}/../scripts/minimal.applets)) {
-	grep -q ${bin} ${opts[-confdir]}/busybox.applets ||
+	grep -qsw ${bin} ${opts[-confdir]}/busybox.applets ||
 	die "${bin} applet not found, no suitable busybox found"
 }
 
