@@ -296,6 +296,17 @@ ldk() {
 	debug cryptsetup luksOpen "$_ld" "$_fn" && loopback_key="$_fn $loopback_key"
 }
 
+# @FUNCTION: mount remdev
+# @ARG: dev
+mnt_rem_dev() {
+	local _rem_dev="$1"
+	if ! grep -sqw $mntdir /proc/mounts; then
+		[ -f $confdir/remdev ] && debug MODPROBE remdev
+		[ -b "$_rem_dev" ] || blk "$_rem_dev" "_rem_dev"
+		debug -d mount -n -r "$_rem_dev" $mntdir
+	fi
+}
+
 # @FUNCTION: Key[file/mode] handler
 # @ARG: <mode:dev:file>
 get_key() {
@@ -309,15 +320,11 @@ get_key() {
 			[ $(cryptsetup --version | sed -nre 's/.*([0-9]?)\.([0-9]?)\.([0-9]?)/\2/p') -ge 3 ] &&
 				loopback_crypt=true || loopback_crypt=false
 		fi;;
-		(pwd) ;;
+		(pwd) [ -n "$_kd" ] && mnt_rem_dev "$_kd";;
 		(*)
 		[ -n "$_kd" ] || die "device field empty"
 		[ -n "$_fp" ] || die "file path field empty"
-		if ! grep -sqw $mntdir /proc/mounts; then
-			[ -f $confdir/remdev ] && debug MODPROBE remdev
-			[ -b "$_kd" ] || blk "$_kd" "_kd"
-			debug -d mount -n -r "$_kd" $mntdir
-		fi
+		mnt_rem_dev "$_kd"
 		debug -d test -f "$mntdir/$_fp"
 		;;
 	esac

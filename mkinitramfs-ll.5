@@ -5,7 +5,7 @@
 .\" stated in the COPYING file that comes with the source files
 .\"
 .pc
-.TH MKINITRAMFS-LL 1 "2017-01-22" "0.22.1" "File Format Manual"
+.TH MKINITRAMFS-LL 1 "2017-07-02" "0.22.1" "File Format Manual"
 .SH NAME
 init \- an initramfs init script
 .SH DESCRIPTION
@@ -339,8 +339,9 @@ So, detached header is simply enabled by appending an appropriate +\fIHEADER\fR
 to any crypted device.
 .IR HEADER
 should be a valid dm-crypt LUKS header by being either a block device or a
-regular file in the removable device used for key file (key \fIfile\fR mode is
-required for this.) Using something like `dma-sda+(/dev/sdb|/dma.header)'
+regular file in the removable device \-\- a key mode other than \fBnone\fR is
+required e.g. \fIluks=pwd:sdb1\fR for a detached header file.
+Using something like `dma-sda+(/dev/sdb1|/dma.header)'
 is correct but using UUID e.g. `dma-UUID=cyphertext+(UUID=header|/dma.header)'
 instead of plain path is prefered to avoid header mis-match.
 .TP
