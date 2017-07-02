@@ -185,7 +185,7 @@ dohook() {
 
 	if [ -f /run/env ]; then
 		while read line; do
-			export $line
+			eval "$line"
 		done </run/env
 		rm -f /run/env
 	fi
@@ -407,6 +407,8 @@ dmopen() {
 		(*)
 		if [ -e "$mntdir/$_hdr" ]; then
 			debug dmcrypt "$mntdir/$_hdr" "_header"
+		elif [ -e "$_hdr" ]; then
+			debug dmcrypt "$_hdr" "_header"
 		else
 			die "Detached header not found"
 		fi
