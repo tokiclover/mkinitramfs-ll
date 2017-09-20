@@ -58,9 +58,9 @@ fi
 
 cd ${PORTDIR:-/usr/portage}/sys-apps/busybox
 mkdir -p "${usrdir}"/bin
-USE=static ebuild ${pkg}.ebuild clean || die "clean failed"
-USE=static ebuild ${pkg}.ebuild unpack || die "unpack failed"
-USE=static ebuild ${pkg}.ebuild compile || die "compile failed"
+USE="-pam static" ebuild ${pkg}.ebuild clean || die "clean failed"
+USE="-pam static" ebuild ${pkg}.ebuild unpack || die "unpack failed"
+USE="-pam static" ebuild ${pkg}.ebuild compile || die "compile failed"
 cp "${PORTAGE_TMPDIR:-/var/tmp}"/portage/sys-apps/${pkg}/work/${pkg}/busybox \
 	"${usrdir}"/bin/ || die
 ebuild ${pkg}.ebuild clean || die
