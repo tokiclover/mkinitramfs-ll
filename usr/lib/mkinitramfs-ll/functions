@@ -265,6 +265,11 @@ blk() {
 	local _asw _blk
 	BLK() {
 		_blk=$(blkid | sed -nre "\|${1#*=}|s|(^/dev/.*):.*$|\1|p")
+		if [ -z "$_blk" ]; then
+			if grep -sqw "$1" /proc/partitions; then
+				_blk="/dev/$1"
+			fi
+		fi
 	}
 	BLK "$1"
 	
