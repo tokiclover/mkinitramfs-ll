@@ -43,7 +43,7 @@ opts[-module-remdev]+=:nls_cp437:vfat
 opts[-module-squashd]+=:aufs:overlay:squashfs
 opts[-module-swsusp]+=
 opts[-module-tuxonice]+=:tuxonice_swap:tuxonice_userui:tuxonice_file
-opts[-module-zfs]+=:zfs
+opts[-module-zfs]+=:zlib_deflate:spl:zavl:zcommon:znvpair:zunicode:zfs
 opts[-module-zram]+=:zram
 opts[-module-bcache]+=:bcache
 opts[-module-btrfs]+=:btrfs
@@ -70,7 +70,7 @@ opts[-bin]+=:blkid:v86d
 # opts[-bin-<hook>] are list of binaries to include if <hook> hook or script
 # is included in the initramfs
 #
-opts[-bin-zfs]=zfs:zpool:mount.zfs
+opts[-bin-zfs]=zfs:zpool:mount.zfs:zdb:fsck.zfs
 opts[-bin-btrfs]=btrfs:btrfsck:fsck.btrfs
 
 #
