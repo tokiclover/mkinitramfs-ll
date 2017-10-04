@@ -41,7 +41,7 @@ dozfs() {
 		for _dev in $(echo "$_vdev" | sed 's/:/ /g'); do
 			debug -d dmopen "$_dev"
 		done
-		debug -d zpool import -f $_opt -R $NEWROOT "$_pool"
+		debug -d zpool import -f $_opt -R $newroot "$_pool"
 	fi
 	if [ "$_grp" = 1 ]; then
 		zfs mount | grep -q "$_vol" || debug -d zfs mount -vO -a
