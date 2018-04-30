@@ -437,7 +437,7 @@ dmopen() {
 		done
 		rm /dev/tty && mv -f /dev/bak /dev/tty
 		;;
-		(ldk)
+		(ldk|reg)
 		debug cryptsetup $_arg -d "$keyfile"
 		;;
 	esac
