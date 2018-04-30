@@ -426,7 +426,8 @@ dmopen() {
 		fi
 		;;
 	esac
-	_arg="open $_dev $_map ${_header:+--header} $_header"
+	cryptsetup_args="$(echo $cryptsetup_args | sed 's/:/ /g')"
+	_arg="open $_dev $_map ${_header:+--header} $_header $cryptsetup_args"
 
 	case "$keymode" in
 		(gpg)
