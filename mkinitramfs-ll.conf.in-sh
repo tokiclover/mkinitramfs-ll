@@ -39,7 +39,7 @@ module_remdev="nls_cp437 vfat"
 module_squashd="aufs overlay squashfs"
 module_swsusp=""
 module_tuxonice="tuxonice_swap tuxonice_userui tuxonice_file"
-module_zfs="zfs"
+module_zfs="zlib_deflate spl zavl zcommon znvpair zunicode zfs"
 module_zram="zram"
 module_bcache="bcache"
 module_btrfs="btrfs"
@@ -67,7 +67,7 @@ bins="blkid v86d"
 # bin_<hook> are list of binaries to include if <hook> hook or script
 # is included in the initramfs
 #
-bin_zfs="zfs zpool mount.zfs"
+bin_zfs="zfs zpool mount.zfs zdb fsck.zfs"
 bin_btrfs="btrfs btrfsck fsck.btrfs"
 
 #

@@ -18,6 +18,8 @@ dozfs() {
 	$CHECK_ENV && debug -d check_bin zfs spool
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"
 	local _env="$1" _grp="$2" _vol="$3" _KEY _opt="$4"
+    local _dirs="" _dir=""
+    ZPOOL_IMPORT_PATH=""
 
 	local _sign _type _vdev
 	[ -n "$zfs"  ] && CUT "_vdev" "$zfs" "," "$_grp" "${_opt:+-s}"
@@ -41,8 +43,20 @@ dozfs() {
 		for _dev in $(echo "$_vdev" | sed 's/:/ /g'); do
 			debug -d dmopen "$_dev"
 		done
-		debug -d zpool import -f $_opt -R $NEWROOT "$_pool"
+        if [ -z "$ZPOOL_IMPORT_PATH" ] ; then
+            _dirs="$(for _dir in $(echo /dev/disk/by-*) ; do
+                echo "$_dir" | grep -q /by-vdev && continue
+                [ ! -d "$_dir" ] && continue
+                echo -n "$_dir:"
+            done | sed 's,:$,,g')"
+            [ -d "/dev/disk/by-vdev" ] && ZPOOL_IMPORT_PATH="/dev/disk/by-vdev"
+            ZPOOL_IMPORT_PATH="$ZPOOL_IMPORT_PATH$_dirs:/dev"
+            [ -n "$ZPOOL_IMPORT_PATH" ] && export ZPOOL_IMPORT_PATH
+        fi
+		debug -d zpool import -f $_opt -R $newroot "$_pool"
+        unset ZPOOL_IMPORT_PATH
 	fi
+
 	if [ "$_grp" = 1 ]; then
 		zfs mount | grep -q "$_vol" || debug -d zfs mount -vO -a
 	else

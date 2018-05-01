@@ -44,7 +44,7 @@ dobtrfs() {
 			debug $_CHK btrfs check --repair $_dev
 		done
 	fi
-	debug -d mount -t btrfs ${rootflags:+-o} $rootflags $_vol $NEWROOT
+	debug -d mount -t btrfs ${rootflags:+-o} $rootflags $_vol $newroot
 	echo "$_env=$_vol" >>/run/env
 	rm -f /run/${0##*/}.pid
 }
