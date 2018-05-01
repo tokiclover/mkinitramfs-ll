@@ -369,6 +369,17 @@ for hook in ${hooks}; do
 	module_group="${module_group} ${hook}"
 done
 
+# Install libgcc_s.so.1 if zfs hook is select.
+for hook in ${hooks}; do
+    if [ $hook = "zfs" ] ; then
+        _lib="libgcc_s.so.1"
+        _cmd="$(find /usr/lib64 -type f | grep $_lib | sort -r | head -n 1)"
+        _dest="usr/lib${LONG_BIT}"
+        cp -a "$_cmd" "$_dest/"
+        unset _lib _cmd _dest
+    fi
+done
+
 [ -f /etc/issue.logo ] && cp /etc/issue.logo etc/
 
 # Handle & copy BusyBox binary
