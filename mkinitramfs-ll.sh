@@ -356,10 +356,20 @@ for bin in dmraid mdadm zfs; do
 done
 module_group="${module_group/mdadm/raid}"
 
+installZfsLib() {
+    local _lib="libgcc_s.so.1"
+    local _cmd="$(find /usr/lib64 -type f | grep $_lib | sort -r | head -n 1)"
+    local _dest="usr/lib${LONG_BIT}"
+
+    [ ! -f "$_dest/$_lib" ] && cp -a "$_cmd" "$_dest/"
+}
+
 # Set up (requested) hook
 for hook in ${hooks}; do
 	for file in "${usrdir}"/../hooks/*${hook}*; do
 		cp -a "${file}" lib/${package}/
+
+        [ $hook = "zfs" ] && installZfsLib
 	done
 	if [ ${?} != 0 ]; then
 		warn "No $hook hook/script does not exist"
@@ -367,17 +377,6 @@ for hook in ${hooks}; do
 	fi
 	eval bins="\"${bins} \${bin_$hook}\""
 	module_group="${module_group} ${hook}"
-done
-
-# Install libgcc_s.so.1 if zfs hook is select.
-for hook in ${hooks}; do
-    if [ $hook = "zfs" ] && [ ! -f "$_dest/$_lib" ] ; then
-        _lib="libgcc_s.so.1"
-        _cmd="$(find /usr/lib64 -type f | grep $_lib | sort -r | head -n 1)"
-        _dest="usr/lib${LONG_BIT}"
-        cp -a "$_cmd" "$_dest/"
-        unset _lib _cmd _dest
-    fi
 done
 
 [ -f /etc/issue.logo ] && cp /etc/issue.logo etc/
