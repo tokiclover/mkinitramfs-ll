@@ -371,7 +371,7 @@ done
 
 # Install libgcc_s.so.1 if zfs hook is select.
 for hook in ${hooks}; do
-    if [ $hook = "zfs" ] ; then
+    if [ $hook = "zfs" ] && [ ! -f "$_dest/$_lib" ] ; then
         _lib="libgcc_s.so.1"
         _cmd="$(find /usr/lib64 -type f | grep $_lib | sort -r | head -n 1)"
         _dest="usr/lib${LONG_BIT}"
