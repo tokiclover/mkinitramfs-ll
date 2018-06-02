@@ -529,12 +529,16 @@ for (( i=0; i < ${#env[@]}; i++ )); do
 done
 unset env
 
-# Handle GCC libraries symlinks
-[[ -d usr/lib/gcc ]] &&
-for lib in $(find usr/lib/gcc -iname 'lib*'); do
-	ln -fns /$lib     lib/${lib##*/}
-	ln -fns /$lib usr/lib/${lib##*/}
+# Handle GCC libraries
+for dir in $(sed -nre '/^\/.*gcc.*/p' /etc/ld.so.conf /etc/ld.so.conf.d/*); do
+	if [[ -e ${dir}/libgcc_s.so ]]; then
+		mkdir -p .${dir}
+		cp ${dir}/libgcc_s.so* .${dir}
+	fi
 done
+cp -ar /etc/ld.so.* etc
+echo >etc/ld.so.cache
+ldconfig -r "${opts[-tmpdir]}" -f etc/ld.so.conf -C etc/ld.so.cache
 
 docpio || die
 [[ "${opts[-K]}" || "${opts[-keep-tmpdir]}" ]] || rm -rf ${opts[-tmpdir]}
