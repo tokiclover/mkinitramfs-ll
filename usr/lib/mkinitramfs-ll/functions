@@ -175,7 +175,7 @@ dohook() {
 	local line name="${1##*/}"
 	set >/environ
 	begin "exec: $1...\n"
-	$SHELL -acex ". /environ;
+	$SHELL -ace ". /environ;
 		. $libdir/functions;
 		. $libdir/helpers;
 		exec 3>>$logfile;

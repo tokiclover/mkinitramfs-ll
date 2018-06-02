@@ -5,7 +5,6 @@
 # $Version: 0.22.1 2016/06/02 12:33:03                   Exp $
 #
 
-set +e
 [ -z "$bcache" ] && get_cmdline_option "btrfs"
 [ -n "$btrfs" ] || exit
 
