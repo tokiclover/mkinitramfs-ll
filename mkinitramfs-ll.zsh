@@ -497,11 +497,16 @@ for (( i=1; i <= ${#env[@]}; i++ ))
 	print ${env[i]} >>${opts[-confdir]}/env
 unset env
 
-# Handle GCC libraries symlinks
-for lib (usr/lib/gcc/**/lib*.so*(.N)) {
-	ln -fns /$lib     lib/$lib:t
-	ln -fns /$lib usr/lib/$lib:t
+# Handle GCC libraries
+for dir ($(sed -nre '/^\/.*gcc.*/p' /etc/ld.so.conf /etc/ld.so.conf.d/*(.N))) {
+	if [[ -e ${dir}/libgcc_s.so ]] {
+		mkdir -p .${dir}
+		cp ${dir}/libgcc_s.so*(.N) .${dir}
+	}
 }
+cp -ar /etc/ld.so.* etc
+echo >etc/ld.so.cache
+ldconfig -r ${opts[-tmpdir]} -f etc/ld.so.conf -C etc/ld.so.cache
 
 docpio || die
 print -P "%F{green}>>>%f ${opts[-initramfs]} initramfs built"
