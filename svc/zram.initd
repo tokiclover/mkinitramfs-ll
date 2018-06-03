@@ -1,4 +1,4 @@
-#!/sbin/runscript
+#!/sbin/openrc-run
 #
 # $Header: mkinitramfs-ll/svc/zram.initd                 Exp $
 # $Author: (c) 2012-6 tokiclover <tokiclover@gmail.com>  Exp $
