@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
+0.22.11:
+
+Minor fixes from LUKS regular keyfile to ZFS device search path.
+
 0.22.10:
 
 Cleaned up environment, so init--PID 1--will not carry all the colors et al.
