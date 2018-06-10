@@ -139,5 +139,5 @@ Gentoo users can use provided scripts to build static busybox/gnupg.
 or else in DATADIR/mkiniramfs-ll directory if installed variant.
 The same goes for `busybox.sh' which build a static binary.
 
-[1]: https://github.com/tokiclover/bar-overlay
-[2]: https://github.com/tokiclover/browser-home-profile
+[1]: https://gitlab.com/tokiclover/bar-overlay
+[2]: https://gitlab.com/tokiclover/browser-home-profile
