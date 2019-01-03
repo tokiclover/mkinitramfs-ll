@@ -2,12 +2,12 @@
 # $Header: mkinitramfs-ll/hooks/zram                     Exp $
 # $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.22.1 2016/06/02 12:33:03                   Exp $
+# $Version: 0.22.1 2019/01/02 12:33:03                   Exp $
 #
 
 [ -z "$zram" ] && get_cmdline_option "zram"
 
-dozram() {
+enable_zram() {
 	echo $$ >/run/${0##*/}.pid
 	eval set -- $(echo "${zram%%:*}" | sed -e 's/-/ /g')
 
@@ -46,7 +46,7 @@ dozram() {
 retval=0
 
 if [ -n "$zram" ]; then
-	dozram
+	enable_zram
 	retval="$?"
 fi
 
