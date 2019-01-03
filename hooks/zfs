@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/hooks/zfs                      Exp $
 # $Author: (c) 2011-2015 -tclover <tokiclover@gmail.com> Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.22.1 2016/06/02 12:33:03                   Exp $
+# $Version: 0.22.1 2019/01/02 12:33:03                   Exp $
 #
 
 [ -z "$zfs" ] && get_cmdline_option "zfs"
@@ -11,7 +11,7 @@
 # @FUNCTION: dozfs
 # @DESCRIPTION: import a zfs pool
 # @USAGE: <env> <group> <device> <key> <zpool-options>
-dozfs() {
+mount_zfs() {
 	echo $$ >/run/${0##*/}.pid
 	local bin name=zfs
 	$CHECK_ENV && debug -d check_bin zfs spool
@@ -65,7 +65,7 @@ if [ -n "$resume" ]; then
 	retval=$(($?+$ratval))
 fi
 if [ -n "$root"   ]; then
-	debug dozfs "ROOT" "1" "$root"
+	debug mount_zfs "ROOT" "1" "$root"
 	retval=$(($?+$retval))
 fi
 
