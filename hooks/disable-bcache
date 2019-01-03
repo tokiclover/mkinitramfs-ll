@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/hooks/bacache                  Exp $
 # $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.22.1 2016/06/02 12:33:03                   Exp $
+# $Version: 0.22.1 2019/01/02 12:33:03                   Exp $
 #
 
 [ -z "$bcache" ] && get_cmdline_option "bcache"

@@ -110,6 +110,7 @@ Or \fIVG\fR-\fILV\fR for LVM volume;
 Or \fIPOOL\fR/\fIVOL\fR for a ZFS volume.
 See \fBDEVICES\fR for more info.
 .TP
+.RB rootfstype=\fIFileSystem\fR[:(Yes|No)]
 .RB rootfs=\fIFileSystem\fR[:(Yes|No)]
 .br
 Set root FS with optional fsck. \fIYes\fR enable fsck and a `die' on fsck failure
@@ -591,7 +592,7 @@ HOOKS/SCRIPTS
 .br
 .B SCRIPTS: \c
 .RB [\| mkswap-zfs \|]\ \c
-.RB [\| undo-bcache \|]
+.RB [\| disable-bcache \|]
 .br
   Use this syntax `$sh $LIBDIR/\fIscript\fR \fIARGS\fR' to execute a script in the rescue shell;
   (sh/LIBDIR are defined, just append the appropriate arguments.)

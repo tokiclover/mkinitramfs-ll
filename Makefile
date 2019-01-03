@@ -23,7 +23,7 @@ dist_EXTRA  = \
 	ChangeLog
 dist_HOOKS  = \
 	bcache \
-	undo-bcache \
+	disable-bcache \
 	btrfs \
 	zfs \
 	mkswap-zfs\

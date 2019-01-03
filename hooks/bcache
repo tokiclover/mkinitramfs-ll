@@ -10,7 +10,7 @@
 #
 # FIXME: luks, lvm, raid support?
 #
-dobcache() {
+enable_bcache() {
 	echo $$ >/run/${0##*/}.pid
 	debug MODPROBE bcache
 
@@ -25,7 +25,7 @@ dobcache() {
 retval=0
 
 if [ -n "$bcache" ]; then
-	dobcache
+	enable_bcache
 	retval="$?"
 fi
 
