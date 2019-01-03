@@ -2,7 +2,7 @@
 # $Header: mkinitramfs-ll/hooks/btrfs                    Exp $
 # $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
 # $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.22.1 2016/06/02 12:33:03                   Exp $
+# $Version: 0.22.1 2019/01/02 12:33:03                   Exp $
 #
 
 [ -z "$bcache" ] && get_cmdline_option "btrfs"
@@ -22,19 +22,26 @@ dobtrfs() {
 	[ -n "$luks"  ] && CUT "_KEY" "$luks"  "," "$_grp" "$_cut"
 	[ -n "$_DEV"  ] || return
 	debug -d get_key "$_KEY"
+	eval set -- $(echo "$_DEV" | sed 's/:/ /g')
 
 	if ! btrfs filesystem show "${_vol#*=}" >$NULL 2>&1; then
 		if yesno "$_DEV"; then
 			error "No $_vol filesystem found"
 			[ -n "$_CHK" ] || return
 		fi
-		[ "$KEYMODE" != "none" ] &&
-		for _dev in $(echo "$_DEV" | sed 's/:/ /g'); do
+		if [ "$KEYMODE" != "none" ]; then
+		for _dev in "$@"; do
 			debug -d dmopen "$_dev" "_DEV"
 			DEV="$_DEV $DEV"
 		done
+		fi
 	fi
-	[ "$KEYMODE" = "none" ] && blk "$_vol" "DEV"
+	if [ "$KEYMODE" = "none" ]; then
+		for _dev in "$@"; do
+			blk "$_dev" "_DEV"
+			DEV="$_DEV $DEV"
+		done
+	fi
 	debug -d btrfs device scan $DEV
 
 	if [ -n "$_CHK" ]; then
