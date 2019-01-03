@@ -28,6 +28,7 @@
 # `dm-crypt' group name to `module_group'.)
 # User groups are also supported e.g. kms module group
 #
+module_boot="kms crc32 btrfs ext2 ext3 ext4 jfs xfs thunderbolt-net thunderbolt intel-wmi intel-hid hid-generic i2c-hid i2c-isch i2c-i801 i2c-smbus spi-pxa2xx-platform spi-pxa2xx-pci intel-lpss-pci intel-lpss-acpi pwm-lpss pwm-lpss-platform"
 module_boot="kms ext2 ext3 ext4"
 module_device_mapper="dm-thin-pool dm-multipath dm-snapshot dm-cache dm-log dm-mirror"
 module_dm_crypt="aes dm-crypt sha256 sha512 wp512 ecb lrw xts twofish serpent"
