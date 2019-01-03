@@ -157,6 +157,7 @@ for arg in $CMDLINE; do
 		([Cbcdefhiklmnrsz]*=*) eval "$arg" ;;
 	esac
 done
+:	${rootfstype:=$rootfs}
 
 if [ -n "$level" ]; then
 	rescue_shell="${level%:*}"
@@ -294,9 +295,9 @@ fi
 
 level 3
 # ROOT should be set if available
-dorootfs() {
-	local fstype="${rootfs%:*}" check
-	CUT "check" "$rootfs" ":" "2" "-s"
+mount_rootfs() {
+	local fstype="${rootfstype%:*}" check
+	CUT "check" "$rootfstype" ":" "2" "-s"
 	debug -d get_dev "$root" "ROOT" "1"
 
 	level 3f
@@ -310,7 +311,7 @@ dorootfs() {
 }
 if [ -z "$ROOT" ]; then
 	begin "Mounting RootFS"
-	dorootfs
+	mount_rootfs
 	end "$?"
 fi
 if [ -n "$squashd" ]; then

@@ -8,7 +8,7 @@
 [ -z "$bcache" ] && get_cmdline_option "btrfs"
 [ -n "$btrfs" ] || exit
 
-dobtrfs() {
+mount_btrfs() {
 	echo $$ >/run/${0##*/}.pid
 	local _bin _CHK _dev _DEV DEV name=btrfs
 	$CHECK_ENV && debug -d check_bin btrfs
@@ -16,7 +16,7 @@ dobtrfs() {
 
 	debug -d test -n "$1" -a -n "$2" -a -n "$3"
 	local _cut _env="$1" _grp="$2" _KEY _vol="$3"
-	CUT "_CHK" "$rootfs" ":" "2" "-s"
+	CUT "_CHK" "$rootfstype" ":" "2" "-s"
 	[ $_grp -ge 2 ] && _cut=-s
 	[ -n "$btrfs" ] && CUT "_DEV" "$btrfs" "," "$_grp" "$_cut"
 	[ -n "$luks"  ] && CUT "_KEY" "$luks"  "," "$_grp" "$_cut"
@@ -58,7 +58,7 @@ dobtrfs() {
 retval=0
 
 if [ -n "$root"   ]; then
-	debug dobtrfs "ROOT" "1" "$root"
+	debug mount_btrfs "ROOT" "1" "$root"
 	retval="$?"
 fi
 
