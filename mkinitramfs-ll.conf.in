@@ -32,7 +32,7 @@
 # Default kernel module groups:
 # User groups are also supported e.g. kms module group
 #
-opts[-module-boot]+=:kms:ext2:ext3:ext4
+opts[-module-boot]+=:kms:crc32:btrfs:ext2:ext3:ext4:jfs:xfs:thunderbolt-net:thunderbolt:intel-wmi:intel-hid:hid-generic:i2c-hid:i2c-isch:i2c-i801:i2c-smbus:spi-pxa2xx-platform:spi-pxa2xx-pci:intel-lpss-pci:intel-lpss-acpi:pwm-lpss:pwm-lpss-platform:
 opts[-module-device-mapper]+=:dm-thin-pool:dm-mirror:dm-cache:dm-multipath:dm-snapshot
 opts[-module-dm-crypt]+=aes:dm-crypt:sha256:sha512:wp512:ecb:lrw:xts:twofish:serpent
 opts[-module-dm-raid]+=:dm-raid:dm-mirror:dm-multipath:dm-snapshot
