@@ -371,7 +371,13 @@ level 4s
 set >/environ
 echo -e "$color_fg_grn>>>$color_rst Switching Root"
 exec 3>&-
-exec switch_root ${newroot:-/newroot} ${init:-/sbin/init}
+while read _env; do
+	case "$_env" in
+		init=*) : ;;
+		[Cbcdefhiklmnrsz]*=*) unset "${_env%%=*}" ;;
+	esac
+done </environ
+exec switch_root /newroot ${init:-/sbin/init}
 
 echo -e "$color_fg_red>>>$color_rst Failed to switch root!"
 exec >${SHELL:-/bin/sh} -lim
