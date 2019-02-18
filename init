@@ -1,9 +1,9 @@
 #!/bin/sh
 #
-# $Header: mkinitramfs-ll/init                           Exp $
-# $Author: (c) 2011-6 tokiclover <tokiclover@gmail.com>  Exp $
-# $License: 2-clause/new/simplified BSD                  Exp $
-# $Version: 0.22.2 2016/06/06 12:33:03                   Exp $
+# $Header: mkinitramfs-ll/init                            Exp $
+# $Author: (c) 2011-19 tokiclover <tokiclover@gmail.com>  Exp $
+# $License: 2-clause/new/simplified BSD                   Exp $
+# $Version: 0.22.2 2019/01/12 12:33:03                    Exp $
 #
 # WARNING: USE AT YOUR OWN RISK! EVERYTHING IS GIVEN “AS IS”, SEE COPYING FILE
 #
@@ -154,7 +154,7 @@ for arg in $CMDLINE; do
 	case "$arg" in
 		([Rr][Ee][Ss][Cc][Uu][Ee]*|[Rr][Ss][Hh]*) rescue_shell=1;;
 		(ro|rw) rootflags="${rootflags:+$rootflags,}$arg";;
-		([Cbcdefhiklmnrsz]*=*) eval "$arg" ;;
+		([Cbcdefhiklmnrsvz]*=*) eval "$arg" ;;
 	esac
 done
 :	${rootfstype:=$rootfs}
@@ -219,6 +219,9 @@ exec 0<$CONSOLE 1>$CONSOLE 2>&1
 eval_colors
 set >/environ
 
+if [ -n "$video" ]; then
+	debug dohook "$libdir/fb-video"
+fi
 if [ -n "$splash" ]; then
 	begin "Starting Splash"
 	splashd

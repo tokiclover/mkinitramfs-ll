@@ -5,7 +5,7 @@
 .\" stated in the COPYING file that comes with the source files
 .\"
 .pc
-.TH MKINITRAMFS-LL 1 "2017-07-02" "0.22.1" "File Format Manual"
+.TH MKINITRAMFS-LL 5 "2019-02-18" "0.22.12" "File Format Manual"
 .SH NAME
 init \- an initramfs init script
 .SH DESCRIPTION
@@ -101,6 +101,13 @@ replace with the appropriate ZFS Pool/Volume
 T}
 .TE
 .SH OVERVIEW
+.TP
+.RB video=\fI2560x1600-32\fR
+.br
+This will set the video settings if
+.I fb-video
+hooks is included in the initramfs.
+This can be used to force the correct video settings for buggy firmware.
 .TP
 .RB root=\fIdevice\fR
 .rb

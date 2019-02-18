@@ -1,0 +1,25 @@
+#
+# $Header: mkinitramfs-ll/hooks/bacache                   Exp $
+# $Author: (c) 2011-19 tokiclover <tokiclover@gmail.com>  Exp $
+# $License: 2-clause/new/simplified BSD                   Exp $
+#
+
+[ -z "$video" ] && get_cmdline_option "video"
+
+video() {
+	echo $$ >/run/${0##*/}.pid
+	local _bin name=fbset
+	$CHECK_ENV && debug -d check_bin fbset
+
+	fbset -fb /dev/fb0 -g "$1" "$2" "$1" "$2" "$3"
+
+	rm /run/${0##*/}.pid
+}
+
+if [ -n "$video"   ]; then
+	debug video $(echo "$video" | sed 's,[x-], ,g')
+fi
+
+#
+# vim:fenc=utf-8:ft=sh:ci:pi:sts=0:sw=4:ts=4:
+#

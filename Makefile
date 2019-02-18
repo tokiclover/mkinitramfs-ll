@@ -25,6 +25,7 @@ dist_HOOKS  = \
 	bcache \
 	disable-bcache \
 	btrfs \
+	fb-video \
 	zfs \
 	mkswap-zfs\
 	zram
