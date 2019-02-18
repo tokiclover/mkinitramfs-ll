@@ -1,5 +1,9 @@
 Header: mkinitramfs-ll/ChangeLog, 2016/01/10
 
+0.22.12:
+
+Added a new framebuffer hook to take care buggy firmare.
+
 0.22.11:
 
 Minor fixes from LUKS regular keyfile to ZFS device search path.
